@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, StatusBar, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
-import { Property, Tour } from '../data/mockProperties';
+import { Property, Tour } from '../types/Property';
 
 interface TourSelectionScreenProps {
     property: Property;

@@ -13,7 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Property } from '../data/mockProperties';
+import { Property } from '../types/Property';
 import { useTheme } from '../theme/ThemeContext';
 
 interface PropertyDetailsScreenProps {
@@ -32,8 +32,14 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const { colors, isDark } = useTheme();
 
   const formatPrice = (p: Property) => {
-    let priceDisplay = `${p.currency}${p.price.toLocaleString()}`;
-    if (p.period === 'month') {
+    let priceDisplay = '';
+    if (typeof p.price === 'number') {
+        priceDisplay = `${p.currency}${p.price.toLocaleString()}`;
+    } else {
+        priceDisplay = p.price.toString();
+    }
+    
+    if (p.period === 'month' && !priceDisplay.includes('/')) {
       priceDisplay += '/mo';
     }
     return priceDisplay;

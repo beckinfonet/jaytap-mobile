@@ -10,7 +10,7 @@ import { SignupScreen } from './src/screens/SignupScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
-import { Property } from './src/data/mockProperties';
+import { Property } from './src/types/Property';
 
 function AppContent() {
   const { user, loading } = useAuth();

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,12 +10,14 @@ import {
   Alert,
   Linking,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MOCK_PROPERTIES, Property } from '../data/mockProperties';
+import { Property } from '../types/Property';
 import { PropertyCard } from '../components/PropertyCard';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { PropertyService } from '../services/PropertyService';
 
 interface HomeScreenProps {
   onSelectProperty: (property: Property) => void;
@@ -25,13 +27,31 @@ interface HomeScreenProps {
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile }) => {
   const { colors, theme, isDark, toggleTheme } = useTheme();
-  const { user } = useAuth(); // Assuming useAuth is available
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('Rent');
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadProperties();
+  }, []);
+
+  const loadProperties = async () => {
+    try {
+      const data = await PropertyService.getAllProperties();
+      setProperties(data);
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Failed to load properties');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filters = ['Rent', 'Buy', 'Apart', 'New', 'Furnished'];
 
-  const filteredProperties = MOCK_PROPERTIES.filter((p) => {
+  const filteredProperties = properties.filter((p) => {
     // Basic filtering logic
     if (activeFilter === 'Rent' && p.type !== 'rent') return false;
     if (activeFilter === 'Buy' && p.type !== 'sale') return false;
@@ -158,28 +178,35 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         barStyle={isDark ? 'light-content' : 'dark-content'}
         backgroundColor={colors.background}
       />
-      <View style={styles.contentContainer}>
-        <FlatList
-          data={filteredProperties}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <PropertyCard
-              property={item}
-              onPress={handlePressProperty}
-              onViewTour={handleViewTour}
-              onViewVideo={handleViewVideo}
-            />
-          )}
-          ListHeaderComponent={renderHeader}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
 
-        {/* Floating Map Button */}
-        <TouchableOpacity style={[styles.mapButton, { backgroundColor: '#F2EFE9', shadowColor: colors.cardShadow }]}>
-          <Text style={[styles.mapButtonText, { color: '#5D5045' }]}>📍 Map</Text>
-        </TouchableOpacity>
-      </View>
+      {loading ? (
+        <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      ) : (
+        <View style={styles.contentContainer}>
+          <FlatList
+            data={filteredProperties}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <PropertyCard
+                property={item}
+                onPress={handlePressProperty}
+                onViewTour={handleViewTour}
+                onViewVideo={handleViewVideo}
+              />
+            )}
+            ListHeaderComponent={renderHeader}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+
+          {/* Floating Map Button */}
+          <TouchableOpacity style={[styles.mapButton, { backgroundColor: '#F2EFE9', shadowColor: colors.cardShadow }]}>
+            <Text style={[styles.mapButtonText, { color: '#5D5045' }]}>📍 Map</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -275,6 +302,11 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 80, // Space for floating button
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   mapButton: {
     position: 'absolute',

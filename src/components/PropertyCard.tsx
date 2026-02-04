@@ -8,7 +8,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { Property } from '../data/mockProperties';
+import { Property } from '../types/Property';
 import { useTheme } from '../theme/ThemeContext';
 
 interface PropertyCardProps {
@@ -26,11 +26,17 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onViewTour,
   onViewVideo,
 }) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
   const formatPrice = (p: Property) => {
-    let priceDisplay = `${p.currency}${p.price.toLocaleString()}`;
-    if (p.period === 'month') {
+    let priceDisplay = '';
+    if (typeof p.price === 'number') {
+        priceDisplay = `${p.currency}${p.price.toLocaleString()}`;
+    } else {
+        priceDisplay = p.price.toString();
+    }
+    
+    if (p.period === 'month' && !priceDisplay.includes('/')) {
       priceDisplay += '/mo';
     }
     return priceDisplay;
@@ -92,9 +98,9 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
              <Text style={[styles.price, { color: colors.text }]}>{formatPrice(property)}</Text>
              
              <TouchableOpacity 
-                style={[styles.contactButton, { backgroundColor: colors.primaryLight }]}
+                style={[styles.contactButton, { backgroundColor: colors.primary }]}
              >
-                 <Text style={[styles.contactButtonText, { color: colors.buttonText }]}>Contact Agent</Text>
+                 <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>Contact Agent</Text>
              </TouchableOpacity>
           </View>
         </View>
