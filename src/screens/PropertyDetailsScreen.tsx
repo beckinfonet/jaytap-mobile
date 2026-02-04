@@ -186,7 +186,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               <Text style={[styles.footerPrice, { color: colors.text }]}>{formatPrice(property)}</Text>
           </View>
           <TouchableOpacity style={[styles.contactButton, { backgroundColor: colors.primary }]}>
-              <Text style={styles.contactButtonText}>Contact Agent</Text>
+              <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>Contact Agent</Text>
           </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -443,7 +443,6 @@ const styles = StyleSheet.create({
       borderRadius: 30,
   },
   contactButtonText: {
-      color: '#FFFFFF',
       fontSize: 16,
       fontWeight: '600',
   }
