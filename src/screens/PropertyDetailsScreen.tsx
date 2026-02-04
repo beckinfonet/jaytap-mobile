@@ -19,7 +19,7 @@ import { useTheme } from '../theme/ThemeContext';
 interface PropertyDetailsScreenProps {
   property: Property;
   onBack: () => void;
-  onOpenTour: (url: string) => void;
+  onOpenTours: () => void;
 }
 
 const { width } = Dimensions.get('window');
@@ -27,7 +27,7 @@ const { width } = Dimensions.get('window');
 export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   property,
   onBack,
-  onOpenTour,
+  onOpenTours,
 }) => {
   const { colors, isDark } = useTheme();
 
@@ -84,6 +84,35 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         </View>
 
         <View style={styles.contentContainer}>
+          
+          {/* Media Buttons - Moved to Top */}
+          <View style={styles.mediaButtonsRow}>
+             {property.is3DTourAvailable && property.tours.length > 0 && (
+                 <TouchableOpacity 
+                    style={[styles.mediaButton, styles.tour3DButton]}
+                    onPress={onOpenTours}
+                 >
+                     <Text style={{fontSize: 24, marginRight: 8}}>👓</Text>
+                     <View style={{ flex: 1 }}>
+                        <Text style={styles.tour3DButtonText} numberOfLines={1} adjustsFontSizeToFit>Start 3D Tour</Text>
+                        <Text style={styles.tour3DButtonSubtext} numberOfLines={1} adjustsFontSizeToFit>Interactive Walkthrough</Text>
+                     </View>
+                 </TouchableOpacity>
+             )}
+             {property.videoUrl && (
+                 <TouchableOpacity 
+                    style={[styles.mediaButton, styles.videoButton]}
+                    onPress={() => handleOpenLink(property.videoUrl, 'Video')}
+                 >
+                     <Text style={{fontSize: 24, marginRight: 8}}>🎥</Text>
+                     <View>
+                        <Text style={styles.videoButtonText}>Watch Video</Text>
+                        <Text style={styles.videoButtonSubtext}>Property Tour</Text>
+                     </View>
+                 </TouchableOpacity>
+             )}
+          </View>
+
           {/* Title and Address */}
           <View style={styles.section}>
             <Text style={[styles.title, { color: colors.text }]}>{property.title}</Text>
@@ -129,28 +158,6 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 </View>
               ))}
             </View>
-          </View>
-
-          {/* Media Buttons */}
-          <View style={styles.mediaButtonsRow}>
-             {property.is3DTourAvailable && property.matterportUrl && (
-                 <TouchableOpacity 
-                    style={[styles.mediaButton, { backgroundColor: colors.primaryLight }]}
-                    onPress={() => onOpenTour(property.matterportUrl!)}
-                 >
-                     <Text style={{fontSize: 20, marginRight: 8}}>👓</Text>
-                     <Text style={[styles.mediaButtonText, { color: colors.text }]}>3D Tour</Text>
-                 </TouchableOpacity>
-             )}
-             {property.videoUrl && (
-                 <TouchableOpacity 
-                    style={[styles.mediaButton, { backgroundColor: colors.primaryLight, marginLeft: 12 }]}
-                    onPress={() => handleOpenLink(property.videoUrl, 'Video')}
-                 >
-                     <Text style={{fontSize: 20, marginRight: 8}}>🎥</Text>
-                     <Text style={[styles.mediaButtonText, { color: colors.text }]}>Video</Text>
-                 </TouchableOpacity>
-             )}
           </View>
 
           {/* Agent Info */}
@@ -247,6 +254,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 20,
+    paddingTop: 20, // Added padding top for spacing from image
   },
   section: {
     marginBottom: 24,
@@ -315,6 +323,7 @@ const styles = StyleSheet.create({
   mediaButtonsRow: {
       flexDirection: 'row',
       marginBottom: 24,
+      gap: 12, // Use gap for spacing
   },
   mediaButton: {
       flex: 1,
@@ -322,11 +331,54 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: 12,
+      paddingHorizontal: 12, // Ensure padding
       borderRadius: 12,
+  },
+  videoButton: {
+      flex: 1, // Equal width to 3D button for balance, or slightly less if preferred
+      backgroundColor: '#FFFFFF', // White background
+      borderWidth: 1,
+      borderColor: '#E0E0E0',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+  },
+  videoButtonText: {
+      color: '#333',
+      fontSize: 15,
+      fontWeight: '700',
+  },
+  videoButtonSubtext: {
+      color: '#666',
+      fontSize: 11,
+      fontWeight: '500',
   },
   mediaButtonText: {
       fontSize: 16,
       fontWeight: '600',
+  },
+  tour3DButton: {
+    backgroundColor: '#6C63FF', // Strong purple
+    shadowColor: '#6C63FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    flex: 1.2, // Keep primary emphasis on 3D
+  },
+  tour3DButtonText: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  tour3DButtonSubtext: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 11,
+    fontWeight: '500',
   },
   agentContainer: {
       flexDirection: 'row',

@@ -1,3 +1,10 @@
+export interface Tour {
+  id: string;
+  title: string;
+  url: string;
+  thumbnailUrl?: string;
+}
+
 export interface Property {
   id: string;
   title: string;
@@ -21,7 +28,7 @@ export interface Property {
     imageUrl?: string;
   };
   is3DTourAvailable: boolean;
-  matterportUrl?: string;
+  tours: Tour[]; // Changed from singular matterportUrl to array of Tours
   type: 'rent' | 'sale';
 }
 
@@ -48,7 +55,20 @@ export const MOCK_PROPERTIES: Property[] = [
       reviews: 24,
     },
     is3DTourAvailable: true,
-    matterportUrl: 'https://my.matterport.com/show/?m=6GNETgQLzxV',
+    tours: [
+      {
+        id: 't1',
+        title: 'Full Apartment Walkthrough',
+        url: 'https://my.matterport.com/show/?m=6GNETgQLzxV',
+        thumbnailUrl: 'https://my.matterport.com/api/v1/player/models/6GNETgQLzxV/thumb'
+      },
+      {
+        id: 't2',
+        title: 'Living Room Detail',
+        url: 'https://my.matterport.com/show/?m=6GNETgQLzxV&start={"rotation":{"x":0,"y":180}}', // Just mimicking a different view
+        thumbnailUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=400&auto=format&fit=crop'
+      }
+    ],
     type: 'rent',
   },
   {
@@ -71,7 +91,14 @@ export const MOCK_PROPERTIES: Property[] = [
       reviews: 12,
     },
     is3DTourAvailable: true,
-    matterportUrl: 'https://my.matterport.com/show/?m=placeholder2',
+    tours: [
+      {
+        id: 't3',
+        title: 'Virtual Tour',
+        url: 'https://my.matterport.com/show/?m=placeholder2',
+        thumbnailUrl: 'https://images.unsplash.com/photo-1600596542815-e328700240eb?q=80&w=400&auto=format&fit=crop'
+      }
+    ],
     type: 'sale',
   },
   {
@@ -95,6 +122,7 @@ export const MOCK_PROPERTIES: Property[] = [
       reviews: 8,
     },
     is3DTourAvailable: false,
+    tours: [],
     type: 'rent',
   },
   {
@@ -118,7 +146,14 @@ export const MOCK_PROPERTIES: Property[] = [
       reviews: 24,
     },
     is3DTourAvailable: true,
-    matterportUrl: 'https://my.matterport.com/show/?m=placeholder3',
+    tours: [
+      {
+        id: 't4',
+        title: 'Main House Tour',
+        url: 'https://my.matterport.com/show/?m=placeholder3',
+        thumbnailUrl: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=400&auto=format&fit=crop'
+      }
+    ],
     type: 'sale',
   },
 ];

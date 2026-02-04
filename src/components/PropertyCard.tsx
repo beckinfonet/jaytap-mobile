@@ -62,9 +62,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           </View>
 
           <View style={styles.bottomBadges}>
-             {property.is3DTourAvailable && (
-              <View style={[styles.mediaBadge, { backgroundColor: 'rgba(0, 0, 0, 0.6)' }]}>
-                <Text style={[styles.mediaBadgeText, { color: '#FFF' }]}>3D</Text>
+            {property.is3DTourAvailable && property.tours && property.tours.length > 0 && (
+              <View style={[styles.mediaBadge, styles.tour3DBadge]}>
+                <Text style={styles.tour3DBadgeText}>
+                    {property.tours.length > 1 ? '3D Tours' : '3D Tour'}
+                </Text>
               </View>
             )}
              {property.videoUrl && (
@@ -164,6 +166,22 @@ const styles = StyleSheet.create({
   mediaBadgeText: {
     fontSize: 12,
     fontWeight: '700',
+  },
+  tour3DBadge: {
+    backgroundColor: '#6C63FF', // Primary purple for emphasis
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    shadowColor: '#6C63FF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  tour3DBadgeText: {
+    color: '#FFF',
+    fontWeight: '800',
+    fontSize: 12,
+    letterSpacing: 0.5,
   },
   contentContainer: {
     paddingTop: 16,

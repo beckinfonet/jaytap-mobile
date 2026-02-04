@@ -18,10 +18,10 @@ import { useTheme } from '../theme/ThemeContext';
 
 interface HomeScreenProps {
   onSelectProperty: (property: Property) => void;
-  onOpenTour: (url: string) => void;
+  onOpenTours: (property: Property) => void;
 }
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTour }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours }) => {
   const { colors, theme, isDark, toggleTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('Rent');
@@ -46,8 +46,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   };
 
   const handleViewTour = async (property: Property) => {
-    if (property.matterportUrl) {
-      onOpenTour(property.matterportUrl);
+    if (property.tours && property.tours.length > 0) {
+      onOpenTours(property);
     } else {
       Alert.alert('Info', 'No 3D Tour available for this property.');
     }
