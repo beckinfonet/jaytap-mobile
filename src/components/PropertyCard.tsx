@@ -6,8 +6,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { Property } from '../data/mockProperties';
+import { useTheme } from '../theme/ThemeContext';
 
 interface PropertyCardProps {
   property: Property;
@@ -24,6 +26,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onViewTour,
   onViewVideo,
 }) => {
+  const { colors } = useTheme();
+
   const formatPrice = (p: Property) => {
     let priceDisplay = `${p.currency}${p.price.toLocaleString()}`;
     if (p.period) {
@@ -33,29 +37,34 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   };
 
   return (
-    <View style={styles.cardContainer}>
-      <TouchableOpacity activeOpacity={0.9} onPress={() => onPress(property)}>
+    <View style={[styles.cardContainer, { backgroundColor: colors.surface, shadowColor: colors.cardShadow }]}>
+      <TouchableOpacity activeOpacity={0.95} onPress={() => onPress(property)}>
         {/* Image Section */}
-        <View style={styles.imageContainer}>
+        <View style={styles.imageWrapper}>
           <Image
             source={{ uri: property.imageUrl }}
             style={styles.image}
             resizeMode="cover"
           />
-          <View style={styles.badgeContainer}>
-            <View style={[styles.badge, styles.rentBadge]}>
-              <Text style={[styles.badgeText, styles.rentBadgeText]}>
-                {property.type === 'rent' ? 'For Rent' : 'For Sale'}
+          <View style={styles.overlayGradient} />
+          
+          <View style={styles.topBadges}>
+            <View style={[styles.badge, styles.statusBadge]}>
+              <Text style={styles.statusText}>
+                {property.type === 'rent' ? 'FOR RENT' : 'FOR SALE'}
               </Text>
             </View>
-            {property.is3DTourAvailable && (
-              <View style={[styles.badge, styles.tourBadge]}>
-                <Text style={styles.badgeText}>3D Tour</Text>
+          </View>
+
+          <View style={styles.bottomBadges}>
+             {property.is3DTourAvailable && (
+              <View style={[styles.mediaBadge, { backgroundColor: 'rgba(255, 255, 255, 0.9)' }]}>
+                <Text style={[styles.mediaBadgeText, { color: colors.primary }]}>3D Tour</Text>
               </View>
             )}
              {property.videoUrl && (
-              <View style={[styles.badge, styles.videoBadge]}>
-                <Text style={[styles.badgeText, styles.videoBadgeText]}>Video</Text>
+              <View style={[styles.mediaBadge, { backgroundColor: 'rgba(0, 0, 0, 0.6)' }]}>
+                <Text style={[styles.mediaBadgeText, { color: '#FFF' }]}>Video</Text>
               </View>
             )}
           </View>
@@ -63,59 +72,64 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
         {/* Content Section */}
         <View style={styles.contentContainer}>
-          <View style={styles.headerRow}>
-            <Text style={styles.title}>{property.title}</Text>
-            <Text style={styles.price}>{formatPrice(property)}</Text>
+          <View style={styles.mainInfo}>
+            <Text style={[styles.price, { color: colors.primary }]}>{formatPrice(property)}</Text>
+            <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{property.title}</Text>
+            <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>
+                {property.address}
+            </Text>
           </View>
 
-          <View style={styles.locationRow}>
-             {/* Simple location icon placeholder using text if no vector icons */}
-            <Text style={styles.locationText}>📍 {property.address}</Text>
-          </View>
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
           <View style={styles.specsRow}>
-            <Text style={styles.specText}>🛏 {property.specs.beds} beds</Text>
-            <Text style={styles.specText}>🚿 {property.specs.baths} baths</Text>
-            <Text style={styles.specText}>📐 {property.specs.sqft} m²</Text>
+            <View style={styles.specItem}>
+                <Text style={styles.specIcon}>🛏</Text>
+                <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.beds}</Text>
+                <Text style={[styles.specLabel, { color: colors.textSecondary }]}>Beds</Text>
+            </View>
+            <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
+             <View style={styles.specItem}>
+                <Text style={styles.specIcon}>🚿</Text>
+                <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.baths}</Text>
+                <Text style={[styles.specLabel, { color: colors.textSecondary }]}>Baths</Text>
+            </View>
+            <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
+             <View style={styles.specItem}>
+                <Text style={styles.specIcon}>📐</Text>
+                <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.sqft}</Text>
+                <Text style={[styles.specLabel, { color: colors.textSecondary }]}>m²</Text>
+            </View>
           </View>
-
-          <View style={styles.featuresRow}>
-            {property.features.slice(0, 3).map((feature, index) => (
-              <View key={index} style={styles.featureChip}>
-                <Text style={styles.featureText}>{feature}</Text>
-              </View>
-            ))}
-          </View>
+          
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
           <View style={styles.footerRow}>
              <View style={styles.agentInfo}>
-                <View style={styles.agentAvatarPlaceholder} >
-                    <Text style={styles.agentInitial}>{property.agent.name.charAt(0)}</Text>
+                <View style={[styles.agentAvatarPlaceholder, { backgroundColor: colors.inputBackground }]} >
+                    <Text style={[styles.agentInitial, { color: colors.textSecondary }]}>{property.agent.name.charAt(0)}</Text>
                 </View>
                 <View>
-                    <Text style={styles.agentName}>{property.agent.name}</Text>
-                    <Text style={styles.agentRating}>⭐ {property.agent.rating} ({property.agent.reviews} reviews)</Text>
+                    <Text style={[styles.agentName, { color: colors.text }]}>{property.agent.name}</Text>
+                    <View style={styles.ratingRow}>
+                        <Text style={styles.star}>⭐</Text>
+                        <Text style={[styles.ratingText, { color: colors.textSecondary }]}>
+                            {property.agent.rating} ({property.agent.reviews})
+                        </Text>
+                    </View>
                 </View>
              </View>
-          </View>
-          
-          <View style={styles.actionsRow}>
-            {property.is3DTourAvailable && (
-                <TouchableOpacity 
-                    style={[styles.actionButton, styles.tourButton]}
-                    onPress={() => onViewTour(property)}
-                >
-                    <Text style={styles.tourButtonText}>3D Tour</Text>
-                </TouchableOpacity>
-            )}
-             {property.videoUrl && (
-                <TouchableOpacity 
-                    style={[styles.actionButton, styles.videoButton]}
-                    onPress={() => onViewVideo(property)}
-                >
-                    <Text style={styles.videoButtonText}>Video</Text>
-                </TouchableOpacity>
-            )}
+
+            <View style={styles.actionButtons}>
+                {property.is3DTourAvailable && (
+                    <TouchableOpacity 
+                        style={[styles.iconButton, { backgroundColor: colors.primaryLight }]}
+                        onPress={() => onViewTour(property)}
+                    >
+                        <Text style={{ fontSize: 16 }}>👁</Text>
+                    </TouchableOpacity>
+                )}
+            </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -125,180 +139,173 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
 const styles = StyleSheet.create({
   cardContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    marginVertical: 10,
-    marginHorizontal: 16,
-    shadowColor: '#000',
+    borderRadius: 20,
+    marginVertical: 12,
+    marginHorizontal: 20,
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 8,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E1E4E8',
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 8,
+    // overflow: 'hidden', // iOS shadow fix requires removing overflow hidden on container usually, or using shadow path.
+    // But for simplified rounded corners we need overflow hidden. 
+    // Best practice on RN: Inner container for overflow hidden, outer for shadow.
+    // For simplicity here, we'll keep it simple but maybe reduce elevation if clips.
+    backgroundColor: '#fff',
   },
-  imageContainer: {
-    height: 200,
+  imageWrapper: {
+    height: 220,
+    width: '100%',
     position: 'relative',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    overflow: 'hidden',
   },
   image: {
     width: '100%',
     height: '100%',
   },
-  badgeContainer: {
+  overlayGradient: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.05)', // Subtle overlay
+  },
+  topBadges: {
     position: 'absolute',
-    top: 12,
-    left: 12,
+    top: 16,
+    left: 16,
+  },
+  statusBadge: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#1A1D23',
+    letterSpacing: 0.5,
+  },
+  bottomBadges: {
+    position: 'absolute',
+    bottom: 16,
+    left: 16,
     flexDirection: 'row',
+    gap: 8,
   },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    marginRight: 8,
+  mediaBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backdropFilter: 'blur(10px)', // Works on some versions, mostly web. 
   },
-  rentBadge: {
-    backgroundColor: '#fff',
-  },
-  rentBadgeText: {
-    color: '#333',
-  },
-  tourBadge: {
-    backgroundColor: '#6C63FF',
-  },
-  videoBadge: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
-  badgeText: {
+  mediaBadgeText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#fff', // Changed to white for better contrast on colored badges
-  },
-  videoBadgeText: {
-    color: '#fff',
+    fontWeight: '700',
   },
   contentContainer: {
-    padding: 16,
+    padding: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
-  headerRow: {
-    flexDirection: 'column', 
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 4,
+  mainInfo: {
+    marginBottom: 16,
   },
   price: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FF385C',
+    fontSize: 22,
+    fontWeight: '800',
+    marginBottom: 4,
+    letterSpacing: -0.5,
   },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
+  title: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+    lineHeight: 22,
   },
-  locationText: {
+  address: {
     fontSize: 14,
-    color: '#666',
+  },
+  divider: {
+    height: 1,
+    width: '100%',
+    marginBottom: 16,
   },
   specsRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginBottom: 12,
-  },
-  specText: {
-    fontSize: 14,
-    color: '#444',
-    marginRight: 16,
-    fontWeight: '500',
-  },
-  featuresRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  featureChip: {
-    backgroundColor: '#f0f0f0',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 8,
-    marginBottom: 4,
+  specItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
-  featureText: {
+  specIcon: {
+    fontSize: 16,
+  },
+  specValue: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  specLabel: {
     fontSize: 12,
-    color: '#555',
+    fontWeight: '500',
+  },
+  verticalDivider: {
+    width: 1,
+    height: 24,
   },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-    paddingTop: 12,
   },
   agentInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   agentAvatarPlaceholder: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#ddd',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    marginRight: 10,
   },
   agentInitial: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#555',
+    fontSize: 16,
+    fontWeight: '700',
   },
   agentName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    marginBottom: 2,
   },
-  agentRating: {
-    fontSize: 12,
-    color: '#666',
-  },
-  actionsRow: {
-      flexDirection: 'row',
-      gap: 10,
-  },
-  actionButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
+  ratingRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+  },
+  star: {
+    fontSize: 10,
+    marginRight: 4,
+  },
+  ratingText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  tourButton: {
-    backgroundColor: '#6C63FF', 
-  },
-  videoButton: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#6C63FF',
-  },
-  tourButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  videoButtonText: {
-    color: '#6C63FF',
-    fontSize: 14,
-    fontWeight: 'bold',
-  }
 });
