@@ -19,15 +19,14 @@ import { useTheme } from '../theme/ThemeContext';
 export const HomeScreen = () => {
   const { colors, theme, isDark, toggleTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [activeFilter, setActiveFilter] = useState('Rent');
 
-  const filters = ['All', 'For Rent', 'For Sale', 'Houses', 'Apartments'];
+  const filters = ['Rent', 'Buy', 'Apart', 'New', 'Furnished'];
 
   const filteredProperties = MOCK_PROPERTIES.filter((p) => {
     // Basic filtering logic
-    if (activeFilter === 'For Rent' && p.type !== 'rent') return false;
-    if (activeFilter === 'For Sale' && p.type !== 'sale') return false;
-    // Add more complex filtering if needed
+    if (activeFilter === 'Rent' && p.type !== 'rent') return false;
+    if (activeFilter === 'Buy' && p.type !== 'sale') return false;
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -38,14 +37,11 @@ export const HomeScreen = () => {
   });
 
   const handlePressProperty = (property: Property) => {
-    // Navigate to details (placeholder)
     Alert.alert('Property Selected', `You clicked on ${property.title}`);
   };
 
   const handleViewTour = async (property: Property) => {
     if (property.matterportUrl) {
-      // Ideally open in a WebView or In-App Browser
-      // For now, we'll try to open in default browser
       const supported = await Linking.canOpenURL(property.matterportUrl);
       if (supported) {
         await Linking.openURL(property.matterportUrl);
@@ -71,59 +67,77 @@ export const HomeScreen = () => {
   };
 
   const renderHeader = () => (
-    <View style={[styles.headerContainer, { backgroundColor: colors.surface }]}>
+    <View style={styles.headerContainer}>
+      {/* Top Bar: Menu, Location, Icons */}
       <View style={styles.topBar}>
-        <View>
-          <Text style={[styles.greetingText, { color: colors.textSecondary }]}>Welcome back,</Text>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Find Your Dream Home</Text>
-        </View>
-        <TouchableOpacity onPress={toggleTheme} style={[styles.themeToggle, { backgroundColor: colors.inputBackground }]}>
-          <Text style={{ fontSize: 20 }}>{isDark ? '☀️' : '🌙'}</Text>
+        <TouchableOpacity style={styles.iconButton}>
+          <Text style={[styles.iconText, { color: colors.text }]}>☰</Text>
         </TouchableOpacity>
+
+        <View style={styles.locationContainer}>
+          <Text style={[styles.locationTitle, { color: colors.text }]}>Bishkek • Chui Ave ⌄</Text>
+        </View>
+
+        <View style={styles.rightIcons}>
+          <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>
+            <Text style={{ fontSize: 20 }}>{isDark ? '☀️' : '🌙'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton}>
+            <Text style={{ fontSize: 22, color: colors.text }}>♡</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
+      {/* Search Bar */}
       <View style={[styles.searchContainer, { backgroundColor: colors.inputBackground }]}>
         <Text style={[styles.searchIcon, { color: colors.textSecondary }]}>🔍</Text>
         <TextInput
           style={[styles.searchInput, { color: colors.text }]}
-          placeholder="Search city, address..."
+          placeholder="Search city, neighborhood, address"
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholderTextColor={colors.textTertiary}
+          placeholderTextColor={colors.textSecondary}
         />
       </View>
 
-      <FlatList
-        data={filters}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterList}
-        keyExtractor={(item) => item}
-        renderItem={({ item }) => {
-          const isActive = activeFilter === item;
-          return (
-            <TouchableOpacity
-              style={[
-                styles.filterChip,
-                {
-                  backgroundColor: isActive ? colors.activeChipBackground : colors.chipBackground,
-                  borderColor: isActive ? colors.activeChipBackground : colors.chipBorder
-                },
-              ]}
-              onPress={() => setActiveFilter(item)}
-            >
-              <Text
+      {/* Filters */}
+      <View style={styles.filterRow}>
+        <FlatList
+          data={filters}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterList}
+          keyExtractor={(item) => item}
+          renderItem={({ item }) => {
+            const isActive = activeFilter === item;
+            return (
+              <TouchableOpacity
                 style={[
-                  styles.filterText,
-                  { color: isActive ? colors.activeChipText : colors.textSecondary },
+                  styles.filterChip,
+                  {
+                    backgroundColor: isActive ? colors.activeChipBackground : colors.chipBackground,
+                    borderColor: colors.chipBorder
+                  },
                 ]}
+                onPress={() => setActiveFilter(item)}
               >
-                {item}
-              </Text>
-            </TouchableOpacity>
-          );
-        }}
-      />
+                <Text
+                  style={[
+                    styles.filterText,
+                    { color: isActive ? colors.activeChipText : colors.text },
+                  ]}
+                >
+                  {item} {item === 'Apart' || item === 'New' ? '›' : ''}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
+        />
+      </View>
+
+      <Text style={[styles.resultCount, { color: colors.textSecondary }]}>
+        {filteredProperties.length} homes
+      </Text>
     </View>
   );
 
@@ -131,23 +145,30 @@ export const HomeScreen = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar
         barStyle={isDark ? 'light-content' : 'dark-content'}
-        backgroundColor={colors.surface}
+        backgroundColor={colors.background}
       />
-      <FlatList
-        data={filteredProperties}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <PropertyCard
-            property={item}
-            onPress={handlePressProperty}
-            onViewTour={handleViewTour}
-            onViewVideo={handleViewVideo}
-          />
-        )}
-        ListHeaderComponent={renderHeader}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
+      <View style={styles.contentContainer}>
+        <FlatList
+          data={filteredProperties}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <PropertyCard
+              property={item}
+              onPress={handlePressProperty}
+              onViewTour={handleViewTour}
+              onViewVideo={handleViewVideo}
+            />
+          )}
+          ListHeaderComponent={renderHeader}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+
+        {/* Floating Map Button */}
+        <TouchableOpacity style={[styles.mapButton, { backgroundColor: '#F2EFE9', shadowColor: colors.cardShadow }]}>
+          <Text style={[styles.mapButtonText, { color: '#5D5045' }]}>📍 Map</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -156,44 +177,47 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  contentContainer: {
+    flex: 1,
+    position: 'relative',
+  },
   headerContainer: {
-    padding: 20,
-    paddingBottom: 16,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 5,
-    zIndex: 10,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 0,
   },
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 20,
   },
-  greetingText: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
+  iconButton: {
+    padding: 4,
   },
-  headerTitle: {
+  iconText: {
     fontSize: 24,
-    fontWeight: '800', // Extra bold
-    letterSpacing: -0.5,
   },
-  themeToggle: {
-    padding: 10,
-    borderRadius: 20,
+  locationContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  locationTitle: {
+    fontSize: 16,
+    fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }),
+    fontWeight: '500',
+  },
+  rightIcons: {
+    flexDirection: 'row',
+    gap: 16,
+    alignItems: 'center',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 16,
+    borderRadius: 30,
     paddingHorizontal: 16,
-    height: 52,
+    height: 50,
     marginBottom: 20,
   },
   searchIcon: {
@@ -204,24 +228,50 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     height: '100%',
-    fontWeight: '500',
+  },
+  filterRow: {
+    marginBottom: 16,
   },
   filterList: {
-    paddingRight: 16,
+    paddingRight: 0,
   },
   filterChip: {
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 30, // Fully rounded
+    borderRadius: 30,
     marginRight: 10,
     borderWidth: 1,
   },
   filterText: {
+    fontSize: 15,
+    fontWeight: '400',
+  },
+  resultCount: {
     fontSize: 14,
-    fontWeight: '600',
+    marginBottom: 10,
+    marginLeft: 4,
   },
   listContent: {
-    paddingBottom: 20,
-    paddingTop: 16, // Add some space after the header
+    paddingBottom: 80, // Space for floating button
   },
+  mapButton: {
+    position: 'absolute',
+    bottom: 30,
+    alignSelf: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 30,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  mapButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 4,
+  }
 });
