@@ -5,6 +5,7 @@ export interface Property {
   currency: string;
   period?: string; // e.g., 'month' for rent
   address: string;
+  description: string;
   specs: {
     beds: number;
     baths: number;
@@ -32,6 +33,7 @@ export const MOCK_PROPERTIES: Property[] = [
     currency: '$',
     period: 'month',
     address: 'Chui Avenue, Bishkek',
+    description: 'Beautiful modern apartment located in the heart of Bishkek. Recently renovated with high-end finishes, this apartment offers stunning city views and easy access to local amenities. Features include a spacious living room, modern kitchen with built-in appliances, and a private balcony.',
     specs: {
       beds: 2,
       baths: 1,
@@ -46,7 +48,7 @@ export const MOCK_PROPERTIES: Property[] = [
       reviews: 24,
     },
     is3DTourAvailable: true,
-    matterportUrl: 'https://my.matterport.com/show/?m=placeholder',
+    matterportUrl: 'https://my.matterport.com/show/?m=6GNETgQLzxV',
     type: 'rent',
   },
   {
@@ -55,6 +57,7 @@ export const MOCK_PROPERTIES: Property[] = [
     price: 250000,
     currency: '$',
     address: 'Kok-Jar, Bishkek',
+    description: 'Exquisite luxury villa situated in the prestigious Kok-Jar area. This property boasts breathtaking mountain views, a large private swimming pool, and a landscaped garden. The interior features spacious rooms, a home theater, and a state-of-the-art security system.',
     specs: {
       beds: 4,
       baths: 3,
@@ -78,6 +81,7 @@ export const MOCK_PROPERTIES: Property[] = [
     currency: '$',
     period: 'month',
     address: 'Manas Avenue, Bishkek',
+    description: 'Charming studio apartment perfect for students or young professionals. Located just steps away from the Philharmonia, this cozy space comes fully furnished and includes high-speed internet. Enjoy the convenience of city living with shops and cafes right at your doorstep.',
     specs: {
       beds: 1,
       baths: 1,
@@ -99,6 +103,7 @@ export const MOCK_PROPERTIES: Property[] = [
     price: 180000,
     currency: '$',
     address: 'Orto-Sai Village',
+    description: 'A wonderful family home in the quiet and safe Orto-Sai Village. This house offers plenty of space for a growing family, with 5 bedrooms and a large backyard. Features include a cozy fireplace, a double garage, and proximity to top-rated schools.',
     specs: {
       beds: 5,
       baths: 2,

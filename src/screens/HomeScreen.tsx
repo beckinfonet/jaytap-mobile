@@ -16,7 +16,12 @@ import { MOCK_PROPERTIES, Property } from '../data/mockProperties';
 import { PropertyCard } from '../components/PropertyCard';
 import { useTheme } from '../theme/ThemeContext';
 
-export const HomeScreen = () => {
+interface HomeScreenProps {
+  onSelectProperty: (property: Property) => void;
+  onOpenTour: (url: string) => void;
+}
+
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTour }) => {
   const { colors, theme, isDark, toggleTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('Rent');
@@ -37,17 +42,12 @@ export const HomeScreen = () => {
   });
 
   const handlePressProperty = (property: Property) => {
-    Alert.alert('Property Selected', `You clicked on ${property.title}`);
+    onSelectProperty(property);
   };
 
   const handleViewTour = async (property: Property) => {
     if (property.matterportUrl) {
-      const supported = await Linking.canOpenURL(property.matterportUrl);
-      if (supported) {
-        await Linking.openURL(property.matterportUrl);
-      } else {
-        Alert.alert('Error', 'Cannot open 3D Tour URL');
-      }
+      onOpenTour(property.matterportUrl);
     } else {
       Alert.alert('Info', 'No 3D Tour available for this property.');
     }
