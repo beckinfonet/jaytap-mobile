@@ -15,14 +15,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MOCK_PROPERTIES, Property } from '../data/mockProperties';
 import { PropertyCard } from '../components/PropertyCard';
 import { useTheme } from '../theme/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 interface HomeScreenProps {
   onSelectProperty: (property: Property) => void;
   onOpenTours: (property: Property) => void;
+  onOpenProfile: () => void;
 }
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile }) => {
   const { colors, theme, isDark, toggleTheme } = useTheme();
+  const { user } = useAuth(); // Assuming useAuth is available
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('Rent');
 
@@ -70,8 +73,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
     <View style={styles.headerContainer}>
       {/* Top Bar: Menu, Location, Icons */}
       <View style={styles.topBar}>
-        <TouchableOpacity style={styles.iconButton}>
-          <Text style={[styles.iconText, { color: colors.text }]}>☰</Text>
+        <TouchableOpacity style={styles.iconButton} onPress={onOpenProfile}>
+          {user ? (
+            <View style={[styles.avatarSmall, { backgroundColor: colors.primaryLight }]}>
+              <Text style={[styles.avatarTextSmall, { color: colors.primary }]}>
+                {user.email?.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          ) : (
+            <Text style={[styles.iconText, { color: colors.text }]}>☰</Text>
+          )}
         </TouchableOpacity>
 
         <View style={styles.locationContainer}>
@@ -197,6 +208,17 @@ const styles = StyleSheet.create({
   },
   iconText: {
     fontSize: 24,
+  },
+  avatarSmall: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarTextSmall: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   locationContainer: {
     flex: 1,
