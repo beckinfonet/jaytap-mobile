@@ -1,7 +1,13 @@
 import axios from 'axios';
 import { Platform } from 'react-native';
 
-const API_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000/api' : 'http://localhost:5000/api';
+// Use deployed backend URL for production, or fallback to localhost for dev if needed.
+// Ideally, use environment variables (react-native-config or similar).
+const PRODUCTION_URL = 'https://jaytap-services-production.up.railway.app/api';
+const LOCAL_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000/api' : 'http://localhost:5000/api';
+
+// Simple toggle for now. In a real app, use __DEV__ check.
+const API_URL = PRODUCTION_URL; 
 
 export const PropertyService = {
   getAllProperties: async () => {

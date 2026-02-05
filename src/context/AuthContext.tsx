@@ -36,6 +36,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const data = await AuthService.signIn(email, password);
     const userData = { email: data.email, localId: data.localId };
     
+    // Sync with backend
+    try {
+        const backendUser = await AuthService.getBackendUser(data.localId);
+        if (backendUser) {
+             userData['backendProfile'] = backendUser;
+        } else {
+             // If not exists on backend, create it
+             await AuthService.createBackendUser(data.localId, data.email);
+        }
+    } catch (e) {
+        console.warn('Backend sync failed', e);
+    }
+
     await AuthService.saveToken(data.idToken, userData);
     setUser(userData);
   };
@@ -43,6 +56,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signup = async (email, password) => {
     const data = await AuthService.signUp(email, password);
     const userData = { email: data.email, localId: data.localId };
+    
+    // Create user on backend
+    await AuthService.createBackendUser(data.localId, data.email);
     
     await AuthService.saveToken(data.idToken, userData);
     setUser(userData);
