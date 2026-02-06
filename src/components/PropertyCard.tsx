@@ -31,28 +31,28 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const formatPrice = (p: Property) => {
     let priceDisplay = '';
     if (typeof p.price === 'number') {
-        priceDisplay = `${p.currency}${p.price.toLocaleString()}`;
+      priceDisplay = `${p.currency}${p.price.toLocaleString()}`;
     } else {
-        priceDisplay = p.price.toString();
+      priceDisplay = p.price.toString();
     }
-    
+
     if (p.period === 'month' && !priceDisplay.includes('/')) {
       priceDisplay += '/mo';
     }
     return priceDisplay;
   };
-
+  console.log({ property });
   return (
     <View style={[styles.cardContainer, { backgroundColor: colors.surface }]}>
       <TouchableOpacity activeOpacity={0.95} onPress={() => onPress(property)}>
         {/* Image Section */}
         <View style={styles.imageWrapper}>
           <Image
-            source={{ uri: property.imageUrl }}
+            source={{ uri: property.imageUrl || (property.images && property.images.length > 0 ? property.images[0] : 'https://via.placeholder.com/400') }}
             style={styles.image}
             resizeMode="cover"
           />
-          
+
           <View style={styles.topBadges}>
             <View style={[styles.badge, styles.statusBadge]}>
               <Text style={styles.statusText}>
@@ -62,20 +62,20 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           </View>
 
           <View style={styles.topRightActions}>
-             <View style={[styles.heartButton, { backgroundColor: 'rgba(255,255,255,0.9)' }]}>
-                <Text style={{ fontSize: 18, color: '#333' }}>♡</Text>
-             </View>
+            <View style={[styles.heartButton, { backgroundColor: 'rgba(255,255,255,0.9)' }]}>
+              <Text style={{ fontSize: 18, color: '#333' }}>♡</Text>
+            </View>
           </View>
 
           <View style={styles.bottomBadges}>
             {property.is3DTourAvailable && property.tours && property.tours.length > 0 && (
               <View style={[styles.mediaBadge, styles.tour3DBadge]}>
                 <Text style={styles.tour3DBadgeText}>
-                    {property.tours.length > 1 ? '3D Tours' : '3D Tour'}
+                  {property.tours.length > 1 ? '3D Tours' : '3D Tour'}
                 </Text>
               </View>
             )}
-             {property.videoUrl && (
+            {property.videoUrl && (
               <View style={[styles.mediaBadge, { backgroundColor: 'rgba(0, 0, 0, 0.6)' }]}>
                 <Text style={[styles.mediaBadgeText, { color: '#FFF' }]}>🎥</Text>
               </View>
@@ -87,21 +87,21 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         <View style={styles.contentContainer}>
           <View style={styles.mainInfo}>
             <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
-                {property.title} • {property.address.split(',')[1]?.trim() || 'Bishkek'}
+              {property.title} • {property.address.split(',')[1]?.trim() || 'Bishkek'}
             </Text>
             <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>
-                {property.address}
+              {property.address}
             </Text>
           </View>
 
           <View style={styles.footerRow}>
-             <Text style={[styles.price, { color: colors.text }]}>{formatPrice(property)}</Text>
-             
-             <TouchableOpacity 
-                style={[styles.contactButton, { backgroundColor: colors.primary }]}
-             >
-                 <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>Contact Agent</Text>
-             </TouchableOpacity>
+            <Text style={[styles.price, { color: colors.text }]}>{formatPrice(property)}</Text>
+
+            <TouchableOpacity
+              style={[styles.contactButton, { backgroundColor: colors.primary }]}
+            >
+              <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>Contact Agent</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </TouchableOpacity>
@@ -133,6 +133,9 @@ const styles = StyleSheet.create({
     top: 16,
     left: 16,
   },
+  badge: {
+    // Basic badge style, if needed
+  },
   statusBadge: {
     backgroundColor: 'rgba(255,255,255,0.9)',
     paddingHorizontal: 12,
@@ -146,16 +149,16 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   topRightActions: {
-      position: 'absolute',
-      top: 16,
-      right: 16,
+    position: 'absolute',
+    top: 16,
+    right: 16,
   },
   heartButton: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      justifyContent: 'center',
-      alignItems: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   bottomBadges: {
     position: 'absolute',
@@ -217,12 +220,12 @@ const styles = StyleSheet.create({
     fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }),
   },
   contactButton: {
-      paddingHorizontal: 20,
-      paddingVertical: 12,
-      borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 20,
   },
   contactButtonText: {
-      fontSize: 14,
-      fontWeight: '500',
+    fontSize: 14,
+    fontWeight: '500',
   }
 });

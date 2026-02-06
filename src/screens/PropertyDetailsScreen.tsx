@@ -77,10 +77,14 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Main Image */}
-        <View style={styles.imageContainer}>
-          <Image source={{ uri: property.imageUrl }} style={styles.image} resizeMode="cover" />
-          <View style={styles.imageOverlay}>
+      {/* Main Image */}
+      <View style={styles.imageContainer}>
+        <Image 
+            source={{ uri: property.imageUrl || (property.images && property.images.length > 0 ? property.images[0] : 'https://via.placeholder.com/800') }} 
+            style={styles.image} 
+            resizeMode="cover" 
+        />
+        <View style={styles.imageOverlay}>
               <View style={[styles.statusBadge, { backgroundColor: colors.surface }]}>
                   <Text style={[styles.statusText, { color: colors.text }]}>
                       {property.type === 'rent' ? 'FOR RENT' : 'FOR SALE'}

@@ -40,6 +40,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   const loadProperties = async () => {
     try {
       const data = await PropertyService.getAllProperties();
+      console.log('Properties loaded:', data.length);
       setProperties(data);
     } catch (error) {
       console.error(error);
@@ -53,8 +54,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
 
   const filteredProperties = properties.filter((p) => {
     // Basic filtering logic
-    if (activeFilter === 'Rent' && p.type !== 'rent') return false;
-    if (activeFilter === 'Buy' && p.type !== 'sale') return false;
+    const propertyType = p.type?.toLowerCase();
+
+    // If type is missing, assume it matches 'Rent' (or change logic as needed)
+    if (activeFilter === 'Rent' && propertyType && propertyType !== 'rent') return false;
+    if (activeFilter === 'Buy' && propertyType && propertyType !== 'sale') return false;
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
