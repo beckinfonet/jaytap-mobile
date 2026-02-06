@@ -12,6 +12,7 @@ export interface Property {
   currency: string;
   period?: string; // e.g., 'month' for rent
   address: string;
+  city?: string; // Added city
   description: string;
   specs: {
     beds: number;
@@ -31,5 +32,6 @@ export interface Property {
   is3DTourAvailable: boolean;
   tours: Tour[]; // Changed from singular matterportUrl to array of Tours
   type: 'rent' | 'sale';
+  propertyType?: string; // Added propertyType (apartment, house, office, etc.)
   matterportUrl?: string; // Kept for backward compatibility if needed, but prefer tours[]
 }

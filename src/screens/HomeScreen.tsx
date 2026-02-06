@@ -25,11 +25,19 @@ interface HomeScreenProps {
   onOpenProfile: () => void;
 }
 
+const RESIDENTIAL_TYPES = ['Apartment', 'House', 'Townhome', 'Condo'];
+const COMMERCIAL_TYPES = ['Office', 'Retail', 'Warehouse', 'Land', 'Industrial'];
+
 export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile }) => {
   const { colors, theme, isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('Rent');
+
+  // New Filter State
+  const [transactionType, setTransactionType] = useState<'rent' | 'sale'>('rent');
+  const [isCommercial, setIsCommercial] = useState(false);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,20 +58,37 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
     }
   };
 
-  const filters = ['Rent', 'Buy', 'Apart', 'New', 'Furnished'];
-
   const filteredProperties = properties.filter((p) => {
-    // Basic filtering logic
-    const propertyType = p.type?.toLowerCase();
+    // 1. Transaction Type Filter (Rent vs Sale)
+    // Backend types might be 'rent' or 'sale'. If missing, be lenient or default to current.
+    const pType = p.type?.toLowerCase();
+    if (pType && pType !== transactionType) return false;
 
-    // If type is missing, assume it matches 'Rent' (or change logic as needed)
-    if (activeFilter === 'Rent' && propertyType && propertyType !== 'rent') return false;
-    if (activeFilter === 'Buy' && propertyType && propertyType !== 'sale') return false;
+    // 2. Commercial vs Residential Filter
+    const pPropertyType = p.propertyType?.toLowerCase() || 'apartment'; // Default to apartment/residential if missing
 
+    // Check if property type falls into Commercial or Residential buckets
+    const isPropCommercial = COMMERCIAL_TYPES.some(t => t.toLowerCase() === pPropertyType);
+
+    // Strict filtering based on isCommercial toggle
+    if (isCommercial) {
+      if (!isPropCommercial) return false;
+    } else {
+      // If viewing Residential, hide Commercial properties
+      if (isPropCommercial) return false;
+    }
+
+    // 3. Specific Property Type Filter
+    if (selectedType) {
+      if (pPropertyType !== selectedType.toLowerCase()) return false;
+    }
+
+    // 4. Search Query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return p.title.toLowerCase().includes(query) ||
-        p.address.toLowerCase().includes(query);
+        p.address.toLowerCase().includes(query) ||
+        (p.city && p.city.toLowerCase().includes(query));
     }
     return true;
   });
@@ -90,6 +115,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
       }
     } else {
       Alert.alert('Info', 'No video available for this property.');
+    }
+  };
+
+  const togglePropertyType = (type: string) => {
+    if (selectedType === type) {
+      setSelectedType(null); // Deselect
+    } else {
+      setSelectedType(type);
     }
   };
 
@@ -135,26 +168,85 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         />
       </View>
 
-      {/* Filters */}
+      {/* Rent / Buy Segmented Control */}
+      <View style={[styles.segmentedControl, { backgroundColor: isDark ? '#2C2C2E' : '#E5E5EA' }]}>
+        <TouchableOpacity
+          style={[
+            styles.segmentButton,
+            transactionType === 'rent' && { backgroundColor: isDark ? '#000000' : '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }
+          ]}
+          onPress={() => setTransactionType('rent')}
+          activeOpacity={0.8}
+        >
+          <Text style={[
+            styles.segmentText,
+            { color: transactionType === 'rent' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }
+          ]}>🏠 Rent</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.segmentButton,
+            transactionType === 'sale' && { backgroundColor: isDark ? '#000000' : '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }
+          ]}
+          onPress={() => setTransactionType('sale')}
+          activeOpacity={0.8}
+        >
+          <Text style={[
+            styles.segmentText,
+            { color: transactionType === 'sale' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }
+          ]}>🏠 Buy</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Dynamic Filter Row */}
       <View style={styles.filterRow}>
         <FlatList
-          data={filters}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterList}
-          keyExtractor={(item) => item}
+          data={[
+            { id: 'commercial_toggle', label: 'Commercial', isToggle: true },
+            ...(isCommercial ? COMMERCIAL_TYPES : RESIDENTIAL_TYPES).map(t => ({ id: t, label: t, isToggle: false }))
+          ]}
+          keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
-            const isActive = activeFilter === item;
+            if (item.isToggle) {
+              // Commercial Toggle Chip
+              return (
+                <TouchableOpacity
+                  style={[
+                    styles.filterChip,
+                    {
+                      backgroundColor: isCommercial ? colors.accent : (isDark ? '#2C2C2E' : '#F2F2F7'),
+                      borderColor: isCommercial ? colors.accent : (isDark ? '#3A3A3C' : '#E5E5EA'),
+                    },
+                  ]}
+                  onPress={() => {
+                    setIsCommercial(!isCommercial);
+                    setSelectedType(null); // Reset sub-filter when switching categories
+                  }}
+                >
+                  <Text style={[
+                    styles.filterText,
+                    { color: isCommercial ? '#FFF' : colors.text }
+                  ]}>
+                    {item.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            }
+
+            const isActive = selectedType === item.label;
             return (
               <TouchableOpacity
                 style={[
                   styles.filterChip,
                   {
-                    backgroundColor: isActive ? colors.activeChipBackground : colors.chipBackground,
-                    borderColor: colors.chipBorder
+                    backgroundColor: isActive ? colors.activeChipBackground : (isDark ? '#2C2C2E' : '#F2F2F7'),
+                    borderColor: isDark ? '#3A3A3C' : '#E5E5EA'
                   },
                 ]}
-                onPress={() => setActiveFilter(item)}
+                onPress={() => togglePropertyType(item.label)}
               >
                 <Text
                   style={[
@@ -162,7 +254,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
                     { color: isActive ? colors.activeChipText : colors.text },
                   ]}
                 >
-                  {item} {item === 'Apart' || item === 'New' ? '›' : ''}
+                  {item.label}
                 </Text>
               </TouchableOpacity>
             );
@@ -191,7 +283,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         <View style={styles.contentContainer}>
           <FlatList
             data={filteredProperties}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.id || Math.random().toString()}
             renderItem={({ item }) => (
               <PropertyCard
                 property={item}
@@ -204,11 +296,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
           />
-
-          {/* Floating Map Button */}
-          {/* <TouchableOpacity style={[styles.mapButton, { backgroundColor: '#F2EFE9', shadowColor: colors.cardShadow }]}>
-            <Text style={[styles.mapButtonText, { color: '#5D5045' }]}>📍 Map</Text>
-          </TouchableOpacity> */}
         </View>
       )}
     </SafeAreaView>
@@ -282,6 +369,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     height: '100%',
   },
+  // Segmented Control Styles
+  segmentedControl: {
+    flexDirection: 'row',
+    borderRadius: 30,
+    padding: 4,
+    marginBottom: 16,
+    height: 44,
+  },
+  segmentButton: {
+    flex: 1,
+    borderRadius: 26,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  segmentText: {
+    fontWeight: '600',
+    fontSize: 16,
+  },
   filterRow: {
     marginBottom: 16,
   },
@@ -289,15 +394,15 @@ const styles = StyleSheet.create({
     paddingRight: 0,
   },
   filterChip: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 30,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
     marginRight: 10,
     borderWidth: 1,
   },
   filterText: {
-    fontSize: 15,
-    fontWeight: '400',
+    fontSize: 14,
+    fontWeight: '500',
   },
   resultCount: {
     fontSize: 14,
