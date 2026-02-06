@@ -56,11 +56,12 @@ export const AuthService = {
   },
 
   // Backend User Methods
-  createBackendUser: async (firebaseUid: string, email: string) => {
+  createBackendUser: async (firebaseUid: string, email: string, profileData: any = {}) => {
     try {
-      await axios.post(`${BACKEND_URL}/auth/users`, { firebaseUid, email });
+      await axios.post(`${BACKEND_URL}/auth/users`, { firebaseUid, email, ...profileData });
     } catch (error: any) {
-      console.error('Failed to create backend user', error);
+      console.error('Failed to create/update backend user', error);
+      throw error; // Re-throw so UI can handle success/failure
     }
   },
 
