@@ -206,9 +206,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
           />
 
           {/* Floating Map Button */}
-          <TouchableOpacity style={[styles.mapButton, { backgroundColor: '#F2EFE9', shadowColor: colors.cardShadow }]}>
+          {/* <TouchableOpacity style={[styles.mapButton, { backgroundColor: '#F2EFE9', shadowColor: colors.cardShadow }]}>
             <Text style={[styles.mapButtonText, { color: '#5D5045' }]}>📍 Map</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       )}
     </SafeAreaView>
