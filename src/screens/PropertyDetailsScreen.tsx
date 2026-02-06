@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
   Linking,
   Alert,
   Platform,
+  FlatList,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Property } from '../types/Property';
@@ -22,7 +24,7 @@ interface PropertyDetailsScreenProps {
   onOpenTours: () => void;
 }
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   property,
@@ -30,6 +32,13 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   onOpenTours,
 }) => {
   const { colors, isDark } = useTheme();
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  // Consolidate images into a single array
+  const images = property.images && property.images.length > 0 
+    ? property.images 
+    : (property.imageUrl ? [property.imageUrl] : ['https://via.placeholder.com/800']);
 
   const formatPrice = (p: Property) => {
     let priceDisplay = '';
@@ -58,6 +67,33 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
     }
   };
 
+  const onScroll = (event: any) => {
+    const slideSize = event.nativeEvent.layoutMeasurement.width;
+    const index = event.nativeEvent.contentOffset.x / slideSize;
+    const roundIndex = Math.round(index);
+    setActiveSlide(roundIndex);
+  };
+
+  const renderImageItem = ({ item }: { item: string }) => (
+    <TouchableOpacity activeOpacity={0.9} onPress={() => setIsFullScreen(true)}>
+        <Image 
+            source={{ uri: item }} 
+            style={{ width: width, height: 300 }} 
+            resizeMode="cover" 
+        />
+    </TouchableOpacity>
+  );
+
+  const renderFullScreenItem = ({ item }: { item: string }) => (
+    <View style={{ width: width, height: height, justifyContent: 'center', alignItems: 'center' }}>
+        <Image 
+            source={{ uri: item }} 
+            style={{ width: width, height: height }} 
+            resizeMode="contain" 
+        />
+    </View>
+  );
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
       <StatusBar
@@ -77,25 +113,40 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-      {/* Main Image */}
-      <View style={styles.imageContainer}>
-        <Image 
-            source={{ uri: property.imageUrl || (property.images && property.images.length > 0 ? property.images[0] : 'https://via.placeholder.com/800') }} 
-            style={styles.image} 
-            resizeMode="cover" 
-        />
-        <View style={styles.imageOverlay}>
-              <View style={[styles.statusBadge, { backgroundColor: colors.surface }]}>
-                  <Text style={[styles.statusText, { color: colors.text }]}>
-                      {property.type === 'rent' ? 'FOR RENT' : 'FOR SALE'}
-                  </Text>
-              </View>
-          </View>
+        {/* Image Carousel */}
+        <View style={styles.carouselContainer}>
+            <FlatList
+                data={images}
+                renderItem={renderImageItem}
+                keyExtractor={(item, index) => index.toString()}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onScroll={onScroll}
+                scrollEventThrottle={16} // smooth updates
+            />
+            
+            {/* Image Overlay: Status Badge & Pagination */}
+            <View style={styles.imageOverlay}>
+                <View style={[styles.statusBadge, { backgroundColor: colors.surface }]}>
+                    <Text style={[styles.statusText, { color: colors.text }]}>
+                        {property.type === 'rent' ? 'FOR RENT' : 'FOR SALE'}
+                    </Text>
+                </View>
+                
+                {images.length > 1 && (
+                    <View style={[styles.paginationBadge, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
+                        <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '600' }}>
+                            {activeSlide + 1} / {images.length}
+                        </Text>
+                    </View>
+                )}
+            </View>
         </View>
 
         <View style={styles.contentContainer}>
           
-          {/* Media Buttons - Moved to Top */}
+          {/* Media Buttons */}
           <View style={styles.mediaButtonsRow}>
              {property.is3DTourAvailable && property.tours.length > 0 && (
                  <TouchableOpacity 
@@ -199,6 +250,31 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>Contact Agent</Text>
           </TouchableOpacity>
       </View>
+
+      {/* Full Screen Image Modal */}
+      <Modal visible={isFullScreen} transparent={true} animationType="fade" onRequestClose={() => setIsFullScreen(false)}>
+        <View style={styles.fullScreenContainer}>
+            <StatusBar hidden />
+            <TouchableOpacity style={styles.closeButton} onPress={() => setIsFullScreen(false)}>
+                <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
+            
+            <FlatList
+                data={images}
+                renderItem={renderFullScreenItem}
+                keyExtractor={(item, index) => index.toString()}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                initialScrollIndex={activeSlide}
+                getItemLayout={(data, index) => ({ length: width, offset: width * index, index })}
+            />
+            
+            <View style={styles.fullScreenPagination}>
+                <Text style={styles.fullScreenPaginationText}>{activeSlide + 1} / {images.length}</Text>
+            </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -237,21 +313,19 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 20,
   },
-  imageContainer: {
-    width: '100%',
+  carouselContainer: {
     height: 300,
     position: 'relative',
     marginBottom: 20,
   },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
   imageOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
       padding: 20,
-      justifyContent: 'flex-start',
-      alignItems: 'flex-start',
+      flexDirection: 'row',
+      justifyContent: 'space-between', // Badge left, pagination right
   },
   statusBadge: {
       paddingHorizontal: 12,
@@ -262,9 +336,13 @@ const styles = StyleSheet.create({
       fontSize: 12,
       fontWeight: '700',
   },
+  paginationBadge: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 12,
+  },
   contentContainer: {
     paddingHorizontal: 20,
-    paddingTop: 20, // Added padding top for spacing from image
   },
   section: {
     marginBottom: 24,
@@ -333,7 +411,7 @@ const styles = StyleSheet.create({
   mediaButtonsRow: {
       flexDirection: 'row',
       marginBottom: 24,
-      gap: 12, // Use gap for spacing
+      gap: 12,
   },
   mediaButton: {
       flex: 1,
@@ -341,12 +419,12 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: 12,
-      paddingHorizontal: 12, // Ensure padding
+      paddingHorizontal: 12,
       borderRadius: 12,
   },
   videoButton: {
-      flex: 1, // Equal width to 3D button for balance, or slightly less if preferred
-      backgroundColor: '#FFFFFF', // White background
+      flex: 1,
+      backgroundColor: '#FFFFFF',
       borderWidth: 1,
       borderColor: '#E0E0E0',
       shadowColor: '#000',
@@ -365,12 +443,8 @@ const styles = StyleSheet.create({
       fontSize: 11,
       fontWeight: '500',
   },
-  mediaButtonText: {
-      fontSize: 16,
-      fontWeight: '600',
-  },
   tour3DButton: {
-    backgroundColor: '#6C63FF', // Strong purple
+    backgroundColor: '#6C63FF',
     shadowColor: '#6C63FF',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -378,7 +452,7 @@ const styles = StyleSheet.create({
     elevation: 6,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
-    flex: 1.2, // Keep primary emphasis on 3D
+    flex: 1.2,
   },
   tour3DButtonText: {
     color: '#FFF',
@@ -455,6 +529,42 @@ const styles = StyleSheet.create({
   contactButtonText: {
       fontSize: 16,
       fontWeight: '600',
+  },
+  // Full Screen Styles
+  fullScreenContainer: {
+      flex: 1,
+      backgroundColor: '#000',
+      justifyContent: 'center',
+  },
+  closeButton: {
+      position: 'absolute',
+      top: 50,
+      right: 20,
+      zIndex: 10,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+  },
+  closeButtonText: {
+      color: '#FFF',
+      fontSize: 24,
+      fontWeight: 'bold',
+  },
+  fullScreenPagination: {
+      position: 'absolute',
+      bottom: 50,
+      alignSelf: 'center',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+  },
+  fullScreenPaginationText: {
+      color: '#FFF',
+      fontSize: 16,
+      fontWeight: '600',
   }
 });
-
