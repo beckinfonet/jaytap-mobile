@@ -11,6 +11,8 @@ import {
   Linking,
   Platform,
   ActivityIndicator,
+  Modal,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Property } from '../types/Property';
@@ -28,6 +30,25 @@ interface HomeScreenProps {
 const RESIDENTIAL_TYPES = ['Apartment', 'House', 'Townhome', 'Condo'];
 const COMMERCIAL_TYPES = ['Office', 'Retail', 'Warehouse', 'Land', 'Industrial'];
 
+const BISHKEK_DISTRICTS = [
+  'Bishkek (All)',
+  'Asanbay',
+  'Jal',
+  'Tunguch',
+  'Alamedin-1',
+  'Microdistrict 3',
+  'Microdistrict 4',
+  'Microdistrict 5',
+  'Microdistrict 6',
+  'Microdistrict 7',
+  'Microdistrict 8',
+  'Microdistrict 9',
+  'Microdistrict 10',
+  'Microdistrict 11',
+  'Microdistrict 12',
+  'Kok-Jar',
+];
+
 export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile }) => {
   const { colors, theme, isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
@@ -37,6 +58,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   const [transactionType, setTransactionType] = useState<'rent' | 'sale'>('rent');
   const [isCommercial, setIsCommercial] = useState(false);
   const [selectedType, setSelectedType] = useState<string | null>(null);
+
+  // Location State
+  const [selectedDistrict, setSelectedDistrict] = useState('Bishkek (All)');
+  const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
 
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,21 +85,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
 
   const filteredProperties = properties.filter((p) => {
     // 1. Transaction Type Filter (Rent vs Sale)
-    // Backend types might be 'rent' or 'sale'. If missing, be lenient or default to current.
     const pType = p.type?.toLowerCase();
     if (pType && pType !== transactionType) return false;
 
     // 2. Commercial vs Residential Filter
-    const pPropertyType = p.propertyType?.toLowerCase() || 'apartment'; // Default to apartment/residential if missing
-
-    // Check if property type falls into Commercial or Residential buckets
+    const pPropertyType = p.propertyType?.toLowerCase() || 'apartment';
     const isPropCommercial = COMMERCIAL_TYPES.some(t => t.toLowerCase() === pPropertyType);
 
-    // Strict filtering based on isCommercial toggle
     if (isCommercial) {
       if (!isPropCommercial) return false;
     } else {
-      // If viewing Residential, hide Commercial properties
       if (isPropCommercial) return false;
     }
 
@@ -83,7 +103,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
       if (pPropertyType !== selectedType.toLowerCase()) return false;
     }
 
-    // 4. Search Query
+    // 4. District Filter
+    if (selectedDistrict !== 'Bishkek (All)') {
+      // Search for district name in address or description since we don't have a district field yet
+      const searchDistrict = selectedDistrict.toLowerCase();
+      const addressMatch = p.address?.toLowerCase().includes(searchDistrict);
+      const descMatch = p.description?.toLowerCase().includes(searchDistrict);
+
+      // Simple heuristic: if the district name is specific (like "Jal"), match it.
+      // For numbered microdistricts, we need to be careful not to match random numbers, 
+      // but for now simple inclusion is a good start.
+      if (!addressMatch && !descMatch) return false;
+    }
+
+    // 5. Search Query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return p.title.toLowerCase().includes(query) ||
@@ -142,8 +175,71 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
           )}
         </TouchableOpacity>
 
-        <View style={styles.locationContainer}>
-          <Text style={[styles.locationTitle, { color: colors.text }]}>Bishkek • Chui Ave ⌄</Text>
+        {/* Location Selector */}
+        <View style={styles.locationWrapper}>
+          <TouchableOpacity
+            style={styles.locationContainer}
+            onPress={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.locationTitle, { color: colors.text }]}>
+              {selectedDistrict === 'Bishkek (All)' ? 'Bishkek • All' : `Bishkek • ${selectedDistrict}`} ⌄
+            </Text>
+          </TouchableOpacity>
+
+          {/* Dropdown Modal/Overlay */}
+          {isLocationDropdownOpen && (
+            <Modal
+              transparent={true}
+              visible={isLocationDropdownOpen}
+              onRequestClose={() => setIsLocationDropdownOpen(false)}
+              animationType="fade"
+            >
+              <TouchableWithoutFeedback onPress={() => setIsLocationDropdownOpen(false)}>
+                <View style={styles.modalOverlay}>
+                  <View style={[
+                    styles.dropdownMenu,
+                    {
+                      backgroundColor: isDark ? '#1E1E1E' : '#FFF',
+                      borderColor: isDark ? '#333' : '#E5E5EA',
+                      // Calculate approx position based on top bar height
+                    }
+                  ]}>
+                    <FlatList
+                      data={BISHKEK_DISTRICTS}
+                      keyExtractor={(item) => item}
+                      style={{ maxHeight: 300 }}
+                      renderItem={({ item }) => (
+                        <TouchableOpacity
+                          style={[
+                            styles.dropdownItem,
+                            { borderBottomColor: isDark ? '#333' : '#F0F0F0' }
+                          ]}
+                          onPress={() => {
+                            setSelectedDistrict(item);
+                            setIsLocationDropdownOpen(false);
+                          }}
+                        >
+                          <Text style={[
+                            styles.dropdownItemText,
+                            {
+                              color: item === selectedDistrict ? colors.accent : colors.text,
+                              fontWeight: item === selectedDistrict ? '700' : '400'
+                            }
+                          ]}>
+                            {item}
+                          </Text>
+                          {item === selectedDistrict && (
+                            <Text style={{ color: colors.accent }}>✓</Text>
+                          )}
+                        </TouchableOpacity>
+                      )}
+                    />
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            </Modal>
+          )}
         </View>
 
         <View style={styles.rightIcons}>
@@ -320,6 +416,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
+    zIndex: 10, // Ensure zIndex for dropdown overlap if needed
   },
   iconButton: {
     padding: 4,
@@ -338,14 +435,48 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  locationContainer: {
+  locationWrapper: {
     flex: 1,
+    alignItems: 'center',
+    zIndex: 20,
+  },
+  locationContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
   locationTitle: {
     fontSize: 16,
     fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }),
     fontWeight: '500',
+  },
+  // Dropdown Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.2)', // Dim background slightly
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 100 : 80, // Approximate top bar position
+  },
+  dropdownMenu: {
+    width: 250,
+    borderRadius: 12,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dropdownItemText: {
+    fontSize: 16,
   },
   rightIcons: {
     flexDirection: 'row',
@@ -369,7 +500,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     height: '100%',
   },
-  // Segmented Control Styles
   segmentedControl: {
     flexDirection: 'row',
     borderRadius: 30,
