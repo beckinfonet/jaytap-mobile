@@ -14,6 +14,7 @@ import {
   FlatList,
   Modal,
 } from 'react-native';
+import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Property } from '../types/Property';
 import { useTheme } from '../theme/ThemeContext';
@@ -73,6 +74,30 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
     const roundIndex = Math.round(index);
     setActiveSlide(roundIndex);
   };
+
+  // Get property coordinates - use real coordinates if available, otherwise generate mock coordinates
+  const getPropertyCoordinates = () => {
+    // If property has real coordinates, use them
+    if (property.latitude && property.longitude) {
+      return {
+        latitude: property.latitude,
+        longitude: property.longitude,
+      };
+    }
+    
+    // Otherwise, generate consistent mock coordinates based on property ID for demo
+    const BISHKEK_CENTER = { latitude: 42.8746, longitude: 74.5698 };
+    const idHash = (property.id || property.listingId || '0').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const latOffset = ((idHash % 100) - 50) * 0.001; // Small offset within Bishkek
+    const lngOffset = ((idHash % 200) - 100) * 0.001;
+    
+    return {
+      latitude: BISHKEK_CENTER.latitude + latOffset,
+      longitude: BISHKEK_CENTER.longitude + lngOffset,
+    };
+  };
+
+  const propertyCoordinates = getPropertyCoordinates();
 
   const renderImageItem = ({ item }: { item: string }) => (
     <TouchableOpacity activeOpacity={0.9} onPress={() => setIsFullScreen(true)}>
@@ -218,6 +243,33 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                   <Text style={[styles.featureText, { color: colors.textSecondary }]}>{feature}</Text>
                 </View>
               ))}
+            </View>
+          </View>
+
+          {/* Location Map */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Location</Text>
+            <Text style={[styles.address, { color: colors.textSecondary, marginBottom: 12 }]}>{property.address}</Text>
+            <View style={[styles.mapContainer, { borderColor: colors.border }]}>
+              <MapView
+                provider={PROVIDER_DEFAULT}
+                style={styles.map}
+                initialRegion={{
+                  ...propertyCoordinates,
+                  latitudeDelta: 0.01,
+                  longitudeDelta: 0.01,
+                }}
+                scrollEnabled={true}
+                zoomEnabled={true}
+                pitchEnabled={false}
+                rotateEnabled={false}
+              >
+                <Marker
+                  coordinate={propertyCoordinates}
+                  title={property.title}
+                  description={property.address}
+                />
+              </MapView>
             </View>
           </View>
 
@@ -529,6 +581,18 @@ const styles = StyleSheet.create({
   contactButtonText: {
       fontSize: 16,
       fontWeight: '600',
+  },
+  // Location Map Styles
+  mapContainer: {
+      height: 200,
+      borderRadius: 16,
+      overflow: 'hidden',
+      borderWidth: 1,
+      marginBottom: 24,
+  },
+  map: {
+      width: '100%',
+      height: '100%',
   },
   // Full Screen Styles
   fullScreenContainer: {

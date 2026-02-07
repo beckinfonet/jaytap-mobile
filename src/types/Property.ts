@@ -13,6 +13,8 @@ export interface Property {
   period?: string; // e.g., 'month' for rent
   address: string;
   city?: string; // Added city
+  latitude?: number; // Property coordinates for map display
+  longitude?: number; // Property coordinates for map display
   description: string;
   specs: {
     beds: number;

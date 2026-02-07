@@ -17,6 +17,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Property } from '../types/Property';
 import { PropertyCard } from '../components/PropertyCard';
+import { PropertyMap } from '../components/PropertyMap';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { PropertyService } from '../services/PropertyService';
@@ -62,6 +63,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   // Location State
   const [selectedDistrict, setSelectedDistrict] = useState('Bishkek (All)');
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
+
+  // View Mode: List or Map
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -364,6 +368,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
     </View>
   );
 
+  if (viewMode === 'map') {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+        <PropertyMap
+          properties={filteredProperties}
+          onSelectProperty={handlePressProperty}
+          onCloseMap={() => setViewMode('list')}
+        />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar
@@ -392,6 +409,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
           />
+
+          {/* Floating Map Button */}
+          <TouchableOpacity
+            style={[styles.mapButton, { backgroundColor: colors.surface, shadowColor: colors.cardShadow }]}
+            onPress={() => setViewMode('map')}
+          >
+            <Text style={{ fontSize: 18, marginRight: 6 }}>📍</Text>
+            <Text style={[styles.mapButtonText, { color: colors.text }]}>Map</Text>
+          </TouchableOpacity>
         </View>
       )}
     </SafeAreaView>
