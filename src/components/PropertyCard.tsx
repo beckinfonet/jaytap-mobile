@@ -16,6 +16,8 @@ interface PropertyCardProps {
   onPress: (property: Property) => void;
   onViewTour: (property: Property) => void;
   onViewVideo: (property: Property) => void;
+  onEdit?: (property: Property) => void; // Optional edit handler
+  showEditButton?: boolean; // Show edit button instead of Contact Agent
 }
 
 const { width } = Dimensions.get('window');
@@ -25,6 +27,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onPress,
   onViewTour,
   onViewVideo,
+  onEdit,
+  showEditButton = false,
 }) => {
   const { colors, isDark } = useTheme();
 
@@ -97,11 +101,21 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           <View style={styles.footerRow}>
             <Text style={[styles.price, { color: colors.text }]}>{formatPrice(property)}</Text>
 
-            <TouchableOpacity
-              style={[styles.contactButton, { backgroundColor: colors.primary }]}
-            >
-              <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>Contact Agent</Text>
-            </TouchableOpacity>
+            {showEditButton && onEdit ? (
+              <TouchableOpacity
+                style={[styles.contactButton, { backgroundColor: colors.primary }]}
+                onPress={() => onEdit(property)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>✏️ Edit</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[styles.contactButton, { backgroundColor: colors.primary }]}
+              >
+                <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>Contact Agent</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </TouchableOpacity>

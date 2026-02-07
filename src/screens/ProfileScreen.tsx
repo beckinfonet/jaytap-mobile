@@ -7,9 +7,11 @@ import { AuthService } from '../services/AuthService';
 
 interface ProfileScreenProps {
   onBack: () => void;
+  onCreateListing?: () => void;
+  onViewListings?: () => void;
 }
 
-export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack }) => {
+export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateListing, onViewListings }) => {
   const { user, logout } = useAuth();
   const { colors, isDark } = useTheme();
   
@@ -19,6 +21,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack }) => {
   const [whatsapp, setWhatsapp] = useState('');
   const [telegram, setTelegram] = useState('');
   const [isRenterApplicant, setIsRenterApplicant] = useState(false);
+  const [userType, setUserType] = useState<string>(''); // Track userType
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -51,6 +54,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack }) => {
               setWhatsapp(profile.whatsapp || '');
               setTelegram(profile.telegram || '');
               setIsRenterApplicant(profile.isRenterApplicant || false);
+              setUserType(profile.userType || ''); // Load userType
           }
       } catch (error) {
           console.error('Failed to load profile', error);
@@ -164,6 +168,33 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack }) => {
             </View>
             <Text style={[styles.arrow, { color: themeStyles.textSecondary }]}>›</Text>
         </TouchableOpacity>
+
+        {/* Renter Actions - Only show if userType === 'renter' */}
+        {userType === 'renter' && (
+            <>
+                <TouchableOpacity 
+                    style={[styles.menuItem, { backgroundColor: themeStyles.accent }]}
+                    onPress={onCreateListing}
+                >
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={{ fontSize: 20, color: '#FFF', marginRight: 12 }}>➕</Text>
+                        <Text style={[styles.menuText, { color: '#FFF' }]}>Create Listing</Text>
+                    </View>
+                    <Text style={[styles.arrow, { color: '#FFF' }]}>›</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                    style={[styles.menuItem, { backgroundColor: themeStyles.surface }]}
+                    onPress={onViewListings}
+                >
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={{ fontSize: 20, color: themeStyles.accent, marginRight: 12 }}>📋</Text>
+                        <Text style={[styles.menuText, { color: themeStyles.text }]}>My Listings</Text>
+                    </View>
+                    <Text style={[styles.arrow, { color: themeStyles.textSecondary }]}>›</Text>
+                </TouchableOpacity>
+            </>
+        )}
 
         <View style={styles.section}>
             <View style={styles.sectionHeader}>

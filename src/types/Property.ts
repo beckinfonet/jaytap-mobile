@@ -25,7 +25,7 @@ export interface Property {
   imageUrl: string;
   images?: string[]; // Optional, if we want to show carousel
   videoUrl?: string; // Added videoUrl
-  agent: {
+  agent?: {
     name: string;
     rating: number;
     reviews: number;

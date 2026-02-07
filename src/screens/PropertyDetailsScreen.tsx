@@ -289,20 +289,30 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           </View>
 
           {/* Agent Info */}
-          <View style={[styles.agentContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-             <View style={styles.agentInfo}>
-                 <View style={[styles.agentAvatar, { backgroundColor: colors.inputBackground }]}>
-                    <Text style={[styles.agentInitial, { color: colors.textSecondary }]}>{property.agent.name.charAt(0)}</Text>
-                 </View>
-                 <View>
-                     <Text style={[styles.agentName, { color: colors.text }]}>{property.agent.name}</Text>
-                     <Text style={[styles.agentRating, { color: colors.textSecondary }]}>⭐ {property.agent.rating} ({property.agent.reviews} reviews)</Text>
-                 </View>
-             </View>
-             <TouchableOpacity style={[styles.messageButton, { backgroundColor: colors.primaryLight }]}>
-                 <Text style={{ fontSize: 18, color: colors.text }}>✉️</Text>
-             </TouchableOpacity>
-          </View>
+          {property.agent && (
+            <View style={[styles.agentContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+               <View style={styles.agentInfo}>
+                   <View style={[styles.agentAvatar, { backgroundColor: colors.inputBackground }]}>
+                      <Text style={[styles.agentInitial, { color: colors.textSecondary }]}>
+                        {property.agent.name?.charAt(0) || '?'}
+                      </Text>
+                   </View>
+                   <View>
+                       <Text style={[styles.agentName, { color: colors.text }]}>
+                         {property.agent.name || 'Contact Owner'}
+                       </Text>
+                       {property.agent.rating && property.agent.reviews && (
+                         <Text style={[styles.agentRating, { color: colors.textSecondary }]}>
+                           ⭐ {property.agent.rating} ({property.agent.reviews} reviews)
+                         </Text>
+                       )}
+                   </View>
+               </View>
+               <TouchableOpacity style={[styles.messageButton, { backgroundColor: colors.primaryLight }]}>
+                   <Text style={{ fontSize: 18, color: colors.text }}>✉️</Text>
+               </TouchableOpacity>
+            </View>
+          )}
 
         </View>
       </ScrollView>

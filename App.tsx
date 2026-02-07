@@ -8,6 +8,8 @@ import { TourSelectionScreen } from './src/screens/TourSelectionScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { SignupScreen } from './src/screens/SignupScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
+import { CreateListingScreen } from './src/screens/CreateListingScreen';
+import { RenterListingsScreen } from './src/screens/RenterListingsScreen';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { Property } from './src/types/Property';
@@ -20,6 +22,9 @@ function AppContent() {
   const [propertyForTourSelection, setPropertyForTourSelection] = useState<Property | null>(null);
   const [isLoginView, setIsLoginView] = useState(true);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isCreateListingOpen, setIsCreateListingOpen] = useState(false);
+  const [propertyToEdit, setPropertyToEdit] = useState<Property | null>(null);
+  const [isRenterListingsOpen, setIsRenterListingsOpen] = useState(false);
   const [homeViewMode, setHomeViewMode] = useState<'list' | 'map'>('list'); // Track view mode to restore after details
 
   if (loading) {
@@ -62,8 +67,46 @@ function AppContent() {
     );
   }
 
+  if (isRenterListingsOpen) {
+    return (
+      <RenterListingsScreen
+        onBack={() => setIsRenterListingsOpen(false)}
+        onSelectProperty={setSelectedProperty}
+        onOpenTours={handleOpenTours}
+        onEditProperty={(property) => {
+          setPropertyToEdit(property);
+          setIsRenterListingsOpen(false);
+          setIsCreateListingOpen(true);
+        }}
+      />
+    );
+  }
+
+  if (isCreateListingOpen) {
+    return (
+      <CreateListingScreen
+        onBack={() => {
+          setIsCreateListingOpen(false);
+          setPropertyToEdit(null);
+        }}
+        onSuccess={() => {
+          setIsCreateListingOpen(false);
+          setPropertyToEdit(null);
+          setIsRenterListingsOpen(true); // Navigate to listings after successful creation/update
+        }}
+        propertyToEdit={propertyToEdit || undefined}
+      />
+    );
+  }
+
   if (isProfileOpen) {
-      return <ProfileScreen onBack={() => setIsProfileOpen(false)} />;
+    return (
+      <ProfileScreen
+        onBack={() => setIsProfileOpen(false)}
+        onCreateListing={() => setIsCreateListingOpen(true)}
+        onViewListings={() => setIsRenterListingsOpen(true)}
+      />
+    );
   }
 
   return (
