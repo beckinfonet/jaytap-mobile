@@ -23,6 +23,7 @@ interface PropertyDetailsScreenProps {
   property: Property;
   onBack: () => void;
   onOpenTours: () => void;
+  returnToMap?: boolean; // If true, user came from map view
 }
 
 const { width, height } = Dimensions.get('window');
@@ -35,6 +36,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const { colors, isDark } = useTheme();
   const [activeSlide, setActiveSlide] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isMapFullScreen, setIsMapFullScreen] = useState(false);
 
   // Consolidate images into a single array
   const images = property.images && property.images.length > 0 
@@ -248,7 +250,9 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
           {/* Location Map */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Location</Text>
+            <View style={styles.locationHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Location</Text>
+            </View>
             <Text style={[styles.address, { color: colors.textSecondary, marginBottom: 12 }]}>{property.address}</Text>
             <View style={[styles.mapContainer, { borderColor: colors.border }]}>
               <MapView
@@ -263,6 +267,8 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 zoomEnabled={true}
                 pitchEnabled={false}
                 rotateEnabled={false}
+                mapType="mutedStandard"
+                userInterfaceStyle={isDark ? 'dark' : 'light'}
               >
                 <Marker
                   coordinate={propertyCoordinates}
@@ -270,6 +276,15 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                   description={property.address}
                 />
               </MapView>
+              {/* Elegant floating button to open full screen */}
+              <TouchableOpacity 
+                style={[styles.mapOverlayButton, { backgroundColor: colors.surface, shadowColor: colors.cardShadow }]}
+                onPress={() => setIsMapFullScreen(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={{ fontSize: 20, marginRight: 6 }}>🗺️</Text>
+                <Text style={[styles.mapOverlayButtonText, { color: colors.text }]}>Full Screen</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -326,6 +341,52 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 <Text style={styles.fullScreenPaginationText}>{activeSlide + 1} / {images.length}</Text>
             </View>
         </View>
+      </Modal>
+
+      {/* Full Screen Map Modal */}
+      <Modal visible={isMapFullScreen} transparent={false} animationType="slide" onRequestClose={() => setIsMapFullScreen(false)}>
+        <SafeAreaView style={[styles.fullScreenMapContainer, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+          <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+          
+          {/* Full Screen Map */}
+          <View style={styles.fullScreenMapWrapper}>
+            <MapView
+              provider={PROVIDER_DEFAULT}
+              style={styles.fullScreenMap}
+              initialRegion={{
+                ...propertyCoordinates,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+              }}
+              scrollEnabled={true}
+              zoomEnabled={true}
+              pitchEnabled={true}
+              rotateEnabled={true}
+              mapType="mutedStandard"
+              userInterfaceStyle={isDark ? 'dark' : 'light'}
+            >
+              <Marker
+                coordinate={propertyCoordinates}
+                title={property.title}
+                description={property.address}
+              />
+            </MapView>
+
+            {/* Floating Close Button - Top Right */}
+            <TouchableOpacity 
+              style={[styles.fullScreenMapFloatingCloseButton, { backgroundColor: 'rgba(0,0,0,0.7)' }]}
+              onPress={() => setIsMapFullScreen(false)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.fullScreenMapFloatingCloseButtonText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Address info at bottom */}
+          <View style={[styles.fullScreenMapFooter, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+            <Text style={[styles.fullScreenMapAddress, { color: colors.text }]}>{property.address}</Text>
+          </View>
+        </SafeAreaView>
       </Modal>
     </SafeAreaView>
   );
@@ -583,16 +644,42 @@ const styles = StyleSheet.create({
       fontWeight: '600',
   },
   // Location Map Styles
+  locationHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+  },
   mapContainer: {
-      height: 200,
+      height: 350,
       borderRadius: 16,
       overflow: 'hidden',
       borderWidth: 1,
       marginBottom: 24,
+      position: 'relative',
   },
   map: {
       width: '100%',
       height: '100%',
+  },
+  mapOverlayButton: {
+      position: 'absolute',
+      bottom: 16,
+      right: 16,
+      zIndex: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 24,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 4,
+  },
+  mapOverlayButtonText: {
+      fontSize: 15,
+      fontWeight: '600',
   },
   // Full Screen Styles
   fullScreenContainer: {
@@ -630,5 +717,47 @@ const styles = StyleSheet.create({
       color: '#FFF',
       fontSize: 16,
       fontWeight: '600',
+  },
+  // Full Screen Map Styles
+  fullScreenMapContainer: {
+      flex: 1,
+  },
+  fullScreenMapWrapper: {
+      flex: 1,
+      position: 'relative',
+  },
+  fullScreenMap: {
+      width: '100%',
+      height: '100%',
+  },
+  fullScreenMapFloatingCloseButton: {
+      position: 'absolute',
+      top: 50,
+      right: 20,
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 8,
+  },
+  fullScreenMapFloatingCloseButtonText: {
+      color: '#FFF',
+      fontSize: 24,
+      fontWeight: 'bold',
+  },
+  fullScreenMapFooter: {
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderTopWidth: 1,
+  },
+  fullScreenMapAddress: {
+      fontSize: 16,
+      fontWeight: '500',
   }
 });

@@ -20,6 +20,7 @@ function AppContent() {
   const [propertyForTourSelection, setPropertyForTourSelection] = useState<Property | null>(null);
   const [isLoginView, setIsLoginView] = useState(true);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [homeViewMode, setHomeViewMode] = useState<'list' | 'map'>('list'); // Track view mode to restore after details
 
   if (loading) {
     return (
@@ -70,14 +71,20 @@ function AppContent() {
       {selectedProperty ? (
         <PropertyDetailsScreen 
           property={selectedProperty} 
-          onBack={() => setSelectedProperty(null)}
+          onBack={() => {
+            setSelectedProperty(null);
+            // View mode will be restored by HomeScreen's internal state
+          }}
           onOpenTours={() => handleOpenTours(selectedProperty)}
+          returnToMap={homeViewMode === 'map'}
         />
       ) : (
         <HomeScreen 
           onSelectProperty={setSelectedProperty} 
           onOpenTours={handleOpenTours}
           onOpenProfile={() => setIsProfileOpen(true)}
+          viewMode={homeViewMode}
+          onViewModeChange={setHomeViewMode}
         />
       )}
       

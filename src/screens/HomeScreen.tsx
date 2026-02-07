@@ -26,6 +26,8 @@ interface HomeScreenProps {
   onSelectProperty: (property: Property) => void;
   onOpenTours: (property: Property) => void;
   onOpenProfile: () => void;
+  viewMode?: 'list' | 'map';
+  onViewModeChange?: (mode: 'list' | 'map') => void;
 }
 
 const RESIDENTIAL_TYPES = ['Apartment', 'House', 'Townhome', 'Condo'];
@@ -50,11 +52,11 @@ const BISHKEK_DISTRICTS = [
   'Kok-Jar',
 ];
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile, viewMode: propViewMode, onViewModeChange }) => {
   const { colors, theme, isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-
+  
   // New Filter State
   const [transactionType, setTransactionType] = useState<'rent' | 'sale'>('rent');
   const [isCommercial, setIsCommercial] = useState(false);
@@ -64,8 +66,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   const [selectedDistrict, setSelectedDistrict] = useState('Bishkek (All)');
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
 
-  // View Mode: List or Map
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  // View Mode: List or Map - use prop if provided, otherwise internal state
+  const [internalViewMode, setInternalViewMode] = useState<'list' | 'map'>('list');
+  const viewMode = propViewMode ?? internalViewMode;
+  const setViewMode = onViewModeChange ?? setInternalViewMode;
 
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);

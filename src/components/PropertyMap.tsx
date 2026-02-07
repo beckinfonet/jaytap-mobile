@@ -29,7 +29,8 @@ export const PropertyMap: React.FC<PropertyMapProps> = ({ properties, onSelectPr
           latitudeDelta: 0.05,
           longitudeDelta: 0.05,
         }}
-        mapType={isDark ? 'standard' : 'standard'} // Apple Maps doesn't have a dark mode in the same way, but we can style it
+        mapType="mutedStandard" // Slightly darker variant, works better in dark mode
+        userInterfaceStyle={isDark ? 'dark' : 'light'} // iOS 13+ dark mode support
       >
         {/* Property Markers */}
         {properties.map((property) => {
