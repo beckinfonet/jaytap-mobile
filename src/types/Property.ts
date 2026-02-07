@@ -36,4 +36,5 @@ export interface Property {
   type: 'rent' | 'sale';
   propertyType?: string; // Added propertyType (apartment, house, office, etc.)
   matterportUrl?: string; // Kept for backward compatibility if needed, but prefer tours[]
+  instagramUrl?: string; // Instagram URL for renter contact
 }

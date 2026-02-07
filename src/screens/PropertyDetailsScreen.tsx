@@ -173,32 +173,49 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
         <View style={styles.contentContainer}>
           
-          {/* Media Buttons */}
-          <View style={styles.mediaButtonsRow}>
-             {property.is3DTourAvailable && property.tours.length > 0 && (
-                 <TouchableOpacity 
-                    style={[styles.mediaButton, styles.tour3DButton]}
-                    onPress={onOpenTours}
-                 >
-                     <Text style={{fontSize: 24, marginRight: 8}}>👓</Text>
-                     <View style={{ flex: 1 }}>
-                        <Text style={styles.tour3DButtonText} numberOfLines={1} adjustsFontSizeToFit>Start 3D Tour</Text>
-                        <Text style={styles.tour3DButtonSubtext} numberOfLines={1} adjustsFontSizeToFit>Interactive Walkthrough</Text>
-                     </View>
-                 </TouchableOpacity>
-             )}
-             {property.videoUrl && (
-                 <TouchableOpacity 
-                    style={[styles.mediaButton, styles.videoButton]}
-                    onPress={() => handleOpenLink(property.videoUrl, 'Video')}
-                 >
-                     <Text style={{fontSize: 24, marginRight: 8}}>🎥</Text>
-                     <View>
-                        <Text style={styles.videoButtonText}>Watch Video</Text>
-                        <Text style={styles.videoButtonSubtext}>Property Tour</Text>
-                     </View>
-                 </TouchableOpacity>
-             )}
+          {/* Media Buttons - Redesigned */}
+          <View style={styles.mediaButtonsContainer}>
+            {/* 3D Tour Button - Full Width */}
+            {property.is3DTourAvailable && property.tours.length > 0 && (
+              <TouchableOpacity 
+                style={styles.tour3DButton}
+                onPress={onOpenTours}
+              >
+                <Text style={styles.tour3DIcon}>🥽</Text>
+                <Text style={styles.tour3DButtonText}>Start 3D Tour</Text>
+                <Text style={styles.tour3DArrow}>→</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Instagram and Videos - Side by Side */}
+            <View style={styles.secondaryButtonsRow}>
+              {property.instagramUrl && (
+                <TouchableOpacity 
+                  style={[styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  onPress={() => handleOpenLink(property.instagramUrl, 'Instagram')}
+                >
+                  <View style={styles.instagramIconContainer}>
+                    <View style={styles.instagramLogo}>
+                      <View style={styles.instagramSquare} />
+                      <View style={styles.instagramCircle} />
+                      <View style={styles.instagramDot} />
+                    </View>
+                  </View>
+                  <Text style={[styles.secondaryButtonText, { color: colors.text }]}>Instagram</Text>
+                  <Text style={[styles.secondaryButtonArrow, { color: colors.text }]}>→</Text>
+                </TouchableOpacity>
+              )}
+              {property.videoUrl && (
+                <TouchableOpacity 
+                  style={[styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  onPress={() => handleOpenLink(property.videoUrl, 'Video')}
+                >
+                  <Text style={styles.videoIcon}>▶</Text>
+                  <Text style={[styles.secondaryButtonText, { color: colors.text }]}>Videos</Text>
+                  <Text style={[styles.secondaryButtonArrow, { color: colors.text }]}>→</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
 
           {/* Title and Address */}
@@ -531,43 +548,18 @@ const styles = StyleSheet.create({
   featureText: {
     fontSize: 14,
   },
-  mediaButtonsRow: {
-      flexDirection: 'row',
-      marginBottom: 24,
-      gap: 12,
-  },
-  mediaButton: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 12,
-      paddingHorizontal: 12,
-      borderRadius: 12,
-  },
-  videoButton: {
-      flex: 1,
-      backgroundColor: '#FFFFFF',
-      borderWidth: 1,
-      borderColor: '#E0E0E0',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 2,
-  },
-  videoButtonText: {
-      color: '#333',
-      fontSize: 15,
-      fontWeight: '700',
-  },
-  videoButtonSubtext: {
-      color: '#666',
-      fontSize: 11,
-      fontWeight: '500',
+  mediaButtonsContainer: {
+    marginBottom: 24,
+    gap: 12,
   },
   tour3DButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#6C63FF',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
     shadowColor: '#6C63FF',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -575,17 +567,92 @@ const styles = StyleSheet.create({
     elevation: 6,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
-    flex: 1.2,
+  },
+  tour3DIcon: {
+    fontSize: 22,
+    marginRight: 12,
   },
   tour3DButtonText: {
+    flex: 1,
     color: '#FFF',
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '700',
   },
-  tour3DButtonSubtext: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 11,
-    fontWeight: '500',
+  tour3DArrow: {
+    color: '#FFF',
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  secondaryButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  secondaryButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  instagramIconContainer: {
+    width: 24,
+    height: 24,
+    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  instagramLogo: {
+    width: 24,
+    height: 24,
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  instagramSquare: {
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#E1306C',
+    position: 'absolute',
+  },
+  instagramCircle: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#E1306C',
+    position: 'absolute',
+  },
+  instagramDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#E1306C',
+    position: 'absolute',
+    top: 3,
+    right: 3,
+  },
+  videoIcon: {
+    fontSize: 20,
+    marginRight: 12,
+  },
+  secondaryButtonText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  secondaryButtonArrow: {
+    fontSize: 18,
+    fontWeight: '600',
   },
   agentContainer: {
       flexDirection: 'row',

@@ -10,6 +10,9 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  Image,
+  FlatList,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
@@ -17,6 +20,7 @@ import { useAuth } from '../context/AuthContext';
 import { PropertyService } from '../services/PropertyService';
 import { AuthService } from '../services/AuthService';
 import { Property } from '../types/Property';
+import * as ImagePicker from 'react-native-image-picker';
 
 const RESIDENTIAL_TYPES = ['Apartment', 'House', 'Townhome', 'Condo'];
 const COMMERCIAL_TYPES = ['Office', 'Retail', 'Warehouse', 'Land', 'Industrial'];
@@ -47,7 +51,7 @@ interface CreateListingScreenProps {
 export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack, onSuccess, propertyToEdit }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
-  
+
   // Form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -66,13 +70,21 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
   const [videoUrl, setVideoUrl] = useState('');
   const [instagramUrl, setInstagramUrl] = useState('');
   const [status, setStatus] = useState<'draft' | 'live'>('draft');
-  
+
+  // Images state
+  const [selectedImages, setSelectedImages] = useState<any[]>([]);
+
+  // Matterport tours state
+  const [tours, setTours] = useState<Array<{ id: string; title: string; url: string }>>([]);
+  const [tourTitle, setTourTitle] = useState('');
+  const [tourUrl, setTourUrl] = useState('');
+
   // Contact info (auto-filled from profile)
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [contactWhatsapp, setContactWhatsapp] = useState('');
   const [contactTelegram, setContactTelegram] = useState('');
-  
+
   const [loading, setLoading] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
@@ -84,7 +96,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
       // Populate form with existing property data
       setTitle(propertyToEdit.title || '');
       setDescription(propertyToEdit.description || '');
-      
+
       // Parse address to extract street, district, city
       const addressParts = propertyToEdit.address?.split(',') || [];
       if (addressParts.length > 0) {
@@ -98,7 +110,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
       } else if (propertyToEdit.city) {
         setCity(propertyToEdit.city);
       }
-      
+
       setPrice(typeof propertyToEdit.price === 'number' ? propertyToEdit.price.toString() : propertyToEdit.price || '');
       setCurrency(propertyToEdit.currency || '$');
       setType(propertyToEdit.type || 'rent');
@@ -110,6 +122,21 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
       setVideoUrl(propertyToEdit.videoUrl || '');
       setInstagramUrl((propertyToEdit as any).instagramUrl || '');
       setStatus((propertyToEdit as any).status || 'draft');
+
+      // Load existing images (if editing and images exist)
+      if (propertyToEdit.images && propertyToEdit.images.length > 0) {
+        // For existing images, we'll store them as URLs (they're already uploaded)
+        setSelectedImages(propertyToEdit.images.map((url: string) => ({ uri: url, isExisting: true })));
+      }
+
+      // Load existing tours
+      if (propertyToEdit.tours && propertyToEdit.tours.length > 0) {
+        setTours(propertyToEdit.tours.map((tour: any) => ({
+          id: tour.id || Math.random().toString(),
+          title: tour.title || '',
+          url: tour.url || '',
+        })));
+      }
     }
   }, [propertyToEdit]);
 
@@ -118,7 +145,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
       setLoadingProfile(false);
       return;
     }
-    
+
     try {
       const profile = await AuthService.getBackendUser(user.localId);
       if (profile) {
@@ -144,6 +171,75 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
 
   const removeFeature = (index: number) => {
     setFeatures(features.filter((_, i) => i !== index));
+  };
+
+  const handleSelectImages = () => {
+    const remainingSlots = 40 - selectedImages.length;
+    if (remainingSlots <= 0) {
+      Alert.alert('Maximum reached', 'You can add up to 40 images');
+      return;
+    }
+
+    // Check if ImagePicker is available
+    if (!ImagePicker || !ImagePicker.launchImageLibrary) {
+      Alert.alert(
+        'Image Picker Not Available',
+        'Please rebuild the app after installing react-native-image-picker. Run: cd ios && pod install && cd .. && npx react-native run-ios'
+      );
+      return;
+    }
+
+    ImagePicker.launchImageLibrary(
+      {
+        mediaType: 'photo',
+        quality: 0.8,
+        selectionLimit: remainingSlots,
+        includeBase64: false,
+      },
+      (response) => {
+        if (response.didCancel) {
+          return;
+        }
+
+        if (response.errorMessage) {
+          Alert.alert('Error', response.errorMessage);
+          return;
+        }
+
+        if (response.assets && response.assets.length > 0) {
+          const newImages = response.assets.map((asset) => ({
+            uri: asset.uri || '',
+            type: asset.type || 'image/jpeg',
+            name: asset.fileName || `image-${Date.now()}.jpg`,
+            fileSize: asset.fileSize,
+          }));
+
+          setSelectedImages([...selectedImages, ...newImages]);
+        }
+      }
+    );
+  };
+
+  const removeImage = (index: number) => {
+    setSelectedImages(selectedImages.filter((_, i) => i !== index));
+  };
+
+  const addTour = () => {
+    if (tourTitle.trim() && tourUrl.trim()) {
+      setTours([...tours, {
+        id: Math.random().toString(),
+        title: tourTitle.trim(),
+        url: tourUrl.trim(),
+      }]);
+      setTourTitle('');
+      setTourUrl('');
+    } else {
+      Alert.alert('Error', 'Please enter both tour title and URL');
+    }
+  };
+
+  const removeTour = (id: string) => {
+    setTours(tours.filter(t => t.id !== id));
   };
 
   const handleSubmit = async () => {
@@ -172,6 +268,10 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
         fullAddress = `${fullAddress}, ${city}`;
       }
 
+      // Separate existing images (URLs) from new images (files to upload)
+      const existingImageUrls = selectedImages.filter(img => img.isExisting).map(img => img.uri);
+      const newImages = selectedImages.filter(img => !img.isExisting);
+
       const propertyData = {
         title: title.trim(),
         description: description.trim(),
@@ -189,15 +289,17 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
         videoUrl: videoUrl.trim(),
         instagramUrl: instagramUrl.trim(),
         status,
+        tours: tours.length > 0 ? tours : undefined, // Include Matterport tours
+        existingImages: existingImageUrls, // Send existing image URLs for merging
       };
 
       if (isEditMode && propertyToEdit?.id) {
-        await PropertyService.updateProperty(propertyToEdit.id, propertyData, []); // Images will be added by platform later
+        await PropertyService.updateProperty(propertyToEdit.id, propertyData, newImages);
         Alert.alert('Success', 'Listing updated successfully!', [
           { text: 'OK', onPress: onSuccess },
         ]);
       } else {
-        await PropertyService.createProperty(propertyData, []); // Images will be added by platform later
+        await PropertyService.createProperty(propertyData, newImages);
         Alert.alert('Success', status === 'draft' ? 'Listing saved as draft!' : 'Listing created successfully!', [
           { text: 'OK', onPress: onSuccess },
         ]);
@@ -223,7 +325,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
@@ -235,7 +337,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
         <View style={{ width: 80 }} />
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -345,7 +447,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
           <Text style={[styles.hint, { color: colors.textSecondary }]}>
             Enter the price amount and currency symbol (e.g., 850 and $ for $850)
           </Text>
-          
+
           <Text style={[styles.label, { color: colors.textSecondary }]}>Property Type</Text>
           <View style={styles.chipRow}>
             {[...RESIDENTIAL_TYPES, ...COMMERCIAL_TYPES].map((pt) => (
@@ -432,6 +534,98 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
           </View>
         </View>
 
+        {/* Images */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Images</Text>
+          <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: 12 }]}>
+            Add up to 40 images ({selectedImages.length}/40)
+          </Text>
+          <TouchableOpacity
+            style={[styles.imagePickerButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}
+            onPress={handleSelectImages}
+            disabled={selectedImages.length >= 40}
+          >
+            <Text style={[styles.imagePickerButtonText, { color: colors.text }]}>
+              📷 {selectedImages.length >= 40 ? 'Maximum images reached' : 'Select Images'}
+            </Text>
+          </TouchableOpacity>
+
+          {selectedImages.length > 0 && (
+            <View style={styles.imagesGrid}>
+              {selectedImages.map((image, index) => (
+                <View key={index} style={styles.imageItem}>
+                  <Image
+                    source={{ uri: image.uri }}
+                    style={styles.imageThumbnail}
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    style={styles.removeImageButton}
+                    onPress={() => removeImage(index)}
+                  >
+                    <Text style={styles.removeImageText}>×</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Matterport 3D Tours */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>3D Matterport Tours</Text>
+          <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: 12 }]}>
+            Add Matterport tour URLs for interactive 3D walkthroughs
+          </Text>
+
+          <TextInput
+            style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
+            placeholder="Tour Title (e.g., Full Apartment Walkthrough)"
+            placeholderTextColor={colors.textSecondary}
+            value={tourTitle}
+            onChangeText={setTourTitle}
+          />
+          <TextInput
+            style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
+            placeholder="Matterport URL (e.g., https://my.matterport.com/show/?m=...)"
+            placeholderTextColor={colors.textSecondary}
+            value={tourUrl}
+            onChangeText={setTourUrl}
+            keyboardType="url"
+          />
+          <TouchableOpacity
+            style={[styles.addTourButton, { backgroundColor: colors.primary, borderColor: colors.border }]}
+            onPress={addTour}
+          >
+            <Text style={[styles.addTourButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>
+              + Add 3D Tour
+            </Text>
+          </TouchableOpacity>
+
+          {tours.length > 0 && (
+            <View style={styles.toursList}>
+              {tours.map((tour) => (
+                <View key={tour.id} style={[styles.tourItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <View style={styles.tourInfo}>
+                    <Text style={[styles.tourTitle, { color: colors.text }]} numberOfLines={1}>
+                      {tour.title}
+                    </Text>
+                    <Text style={[styles.tourUrl, { color: colors.textSecondary }]} numberOfLines={1}>
+                      {tour.url}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.removeTourButton}
+                    onPress={() => removeTour(tour.id)}
+                  >
+                    <Text style={[styles.removeTourText, { color: colors.textSecondary }]}>×</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
         {/* Links */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Links</Text>
@@ -489,43 +683,45 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
           />
         </View>
 
-        {/* Status */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Status</Text>
-          <View style={[styles.segmentedControl, { backgroundColor: isDark ? '#2C2C2E' : '#E5E5EA' }]}>
-            <TouchableOpacity
-              style={[
-                styles.segmentButton,
-                status === 'draft' && { backgroundColor: isDark ? '#000000' : '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }
-              ]}
-              onPress={() => setStatus('draft')}
-            >
-              <View style={styles.segmentContent}>
-                <Text style={styles.segmentIcon}>📄</Text>
-                <Text style={[styles.segmentText, { color: status === 'draft' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }]}>
-                  Draft
-                </Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.segmentButton,
-                status === 'live' && { backgroundColor: isDark ? '#000000' : '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }
-              ]}
-              onPress={() => setStatus('live')}
-            >
-              <View style={styles.segmentContent}>
-                <Text style={styles.segmentIcon}>🚀</Text>
-                <Text style={[styles.segmentText, { color: status === 'live' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }]}>
-                  Submit
-                </Text>
-              </View>
-            </TouchableOpacity>
+        {/* Status - Only show when creating new listing, not when editing */}
+        {!isEditMode && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Status</Text>
+            <View style={[styles.segmentedControl, { backgroundColor: isDark ? '#2C2C2E' : '#E5E5EA' }]}>
+              <TouchableOpacity
+                style={[
+                  styles.segmentButton,
+                  status === 'draft' && { backgroundColor: isDark ? '#000000' : '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }
+                ]}
+                onPress={() => setStatus('draft')}
+              >
+                <View style={styles.segmentContent}>
+                  <Text style={styles.segmentIcon}>📄</Text>
+                  <Text style={[styles.segmentText, { color: status === 'draft' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }]}>
+                    Draft
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.segmentButton,
+                  status === 'live' && { backgroundColor: isDark ? '#000000' : '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }
+                ]}
+                onPress={() => setStatus('live')}
+              >
+                <View style={styles.segmentContent}>
+                  <Text style={styles.segmentIcon}>🚀</Text>
+                  <Text style={[styles.segmentText, { color: status === 'live' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }]}>
+                    Submit
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>
+              Draft: Save for later. Submit: Publish listing (images will be added by platform).
+            </Text>
           </View>
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>
-            Draft: Save for later. Submit: Publish listing (images will be added by platform).
-          </Text>
-        </View>
+        )}
 
         {/* Submit Button */}
         <TouchableOpacity
@@ -537,8 +733,8 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
             <ActivityIndicator color="#FFF" />
           ) : (
             <Text style={[styles.submitButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>
-              {isEditMode 
-                ? 'Update Listing' 
+              {isEditMode
+                ? 'Update Listing'
                 : (status === 'draft' ? 'Save as Draft' : 'Create Listing')
               }
             </Text>
@@ -719,6 +915,105 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 18,
     fontWeight: '700',
+  },
+  imagePickerButton: {
+    height: 50,
+    borderWidth: 1,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  imagePickerButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  imagesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginTop: 12,
+  },
+  imageItem: {
+    width: (Dimensions.get('window').width - 60) / 3, // 3 columns with margins
+    height: (Dimensions.get('window').width - 60) / 3,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  imageThumbnail: {
+    width: '100%',
+    height: '100%',
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeImageText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  addTourButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  addTourButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  toursList: {
+    marginTop: 12,
+    gap: 8,
+  },
+  tourItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  tourInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  tourTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  tourUrl: {
+    fontSize: 12,
+  },
+  removeTourButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeTourText: {
+    fontSize: 24,
+    fontWeight: 'bold',
   },
 });
 

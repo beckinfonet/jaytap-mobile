@@ -73,6 +73,11 @@ export const PropertyService = {
       formData.append('videoUrl', propertyData.videoUrl || '');
       formData.append('instagramUrl', propertyData.instagramUrl || '');
       formData.append('status', propertyData.status || 'draft');
+      
+      // Add Matterport tours if provided
+      if (propertyData.tours && propertyData.tours.length > 0) {
+        formData.append('tours', JSON.stringify(propertyData.tours));
+      }
 
       // Add images
       images.forEach((image, index) => {
@@ -127,8 +132,18 @@ export const PropertyService = {
       formData.append('videoUrl', propertyData.videoUrl || '');
       formData.append('instagramUrl', propertyData.instagramUrl || '');
       formData.append('status', propertyData.status || 'draft');
+      
+      // Add Matterport tours if provided
+      if (propertyData.tours && propertyData.tours.length > 0) {
+        formData.append('tours', JSON.stringify(propertyData.tours));
+      }
 
-      // Add images
+      // Add existing images (URLs) if provided (for updates)
+      if (propertyData.existingImages && propertyData.existingImages.length > 0) {
+        formData.append('existingImages', JSON.stringify(propertyData.existingImages));
+      }
+
+      // Add new images (files to upload)
       images.forEach((image, index) => {
         formData.append('images', {
           uri: image.uri,
@@ -140,7 +155,7 @@ export const PropertyService = {
       const response = await axios.put(`${API_URL}/properties/${propertyId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          'x-firebase-uid': userData.localId,
+          'x-firebase-uid': userData.localId, // Send in headers for auth middleware
         },
       });
 
