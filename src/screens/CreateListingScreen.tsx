@@ -500,9 +500,12 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
               ]}
               onPress={() => setStatus('draft')}
             >
-              <Text style={[styles.segmentText, { color: status === 'draft' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }]}>
-                📝 Draft
-              </Text>
+              <View style={styles.segmentContent}>
+                <Text style={styles.segmentIcon}>📄</Text>
+                <Text style={[styles.segmentText, { color: status === 'draft' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }]}>
+                  Draft
+                </Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
@@ -511,9 +514,12 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
               ]}
               onPress={() => setStatus('live')}
             >
-              <Text style={[styles.segmentText, { color: status === 'live' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }]}>
-                ✅ Submit
-              </Text>
+              <View style={styles.segmentContent}>
+                <Text style={styles.segmentIcon}>🚀</Text>
+                <Text style={[styles.segmentText, { color: status === 'live' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }]}>
+                  Submit
+                </Text>
+              </View>
             </TouchableOpacity>
           </View>
           <Text style={[styles.hint, { color: colors.textSecondary }]}>
@@ -530,7 +536,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
           {loading ? (
             <ActivityIndicator color="#FFF" />
           ) : (
-            <Text style={styles.submitButtonText}>
+            <Text style={[styles.submitButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>
               {isEditMode 
                 ? 'Update Listing' 
                 : (status === 'draft' ? 'Save as Draft' : 'Create Listing')
@@ -688,6 +694,15 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  segmentContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  segmentIcon: {
+    fontSize: 18,
   },
   segmentText: {
     fontWeight: '600',
