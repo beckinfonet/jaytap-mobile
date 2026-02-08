@@ -37,4 +37,12 @@ export interface Property {
   propertyType?: string; // Added propertyType (apartment, house, office, etc.)
   matterportUrl?: string; // Kept for backward compatibility if needed, but prefer tours[]
   instagramUrl?: string; // Instagram URL for renter contact
+  owner?: {
+    email?: string;
+    phone?: string;
+    whatsapp?: string;
+    telegram?: string;
+    firstName?: string;
+    lastName?: string;
+  };
 }

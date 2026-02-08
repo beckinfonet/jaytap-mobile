@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,11 +13,14 @@ import {
   Platform,
   FlatList,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Send, MessageCircle } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { useTheme } from '../theme/ThemeContext';
+import { PropertyService } from '../services/PropertyService';
 
 interface PropertyDetailsScreenProps {
   property: Property;
@@ -29,14 +32,38 @@ interface PropertyDetailsScreenProps {
 const { width, height } = Dimensions.get('window');
 
 export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
-  property,
+  property: initialProperty,
   onBack,
   onOpenTours,
 }) => {
   const { colors, isDark } = useTheme();
+  const [property, setProperty] = useState<Property>(initialProperty);
+  const [loading, setLoading] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isMapFullScreen, setIsMapFullScreen] = useState(false);
+
+  // Fetch property details with owner info when screen mounts
+  useEffect(() => {
+    const fetchPropertyDetails = async () => {
+      if (!initialProperty?.id) return;
+      
+      setLoading(true);
+      try {
+        const propertyDetails = await PropertyService.getPropertyById(initialProperty.id);
+        console.log('Property details fetched:', JSON.stringify(propertyDetails, null, 2));
+        console.log('Owner info:', propertyDetails.owner);
+        setProperty(propertyDetails);
+      } catch (error) {
+        console.error('Error fetching property details:', error);
+        // Keep using initial property if fetch fails
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPropertyDetails();
+  }, [initialProperty?.id]);
 
   // Consolidate images into a single array
   const images = property.images && property.images.length > 0 
@@ -68,6 +95,79 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
     } else {
       Alert.alert('Info', `No ${label} available.`);
     }
+  };
+
+  const handleWhatsApp = () => {
+    const owner = (property as any).owner;
+    if (!owner?.whatsapp) {
+      Alert.alert('No WhatsApp', 'This owner has not provided a WhatsApp number.');
+      return;
+    }
+
+    // Clean phone number: remove all non-numeric characters
+    const cleanPhone = owner.whatsapp.replace(/\D/g, '');
+    
+    const message = `Hi, I'm interested in your property: ${property.title}`;
+    const whatsappUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
+
+    Linking.canOpenURL(whatsappUrl)
+      .then((supported) => {
+        if (supported) {
+          return Linking.openURL(whatsappUrl);
+        } else {
+          // Fallback to regular phone call if WhatsApp is not installed
+          return Linking.openURL(`tel:${owner.whatsapp}`);
+        }
+      })
+      .catch((err) => {
+        console.error('An error occurred', err);
+        Linking.openURL(`tel:${owner.whatsapp}`).catch(e => console.error("Call failed", e));
+      });
+  };
+
+  const handleTelegram = () => {
+    const owner = (property as any).owner;
+    if (!owner?.telegram) {
+      Alert.alert('No Telegram', 'This owner has not provided a Telegram username.');
+      return;
+    }
+
+    // Clean username: remove URL parts, @, and whitespace
+    let username = owner.telegram.trim();
+    username = username.replace(/(https?:\/\/)?(t\.me|telegram\.me)\//i, '');
+    username = username.replace('@', '');
+    
+    if (!username) {
+      Alert.alert('Invalid Telegram', 'The provided Telegram username is invalid.');
+      return;
+    }
+
+    const message = `Hi, I'm interested in your property: ${property.title}`;
+    const webUrl = `https://t.me/${username}?text=${encodeURIComponent(message)}`;
+
+    // Try opening web URL directly as it handles redirection well
+    Linking.openURL(webUrl).catch(err => {
+      console.error("Failed to open Telegram", err);
+      // Fallback to deep link
+      Linking.openURL(`tg://resolve?domain=${username}`);
+    });
+  };
+
+  const handleEmail = () => {
+    const owner = (property as any).owner;
+    if (!owner?.email) {
+      Alert.alert('No Email', 'This owner has not provided an email address.');
+      return;
+    }
+
+    const subject = encodeURIComponent(`Inquiry about: ${property.title}`);
+    const body = encodeURIComponent(`Hi,\n\nI'm interested in your property: ${property.title}\n\nAddress: ${property.address}\n\nPlease let me know if it's still available.\n\nThank you!`);
+    const emailUrl = `mailto:${owner.email}?subject=${subject}&body=${body}`;
+
+    Linking.openURL(emailUrl).catch(err => {
+      console.error("Failed to open email", err);
+      Alert.alert('Error', 'Could not open email client.');
+    });
   };
 
   const onScroll = (event: any) => {
@@ -120,6 +220,27 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         />
     </View>
   );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+        <StatusBar
+          barStyle={isDark ? 'light-content' : 'dark-content'}
+          backgroundColor={colors.background}
+        />
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onBack} style={[styles.iconButton, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.iconText, { color: colors.text }]}>←</Text>
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Details</Text>
+          <View style={[styles.iconButton, { backgroundColor: colors.surface }]} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
@@ -336,13 +457,65 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
       {/* Footer Action */}
       <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-          <View>
-              <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>Price</Text>
-              <Text style={[styles.footerPrice, { color: colors.text }]}>{formatPrice(property)}</Text>
+          {/* First Row: Price and Owner Name */}
+          <View style={styles.footerTopRow}>
+              <View style={styles.priceContainer}>
+                  <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>Price</Text>
+                  <Text style={[styles.footerPrice, { color: colors.text }]}>{formatPrice(property)}</Text>
+              </View>
+              {(() => {
+                const owner = (property as any).owner;
+                const ownerName = owner ? `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || 'Owner' : null;
+                return ownerName ? (
+                  <View style={styles.ownerContainer}>
+                      <Text style={[styles.ownerLabel, { color: colors.textSecondary }]}>Landlord</Text>
+                      <Text style={[styles.ownerName, { color: colors.text }]}>{ownerName}</Text>
+                  </View>
+                ) : null;
+              })()}
           </View>
-          <TouchableOpacity style={[styles.contactButton, { backgroundColor: colors.primary }]}>
-              <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>Contact Agent</Text>
-          </TouchableOpacity>
+          
+          {/* Second Row: Contact Buttons - Telegram and WhatsApp */}
+          {(() => {
+            const owner = (property as any).owner;
+            const hasWhatsApp = owner?.whatsapp;
+            const hasTelegram = owner?.telegram;
+            const hasAnyContact = hasWhatsApp || hasTelegram;
+            
+            console.log('Owner contact info:', { hasWhatsApp, hasTelegram, owner });
+            
+            if (hasAnyContact) {
+              return (
+                <View style={styles.contactButtonsRow}>
+                  {hasTelegram && (
+                    <TouchableOpacity 
+                      style={[styles.contactButton, styles.telegramButton]} 
+                      onPress={handleTelegram}
+                    >
+                      <Send size={20} color="#FFF" />
+                      <Text style={styles.contactButtonText}>Telegram</Text>
+                    </TouchableOpacity>
+                  )}
+                  {hasWhatsApp && (
+                    <TouchableOpacity 
+                      style={[styles.contactButton, styles.whatsappButton, hasTelegram ? { marginLeft: 8 } : {}]} 
+                      onPress={handleWhatsApp}
+                    >
+                      <MessageCircle size={20} color="#FFF" />
+                      <Text style={styles.contactButtonText}>WhatsApp</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              );
+            }
+            
+            // Fallback: Show generic contact button if no owner info
+            return (
+              <TouchableOpacity style={[styles.contactButton, { backgroundColor: colors.primary }]}>
+                <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>Contact Agent</Text>
+              </TouchableOpacity>
+            );
+          })()}
       </View>
 
       {/* Full Screen Image Modal */}
@@ -695,12 +868,18 @@ const styles = StyleSheet.create({
       alignItems: 'center',
   },
   footer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
       paddingHorizontal: 20,
       paddingVertical: 16,
       borderTopWidth: 1,
+      gap: 12,
+  },
+  footerTopRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+  },
+  priceContainer: {
+      flex: 1,
   },
   priceLabel: {
       fontSize: 12,
@@ -711,14 +890,42 @@ const styles = StyleSheet.create({
       fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }),
       fontWeight: '600',
   },
-  contactButton: {
-      paddingHorizontal: 32,
-      paddingVertical: 14,
-      borderRadius: 30,
+  ownerContainer: {
+      flex: 1,
+      alignItems: 'flex-end',
   },
-  contactButtonText: {
+  ownerLabel: {
+      fontSize: 12,
+      marginBottom: 2,
+  },
+  ownerName: {
       fontSize: 16,
       fontWeight: '600',
+  },
+  contactButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  contactButton: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      borderRadius: 30,
+      gap: 8,
+  },
+  whatsappButton: {
+    backgroundColor: '#25D366', // WhatsApp Green
+  },
+  telegramButton: {
+    backgroundColor: '#229ED9', // Telegram Blue
+  },
+  contactButtonText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: '#FFFFFF',
   },
   // Location Map Styles
   locationHeader: {
@@ -836,5 +1043,10 @@ const styles = StyleSheet.create({
   fullScreenMapAddress: {
       fontSize: 16,
       fontWeight: '500',
-  }
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
