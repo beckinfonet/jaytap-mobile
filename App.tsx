@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ActivityIndicator, Linking, Alert } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { PropertyDetailsScreen } from './src/screens/PropertyDetailsScreen';
@@ -13,6 +13,7 @@ import { RenterListingsScreen } from './src/screens/RenterListingsScreen';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { Property } from './src/types/Property';
+import { PropertyService } from './src/services/PropertyService';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -26,6 +27,50 @@ function AppContent() {
   const [propertyToEdit, setPropertyToEdit] = useState<Property | null>(null);
   const [isRenterListingsOpen, setIsRenterListingsOpen] = useState(false);
   const [homeViewMode, setHomeViewMode] = useState<'list' | 'map'>('list'); // Track view mode to restore after details
+
+  // Handle deep linking for shared property links
+  useEffect(() => {
+    const handleDeepLink = async (url: string) => {
+      try {
+        console.log('Deep link received:', url);
+        
+        // Parse URL: https://www.bizdinkonush.com/property/{id}
+        const propertyMatch = url.match(/\/property\/([^\/\?]+)/);
+        if (propertyMatch && propertyMatch[1]) {
+          const propertyId = propertyMatch[1];
+          
+          // Fetch property details
+          const property = await PropertyService.getPropertyById(propertyId);
+          if (property) {
+            setSelectedProperty(property);
+          } else {
+            Alert.alert('Property Not Found', 'The property you are looking for could not be found.');
+          }
+        }
+      } catch (error) {
+        console.error('Error handling deep link:', error);
+        Alert.alert('Error', 'Failed to open property link.');
+      }
+    };
+
+    // Handle initial URL (when app is opened via link)
+    const getInitialUrl = async () => {
+      const initialUrl = await Linking.getInitialURL();
+      if (initialUrl) {
+        handleDeepLink(initialUrl);
+      }
+    };
+    getInitialUrl();
+
+    // Listen for incoming links (when app is already running)
+    const subscription = Linking.addEventListener('url', (event) => {
+      handleDeepLink(event.url);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [user]); // Re-run when user changes (after login)
 
   if (loading) {
     return (

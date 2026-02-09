@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
+  Share,
 } from 'react-native';
 import { Property } from '../types/Property';
 import { useTheme } from '../theme/ThemeContext';
@@ -18,6 +19,7 @@ interface PropertyCardProps {
   onViewVideo: (property: Property) => void;
   onEdit?: (property: Property) => void; // Optional edit handler
   showEditButton?: boolean; // Show edit button instead of Contact Agent
+  onShare?: (property: Property) => void; // Optional share handler
 }
 
 const { width } = Dimensions.get('window');
@@ -29,6 +31,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onViewVideo,
   onEdit,
   showEditButton = false,
+  onShare,
 }) => {
   const { colors, isDark } = useTheme();
 
@@ -45,7 +48,41 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     }
     return priceDisplay;
   };
-  console.log({ property });
+
+  const handleShare = async (e: any) => {
+    e.stopPropagation(); // Prevent card press
+    
+    // Generate shareable URL
+    const propertyId = property.id || property.listingId || property._id;
+    const shareUrl = `https://www.bizdinkonush.com/property/${propertyId}`;
+    
+    // Create share message
+    const priceText = formatPrice(property);
+    const shareMessage = `${property.title}\n${property.address}\n${priceText}\n\n${shareUrl}`;
+
+    try {
+      const result = await Share.share({
+        message: shareMessage,
+        url: shareUrl, // iOS will use this for universal links
+        title: property.title,
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // Shared with activity type
+          console.log('Shared with', result.activityType);
+        } else {
+          // Shared
+          console.log('Shared successfully');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // Dismissed
+        console.log('Share dismissed');
+      }
+    } catch (error: any) {
+      console.error('Error sharing:', error.message);
+    }
+  };
   return (
     <View style={[styles.cardContainer, { backgroundColor: colors.surface }]}>
       <TouchableOpacity activeOpacity={0.95} onPress={() => onPress(property)}>
@@ -66,6 +103,13 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           </View>
 
           <View style={styles.topRightActions}>
+            <TouchableOpacity 
+              style={[styles.shareButton, { backgroundColor: 'rgba(255,255,255,0.9)' }]}
+              onPress={handleShare}
+              activeOpacity={0.8}
+            >
+              <Text style={{ fontSize: 18, color: '#333' }}>↗</Text>
+            </TouchableOpacity>
             <View style={[styles.heartButton, { backgroundColor: 'rgba(255,255,255,0.9)' }]}>
               <Text style={{ fontSize: 18, color: '#333' }}>♡</Text>
             </View>
@@ -166,6 +210,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     right: 16,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  shareButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   heartButton: {
     width: 36,
