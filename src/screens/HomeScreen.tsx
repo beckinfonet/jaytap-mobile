@@ -56,7 +56,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   const { colors, theme, isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // New Filter State
   const [transactionType, setTransactionType] = useState<'rent' | 'sale'>('rent');
   const [isCommercial, setIsCommercial] = useState(false);
@@ -124,12 +124,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
       if (!addressMatch && !descMatch) return false;
     }
 
-    // 5. Search Query
+    // 5. Search Query (including listingId)
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+      const query = searchQuery.toLowerCase().trim();
+      // Remove dashes and spaces for listingId search (e.g., "123-456" or "123456" both work)
+      const queryWithoutDashes = query.replace(/[-\s]/g, '');
+
       return p.title.toLowerCase().includes(query) ||
         p.address.toLowerCase().includes(query) ||
-        (p.city && p.city.toLowerCase().includes(query));
+        (p.city && p.city.toLowerCase().includes(query)) ||
+        (p.listingId && (
+          p.listingId.toLowerCase().includes(query) ||
+          p.listingId.replace(/[-\s]/g, '').includes(queryWithoutDashes)
+        ));
     }
     return true;
   });
@@ -265,7 +272,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         <Text style={[styles.searchIcon, { color: colors.textSecondary }]}>🔍</Text>
         <TextInput
           style={[styles.searchInput, { color: colors.text }]}
-          placeholder="Search city, neighborhood, address"
+          placeholder="Search city, neighborhood, address, or listing ID"
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor={colors.textSecondary}

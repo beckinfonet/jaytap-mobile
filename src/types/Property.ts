@@ -7,6 +7,7 @@ export interface Tour {
 
 export interface Property {
   id: string;
+  listingId?: string; // 6-digit listing ID in format "123-456"
   title: string;
   price: number | string;
   currency: string;
