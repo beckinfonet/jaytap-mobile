@@ -360,27 +360,43 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
         <View style={styles.contentContainer}>
 
-          {/* Media Buttons - Redesigned */}
+          {/* Media Buttons - Two Rows */}
           <View style={styles.mediaButtonsContainer}>
-            {/* 3D Tour Button - Full Width */}
-            {property.is3DTourAvailable && property.tours.length > 0 && (
+            {/* Row 1: Start 3D Tour and Instagram */}
+            <View style={styles.mediaButtonsRow}>
+              {/* Start 3D Tour Button */}
               <TouchableOpacity
-                style={styles.tour3DButton}
-                onPress={onOpenTours}
+                style={[
+                  styles.mediaButton,
+                  (property.is3DTourAvailable && property.tours.length > 0)
+                    ? styles.tour3DButton
+                    : [styles.inactiveButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]
+                ]}
+                onPress={(property.is3DTourAvailable && property.tours.length > 0) ? onOpenTours : undefined}
+                disabled={!(property.is3DTourAvailable && property.tours.length > 0)}
               >
                 <Text style={styles.tour3DIcon}>🥽</Text>
-                <Text style={styles.tour3DButtonText}>Start 3D Tour</Text>
-                <Text style={styles.tour3DArrow}>→</Text>
+                <Text style={[
+                  styles.tour3DButtonText,
+                  { color: (property.is3DTourAvailable && property.tours.length > 0) ? '#FFF' : colors.textSecondary }
+                ]}>3D Tour</Text>
+                {(property.is3DTourAvailable && property.tours.length > 0) && (
+                  <Text style={styles.tour3DArrow}>→</Text>
+                )}
               </TouchableOpacity>
-            )}
 
-            {/* Instagram and Videos - Side by Side */}
-            <View style={styles.secondaryButtonsRow}>
-              {property.instagramUrl && (
-                <TouchableOpacity
-                  style={[styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
-                  onPress={() => handleOpenLink(property.instagramUrl, 'Instagram')}
-                >
+              {/* Instagram Button */}
+              <TouchableOpacity
+                style={[
+                  styles.mediaButton,
+                  property.instagramUrl
+                    ? [styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]
+                    : [styles.inactiveButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]
+                ]}
+                onPress={property.instagramUrl ? () => handleOpenLink(property.instagramUrl, 'Instagram') : undefined}
+                disabled={!property.instagramUrl}
+              >
+                {property.instagramUrl ? (
                   <View style={styles.instagramIconContainer}>
                     <View style={styles.instagramLogo}>
                       <View style={styles.instagramSquare} />
@@ -388,20 +404,68 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                       <View style={styles.instagramDot} />
                     </View>
                   </View>
-                  <Text style={[styles.secondaryButtonText, { color: colors.text }]}>Instagram</Text>
+                ) : (
+                  <Text style={styles.videoIcon}>📷</Text>
+                )}
+                <Text style={[
+                  styles.secondaryButtonText,
+                  { color: property.instagramUrl ? colors.text : colors.textSecondary }
+                ]}>Instagram</Text>
+                {property.instagramUrl && (
                   <Text style={[styles.secondaryButtonArrow, { color: colors.text }]}>→</Text>
-                </TouchableOpacity>
-              )}
-              {property.videoUrl && (
-                <TouchableOpacity
-                  style={[styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
-                  onPress={() => handleOpenLink(property.videoUrl, 'Video')}
-                >
-                  <Text style={styles.videoIcon}>▶</Text>
-                  <Text style={[styles.secondaryButtonText, { color: colors.text }]}>Videos</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* Row 2: Video and Internal Message */}
+            <View style={styles.mediaButtonsRow}>
+              {/* Video Button */}
+              <TouchableOpacity
+                style={[
+                  styles.mediaButton,
+                  property.videoUrl
+                    ? [styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]
+                    : [styles.inactiveButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]
+                ]}
+                onPress={property.videoUrl ? () => handleOpenLink(property.videoUrl, 'Video') : undefined}
+                disabled={!property.videoUrl}
+              >
+                <Text style={styles.videoIcon}>▶</Text>
+                <Text style={[
+                  styles.secondaryButtonText,
+                  { color: property.videoUrl ? colors.text : colors.textSecondary }
+                ]}>Videos</Text>
+                {property.videoUrl && (
                   <Text style={[styles.secondaryButtonArrow, { color: colors.text }]}>→</Text>
-                </TouchableOpacity>
-              )}
+                )}
+              </TouchableOpacity>
+
+              {/* Internal Message Button */}
+              <TouchableOpacity
+                style={[
+                  styles.mediaButton,
+                  (property as any).owner
+                    ? [styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]
+                    : [styles.inactiveButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]
+                ]}
+                onPress={undefined} // Internal messaging - to be implemented
+                disabled={!(property as any).owner}
+              >
+                <View style={styles.messageIconContainer}>
+                  <MessageCircle
+                    size={20}
+                    color={(property as any).owner ? colors.text : colors.textSecondary}
+                    strokeWidth={2}
+                  />
+                </View>
+                <Text style={[
+                  styles.secondaryButtonText,
+                  { color: (property as any).owner ? colors.text : colors.textSecondary }
+                ]}>Message</Text>
+                {(property as any).owner && (
+                  <Text style={[styles.secondaryButtonArrow, { color: colors.text }]}>→</Text>
+                )}
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -831,15 +895,32 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     gap: 12,
   },
+  mediaButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  mediaButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  inactiveButton: {
+    borderWidth: 1,
+    opacity: 0.6,
+  },
   tour3DButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#6C63FF',
-    paddingVertical: 16,
+    backgroundColor: '#06B6D4', // Emerald green - modern, tech-forward color for VR/3D
+    paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 12,
-    shadowColor: '#6C63FF',
+    // shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -871,7 +952,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14,
+    paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
@@ -922,6 +1003,9 @@ const styles = StyleSheet.create({
   },
   videoIcon: {
     fontSize: 20,
+    marginRight: 12,
+  },
+  messageIconContainer: {
     marginRight: 12,
   },
   secondaryButtonText: {
