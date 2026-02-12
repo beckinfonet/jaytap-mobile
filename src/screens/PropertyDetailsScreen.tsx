@@ -410,7 +410,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             <Text style={[styles.title, { color: colors.text }]}>{property.title}</Text>
             {property.listingId && (
               <View style={styles.chipContainer}>
-                <View style={[styles.listingIdChip, { backgroundColor: '#E91E63' }]}>
+                <View style={[styles.listingIdChip, { backgroundColor: isDark ? '#E91E63' : '#6B7280' }]}>
                   <Text style={styles.listingIdLabel}>ID:</Text>
                   <Text style={styles.listingIdText}>
                     {property.listingId}

@@ -5,8 +5,8 @@ export const colors = {
     text: '#2D2D2D',
     textSecondary: '#666666',
     textTertiary: '#999999',
-    primary: '#2D2D2D', 
-    primaryLight: '#F2EFE9', 
+    primary: '#2D2D2D',
+    primaryLight: '#F2EFE9',
     accent: '#FF385C',
     border: '#E0E0E0',
     inputBackground: '#FFFFFF', // White input on gray background looks cleaner

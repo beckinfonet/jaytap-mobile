@@ -143,7 +143,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             </TouchableOpacity>
           </View>
 
-          <View style={styles.bottomBadges}>
+          {/* <View style={styles.bottomBadges}>
             {property.is3DTourAvailable && property.tours && property.tours.length > 0 && (
               <View style={[styles.mediaBadge, styles.tour3DBadge]}>
                 <Text style={styles.tour3DBadgeText}>
@@ -156,7 +156,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 <Text style={[styles.mediaBadgeText, { color: '#FFF' }]}>🎥</Text>
               </View>
             )}
-          </View>
+          </View> */}
         </View>
 
         {/* Content Section */}
@@ -167,7 +167,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             </Text>
             {property.listingId && (
               <View style={styles.chipContainer}>
-                <View style={[styles.listingIdChip, { backgroundColor: '#E91E63' }]}>
+                <View style={[styles.listingIdChip, { backgroundColor: isDark ? '#E91E63' : '#6B7280' }]}>
                   <Text style={styles.listingIdLabel}>ID:</Text>
                   <Text style={styles.listingIdText}>
                     {property.listingId}
