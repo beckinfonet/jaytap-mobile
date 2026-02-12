@@ -29,6 +29,7 @@ interface HomeScreenProps {
   viewMode?: 'list' | 'map';
   onViewModeChange?: (mode: 'list' | 'map') => void;
   onFavorite?: (property: Property) => void; // Optional favorite handler
+  favoriteStatuses?: Record<string, boolean>; // Map of property ID to favorite status
 }
 
 const RESIDENTIAL_TYPES = ['Apartment', 'House', 'Townhome', 'Condo'];
@@ -53,7 +54,7 @@ const BISHKEK_DISTRICTS = [
   'Kok-Jar',
 ];
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile, viewMode: propViewMode, onViewModeChange, onFavorite }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile, viewMode: propViewMode, onViewModeChange, onFavorite, favoriteStatuses = {} }) => {
   const { colors, theme, isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
@@ -427,6 +428,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
                 onViewTour={handleViewTour}
                 onViewVideo={handleViewVideo}
                 onFavorite={onFavorite}
+                isFavorited={favoriteStatuses[item.id] || false}
               />
             )}
             ListHeaderComponent={renderHeader}

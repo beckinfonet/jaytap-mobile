@@ -29,6 +29,7 @@ interface PropertyDetailsScreenProps {
   onOpenTours: () => void;
   returnToMap?: boolean; // If true, user came from map view
   onFavorite?: (property: Property) => void; // Optional favorite handler
+  isFavorited?: boolean; // Whether this property is favorited
 }
 
 const { width, height } = Dimensions.get('window');
@@ -38,6 +39,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   onBack,
   onOpenTours,
   onFavorite,
+  isFavorited = false,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -267,7 +269,9 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             }
           }}
         >
-          <Text style={[styles.iconText, { color: colors.accent }]}>♡</Text>
+          <Text style={[styles.iconText, { color: isFavorited ? '#FF3040' : colors.accent }]}>
+            {isFavorited ? '❤️' : '♡'}
+          </Text>
         </TouchableOpacity>
       </View>
 

@@ -9,9 +9,10 @@ interface ProfileScreenProps {
   onBack: () => void;
   onCreateListing?: () => void;
   onViewListings?: () => void;
+  onViewFavorites?: () => void;
 }
 
-export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateListing, onViewListings }) => {
+export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateListing, onViewListings, onViewFavorites }) => {
   const { user, logout } = useAuth();
   const { colors, isDark } = useTheme();
   
@@ -160,7 +161,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
 
         <TouchableOpacity 
             style={[styles.menuItem, { backgroundColor: themeStyles.surface }]}
-            onPress={() => Alert.alert('Coming Soon', 'Favorites feature coming soon!')}
+            onPress={onViewFavorites}
         >
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Text style={{ fontSize: 20, color: themeStyles.accent, marginRight: 12 }}>♡</Text>

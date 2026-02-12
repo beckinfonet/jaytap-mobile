@@ -22,6 +22,7 @@ interface PropertyCardProps {
   showEditButton?: boolean; // Show edit button instead of Contact Agent
   onShare?: (property: Property) => void; // Optional share handler
   onFavorite?: (property: Property) => void; // Optional favorite handler
+  isFavorited?: boolean; // Whether this property is favorited
 }
 
 const { width } = Dimensions.get('window');
@@ -35,6 +36,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   showEditButton = false,
   onShare,
   onFavorite,
+  isFavorited = false,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -124,7 +126,9 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               }}
               activeOpacity={0.8}
             >
-              <Text style={{ fontSize: 18, color: '#333' }}>♡</Text>
+              <Text style={{ fontSize: 18, color: isFavorited ? '#FF3040' : '#333' }}>
+                {isFavorited ? '❤️' : '♡'}
+              </Text>
             </TouchableOpacity>
           </View>
 

@@ -10,10 +10,12 @@ import { SignupScreen } from './src/screens/SignupScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { CreateListingScreen } from './src/screens/CreateListingScreen';
 import { RenterListingsScreen } from './src/screens/RenterListingsScreen';
+import { FavoritesScreen } from './src/screens/FavoritesScreen';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { Property } from './src/types/Property';
 import { PropertyService } from './src/services/PropertyService';
+import { FavoritesService } from './src/services/FavoritesService';
 import { AuthPromptModal } from './src/components/AuthPromptModal';
 
 function AppContent() {
@@ -32,6 +34,8 @@ function AppContent() {
   const [authPromptMessage, setAuthPromptMessage] = useState('Please sign in to continue');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
+  const [favoriteStatuses, setFavoriteStatuses] = useState<Record<string, boolean>>({});
+  const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
 
   // Handle deep linking for shared property links
   useEffect(() => {
@@ -111,14 +115,59 @@ function AppContent() {
       setActiveTourUrl(url); // Open viewer
   };
 
-  const handleFavorite = (property: Property) => {
+  // Load favorite statuses when user logs in
+  useEffect(() => {
+    const loadFavoriteStatuses = async () => {
+      if (!user) {
+        setFavoriteStatuses({});
+        return;
+      }
+
+      try {
+        // Get all user favorites at once
+        const favorites = await FavoritesService.getFavorites();
+        const statuses: Record<string, boolean> = {};
+        
+        // Create a map of favorite property IDs
+        favorites.forEach((fav: Property) => {
+          statuses[fav.id] = true;
+        });
+        
+        setFavoriteStatuses(statuses);
+      } catch (error) {
+        console.error('Error loading favorite statuses:', error);
+        setFavoriteStatuses({});
+      }
+    };
+
+    loadFavoriteStatuses();
+  }, [user]);
+
+  const handleFavorite = async (property: Property) => {
     if (!user) {
       setAuthPromptMessage('Please sign in to favorite listings');
       setShowAuthPrompt(true);
       return;
     }
-    // TODO: Implement favorite functionality
-    Alert.alert('Favorite', `Favoriting ${property.title} - Feature coming soon!`);
+
+    try {
+      const result = await FavoritesService.toggleFavorite(property.id);
+      // Update local state
+      setFavoriteStatuses(prev => ({
+        ...prev,
+        [property.id]: result.isFavorited,
+      }));
+      
+      // Show feedback
+      if (result.isFavorited) {
+        Alert.alert('Added to Favorites', `${property.title} has been added to your favorites`);
+      } else {
+        Alert.alert('Removed from Favorites', `${property.title} has been removed from your favorites`);
+      }
+    } catch (error: any) {
+      console.error('Error toggling favorite:', error);
+      Alert.alert('Error', error.message || 'Failed to update favorite');
+    }
   };
 
   // Top-most layer: Full screen 3D Viewer
@@ -183,13 +232,25 @@ function AppContent() {
         onBack={() => setIsProfileOpen(false)}
         onCreateListing={() => setIsCreateListingOpen(true)}
         onViewListings={() => setIsRenterListingsOpen(true)}
+        onViewFavorites={() => {
+          setIsProfileOpen(false);
+          setIsFavoritesOpen(true);
+        }}
       />
     );
   }
 
   return (
     <>
-      {selectedProperty ? (
+      {isFavoritesOpen ? (
+        <FavoritesScreen
+          onBack={() => setIsFavoritesOpen(false)}
+          onSelectProperty={setSelectedProperty}
+          onOpenTours={handleOpenTours}
+          favoriteStatuses={favoriteStatuses}
+          onFavorite={handleFavorite}
+        />
+      ) : selectedProperty ? (
         <PropertyDetailsScreen 
           property={selectedProperty} 
           onBack={() => {
@@ -199,6 +260,7 @@ function AppContent() {
           onOpenTours={() => handleOpenTours(selectedProperty)}
           returnToMap={homeViewMode === 'map'}
           onFavorite={handleFavorite}
+          isFavorited={favoriteStatuses[selectedProperty.id] || false}
         />
       ) : (
         <HomeScreen 
@@ -215,6 +277,7 @@ function AppContent() {
           viewMode={homeViewMode}
           onViewModeChange={setHomeViewMode}
           onFavorite={handleFavorite}
+          favoriteStatuses={favoriteStatuses}
         />
       )}
       
