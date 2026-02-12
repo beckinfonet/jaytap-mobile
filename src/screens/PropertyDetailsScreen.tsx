@@ -56,7 +56,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   useEffect(() => {
     const fetchPropertyDetails = async () => {
       if (!initialProperty?.id) return;
-      
+
       setLoading(true);
       try {
         const propertyDetails = await PropertyService.getPropertyById(initialProperty.id);
@@ -75,18 +75,18 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   }, [initialProperty?.id]);
 
   // Consolidate images into a single array
-  const images = property.images && property.images.length > 0 
-    ? property.images 
+  const images = property.images && property.images.length > 0
+    ? property.images
     : (property.imageUrl ? [property.imageUrl] : ['https://via.placeholder.com/800']);
 
   const formatPrice = (p: Property) => {
     let priceDisplay = '';
     if (typeof p.price === 'number') {
-        priceDisplay = `${p.currency}${p.price.toLocaleString()}`;
+      priceDisplay = `${p.currency}${p.price.toLocaleString()}`;
     } else {
-        priceDisplay = p.price.toString();
+      priceDisplay = p.price.toString();
     }
-    
+
     if (p.period === 'month' && !priceDisplay.includes('/')) {
       priceDisplay += '/mo';
     }
@@ -95,9 +95,9 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
   const handleShare = async () => {
     // Generate shareable URL
-    const propertyId = property.id || property.listingId || property._id;
+    const propertyId = property.id || property.listingId;
     const shareUrl = `https://www.bizdinkonush.com/property/${propertyId}`;
-    
+
     // Create share message
     const priceText = formatPrice(property);
     const shareMessage = `${property.title}\n${property.address}\n${priceText}\n\n${shareUrl}`;
@@ -148,7 +148,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
     // Clean phone number: remove all non-numeric characters
     const cleanPhone = owner.whatsapp.replace(/\D/g, '');
-    
+
     const message = `Hi, I'm interested in your property: ${property.title}`;
     const whatsappUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
 
@@ -178,7 +178,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
     let username = owner.telegram.trim();
     username = username.replace(/(https?:\/\/)?(t\.me|telegram\.me)\//i, '');
     username = username.replace('@', '');
-    
+
     if (!username) {
       Alert.alert('Invalid Telegram', 'The provided Telegram username is invalid.');
       return;
@@ -228,13 +228,13 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         longitude: property.longitude,
       };
     }
-    
+
     // Otherwise, generate consistent mock coordinates based on property ID for demo
     const BISHKEK_CENTER = { latitude: 42.8746, longitude: 74.5698 };
     const idHash = (property.id || property.listingId || '0').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const latOffset = ((idHash % 100) - 50) * 0.001; // Small offset within Bishkek
     const lngOffset = ((idHash % 200) - 100) * 0.001;
-    
+
     return {
       latitude: BISHKEK_CENTER.latitude + latOffset,
       longitude: BISHKEK_CENTER.longitude + lngOffset,
@@ -245,21 +245,21 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
   const renderImageItem = ({ item }: { item: string }) => (
     <TouchableOpacity activeOpacity={0.9} onPress={() => setIsFullScreen(true)}>
-        <Image 
-            source={{ uri: item }} 
-            style={{ width: width, height: 300 }} 
-            resizeMode="cover" 
-        />
+      <Image
+        source={{ uri: item }}
+        style={{ width: width, height: 300 }}
+        resizeMode="cover"
+      />
     </TouchableOpacity>
   );
 
   const renderFullScreenItem = ({ item }: { item: string }) => (
     <View style={{ width: width, height: height, justifyContent: 'center', alignItems: 'center' }}>
-        <Image 
-            source={{ uri: item }} 
-            style={{ width: width, height: height }} 
-            resizeMode="contain" 
-        />
+      <Image
+        source={{ uri: item }}
+        style={{ width: width, height: height }}
+        resizeMode="contain"
+      />
     </View>
   );
 
@@ -290,7 +290,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         barStyle={isDark ? 'light-content' : 'dark-content'}
         backgroundColor={colors.background}
       />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={[styles.iconButton, { backgroundColor: colors.surface }]}>
@@ -298,13 +298,13 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Details</Text>
         <View style={styles.headerRightActions}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={handleShare}
           >
             <Share2 size={22} color={colors.text} />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={() => {
               if (onFavorite && !isLoading) {
@@ -316,9 +316,9 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             {isLoading ? (
               <ActivityIndicator size="small" color={isFavorited ? '#E91E63' : colors.accent} />
             ) : (
-              <Heart 
-                size={22} 
-                color={isFavorited ? '#E91E63' : colors.accent} 
+              <Heart
+                size={22}
+                color={isFavorited ? '#E91E63' : colors.accent}
                 fill={isFavorited ? '#E91E63' : 'transparent'}
               />
             )}
@@ -329,42 +329,42 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Image Carousel */}
         <View style={styles.carouselContainer}>
-            <FlatList
-                data={images}
-                renderItem={renderImageItem}
-                keyExtractor={(item, index) => index.toString()}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                onScroll={onScroll}
-                scrollEventThrottle={16} // smooth updates
-            />
-            
-            {/* Image Overlay: Status Badge & Pagination */}
-            <View style={styles.imageOverlay}>
-                <View style={[styles.statusBadge, { backgroundColor: colors.surface }]}>
-                    <Text style={[styles.statusText, { color: colors.text }]}>
-                        {property.type === 'rent' ? 'FOR RENT' : 'FOR SALE'}
-                    </Text>
-                </View>
-                
-                {images.length > 1 && (
-                    <View style={[styles.paginationBadge, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
-                        <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '600' }}>
-                            {activeSlide + 1} / {images.length}
-                        </Text>
-                    </View>
-                )}
+          <FlatList
+            data={images}
+            renderItem={renderImageItem}
+            keyExtractor={(item, index) => index.toString()}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={onScroll}
+            scrollEventThrottle={16} // smooth updates
+          />
+
+          {/* Image Overlay: Status Badge & Pagination */}
+          <View style={styles.imageOverlay}>
+            <View style={[styles.statusBadge, { backgroundColor: colors.surface }]}>
+              <Text style={[styles.statusText, { color: colors.text }]}>
+                {property.type === 'rent' ? 'FOR RENT' : 'FOR SALE'}
+              </Text>
             </View>
+
+            {images.length > 1 && (
+              <View style={[styles.paginationBadge, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
+                <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '600' }}>
+                  {activeSlide + 1} / {images.length}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
 
         <View style={styles.contentContainer}>
-          
+
           {/* Media Buttons - Redesigned */}
           <View style={styles.mediaButtonsContainer}>
             {/* 3D Tour Button - Full Width */}
             {property.is3DTourAvailable && property.tours.length > 0 && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.tour3DButton}
                 onPress={onOpenTours}
               >
@@ -377,7 +377,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             {/* Instagram and Videos - Side by Side */}
             <View style={styles.secondaryButtonsRow}>
               {property.instagramUrl && (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
                   onPress={() => handleOpenLink(property.instagramUrl, 'Instagram')}
                 >
@@ -393,7 +393,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 </TouchableOpacity>
               )}
               {property.videoUrl && (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
                   onPress={() => handleOpenLink(property.videoUrl, 'Video')}
                 >
@@ -408,27 +408,37 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           {/* Title and Address */}
           <View style={styles.section}>
             <Text style={[styles.title, { color: colors.text }]}>{property.title}</Text>
+            {property.listingId && (
+              <View style={styles.chipContainer}>
+                <View style={[styles.listingIdChip, { backgroundColor: '#E91E63' }]}>
+                  <Text style={styles.listingIdLabel}>ID:</Text>
+                  <Text style={styles.listingIdText}>
+                    {property.listingId}
+                  </Text>
+                </View>
+              </View>
+            )}
             <Text style={[styles.address, { color: colors.textSecondary }]}>{property.address}</Text>
           </View>
 
           {/* Specs */}
           <View style={[styles.specsContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.specItem}>
-                <Text style={styles.specIcon}>🛏</Text>
-                <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.beds}</Text>
-                <Text style={[styles.specLabel, { color: colors.textSecondary }]}>Beds</Text>
+              <Text style={styles.specIcon}>🛏</Text>
+              <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.beds}</Text>
+              <Text style={[styles.specLabel, { color: colors.textSecondary }]}>Beds</Text>
             </View>
             <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
             <View style={styles.specItem}>
-                <Text style={styles.specIcon}>🚿</Text>
-                <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.baths}</Text>
-                <Text style={[styles.specLabel, { color: colors.textSecondary }]}>Baths</Text>
+              <Text style={styles.specIcon}>🚿</Text>
+              <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.baths}</Text>
+              <Text style={[styles.specLabel, { color: colors.textSecondary }]}>Baths</Text>
             </View>
             <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
             <View style={styles.specItem}>
-                <Text style={styles.specIcon}>📐</Text>
-                <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.sqft}</Text>
-                <Text style={[styles.specLabel, { color: colors.textSecondary }]}>m²</Text>
+              <Text style={styles.specIcon}>📐</Text>
+              <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.sqft}</Text>
+              <Text style={[styles.specLabel, { color: colors.textSecondary }]}>m²</Text>
             </View>
           </View>
 
@@ -481,7 +491,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 />
               </MapView>
               {/* Elegant floating button to open full screen */}
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.mapOverlayButton, { backgroundColor: colors.surface, shadowColor: colors.cardShadow }]}
                 onPress={() => setIsMapFullScreen(true)}
                 activeOpacity={0.8}
@@ -495,26 +505,26 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           {/* Agent Info */}
           {property.agent && (
             <View style={[styles.agentContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-               <View style={styles.agentInfo}>
-                   <View style={[styles.agentAvatar, { backgroundColor: colors.inputBackground }]}>
-                      <Text style={[styles.agentInitial, { color: colors.textSecondary }]}>
-                        {property.agent.name?.charAt(0) || '?'}
-                      </Text>
-                   </View>
-                   <View>
-                       <Text style={[styles.agentName, { color: colors.text }]}>
-                         {property.agent.name || 'Contact Owner'}
-                       </Text>
-                       {property.agent.rating && property.agent.reviews && (
-                         <Text style={[styles.agentRating, { color: colors.textSecondary }]}>
-                           ⭐ {property.agent.rating} ({property.agent.reviews} reviews)
-                         </Text>
-                       )}
-                   </View>
-               </View>
-               <TouchableOpacity style={[styles.messageButton, { backgroundColor: colors.primaryLight }]}>
-                   <Text style={{ fontSize: 18, color: colors.text }}>✉️</Text>
-               </TouchableOpacity>
+              <View style={styles.agentInfo}>
+                <View style={[styles.agentAvatar, { backgroundColor: colors.inputBackground }]}>
+                  <Text style={[styles.agentInitial, { color: colors.textSecondary }]}>
+                    {property.agent.name?.charAt(0) || '?'}
+                  </Text>
+                </View>
+                <View>
+                  <Text style={[styles.agentName, { color: colors.text }]}>
+                    {property.agent.name || 'Contact Owner'}
+                  </Text>
+                  {property.agent.rating && property.agent.reviews && (
+                    <Text style={[styles.agentRating, { color: colors.textSecondary }]}>
+                      ⭐ {property.agent.rating} ({property.agent.reviews} reviews)
+                    </Text>
+                  )}
+                </View>
+              </View>
+              <TouchableOpacity style={[styles.messageButton, { backgroundColor: colors.primaryLight }]}>
+                <Text style={{ fontSize: 18, color: colors.text }}>✉️</Text>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -523,89 +533,89 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
       {/* Footer Action */}
       <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-          {/* First Row: Price and Owner Name */}
-          <View style={styles.footerTopRow}>
-              <View style={styles.priceContainer}>
-                  <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>Price</Text>
-                  <Text style={[styles.footerPrice, { color: colors.text }]}>{formatPrice(property)}</Text>
-              </View>
-              {(() => {
-                const owner = (property as any).owner;
-                const ownerName = owner ? `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || 'Owner' : null;
-                return ownerName ? (
-                  <View style={styles.ownerContainer}>
-                      <Text style={[styles.ownerLabel, { color: colors.textSecondary }]}>Landlord</Text>
-                      <Text style={[styles.ownerName, { color: colors.text }]}>{ownerName}</Text>
-                  </View>
-                ) : null;
-              })()}
+        {/* First Row: Price and Owner Name */}
+        <View style={styles.footerTopRow}>
+          <View style={styles.priceContainer}>
+            <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>Price</Text>
+            <Text style={[styles.footerPrice, { color: colors.text }]}>{formatPrice(property)}</Text>
           </View>
-          
-          {/* Second Row: Contact Buttons - Telegram and WhatsApp */}
           {(() => {
             const owner = (property as any).owner;
-            const hasWhatsApp = owner?.whatsapp;
-            const hasTelegram = owner?.telegram;
-            const hasAnyContact = hasWhatsApp || hasTelegram;
-            
-            console.log('Owner contact info:', { hasWhatsApp, hasTelegram, owner });
-            
-            if (hasAnyContact) {
-              return (
-                <View style={styles.contactButtonsRow}>
-                  {hasTelegram && (
-                    <TouchableOpacity 
-                      style={[styles.contactButton, styles.telegramButton]} 
-                      onPress={handleTelegram}
-                    >
-                      <Send size={20} color="#FFF" />
-                      <Text style={styles.contactButtonText}>Telegram</Text>
-                    </TouchableOpacity>
-                  )}
-                  {hasWhatsApp && (
-                    <TouchableOpacity 
-                      style={[styles.contactButton, styles.whatsappButton, hasTelegram ? { marginLeft: 8 } : {}]} 
-                      onPress={handleWhatsApp}
-                    >
-                      <MessageCircle size={20} color="#FFF" />
-                      <Text style={styles.contactButtonText}>WhatsApp</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              );
-            }
-            
-            // Fallback: Show generic contact button if no owner info
-            return (
-              <TouchableOpacity style={[styles.contactButton, { backgroundColor: colors.primary }]}>
-                <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>Contact Agent</Text>
-              </TouchableOpacity>
-            );
+            const ownerName = owner ? `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || 'Owner' : null;
+            return ownerName ? (
+              <View style={styles.ownerContainer}>
+                <Text style={[styles.ownerLabel, { color: colors.textSecondary }]}>Landlord</Text>
+                <Text style={[styles.ownerName, { color: colors.text }]}>{ownerName}</Text>
+              </View>
+            ) : null;
           })()}
+        </View>
+
+        {/* Second Row: Contact Buttons - Telegram and WhatsApp */}
+        {(() => {
+          const owner = (property as any).owner;
+          const hasWhatsApp = owner?.whatsapp;
+          const hasTelegram = owner?.telegram;
+          const hasAnyContact = hasWhatsApp || hasTelegram;
+
+          console.log('Owner contact info:', { hasWhatsApp, hasTelegram, owner });
+
+          if (hasAnyContact) {
+            return (
+              <View style={styles.contactButtonsRow}>
+                {hasTelegram && (
+                  <TouchableOpacity
+                    style={[styles.contactButton, styles.telegramButton]}
+                    onPress={handleTelegram}
+                  >
+                    <Send size={20} color="#FFF" />
+                    <Text style={styles.contactButtonText}>Telegram</Text>
+                  </TouchableOpacity>
+                )}
+                {hasWhatsApp && (
+                  <TouchableOpacity
+                    style={[styles.contactButton, styles.whatsappButton, hasTelegram ? { marginLeft: 8 } : {}]}
+                    onPress={handleWhatsApp}
+                  >
+                    <MessageCircle size={20} color="#FFF" />
+                    <Text style={styles.contactButtonText}>WhatsApp</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            );
+          }
+
+          // Fallback: Show generic contact button if no owner info
+          return (
+            <TouchableOpacity style={[styles.contactButton, { backgroundColor: colors.primary }]}>
+              <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>Contact Agent</Text>
+            </TouchableOpacity>
+          );
+        })()}
       </View>
 
       {/* Full Screen Image Modal */}
       <Modal visible={isFullScreen} transparent={true} animationType="fade" onRequestClose={() => setIsFullScreen(false)}>
         <View style={styles.fullScreenContainer}>
-            <StatusBar hidden />
-            <TouchableOpacity style={styles.closeButton} onPress={() => setIsFullScreen(false)}>
-                <Text style={styles.closeButtonText}>✕</Text>
-            </TouchableOpacity>
-            
-            <FlatList
-                data={images}
-                renderItem={renderFullScreenItem}
-                keyExtractor={(item, index) => index.toString()}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                initialScrollIndex={activeSlide}
-                getItemLayout={(data, index) => ({ length: width, offset: width * index, index })}
-            />
-            
-            <View style={styles.fullScreenPagination}>
-                <Text style={styles.fullScreenPaginationText}>{activeSlide + 1} / {images.length}</Text>
-            </View>
+          <StatusBar hidden />
+          <TouchableOpacity style={styles.closeButton} onPress={() => setIsFullScreen(false)}>
+            <Text style={styles.closeButtonText}>✕</Text>
+          </TouchableOpacity>
+
+          <FlatList
+            data={images}
+            renderItem={renderFullScreenItem}
+            keyExtractor={(item, index) => index.toString()}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            initialScrollIndex={activeSlide}
+            getItemLayout={(data, index) => ({ length: width, offset: width * index, index })}
+          />
+
+          <View style={styles.fullScreenPagination}>
+            <Text style={styles.fullScreenPaginationText}>{activeSlide + 1} / {images.length}</Text>
+          </View>
         </View>
       </Modal>
 
@@ -613,7 +623,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       <Modal visible={isMapFullScreen} transparent={false} animationType="slide" onRequestClose={() => setIsMapFullScreen(false)}>
         <SafeAreaView style={[styles.fullScreenMapContainer, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
           <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-          
+
           {/* Full Screen Map */}
           <View style={styles.fullScreenMapWrapper}>
             <MapView
@@ -639,7 +649,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             </MapView>
 
             {/* Floating Close Button - Top Right */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.fullScreenMapFloatingCloseButton, { backgroundColor: 'rgba(0,0,0,0.7)' }]}
               onPress={() => setIsMapFullScreen(false)}
               activeOpacity={0.8}
@@ -670,8 +680,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   headerTitle: {
-      fontSize: 16,
-      fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '600',
   },
   headerRightActions: {
     flexDirection: 'row',
@@ -703,27 +713,27 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   imageOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      padding: 20,
-      flexDirection: 'row',
-      justifyContent: 'space-between', // Badge left, pagination right
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    padding: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Badge left, pagination right
   },
   statusBadge: {
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
   },
   statusText: {
-      fontSize: 12,
-      fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '700',
   },
   paginationBadge: {
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
   contentContainer: {
     paddingHorizontal: 20,
@@ -736,6 +746,31 @@ const styles = StyleSheet.create({
     fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }),
     fontWeight: '600',
     marginBottom: 8,
+  },
+  chipContainer: {
+    marginBottom: 8,
+  },
+  listingIdChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  listingIdLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+    opacity: 0.9,
+  },
+  listingIdText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   address: {
     fontSize: 16,
@@ -754,8 +789,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   specIcon: {
-      fontSize: 20,
-      marginBottom: 4,
+    fontSize: 20,
+    marginBottom: 4,
   },
   specValue: {
     fontSize: 16,
@@ -899,93 +934,93 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   agentContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: 16,
-      borderRadius: 16,
-      borderWidth: 1,
-      marginBottom: 24,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 24,
   },
   agentInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   agentAvatar: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
   agentInitial: {
-      fontSize: 20,
-      fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '700',
   },
   agentName: {
-      fontSize: 16,
-      fontWeight: '600',
-      marginBottom: 2,
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
   },
   agentRating: {
-      fontSize: 13,
+    fontSize: 13,
   },
   messageButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      justifyContent: 'center',
-      alignItems: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   footer: {
-      paddingHorizontal: 20,
-      paddingVertical: 16,
-      borderTopWidth: 1,
-      gap: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    gap: 12,
   },
   footerTopRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
   priceContainer: {
-      flex: 1,
+    flex: 1,
   },
   priceLabel: {
-      fontSize: 12,
-      marginBottom: 2,
+    fontSize: 12,
+    marginBottom: 2,
   },
   footerPrice: {
-      fontSize: 22,
-      fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }),
-      fontWeight: '600',
+    fontSize: 22,
+    fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }),
+    fontWeight: '600',
   },
   ownerContainer: {
-      flex: 1,
-      alignItems: 'flex-end',
+    flex: 1,
+    alignItems: 'flex-end',
   },
   ownerLabel: {
-      fontSize: 12,
-      marginBottom: 2,
+    fontSize: 12,
+    marginBottom: 2,
   },
   ownerName: {
-      fontSize: 16,
-      fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '600',
   },
   contactButtonsRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   contactButton: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-      borderRadius: 30,
-      gap: 8,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 30,
+    gap: 8,
   },
   whatsappButton: {
     backgroundColor: '#25D366', // WhatsApp Green
@@ -994,126 +1029,126 @@ const styles = StyleSheet.create({
     backgroundColor: '#229ED9', // Telegram Blue
   },
   contactButtonText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   // Location Map Styles
   locationHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   mapContainer: {
-      height: 350,
-      borderRadius: 16,
-      overflow: 'hidden',
-      borderWidth: 1,
-      marginBottom: 24,
-      position: 'relative',
+    height: 350,
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    marginBottom: 24,
+    position: 'relative',
   },
   map: {
-      width: '100%',
-      height: '100%',
+    width: '100%',
+    height: '100%',
   },
   mapOverlayButton: {
-      position: 'absolute',
-      bottom: 16,
-      right: 16,
-      zIndex: 10,
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 10,
-      paddingHorizontal: 16,
-      borderRadius: 24,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 8,
-      elevation: 4,
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+    zIndex: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   mapOverlayButtonText: {
-      fontSize: 15,
-      fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '600',
   },
   // Full Screen Styles
   fullScreenContainer: {
-      flex: 1,
-      backgroundColor: '#000',
-      justifyContent: 'center',
+    flex: 1,
+    backgroundColor: '#000',
+    justifyContent: 'center',
   },
   closeButton: {
-      position: 'absolute',
-      top: 50,
-      right: 20,
-      zIndex: 10,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      justifyContent: 'center',
-      alignItems: 'center',
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   closeButtonText: {
-      color: '#FFF',
-      fontSize: 24,
-      fontWeight: 'bold',
+    color: '#FFF',
+    fontSize: 24,
+    fontWeight: 'bold',
   },
   fullScreenPagination: {
-      position: 'absolute',
-      bottom: 50,
-      alignSelf: 'center',
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderRadius: 20,
+    position: 'absolute',
+    bottom: 50,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
   fullScreenPaginationText: {
-      color: '#FFF',
-      fontSize: 16,
-      fontWeight: '600',
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   // Full Screen Map Styles
   fullScreenMapContainer: {
-      flex: 1,
+    flex: 1,
   },
   fullScreenMapWrapper: {
-      flex: 1,
-      position: 'relative',
+    flex: 1,
+    position: 'relative',
   },
   fullScreenMap: {
-      width: '100%',
-      height: '100%',
+    width: '100%',
+    height: '100%',
   },
   fullScreenMapFloatingCloseButton: {
-      position: 'absolute',
-      top: 50,
-      right: 20,
-      width: 50,
-      height: 50,
-      borderRadius: 25,
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1000,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4,
-      elevation: 8,
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 8,
   },
   fullScreenMapFloatingCloseButtonText: {
-      color: '#FFF',
-      fontSize: 24,
-      fontWeight: 'bold',
+    color: '#FFF',
+    fontSize: 24,
+    fontWeight: 'bold',
   },
   fullScreenMapFooter: {
-      paddingHorizontal: 20,
-      paddingVertical: 16,
-      borderTopWidth: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
   },
   fullScreenMapAddress: {
-      fontSize: 16,
-      fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '500',
   },
   loadingContainer: {
     flex: 1,

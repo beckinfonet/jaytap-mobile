@@ -61,11 +61,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
   const handleShare = async (e: any) => {
     e.stopPropagation(); // Prevent card press
-    
+
     // Generate shareable URL
-    const propertyId = property.id || property.listingId || property._id;
+    const propertyId = property.id || property.listingId;
     const shareUrl = `https://www.bizdinkonush.com/property/${propertyId}`;
-    
+
     // Create share message
     const priceText = formatPrice(property);
     const shareMessage = `${property.title}\n${property.address}\n${priceText}\n\n${shareUrl}`;
@@ -113,14 +113,14 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           </View>
 
           <View style={styles.topRightActions}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.shareButton, { backgroundColor: 'rgba(255,255,255,0.9)' }]}
               onPress={handleShare}
               activeOpacity={0.8}
             >
               <Text style={{ fontSize: 18, color: '#333' }}>↗</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.heartButton, { backgroundColor: 'rgba(255,255,255,0.9)' }]}
               onPress={(e) => {
                 e.stopPropagation();
@@ -134,9 +134,9 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               {isLoading ? (
                 <ActivityIndicator size="small" color={isFavorited ? '#E91E63' : '#999'} />
               ) : (
-                <Heart 
-                  size={18} 
-                  color={isFavorited ? '#E91E63' : '#999'} 
+                <Heart
+                  size={18}
+                  color={isFavorited ? '#E91E63' : '#999'}
                   fill={isFavorited ? '#E91E63' : 'transparent'}
                 />
               )}
@@ -165,6 +165,16 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
               {property.title} • {property.address.split(',')[1]?.trim() || 'Bishkek'}
             </Text>
+            {property.listingId && (
+              <View style={styles.chipContainer}>
+                <View style={[styles.listingIdChip, { backgroundColor: '#E91E63' }]}>
+                  <Text style={styles.listingIdLabel}>ID:</Text>
+                  <Text style={styles.listingIdText}>
+                    {property.listingId}
+                  </Text>
+                </View>
+              </View>
+            )}
             <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>
               {property.address}
             </Text>
@@ -299,7 +309,32 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }), // Serif font
     fontWeight: '400',
-    marginBottom: 4,
+    marginBottom: 6,
+  },
+  chipContainer: {
+    marginBottom: 6,
+  },
+  listingIdChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
+  },
+  listingIdLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+    opacity: 0.9,
+  },
+  listingIdText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   address: {
     fontSize: 14,
