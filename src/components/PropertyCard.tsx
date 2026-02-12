@@ -8,7 +8,9 @@ import {
   Dimensions,
   Platform,
   Share,
+  ActivityIndicator,
 } from 'react-native';
+import { Heart } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -23,6 +25,7 @@ interface PropertyCardProps {
   onShare?: (property: Property) => void; // Optional share handler
   onFavorite?: (property: Property) => void; // Optional favorite handler
   isFavorited?: boolean; // Whether this property is favorited
+  isLoading?: boolean; // Whether favorite is being toggled
 }
 
 const { width } = Dimensions.get('window');
@@ -37,6 +40,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onShare,
   onFavorite,
   isFavorited = false,
+  isLoading = false,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -120,15 +124,22 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               style={[styles.heartButton, { backgroundColor: 'rgba(255,255,255,0.9)' }]}
               onPress={(e) => {
                 e.stopPropagation();
-                if (onFavorite) {
+                if (onFavorite && !isLoading) {
                   onFavorite(property);
                 }
               }}
               activeOpacity={0.8}
+              disabled={isLoading}
             >
-              <Text style={{ fontSize: 18, color: isFavorited ? '#FF3040' : '#333' }}>
-                {isFavorited ? '❤️' : '♡'}
-              </Text>
+              {isLoading ? (
+                <ActivityIndicator size="small" color={isFavorited ? '#E91E63' : '#999'} />
+              ) : (
+                <Heart 
+                  size={18} 
+                  color={isFavorited ? '#E91E63' : '#999'} 
+                  fill={isFavorited ? '#E91E63' : 'transparent'}
+                />
+              )}
             </TouchableOpacity>
           </View>
 

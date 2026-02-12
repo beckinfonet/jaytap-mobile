@@ -17,8 +17,12 @@ export const FavoritesService = {
     try {
       const userData = await AuthService.getUserData();
       if (!userData?.localId) {
-        throw new Error('User not authenticated');
+        console.log('No user data, cannot fetch favorites');
+        return [];
       }
+
+      console.log('Fetching favorites from:', `${API_URL}/favorites`);
+      console.log('With firebaseUid:', userData.localId);
 
       const response = await axios.get(`${API_URL}/favorites`, {
         headers: {
@@ -26,11 +30,46 @@ export const FavoritesService = {
         },
       });
       
+      console.log('Favorites response status:', response.status);
+      console.log('Favorites response data:', response.data);
+      
+      // Handle empty array or null response
+      if (!response.data) {
+        console.log('No response data, returning empty array');
+        return [];
+      }
+      
+      if (!Array.isArray(response.data)) {
+        console.log('Response data is not an array:', typeof response.data);
+        return [];
+      }
+      
+      console.log('Mapping', response.data.length, 'favorites');
+      
       // Map _id to id for frontend compatibility
-      return response.data.map((p: any) => ({ ...p, id: p._id }));
+      const mapped = response.data.map((p: any) => {
+        const property = { ...p, id: p._id || p.id };
+        console.log('Mapped property:', property.id, property.title);
+        return property;
+      });
+      
+      console.log('Returning', mapped.length, 'mapped favorites');
+      return mapped;
     } catch (error: any) {
       console.error('Error fetching favorites:', error);
-      throw error;
+      console.error('Error response:', error?.response?.data);
+      console.error('Error status:', error?.response?.status);
+      
+      // If it's a 404 or 500, return empty array instead of throwing
+      // This allows the app to continue working even if favorites service is down
+      if (error?.response?.status === 404 || error?.response?.status === 500) {
+        console.log('Favorites service returned error, returning empty array');
+        return [];
+      }
+      
+      // For other errors, also return empty array to prevent crashes
+      console.log('Returning empty array due to error');
+      return [];
     }
   },
 

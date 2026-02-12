@@ -14,10 +14,11 @@ import {
   FlatList,
   Modal,
   ActivityIndicator,
+  Share,
 } from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Send, MessageCircle } from 'lucide-react-native';
+import { Send, MessageCircle, Heart, Share2 } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { useTheme } from '../theme/ThemeContext';
 import { PropertyService } from '../services/PropertyService';
@@ -30,6 +31,7 @@ interface PropertyDetailsScreenProps {
   returnToMap?: boolean; // If true, user came from map view
   onFavorite?: (property: Property) => void; // Optional favorite handler
   isFavorited?: boolean; // Whether this property is favorited
+  isLoading?: boolean; // Whether favorite is being toggled
 }
 
 const { width, height } = Dimensions.get('window');
@@ -40,6 +42,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   onOpenTours,
   onFavorite,
   isFavorited = false,
+  isLoading = false,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -88,6 +91,39 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       priceDisplay += '/mo';
     }
     return priceDisplay;
+  };
+
+  const handleShare = async () => {
+    // Generate shareable URL
+    const propertyId = property.id || property.listingId || property._id;
+    const shareUrl = `https://www.bizdinkonush.com/property/${propertyId}`;
+    
+    // Create share message
+    const priceText = formatPrice(property);
+    const shareMessage = `${property.title}\n${property.address}\n${priceText}\n\n${shareUrl}`;
+
+    try {
+      const result = await Share.share({
+        message: shareMessage,
+        url: shareUrl, // iOS will use this for universal links
+        title: property.title,
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // Shared with activity type
+          console.log('Shared with', result.activityType);
+        } else {
+          // Shared
+          console.log('Shared successfully');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // Dismissed
+        console.log('Share dismissed');
+      }
+    } catch (error: any) {
+      console.error('Error sharing:', error.message);
+    }
   };
 
   const handleOpenLink = async (url?: string, label: string = 'URL') => {
@@ -261,18 +297,33 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           <Text style={[styles.iconText, { color: colors.text }]}>←</Text>
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Details</Text>
-        <TouchableOpacity 
-          style={[styles.iconButton, { backgroundColor: colors.surface }]}
-          onPress={() => {
-            if (onFavorite) {
-              onFavorite(property);
-            }
-          }}
-        >
-          <Text style={[styles.iconText, { color: isFavorited ? '#FF3040' : colors.accent }]}>
-            {isFavorited ? '❤️' : '♡'}
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.headerRightActions}>
+          <TouchableOpacity 
+            style={[styles.iconButton, { backgroundColor: colors.surface }]}
+            onPress={handleShare}
+          >
+            <Share2 size={22} color={colors.text} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.iconButton, { backgroundColor: colors.surface }]}
+            onPress={() => {
+              if (onFavorite && !isLoading) {
+                onFavorite(property);
+              }
+            }}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color={isFavorited ? '#E91E63' : colors.accent} />
+            ) : (
+              <Heart 
+                size={22} 
+                color={isFavorited ? '#E91E63' : colors.accent} 
+                fill={isFavorited ? '#E91E63' : 'transparent'}
+              />
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -621,6 +672,11 @@ const styles = StyleSheet.create({
   headerTitle: {
       fontSize: 16,
       fontWeight: '600',
+  },
+  headerRightActions: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
   },
   iconButton: {
     width: 40,

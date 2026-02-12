@@ -23,6 +23,7 @@ interface FavoritesScreenProps {
   onOpenTours: (property: Property) => void;
   favoriteStatuses: Record<string, boolean>;
   onFavorite: (property: Property) => void;
+  favoriteLoading: Record<string, boolean>;
 }
 
 export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
@@ -31,6 +32,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
   onOpenTours,
   favoriteStatuses,
   onFavorite,
+  favoriteLoading,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -39,20 +41,31 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
 
   useEffect(() => {
     loadFavorites();
-  }, []);
+  }, [user]); // Reload when user changes
 
   const loadFavorites = async () => {
     if (!user?.localId) {
+      console.log('No user localId, skipping favorites load');
       setLoading(false);
       return;
     }
 
     try {
+      console.log('Loading favorites for user:', user.localId);
       const data = await FavoritesService.getFavorites();
-      setProperties(data);
-    } catch (error) {
+      console.log('Favorites loaded:', data?.length || 0, 'items');
+      console.log('Favorites data:', data);
+      
+      if (data && Array.isArray(data) && data.length > 0) {
+        setProperties(data);
+      } else {
+        setProperties([]);
+      }
+    } catch (error: any) {
       console.error('Error loading favorites:', error);
-      Alert.alert('Error', 'Failed to load favorites');
+      console.error('Error details:', error?.response?.data || error?.message);
+      // Don't show alert, just log and set empty
+      setProperties([]);
     } finally {
       setLoading(false);
     }
@@ -107,6 +120,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
       onViewVideo={handleViewVideo}
       onFavorite={handleFavorite}
       isFavorited={favoriteStatuses[item.id] || true} // Always true in favorites screen
+      isLoading={favoriteLoading[item.id] || false}
     />
   );
 

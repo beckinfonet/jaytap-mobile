@@ -36,18 +36,19 @@ function AppContent() {
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [favoriteStatuses, setFavoriteStatuses] = useState<Record<string, boolean>>({});
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState<Record<string, boolean>>({});
 
   // Handle deep linking for shared property links
   useEffect(() => {
     const handleDeepLink = async (url: string) => {
       try {
         console.log('Deep link received:', url);
-        
+
         // Parse URL: https://www.bizdinkonush.com/property/{id}
         const propertyMatch = url.match(/\/property\/([^\/\?]+)/);
         if (propertyMatch && propertyMatch[1]) {
           const propertyId = propertyMatch[1];
-          
+
           // Fetch property details
           const property = await PropertyService.getPropertyById(propertyId);
           if (property) {
@@ -90,31 +91,6 @@ function AppContent() {
     }
   }, [user]);
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
-
-  // No longer forcing authentication - users can browse without login
-
-  const handleOpenTours = (property: Property) => {
-    if (property.tours && property.tours.length > 0) {
-        if (property.tours.length === 1) {
-            setPropertyForTourSelection(property);
-        } else {
-            setPropertyForTourSelection(property);
-        }
-    }
-  };
-
-  const handleTourSelected = (url: string) => {
-      setPropertyForTourSelection(null); // Close selection
-      setActiveTourUrl(url); // Open viewer
-  };
-
   // Load favorite statuses when user logs in
   useEffect(() => {
     const loadFavoriteStatuses = async () => {
@@ -127,21 +103,57 @@ function AppContent() {
         // Get all user favorites at once
         const favorites = await FavoritesService.getFavorites();
         const statuses: Record<string, boolean> = {};
-        
+
         // Create a map of favorite property IDs
-        favorites.forEach((fav: Property) => {
-          statuses[fav.id] = true;
-        });
-        
+        if (favorites && Array.isArray(favorites)) {
+          favorites.forEach((fav: Property) => {
+            if (fav && fav.id) {
+              statuses[fav.id] = true;
+            }
+          });
+        }
+
         setFavoriteStatuses(statuses);
-      } catch (error) {
-        console.error('Error loading favorite statuses:', error);
+      } catch (error: any) {
+        // Silently handle errors - user might not have favorites yet or backend might be unavailable
+        // Don't crash the app or show errors for this
+        console.log('Could not load favorite statuses (this is okay):', error?.response?.status || error?.message);
         setFavoriteStatuses({});
       }
     };
 
-    loadFavoriteStatuses();
+    // Only load if user is authenticated
+    if (user?.localId) {
+      loadFavoriteStatuses();
+    } else {
+      setFavoriteStatuses({});
+    }
   }, [user]);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  // No longer forcing authentication - users can browse without login
+
+  const handleOpenTours = (property: Property) => {
+    if (property.tours && property.tours.length > 0) {
+      if (property.tours.length === 1) {
+        setPropertyForTourSelection(property);
+      } else {
+        setPropertyForTourSelection(property);
+      }
+    }
+  };
+
+  const handleTourSelected = (url: string) => {
+    setPropertyForTourSelection(null); // Close selection
+    setActiveTourUrl(url); // Open viewer
+  };
 
   const handleFavorite = async (property: Property) => {
     if (!user) {
@@ -150,6 +162,9 @@ function AppContent() {
       return;
     }
 
+    // Set loading state
+    setFavoriteLoading(prev => ({ ...prev, [property.id]: true }));
+
     try {
       const result = await FavoritesService.toggleFavorite(property.id);
       // Update local state
@@ -157,25 +172,21 @@ function AppContent() {
         ...prev,
         [property.id]: result.isFavorited,
       }));
-      
-      // Show feedback
-      if (result.isFavorited) {
-        Alert.alert('Added to Favorites', `${property.title} has been added to your favorites`);
-      } else {
-        Alert.alert('Removed from Favorites', `${property.title} has been removed from your favorites`);
-      }
     } catch (error: any) {
       console.error('Error toggling favorite:', error);
-      Alert.alert('Error', error.message || 'Failed to update favorite');
+      // Don't show alert, just log the error
+    } finally {
+      // Clear loading state
+      setFavoriteLoading(prev => ({ ...prev, [property.id]: false }));
     }
   };
 
   // Top-most layer: Full screen 3D Viewer
   if (activeTourUrl) {
     return (
-      <Tour3DScreen 
-        url={activeTourUrl} 
-        onClose={() => setActiveTourUrl(null)} 
+      <Tour3DScreen
+        url={activeTourUrl}
+        onClose={() => setActiveTourUrl(null)}
       />
     );
   }
@@ -249,10 +260,11 @@ function AppContent() {
           onOpenTours={handleOpenTours}
           favoriteStatuses={favoriteStatuses}
           onFavorite={handleFavorite}
+          favoriteLoading={favoriteLoading}
         />
       ) : selectedProperty ? (
-        <PropertyDetailsScreen 
-          property={selectedProperty} 
+        <PropertyDetailsScreen
+          property={selectedProperty}
           onBack={() => {
             setSelectedProperty(null);
             // View mode will be restored by HomeScreen's internal state
@@ -261,10 +273,11 @@ function AppContent() {
           returnToMap={homeViewMode === 'map'}
           onFavorite={handleFavorite}
           isFavorited={favoriteStatuses[selectedProperty.id] || false}
+          isLoading={favoriteLoading[selectedProperty.id] || false}
         />
       ) : (
-        <HomeScreen 
-          onSelectProperty={setSelectedProperty} 
+        <HomeScreen
+          onSelectProperty={setSelectedProperty}
           onOpenTours={handleOpenTours}
           onOpenProfile={() => {
             if (!user) {
@@ -278,16 +291,17 @@ function AppContent() {
           onViewModeChange={setHomeViewMode}
           onFavorite={handleFavorite}
           favoriteStatuses={favoriteStatuses}
+          favoriteLoading={favoriteLoading}
         />
       )}
-      
+
       {/* Modal Layer: Tour Selection */}
       {propertyForTourSelection && (
-          <TourSelectionScreen
-              property={propertyForTourSelection}
-              onSelectTour={handleTourSelected}
-              onClose={() => setPropertyForTourSelection(null)}
-          />
+        <TourSelectionScreen
+          property={propertyForTourSelection}
+          onSelectTour={handleTourSelected}
+          onClose={() => setPropertyForTourSelection(null)}
+        />
       )}
 
       {/* Auth Prompt Modal */}
@@ -308,7 +322,7 @@ function AppContent() {
       {/* Login Modal */}
       {showLoginModal && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, backgroundColor: colors.background }}>
-          <LoginScreen 
+          <LoginScreen
             onNavigateToSignup={() => {
               setShowLoginModal(false);
               setShowSignupModal(true);
@@ -321,7 +335,7 @@ function AppContent() {
       {/* Signup Modal */}
       {showSignupModal && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, backgroundColor: colors.background }}>
-          <SignupScreen 
+          <SignupScreen
             onNavigateToLogin={() => {
               setShowSignupModal(false);
               setShowLoginModal(true);
@@ -339,7 +353,7 @@ function App() {
     <SafeAreaProvider>
       <ThemeProvider>
         <AuthProvider>
-      <AppContent />
+          <AppContent />
         </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>

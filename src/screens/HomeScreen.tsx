@@ -15,6 +15,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Heart } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { PropertyCard } from '../components/PropertyCard';
 import { PropertyMap } from '../components/PropertyMap';
@@ -30,6 +31,7 @@ interface HomeScreenProps {
   onViewModeChange?: (mode: 'list' | 'map') => void;
   onFavorite?: (property: Property) => void; // Optional favorite handler
   favoriteStatuses?: Record<string, boolean>; // Map of property ID to favorite status
+  favoriteLoading?: Record<string, boolean>; // Map of property ID to loading status
 }
 
 const RESIDENTIAL_TYPES = ['Apartment', 'House', 'Townhome', 'Condo'];
@@ -54,7 +56,7 @@ const BISHKEK_DISTRICTS = [
   'Kok-Jar',
 ];
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile, viewMode: propViewMode, onViewModeChange, onFavorite, favoriteStatuses = {} }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile, viewMode: propViewMode, onViewModeChange, onFavorite, favoriteStatuses = {}, favoriteLoading = {} }) => {
   const { colors, theme, isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
@@ -263,7 +265,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
           <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>
             <Text style={{ fontSize: 20 }}>{isDark ? '☀️' : '🌙'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity
+          <TouchableOpacity 
             style={styles.iconButton}
             onPress={() => {
               if (!user) {
@@ -275,7 +277,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
               }
             }}
           >
-            <Text style={{ fontSize: 22, color: colors.text }}>♡</Text>
+            <Heart 
+              size={22} 
+              color={colors.text} 
+              fill="transparent"
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -429,6 +435,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
                 onViewVideo={handleViewVideo}
                 onFavorite={onFavorite}
                 isFavorited={favoriteStatuses[item.id] || false}
+                isLoading={favoriteLoading[item.id] || false}
               />
             )}
             ListHeaderComponent={renderHeader}
