@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { Heart } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { PropertyCard } from '../components/PropertyCard';
 import { PropertyMap } from '../components/PropertyMap';
+import { ThemeToggleSwitch } from '../components/ThemeToggleSwitch';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { PropertyService } from '../services/PropertyService';
@@ -27,6 +28,7 @@ interface HomeScreenProps {
   onSelectProperty: (property: Property) => void;
   onOpenTours: (property: Property) => void;
   onOpenProfile: () => void;
+  onOpenFavorites?: () => void; // Optional handler to open favorites screen
   viewMode?: 'list' | 'map';
   onViewModeChange?: (mode: 'list' | 'map') => void;
   onFavorite?: (property: Property) => void; // Optional favorite handler
@@ -56,7 +58,7 @@ const BISHKEK_DISTRICTS = [
   'Kok-Jar',
 ];
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile, viewMode: propViewMode, onViewModeChange, onFavorite, favoriteStatuses = {}, favoriteLoading = {} }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile, onOpenFavorites, viewMode: propViewMode, onViewModeChange, onFavorite, favoriteStatuses = {}, favoriteLoading = {} }) => {
   const { colors, theme, isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
@@ -95,55 +97,69 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
     }
   };
 
-  const filteredProperties = properties.filter((p) => {
-    // 1. Transaction Type Filter (Rent vs Sale)
-    const pType = p.type?.toLowerCase();
-    if (pType && pType !== transactionType) return false;
+  const filteredProperties = useMemo(() => {
+    return properties.filter((p) => {
+      // 1. Transaction Type Filter (Rent vs Sale)
+      const pType = p.type?.toLowerCase();
+      if (pType && pType !== transactionType) return false;
 
-    // 2. Commercial vs Residential Filter
-    const pPropertyType = p.propertyType?.toLowerCase() || 'apartment';
-    const isPropCommercial = COMMERCIAL_TYPES.some(t => t.toLowerCase() === pPropertyType);
+      // 2. Commercial vs Residential Filter
+      const pPropertyType = p.propertyType?.toLowerCase() || 'apartment';
+      const isPropCommercial = COMMERCIAL_TYPES.some(t => t.toLowerCase() === pPropertyType);
 
-    if (isCommercial) {
-      if (!isPropCommercial) return false;
-    } else {
-      if (isPropCommercial) return false;
-    }
+      if (isCommercial) {
+        if (!isPropCommercial) return false;
+      } else {
+        if (isPropCommercial) return false;
+      }
 
-    // 3. Specific Property Type Filter
-    if (selectedType) {
-      if (pPropertyType !== selectedType.toLowerCase()) return false;
-    }
+      // 3. Specific Property Type Filter
+      if (selectedType) {
+        if (pPropertyType !== selectedType.toLowerCase()) return false;
+      }
 
-    // 4. District Filter
-    if (selectedDistrict !== 'Bishkek (All)') {
-      // Search for district name in address or description since we don't have a district field yet
-      const searchDistrict = selectedDistrict.toLowerCase();
-      const addressMatch = p.address?.toLowerCase().includes(searchDistrict);
-      const descMatch = p.description?.toLowerCase().includes(searchDistrict);
+      // 4. District Filter
+      if (selectedDistrict !== 'Bishkek (All)') {
+        // Search for district name in address or description since we don't have a district field yet
+        const searchDistrict = selectedDistrict.toLowerCase();
+        const addressMatch = p.address?.toLowerCase().includes(searchDistrict);
+        const descMatch = p.description?.toLowerCase().includes(searchDistrict);
 
-      // Simple heuristic: if the district name is specific (like "Jal"), match it.
-      // For numbered microdistricts, we need to be careful not to match random numbers, 
-      // but for now simple inclusion is a good start.
-      if (!addressMatch && !descMatch) return false;
-    }
+        // Simple heuristic: if the district name is specific (like "Jal"), match it.
+        // For numbered microdistricts, we need to be careful not to match random numbers, 
+        // but for now simple inclusion is a good start.
+        if (!addressMatch && !descMatch) return false;
+      }
 
-    // 5. Search Query (including listingId)
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase().trim();
-      // Remove dashes and spaces for listingId search (e.g., "123-456" or "123456" both work)
-      const queryWithoutDashes = query.replace(/[-\s]/g, '');
+      // 5. Search Query (including listingId, name, city, neighborhood, address)
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase().trim();
+        // Remove dashes and spaces for listingId search (e.g., "123-456" or "123456" both work)
+        const queryWithoutDashes = query.replace(/[-\s]/g, '');
 
-      return p.title.toLowerCase().includes(query) ||
-        p.address.toLowerCase().includes(query) ||
-        (p.city && p.city.toLowerCase().includes(query)) ||
-        (p.listingId && (
-          p.listingId.toLowerCase().includes(query) ||
-          p.listingId.replace(/[-\s]/g, '').includes(queryWithoutDashes)
-        ));
-    }
-    return true;
-  });
+        // Extract potential neighborhood from address (everything after the first comma)
+        const addressParts = p.address?.toLowerCase().split(',') || [];
+        const neighborhood = addressParts.length > 1 ? addressParts[1].trim() : '';
+
+        return (
+          // Search by title/name
+          p.title.toLowerCase().includes(query) ||
+          // Search by full address
+          p.address.toLowerCase().includes(query) ||
+          // Search by city
+          (p.city && p.city.toLowerCase().includes(query)) ||
+          // Search by neighborhood (part of address after first comma)
+          neighborhood.includes(query) ||
+          // Search by listing ID (with or without dashes)
+          (p.listingId && (
+            p.listingId.toLowerCase().includes(query) ||
+            p.listingId.replace(/[-\s]/g, '').includes(queryWithoutDashes)
+          ))
+        );
+      }
+      return true;
+    });
+  }, [properties, transactionType, isCommercial, selectedType, selectedDistrict, searchQuery]);
 
   const handlePressProperty = (property: Property) => {
     onSelectProperty(property);
@@ -178,7 +194,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
     }
   };
 
-  const renderHeader = () => (
+  const renderHeaderContent = () => (
     <View style={styles.headerContainer}>
       {/* Top Bar: Menu, Location, Icons */}
       <View style={styles.topBar}>
@@ -221,7 +237,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
                     {
                       backgroundColor: isDark ? '#1E1E1E' : '#FFF',
                       borderColor: isDark ? '#333' : '#E5E5EA',
-                      // Calculate approx position based on top bar height
                     }
                   ]}>
                     <FlatList
@@ -262,24 +277,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         </View>
 
         <View style={styles.rightIcons}>
-          <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>
-            <Text style={{ fontSize: 20 }}>{isDark ? '☀️' : '🌙'}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
+          <ThemeToggleSwitch />
+          <TouchableOpacity
             style={styles.iconButton}
             onPress={() => {
               if (!user) {
-                // This will be handled by parent, but we can show a message
                 Alert.alert('Sign In Required', 'Please sign in to view favorites');
-              } else {
-                // TODO: Navigate to favorites screen
-                Alert.alert('Favorites', 'Favorites feature coming soon!');
+              } else if (onOpenFavorites) {
+                onOpenFavorites();
               }
             }}
           >
-            <Heart 
-              size={22} 
-              color={colors.text} 
+            <Heart
+              size={22}
+              color={colors.text}
               fill="transparent"
             />
           </TouchableOpacity>
@@ -290,11 +301,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
       <View style={[styles.searchContainer, { backgroundColor: colors.inputBackground }]}>
         <Text style={[styles.searchIcon, { color: colors.textSecondary }]}>🔍</Text>
         <TextInput
+          key="search-input"
           style={[styles.searchInput, { color: colors.text }]}
           placeholder="Search city, neighborhood, address, or listing ID"
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor={colors.textSecondary}
+          autoCorrect={false}
+          autoCapitalize="none"
+          returnKeyType="search"
         />
       </View>
 
@@ -341,7 +356,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
             if (item.isToggle) {
-              // Commercial Toggle Chip
               return (
                 <TouchableOpacity
                   style={[
@@ -353,7 +367,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
                   ]}
                   onPress={() => {
                     setIsCommercial(!isCommercial);
-                    setSelectedType(null); // Reset sub-filter when switching categories
+                    setSelectedType(null);
                   }}
                 >
                   <Text style={[
@@ -424,9 +438,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         </View>
       ) : (
         <View style={styles.contentContainer}>
+          {/* Header outside FlatList to prevent TextInput focus issues */}
+          {renderHeaderContent()}
           <FlatList
             data={filteredProperties}
-            keyExtractor={(item) => item.id || Math.random().toString()}
+            keyExtractor={(item, index) => item.id || item.listingId || `property-${index}`}
             renderItem={({ item }) => (
               <PropertyCard
                 property={item}
@@ -438,7 +454,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
                 isLoading={favoriteLoading[item.id] || false}
               />
             )}
-            ListHeaderComponent={renderHeader}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
           />

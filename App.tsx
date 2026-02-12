@@ -287,6 +287,14 @@ function AppContent() {
               setIsProfileOpen(true);
             }
           }}
+          onOpenFavorites={() => {
+            if (!user) {
+              setAuthPromptMessage('Please sign in to view favorites');
+              setShowAuthPrompt(true);
+            } else {
+              setIsFavoritesOpen(true);
+            }
+          }}
           viewMode={homeViewMode}
           onViewModeChange={setHomeViewMode}
           onFavorite={handleFavorite}
