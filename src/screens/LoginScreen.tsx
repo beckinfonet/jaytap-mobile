@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../theme/ThemeContext';
 
-export const LoginScreen = ({ onNavigateToSignup }: { onNavigateToSignup: () => void }) => {
+export const LoginScreen = ({ onNavigateToSignup, onClose }: { onNavigateToSignup: () => void; onClose?: () => void }) => {
   const { login } = useAuth();
   const { colors, isDark } = useTheme();
   const [email, setEmail] = useState('');
@@ -22,6 +22,10 @@ export const LoginScreen = ({ onNavigateToSignup }: { onNavigateToSignup: () => 
     setLoading(true);
     try {
       await login(email, password);
+      // Close modal on successful login
+      if (onClose) {
+        onClose();
+      }
     } catch (error: any) {
       setErrorMessage(error.message || 'Login failed');
     } finally {
@@ -31,6 +35,11 @@ export const LoginScreen = ({ onNavigateToSignup }: { onNavigateToSignup: () => 
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      {onClose && (
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <Text style={[styles.closeButtonText, { color: colors.text }]}>✕</Text>
+        </TouchableOpacity>
+      )}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Welcome Back</Text>
         <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Sign in to continue</Text>
@@ -141,6 +150,22 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 14,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  closeButtonText: {
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   errorContainer: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',

@@ -14,6 +14,7 @@ import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { Property } from './src/types/Property';
 import { PropertyService } from './src/services/PropertyService';
+import { AuthPromptModal } from './src/components/AuthPromptModal';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -27,6 +28,10 @@ function AppContent() {
   const [propertyToEdit, setPropertyToEdit] = useState<Property | null>(null);
   const [isRenterListingsOpen, setIsRenterListingsOpen] = useState(false);
   const [homeViewMode, setHomeViewMode] = useState<'list' | 'map'>('list'); // Track view mode to restore after details
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [authPromptMessage, setAuthPromptMessage] = useState('Please sign in to continue');
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showSignupModal, setShowSignupModal] = useState(false);
 
   // Handle deep linking for shared property links
   useEffect(() => {
@@ -72,6 +77,15 @@ function AppContent() {
     };
   }, [user]); // Re-run when user changes (after login)
 
+  // Close login/signup modals when user successfully authenticates
+  useEffect(() => {
+    if (user) {
+      setShowLoginModal(false);
+      setShowSignupModal(false);
+      setShowAuthPrompt(false);
+    }
+  }, [user]);
+
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
@@ -80,12 +94,7 @@ function AppContent() {
     );
   }
 
-  if (!user) {
-    if (isLoginView) {
-      return <LoginScreen onNavigateToSignup={() => setIsLoginView(false)} />;
-    }
-    return <SignupScreen onNavigateToLogin={() => setIsLoginView(true)} />;
-  }
+  // No longer forcing authentication - users can browse without login
 
   const handleOpenTours = (property: Property) => {
     if (property.tours && property.tours.length > 0) {
@@ -100,6 +109,16 @@ function AppContent() {
   const handleTourSelected = (url: string) => {
       setPropertyForTourSelection(null); // Close selection
       setActiveTourUrl(url); // Open viewer
+  };
+
+  const handleFavorite = (property: Property) => {
+    if (!user) {
+      setAuthPromptMessage('Please sign in to favorite listings');
+      setShowAuthPrompt(true);
+      return;
+    }
+    // TODO: Implement favorite functionality
+    Alert.alert('Favorite', `Favoriting ${property.title} - Feature coming soon!`);
   };
 
   // Top-most layer: Full screen 3D Viewer
@@ -128,6 +147,13 @@ function AppContent() {
   }
 
   if (isCreateListingOpen) {
+    // Require authentication for creating listings
+    if (!user) {
+      setAuthPromptMessage('Please sign in to create a listing');
+      setShowAuthPrompt(true);
+      setIsCreateListingOpen(false);
+      return null;
+    }
     return (
       <CreateListingScreen
         onBack={() => {
@@ -145,6 +171,13 @@ function AppContent() {
   }
 
   if (isProfileOpen) {
+    // Require authentication for viewing profile
+    if (!user) {
+      setAuthPromptMessage('Please sign in to view your profile');
+      setShowAuthPrompt(true);
+      setIsProfileOpen(false);
+      return null;
+    }
     return (
       <ProfileScreen
         onBack={() => setIsProfileOpen(false)}
@@ -165,14 +198,23 @@ function AppContent() {
           }}
           onOpenTours={() => handleOpenTours(selectedProperty)}
           returnToMap={homeViewMode === 'map'}
+          onFavorite={handleFavorite}
         />
       ) : (
         <HomeScreen 
           onSelectProperty={setSelectedProperty} 
           onOpenTours={handleOpenTours}
-          onOpenProfile={() => setIsProfileOpen(true)}
+          onOpenProfile={() => {
+            if (!user) {
+              setAuthPromptMessage('Please sign in to view your profile');
+              setShowAuthPrompt(true);
+            } else {
+              setIsProfileOpen(true);
+            }
+          }}
           viewMode={homeViewMode}
           onViewModeChange={setHomeViewMode}
+          onFavorite={handleFavorite}
         />
       )}
       
@@ -183,6 +225,47 @@ function AppContent() {
               onSelectTour={handleTourSelected}
               onClose={() => setPropertyForTourSelection(null)}
           />
+      )}
+
+      {/* Auth Prompt Modal */}
+      <AuthPromptModal
+        visible={showAuthPrompt}
+        onClose={() => setShowAuthPrompt(false)}
+        onLogin={() => {
+          setShowAuthPrompt(false);
+          setShowLoginModal(true);
+        }}
+        onSignup={() => {
+          setShowAuthPrompt(false);
+          setShowSignupModal(true);
+        }}
+        message={authPromptMessage}
+      />
+
+      {/* Login Modal */}
+      {showLoginModal && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, backgroundColor: colors.background }}>
+          <LoginScreen 
+            onNavigateToSignup={() => {
+              setShowLoginModal(false);
+              setShowSignupModal(true);
+            }}
+            onClose={() => setShowLoginModal(false)}
+          />
+        </View>
+      )}
+
+      {/* Signup Modal */}
+      {showSignupModal && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, backgroundColor: colors.background }}>
+          <SignupScreen 
+            onNavigateToLogin={() => {
+              setShowSignupModal(false);
+              setShowLoginModal(true);
+            }}
+            onClose={() => setShowSignupModal(false)}
+          />
+        </View>
       )}
     </>
   );

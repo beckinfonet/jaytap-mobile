@@ -21,12 +21,14 @@ import { Send, MessageCircle } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { useTheme } from '../theme/ThemeContext';
 import { PropertyService } from '../services/PropertyService';
+import { useAuth } from '../context/AuthContext';
 
 interface PropertyDetailsScreenProps {
   property: Property;
   onBack: () => void;
   onOpenTours: () => void;
   returnToMap?: boolean; // If true, user came from map view
+  onFavorite?: (property: Property) => void; // Optional favorite handler
 }
 
 const { width, height } = Dimensions.get('window');
@@ -35,8 +37,10 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   property: initialProperty,
   onBack,
   onOpenTours,
+  onFavorite,
 }) => {
   const { colors, isDark } = useTheme();
+  const { user } = useAuth();
   const [property, setProperty] = useState<Property>(initialProperty);
   const [loading, setLoading] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
@@ -255,7 +259,14 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           <Text style={[styles.iconText, { color: colors.text }]}>←</Text>
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Details</Text>
-        <TouchableOpacity style={[styles.iconButton, { backgroundColor: colors.surface }]}>
+        <TouchableOpacity 
+          style={[styles.iconButton, { backgroundColor: colors.surface }]}
+          onPress={() => {
+            if (onFavorite) {
+              onFavorite(property);
+            }
+          }}
+        >
           <Text style={[styles.iconText, { color: colors.accent }]}>♡</Text>
         </TouchableOpacity>
       </View>

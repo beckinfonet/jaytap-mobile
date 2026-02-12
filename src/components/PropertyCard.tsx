@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Property } from '../types/Property';
 import { useTheme } from '../theme/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 interface PropertyCardProps {
   property: Property;
@@ -20,6 +21,7 @@ interface PropertyCardProps {
   onEdit?: (property: Property) => void; // Optional edit handler
   showEditButton?: boolean; // Show edit button instead of Contact Agent
   onShare?: (property: Property) => void; // Optional share handler
+  onFavorite?: (property: Property) => void; // Optional favorite handler
 }
 
 const { width } = Dimensions.get('window');
@@ -32,8 +34,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onEdit,
   showEditButton = false,
   onShare,
+  onFavorite,
 }) => {
   const { colors, isDark } = useTheme();
+  const { user } = useAuth();
 
   const formatPrice = (p: Property) => {
     let priceDisplay = '';
@@ -110,9 +114,18 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             >
               <Text style={{ fontSize: 18, color: '#333' }}>↗</Text>
             </TouchableOpacity>
-            <View style={[styles.heartButton, { backgroundColor: 'rgba(255,255,255,0.9)' }]}>
+            <TouchableOpacity 
+              style={[styles.heartButton, { backgroundColor: 'rgba(255,255,255,0.9)' }]}
+              onPress={(e) => {
+                e.stopPropagation();
+                if (onFavorite) {
+                  onFavorite(property);
+                }
+              }}
+              activeOpacity={0.8}
+            >
               <Text style={{ fontSize: 18, color: '#333' }}>♡</Text>
-            </View>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.bottomBadges}>

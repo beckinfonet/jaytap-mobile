@@ -28,6 +28,7 @@ interface HomeScreenProps {
   onOpenProfile: () => void;
   viewMode?: 'list' | 'map';
   onViewModeChange?: (mode: 'list' | 'map') => void;
+  onFavorite?: (property: Property) => void; // Optional favorite handler
 }
 
 const RESIDENTIAL_TYPES = ['Apartment', 'House', 'Townhome', 'Condo'];
@@ -52,7 +53,7 @@ const BISHKEK_DISTRICTS = [
   'Kok-Jar',
 ];
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile, viewMode: propViewMode, onViewModeChange }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile, viewMode: propViewMode, onViewModeChange, onFavorite }) => {
   const { colors, theme, isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
@@ -261,7 +262,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
           <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>
             <Text style={{ fontSize: 20 }}>{isDark ? '☀️' : '🌙'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => {
+              if (!user) {
+                // This will be handled by parent, but we can show a message
+                Alert.alert('Sign In Required', 'Please sign in to view favorites');
+              } else {
+                // TODO: Navigate to favorites screen
+                Alert.alert('Favorites', 'Favorites feature coming soon!');
+              }
+            }}
+          >
             <Text style={{ fontSize: 22, color: colors.text }}>♡</Text>
           </TouchableOpacity>
         </View>
@@ -414,6 +426,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
                 onPress={handlePressProperty}
                 onViewTour={handleViewTour}
                 onViewVideo={handleViewVideo}
+                onFavorite={onFavorite}
               />
             )}
             ListHeaderComponent={renderHeader}
