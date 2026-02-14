@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../theme/ThemeContext';
 import { AuthService } from '../services/AuthService';
+import { DeleteAccountModal } from '../components/DeleteAccountModal';
 
 interface ProfileScreenProps {
     onBack: () => void;
@@ -13,7 +14,7 @@ interface ProfileScreenProps {
 }
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateListing, onViewListings, onViewFavorites }) => {
-    const { user, logout } = useAuth();
+    const { user, logout, deleteAccount } = useAuth();
     const { colors, isDark } = useTheme();
 
     const [firstName, setFirstName] = useState('');
@@ -26,6 +27,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     // Dynamic Theme Colors
     const themeStyles = {
@@ -263,10 +265,24 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                     <Text style={[styles.logoutText, { color: themeStyles.danger }]}>→  Log Out</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.deleteLink} onPress={() => Alert.alert('Delete Account', 'Contact support to delete account.')}>
-                    <Text style={[styles.deleteLinkText, { color: themeStyles.textSecondary }]}>Delete Account</Text>
+                <TouchableOpacity 
+                    style={styles.deleteLink} 
+                    onPress={() => setShowDeleteModal(true)}
+                >
+                    <Text style={[styles.deleteLinkText, { color: themeStyles.danger }]}>Delete Account</Text>
                 </TouchableOpacity>
             </ScrollView>
+
+            <DeleteAccountModal
+                visible={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={async () => {
+                    await deleteAccount();
+                    setShowDeleteModal(false);
+                    onBack(); // Navigate back after successful deletion
+                }}
+                userEmail={user?.email}
+            />
         </SafeAreaView>
     );
 };
@@ -430,5 +446,6 @@ const styles = StyleSheet.create({
     },
     deleteLinkText: {
         textDecorationLine: 'underline',
+        fontSize: 16,
     }
 });
