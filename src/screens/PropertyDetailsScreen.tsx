@@ -907,6 +907,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 12,
+    minHeight: 48, // Ensure consistent minimum height
   },
   inactiveButton: {
     borderWidth: 1,
@@ -918,7 +919,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#06B6D4', // Emerald green - modern, tech-forward color for VR/3D
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     borderRadius: 12,
     // shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 4 },
@@ -929,8 +930,10 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.2)',
   },
   tour3DIcon: {
-    fontSize: 22,
+    fontSize: 20,
     marginRight: 12,
+    width: 24, // Match icon container width
+    textAlign: 'center',
   },
   tour3DButtonText: {
     flex: 1,
@@ -1004,9 +1007,15 @@ const styles = StyleSheet.create({
   videoIcon: {
     fontSize: 20,
     marginRight: 12,
+    width: 24, // Match icon container width
+    textAlign: 'center',
   },
   messageIconContainer: {
     marginRight: 12,
+    width: 24, // Match icon container width
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   secondaryButtonText: {
     flex: 1,
