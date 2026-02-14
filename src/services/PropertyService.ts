@@ -165,5 +165,29 @@ export const PropertyService = {
       throw error;
     }
   },
+
+  deleteProperty: async (propertyId: string) => {
+    try {
+      const userData = await AuthService.getUserData();
+      if (!userData?.localId) {
+        throw new Error('User not authenticated');
+      }
+
+      const response = await axios.delete(`${API_URL}/properties/${propertyId}`, {
+        data: { firebaseUid: userData.localId },
+        headers: {
+          'x-firebase-uid': userData.localId,
+        },
+      });
+
+      return response.data;
+    } catch (error: any) {
+      console.error('Error deleting property:', error);
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw error;
+    }
+  },
 };
 

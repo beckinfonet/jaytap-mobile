@@ -22,6 +22,7 @@ interface PropertyCardProps {
   onViewVideo: (property: Property) => void;
   onEdit?: (property: Property) => void; // Optional edit handler
   showEditButton?: boolean; // Show edit button instead of Contact Agent
+  onDelete?: (property: Property) => void; // Optional delete handler
   onShare?: (property: Property) => void; // Optional share handler
   onFavorite?: (property: Property) => void; // Optional favorite handler
   isFavorited?: boolean; // Whether this property is favorited
@@ -37,6 +38,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onViewVideo,
   onEdit,
   showEditButton = false,
+  onDelete,
   onShare,
   onFavorite,
   isFavorited = false,
@@ -183,14 +185,27 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           <View style={styles.footerRow}>
             <Text style={[styles.price, { color: colors.text }]}>{formatPrice(property)}</Text>
 
-            {showEditButton && onEdit ? (
-              <TouchableOpacity
-                style={[styles.contactButton, { backgroundColor: colors.primary }]}
-                onPress={() => onEdit(property)}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>✏️ Edit</Text>
-              </TouchableOpacity>
+            {showEditButton ? (
+              <View style={styles.actionButtonsRow}>
+                {onEdit && (
+                  <TouchableOpacity
+                    style={[styles.actionButton, { backgroundColor: colors.primary, marginRight: 8 }]}
+                    onPress={() => onEdit(property)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>✏️ Edit</Text>
+                  </TouchableOpacity>
+                )}
+                {onDelete && (
+                  <TouchableOpacity
+                    style={[styles.actionButton, { backgroundColor: '#FF453A' }]}
+                    onPress={() => onDelete(property)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.contactButtonText, { color: '#FFFFFF' }]}>🗑️ Delete</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             ) : (
               <TouchableOpacity
                 style={[styles.contactButton, { backgroundColor: colors.primary }]}
@@ -351,6 +366,15 @@ const styles = StyleSheet.create({
   },
   contactButton: {
     paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionButton: {
+    paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 20,
   },

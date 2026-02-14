@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Property } from '../types/Property';
 import { PropertyCard } from '../components/PropertyCard';
+import { DeleteListingModal } from '../components/DeleteListingModal';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { PropertyService } from '../services/PropertyService';
@@ -34,6 +35,8 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
   const { user } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
 
   useEffect(() => {
     loadProperties();
@@ -81,6 +84,30 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
     }
   };
 
+  const handleDeleteProperty = (property: Property) => {
+    setPropertyToDelete(property);
+    setDeleteModalVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!propertyToDelete?.id) {
+      return;
+    }
+
+    try {
+      await PropertyService.deleteProperty(propertyToDelete.id);
+      // Remove from local state
+      setProperties(properties.filter(p => p.id !== propertyToDelete.id));
+      setDeleteModalVisible(false);
+      setPropertyToDelete(null);
+      Alert.alert('Success', 'Listing deleted successfully');
+    } catch (error: any) {
+      console.error('Error deleting property:', error);
+      const errorMessage = error?.message || 'Failed to delete listing. Please try again.';
+      Alert.alert('Error', errorMessage);
+    }
+  };
+
   const formatStatus = (status: string) => {
     switch (status) {
       case 'draft':
@@ -117,6 +144,7 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
         onViewTour={handleViewTour}
         onViewVideo={handleViewVideo}
         onEdit={onEditProperty}
+        onDelete={handleDeleteProperty}
         showEditButton={true}
       />
     </View>
@@ -155,6 +183,16 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
         }
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+      />
+
+      <DeleteListingModal
+        visible={deleteModalVisible}
+        onClose={() => {
+          setDeleteModalVisible(false);
+          setPropertyToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        property={propertyToDelete}
       />
     </SafeAreaView>
   );
