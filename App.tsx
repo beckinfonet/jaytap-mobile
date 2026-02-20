@@ -11,6 +11,8 @@ import { ProfileScreen } from './src/screens/ProfileScreen';
 import { CreateListingScreen } from './src/screens/CreateListingScreen';
 import { RenterListingsScreen } from './src/screens/RenterListingsScreen';
 import { FavoritesScreen } from './src/screens/FavoritesScreen';
+import { ChatScreen } from './src/screens/ChatScreen';
+import { BottomNavigator, TabId } from './src/components/BottomNavigator';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { Property } from './src/types/Property';
@@ -37,6 +39,7 @@ function AppContent() {
   const [favoriteStatuses, setFavoriteStatuses] = useState<Record<string, boolean>>({});
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState<Record<string, boolean>>({});
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Handle deep linking for shared property links
   useEffect(() => {
@@ -230,39 +233,9 @@ function AppContent() {
     );
   }
 
-  if (isProfileOpen) {
-    // Require authentication for viewing profile
-    if (!user) {
-      setAuthPromptMessage('Please sign in to view your profile');
-      setShowAuthPrompt(true);
-      setIsProfileOpen(false);
-      return null;
-    }
-    return (
-      <ProfileScreen
-        onBack={() => setIsProfileOpen(false)}
-        onCreateListing={() => setIsCreateListingOpen(true)}
-        onViewListings={() => setIsRenterListingsOpen(true)}
-        onViewFavorites={() => {
-          setIsProfileOpen(false);
-          setIsFavoritesOpen(true);
-        }}
-      />
-    );
-  }
-
   return (
     <>
-      {isFavoritesOpen ? (
-        <FavoritesScreen
-          onBack={() => setIsFavoritesOpen(false)}
-          onSelectProperty={setSelectedProperty}
-          onOpenTours={handleOpenTours}
-          favoriteStatuses={favoriteStatuses}
-          onFavorite={handleFavorite}
-          favoriteLoading={favoriteLoading}
-        />
-      ) : selectedProperty ? (
+      {selectedProperty ? (
         <PropertyDetailsScreen
           property={selectedProperty}
           onBack={() => {
@@ -276,31 +249,105 @@ function AppContent() {
           isLoading={favoriteLoading[selectedProperty.id] || false}
         />
       ) : (
-        <HomeScreen
-          onSelectProperty={setSelectedProperty}
-          onOpenTours={handleOpenTours}
-          onOpenProfile={() => {
-            if (!user) {
-              setAuthPromptMessage('Please sign in to view your profile');
-              setShowAuthPrompt(true);
-            } else {
-              setIsProfileOpen(true);
+        <View style={{ flex: 1 }}>
+          {isFavoritesOpen ? (
+            <FavoritesScreen
+              onBack={() => setIsFavoritesOpen(false)}
+              onSelectProperty={setSelectedProperty}
+              onOpenTours={handleOpenTours}
+              favoriteStatuses={favoriteStatuses}
+              onFavorite={handleFavorite}
+              favoriteLoading={favoriteLoading}
+            />
+          ) : isProfileOpen ? (
+            <ProfileScreen
+              onBack={() => setIsProfileOpen(false)}
+              onCreateListing={() => setIsCreateListingOpen(true)}
+              onViewListings={() => setIsRenterListingsOpen(true)}
+              onViewFavorites={() => {
+                setIsProfileOpen(false);
+                setIsFavoritesOpen(true);
+              }}
+            />
+          ) : isChatOpen ? (
+            <ChatScreen onBack={() => setIsChatOpen(false)} />
+          ) : (
+            <HomeScreen
+              onSelectProperty={setSelectedProperty}
+              onOpenTours={handleOpenTours}
+              onOpenProfile={() => {
+                if (!user) {
+                  setAuthPromptMessage('Please sign in to view your profile');
+                  setShowAuthPrompt(true);
+                } else {
+                  setIsProfileOpen(true);
+                }
+              }}
+              onOpenFavorites={() => {
+                if (!user) {
+                  setAuthPromptMessage('Please sign in to view favorites');
+                  setShowAuthPrompt(true);
+                } else {
+                  setIsFavoritesOpen(true);
+                }
+              }}
+              viewMode={homeViewMode}
+              onViewModeChange={setHomeViewMode}
+              onFavorite={handleFavorite}
+              favoriteStatuses={favoriteStatuses}
+              favoriteLoading={favoriteLoading}
+            />
+          )}
+          <BottomNavigator
+            activeTab={
+              isFavoritesOpen ? 'favorites' : isProfileOpen ? 'profile' : isChatOpen ? 'chat' : 'home'
             }
-          }}
-          onOpenFavorites={() => {
-            if (!user) {
-              setAuthPromptMessage('Please sign in to view favorites');
-              setShowAuthPrompt(true);
-            } else {
-              setIsFavoritesOpen(true);
-            }
-          }}
-          viewMode={homeViewMode}
-          onViewModeChange={setHomeViewMode}
-          onFavorite={handleFavorite}
-          favoriteStatuses={favoriteStatuses}
-          favoriteLoading={favoriteLoading}
-        />
+            onTabChange={(tab: TabId) => {
+              if (tab === 'add') {
+                if (!user) {
+                  setAuthPromptMessage('Please sign in to create a listing');
+                  setShowAuthPrompt(true);
+                  return;
+                }
+                setIsCreateListingOpen(true);
+                return;
+              }
+              if (tab === 'favorites') {
+                if (!user) {
+                  setAuthPromptMessage('Please sign in to view favorites');
+                  setShowAuthPrompt(true);
+                  return;
+                }
+                setIsFavoritesOpen(true);
+                setIsProfileOpen(false);
+                setIsChatOpen(false);
+                return;
+              }
+              if (tab === 'profile') {
+                if (!user) {
+                  setAuthPromptMessage('Please sign in to view your profile');
+                  setShowAuthPrompt(true);
+                  return;
+                }
+                setIsProfileOpen(true);
+                setIsFavoritesOpen(false);
+                setIsChatOpen(false);
+                return;
+              }
+              if (tab === 'chat') {
+                setIsChatOpen(true);
+                setIsFavoritesOpen(false);
+                setIsProfileOpen(false);
+                return;
+              }
+              if (tab === 'home') {
+                setIsFavoritesOpen(false);
+                setIsProfileOpen(false);
+                setIsChatOpen(false);
+              }
+            }}
+          />
+        </View>
       )}
 
       {/* Modal Layer: Tour Selection */}

@@ -1,0 +1,136 @@
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Search, Heart, Plus, MessageCircle, User } from 'lucide-react-native';
+import { useTheme } from '../theme/ThemeContext';
+
+export type TabId = 'home' | 'favorites' | 'add' | 'chat' | 'profile';
+
+interface BottomNavigatorProps {
+  activeTab: TabId;
+  onTabChange: (tab: TabId) => void;
+}
+
+const TAB_CONFIG: { id: TabId; label: string; Icon: typeof Search }[] = [
+  { id: 'home', label: 'Search', Icon: Search },
+  { id: 'favorites', label: 'Favorites', Icon: Heart },
+  { id: 'add', label: 'Add', Icon: Plus },
+  { id: 'chat', label: 'Chat', Icon: MessageCircle },
+  { id: 'profile', label: 'Profile', Icon: User },
+];
+
+export const BottomNavigator: React.FC<BottomNavigatorProps> = ({ activeTab, onTabChange }) => {
+  const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, 8);
+
+  const tabBarBg = isDark ? '#1A1B1E' : colors.surface;
+  const inactiveColor = isDark ? '#9CA3AF' : colors.textSecondary;
+  const activeColor = colors.accent;
+  const addButtonBg = isDark ? '#E5E7EB' : '#E8E8E8';
+  const addButtonIconColor = isDark ? '#1F2937' : colors.text;
+
+  return (
+    <View style={[
+      styles.container,
+      { backgroundColor: tabBarBg, paddingBottom: bottomInset },
+      !isDark && { borderTopWidth: 1, borderTopColor: colors.border },
+    ]}>
+      {TAB_CONFIG.map(({ id, label, Icon }) => {
+        const isActive = activeTab === id;
+        const isAdd = id === 'add';
+
+        if (isAdd) {
+          return (
+            <TouchableOpacity
+              key={id}
+              activeOpacity={0.8}
+              onPress={() => onTabChange('add')}
+              style={styles.addButtonWrapper}
+            >
+              <View style={[styles.addButton, { backgroundColor: addButtonBg }]}>
+                <Plus size={28} color={addButtonIconColor} strokeWidth={2.5} />
+              </View>
+              <Text style={[styles.addLabel, { color: inactiveColor }]}>{label}</Text>
+            </TouchableOpacity>
+          );
+        }
+
+        const iconColor = isActive ? activeColor : inactiveColor;
+        return (
+          <TouchableOpacity
+            key={id}
+            activeOpacity={0.7}
+            onPress={() => onTabChange(id)}
+            style={styles.tab}
+          >
+            <Icon size={24} color={iconColor} strokeWidth={2} />
+            <Text style={[styles.tabLabel, { color: iconColor }]}>{label}</Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-around',
+    paddingTop: 10,
+    paddingHorizontal: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 12,
+      },
+    }),
+  },
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: 2,
+  },
+  tabLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  addButtonWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginBottom: -8,
+    paddingBottom: 2,
+  },
+  addButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+  },
+  addLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 4,
+  },
+});

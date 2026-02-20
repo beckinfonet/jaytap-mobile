@@ -458,13 +458,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
             showsVerticalScrollIndicator={false}
           />
 
-          {/* Floating Map Button */}
+          {/* Floating Map Button - bottom right, above bottom navigator */}
           <TouchableOpacity
             style={[styles.mapButton, { backgroundColor: colors.surface, shadowColor: colors.cardShadow }]}
             onPress={() => setViewMode('map')}
           >
             <Text style={{ fontSize: 18, marginRight: 6 }}>📍</Text>
-            <Text style={[styles.mapButtonText, { color: colors.text }]}>Map</Text>
+            <Text style={[styles.mapButtonText, { color: colors.text }]}>On map</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -614,7 +614,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   listContent: {
-    paddingBottom: 80, // Space for floating button
+    paddingBottom: 88, // Space for floating map button above tab bar
   },
   loadingContainer: {
     flex: 1,
@@ -623,11 +623,11 @@ const styles = StyleSheet.create({
   },
   mapButton: {
     position: 'absolute',
-    bottom: 30,
-    alignSelf: 'center',
-    paddingHorizontal: 24,
+    bottom: 24,
+    right: 16,
+    paddingHorizontal: 20,
     paddingVertical: 12,
-    borderRadius: 30,
+    borderRadius: 24,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
