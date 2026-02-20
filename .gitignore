@@ -4,6 +4,7 @@
 
 .env
 
+APP_STORE_SUBMISSION_CHECKLIST.md
 # Xcode
 #
 build/
