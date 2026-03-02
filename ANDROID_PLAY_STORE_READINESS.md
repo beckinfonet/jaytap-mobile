@@ -15,7 +15,7 @@ Summary of the current state and what to do before publishing.
 | **Application ID** | `com.jaytap` |
 | **Release signing** | Configured to use `android/app/key.properties` when present; falls back to debug if not (so local builds still work) |
 | **Launcher activity** | `android:exported="true"` set for MainActivity |
-| **App name** | In `res/values/strings.xml` (currently "MoveIn" – confirm it matches the product name you want on Play) |
+| **App name** | User-facing name is "MoveIn" in `res/values/strings.xml`; project/config name remains JayTap. Correct as-is. |
 | **Languages** | `resConfigs "ru", "en"` |
 
 ---
@@ -62,7 +62,7 @@ This limits abuse if the key is exposed in the manifest.
 |------|------------|
 | **ProGuard/R8** | `enableProguardInReleaseBuilds` is `false`. Set to `true` in `android/app/build.gradle` for smaller size and obfuscation; test release build and add keep rules if something breaks. |
 | **Cleartext traffic** | Manifest uses `usesCleartextTraffic="${usesCleartextTraffic}"`. Ensure release builds do not allow cleartext (HTTPS only); React Native usually sets this per build type. |
-| **App name** | Confirm `res/values/strings.xml` app_name ("MoveIn") is the name you want shown on the device and in the store. |
+| **App name** | "MoveIn" is the user-facing name (device & store); "JayTap" is kept for project/config only. No change needed. |
 
 ---
 

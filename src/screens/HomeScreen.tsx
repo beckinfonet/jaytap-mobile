@@ -303,7 +303,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         <TextInput
           key="search-input"
           style={[styles.searchInput, { color: colors.text }]}
-          placeholder="Search city, neighborhood, address, or listing ID"
+          placeholder="Search city, address, or listing ID"
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor={colors.textSecondary}
