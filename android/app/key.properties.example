@@ -1,0 +1,10 @@
+# Copy this file to key.properties and fill in your release keystore details.
+# Do NOT commit key.properties or your .keystore file to version control.
+#
+# Create a release keystore (one-time):
+#   keytool -genkeypair -v -storetype PKCS12 -keystore android/app/release.keystore -alias jaytap -keyalg RSA -keysize 2048 -validity 10000
+#
+storeFile=release.keystore
+storePassword=YOUR_STORE_PASSWORD
+keyAlias=jaytap
+keyPassword=YOUR_KEY_PASSWORD

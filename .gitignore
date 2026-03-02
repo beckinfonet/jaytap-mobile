@@ -36,6 +36,7 @@ local.properties
 .cxx/
 *.keystore
 !debug.keystore
+android/app/key.properties
 .kotlin/
 
 # node.js
