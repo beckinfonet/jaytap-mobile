@@ -173,8 +173,8 @@ export const ChatThreadScreen: React.FC<ChatThreadScreenProps> = ({
       ) : (
         <KeyboardAvoidingView
           style={styles.keyboardView}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+          behavior="padding"
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
         >
           <FlatList
             ref={flatListRef}
