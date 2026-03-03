@@ -27,6 +27,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [loggingOut, setLoggingOut] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     // Dynamic Theme Colors
@@ -98,9 +99,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                     style: 'destructive',
                     onPress: async () => {
                         try {
+                            setLoggingOut(true);
                             await logout();
+                            onBack(); // Close profile and return to main/home screen
                         } catch (error) {
                             console.error('Logout failed', error);
+                            Alert.alert('Error', 'Failed to log out. Please try again.');
+                        } finally {
+                            setLoggingOut(false);
                         }
                     }
                 },
@@ -261,8 +267,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                 <TouchableOpacity
                     style={[styles.logoutButton, { borderColor: themeStyles.danger }]}
                     onPress={handleLogout}
+                    disabled={loggingOut}
                 >
-                    <Text style={[styles.logoutText, { color: themeStyles.danger }]}>→  Log Out</Text>
+                    {loggingOut ? (
+                        <ActivityIndicator color={themeStyles.danger} />
+                    ) : (
+                        <Text style={[styles.logoutText, { color: themeStyles.danger }]}>→  Log Out</Text>
+                    )}
                 </TouchableOpacity>
 
                 <TouchableOpacity 
