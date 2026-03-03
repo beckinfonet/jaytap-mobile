@@ -9,6 +9,7 @@ export type TabId = 'home' | 'favorites' | 'add' | 'chat' | 'profile';
 interface BottomNavigatorProps {
   activeTab: TabId;
   onTabChange: (tab: TabId) => void;
+  chatUnreadCount?: number;
 }
 
 const TAB_CONFIG: { id: TabId; label: string; Icon: typeof Search }[] = [
@@ -19,7 +20,7 @@ const TAB_CONFIG: { id: TabId; label: string; Icon: typeof Search }[] = [
   { id: 'profile', label: 'Profile', Icon: User },
 ];
 
-export const BottomNavigator: React.FC<BottomNavigatorProps> = ({ activeTab, onTabChange }) => {
+export const BottomNavigator: React.FC<BottomNavigatorProps> = ({ activeTab, onTabChange, chatUnreadCount = 0 }) => {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const bottomInset = Math.max(insets.bottom, 8);
@@ -57,6 +58,7 @@ export const BottomNavigator: React.FC<BottomNavigatorProps> = ({ activeTab, onT
         }
 
         const iconColor = isActive ? activeColor : inactiveColor;
+        const showBadge = id === 'chat' && chatUnreadCount > 0;
         return (
           <TouchableOpacity
             key={id}
@@ -64,7 +66,16 @@ export const BottomNavigator: React.FC<BottomNavigatorProps> = ({ activeTab, onT
             onPress={() => onTabChange(id)}
             style={styles.tab}
           >
-            <Icon size={24} color={iconColor} strokeWidth={2} />
+            <View>
+              <Icon size={24} color={iconColor} strokeWidth={2} />
+              {showBadge && (
+                <View style={[styles.badge, { backgroundColor: colors.accent }]}>
+                  <Text style={styles.badgeText}>
+                    {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+                  </Text>
+                </View>
+              )}
+            </View>
             <Text style={[styles.tabLabel, { color: iconColor }]}>{label}</Text>
           </TouchableOpacity>
         );
@@ -132,5 +143,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
     marginTop: 4,
+  },
+  badge: {
+    position: 'absolute',
+    top: -6,
+    right: -10,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: '700',
   },
 });

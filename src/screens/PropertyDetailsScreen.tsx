@@ -28,6 +28,7 @@ interface PropertyDetailsScreenProps {
   property: Property;
   onBack: () => void;
   onOpenTours: () => void;
+  onMessagePress?: () => void;
   returnToMap?: boolean; // If true, user came from map view
   onFavorite?: (property: Property) => void; // Optional favorite handler
   isFavorited?: boolean; // Whether this property is favorited
@@ -40,6 +41,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   property: initialProperty,
   onBack,
   onOpenTours,
+  onMessagePress,
   onFavorite,
   isFavorited = false,
   isLoading = false,
@@ -444,25 +446,25 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               <TouchableOpacity
                 style={[
                   styles.mediaButton,
-                  (property as any).owner
+                  property.owner
                     ? [styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]
                     : [styles.inactiveButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]
                 ]}
-                onPress={undefined} // Internal messaging - to be implemented
-                disabled={!(property as any).owner}
+                onPress={onMessagePress}
+                disabled={!property.owner}
               >
                 <View style={styles.messageIconContainer}>
                   <MessageCircle
                     size={20}
-                    color={(property as any).owner ? colors.text : colors.textSecondary}
+                    color={property.owner ? colors.text : colors.textSecondary}
                     strokeWidth={2}
                   />
                 </View>
                 <Text style={[
                   styles.secondaryButtonText,
-                  { color: (property as any).owner ? colors.text : colors.textSecondary }
+                  { color: property.owner ? colors.text : colors.textSecondary }
                 ]}>Message</Text>
-                {(property as any).owner && (
+                {property.owner && (
                   <Text style={[styles.secondaryButtonArrow, { color: colors.text }]}>→</Text>
                 )}
               </TouchableOpacity>

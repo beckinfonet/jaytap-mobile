@@ -18,6 +18,7 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { Property } from './src/types/Property';
 import { PropertyService } from './src/services/PropertyService';
 import { FavoritesService } from './src/services/FavoritesService';
+import { ChatService } from './src/services/ChatService';
 import { AuthPromptModal } from './src/components/AuthPromptModal';
 
 function AppContent() {
@@ -40,6 +41,8 @@ function AppContent() {
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState<Record<string, boolean>>({});
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [propertyToOpenChat, setPropertyToOpenChat] = useState<Property | null>(null);
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
 
   // Handle deep linking for shared property links
   useEffect(() => {
@@ -93,6 +96,25 @@ function AppContent() {
       setShowAuthPrompt(false);
     }
   }, [user]);
+
+  // Load chat unread count for badge
+  useEffect(() => {
+    const loadChatUnread = async () => {
+      if (!user?.localId) {
+        setChatUnreadCount(0);
+        return;
+      }
+      try {
+        const count = await ChatService.getUnreadCount();
+        setChatUnreadCount(count);
+      } catch {
+        setChatUnreadCount(0);
+      }
+    };
+    loadChatUnread();
+    const interval = setInterval(loadChatUnread, 60000);
+    return () => clearInterval(interval);
+  }, [user?.localId]);
 
   // Load favorite statuses when user logs in
   useEffect(() => {
@@ -243,6 +265,20 @@ function AppContent() {
             // View mode will be restored by HomeScreen's internal state
           }}
           onOpenTours={() => handleOpenTours(selectedProperty)}
+          onMessagePress={() => {
+            if (!user) {
+              setAuthPromptMessage('Please sign in to message the listing owner');
+              setShowAuthPrompt(true);
+              return;
+            }
+            const ownerUid = selectedProperty.owner?.uid || (selectedProperty as any).ownerUid;
+            if (ownerUid === user.localId) {
+              return; // Cannot message own listing - button disabled
+            }
+            setPropertyToOpenChat(selectedProperty);
+            setSelectedProperty(null);
+            setIsChatOpen(true);
+          }}
           returnToMap={homeViewMode === 'map'}
           onFavorite={handleFavorite}
           isFavorited={favoriteStatuses[selectedProperty.id] || false}
@@ -270,7 +306,15 @@ function AppContent() {
               }}
             />
           ) : isChatOpen ? (
-            <ChatScreen onBack={() => setIsChatOpen(false)} />
+            <ChatScreen
+              onBack={() => {
+                setIsChatOpen(false);
+                setPropertyToOpenChat(null);
+              }}
+              propertyToOpen={propertyToOpenChat}
+              onClearPropertyToOpen={() => setPropertyToOpenChat(null)}
+              onUnreadCountChange={setChatUnreadCount}
+            />
           ) : (
             <HomeScreen
               onSelectProperty={setSelectedProperty}
@@ -302,6 +346,7 @@ function AppContent() {
             activeTab={
               isFavoritesOpen ? 'favorites' : isProfileOpen ? 'profile' : isChatOpen ? 'chat' : 'home'
             }
+            chatUnreadCount={chatUnreadCount}
             onTabChange={(tab: TabId) => {
               if (tab === 'add') {
                 if (!user) {
@@ -335,6 +380,11 @@ function AppContent() {
                 return;
               }
               if (tab === 'chat') {
+                if (!user) {
+                  setAuthPromptMessage('Please sign in to view your chats');
+                  setShowAuthPrompt(true);
+                  return;
+                }
                 setIsChatOpen(true);
                 setIsFavoritesOpen(false);
                 setIsProfileOpen(false);
