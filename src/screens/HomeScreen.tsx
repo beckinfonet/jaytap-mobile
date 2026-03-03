@@ -87,10 +87,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   const loadProperties = async () => {
     try {
       const data = await PropertyService.getAllProperties();
-      console.log('Properties loaded:', data.length);
-      setProperties(data);
-    } catch (error) {
-      console.error(error);
+      setProperties(data ?? []);
+    } catch (error: any) {
+      console.error('[HomeScreen] loadProperties - catch:', error?.message, error);
       Alert.alert('Error', 'Failed to load properties');
     } finally {
       setLoading(false);

@@ -8,37 +8,41 @@ const PRODUCTION_URL = 'https://jaytap-services-production.up.railway.app/api';
 const LOCAL_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000/api' : 'http://localhost:5000/api';
 
 // Simple toggle for now. In a real app, use __DEV__ check.
-const API_URL = PRODUCTION_URL; 
+const API_URL = PRODUCTION_URL;
 
 export const PropertyService = {
   getAllProperties: async () => {
+    const url = `${API_URL}/properties`;
     try {
-      const response = await axios.get(`${API_URL}/properties`);
+      const response = await axios.get(url);
       // Map _id to id for frontend compatibility
-      return response.data.map((p: any) => ({ ...p, id: p._id }));
-    } catch (error) {
-      console.error('Error fetching properties:', error);
+      const mapped = response.data.map((p: any) => ({ ...p, id: p._id }));
+      return mapped;
+    } catch (error: any) {
+      console.error('Error fetching properties:', error?.message);
       throw error;
     }
   },
 
   getPropertyById: async (id: string) => {
+    const url = `${API_URL}/properties/${id}`;
     try {
-      const response = await axios.get(`${API_URL}/properties/${id}`);
+      const response = await axios.get(url);
       return { ...response.data, id: response.data._id };
-    } catch (error) {
-      console.error('Error fetching property details:', error);
+    } catch (error: any) {
+      console.error('Error fetching property:', error?.message);
       throw error;
     }
   },
 
   getUserProperties: async (firebaseUid: string) => {
+    const url = `${API_URL}/properties/user/${firebaseUid}`;
     try {
-      const response = await axios.get(`${API_URL}/properties/user/${firebaseUid}`);
+      const response = await axios.get(url);
       // Map _id to id for frontend compatibility
       return response.data.map((p: any) => ({ ...p, id: p._id }));
-    } catch (error) {
-      console.error('Error fetching user properties:', error);
+    } catch (error: any) {
+      console.error('Error fetching user properties:', error?.message);
       throw error;
     }
   },
