@@ -75,8 +75,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   const [isCommercial, setIsCommercial] = useState(false);
   const [selectedType, setSelectedType] = useState<string | null>(null);
 
-  // Filter section visibility (expanded by default; tap bar to collapse)
-  const [isFiltersExpanded, setIsFiltersExpanded] = useState(true);
+  // Filter section visibility (closed by default; tap filter icon to expand)
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
 
   // Location State
   const [selectedDistrict, setSelectedDistrict] = useState('Bishkek (All)');
