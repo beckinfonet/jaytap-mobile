@@ -13,9 +13,16 @@ import {
   ActivityIndicator,
   Modal,
   TouchableWithoutFeedback,
+  LayoutAnimation,
+  UIManager,
 } from 'react-native';
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Heart } from 'lucide-react-native';
+import { Filter } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { PropertyCard } from '../components/PropertyCard';
 import { PropertyMap } from '../components/PropertyMap';
@@ -67,6 +74,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   const [transactionType, setTransactionType] = useState<'rent' | 'sale'>('rent');
   const [isCommercial, setIsCommercial] = useState(false);
   const [selectedType, setSelectedType] = useState<string | null>(null);
+
+  // Filter section visibility (expanded by default; tap bar to collapse)
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(true);
 
   // Location State
   const [selectedDistrict, setSelectedDistrict] = useState('Bishkek (All)');
@@ -193,6 +203,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
     }
   };
 
+  const toggleFiltersExpanded = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsFiltersExpanded((prev) => !prev);
+  };
+
   const renderHeaderContent = () => (
     <View style={styles.headerContainer}>
       {/* Top Bar: Menu, Location, Icons */}
@@ -279,18 +294,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
           <ThemeToggleSwitch />
           <TouchableOpacity
             style={styles.iconButton}
-            onPress={() => {
-              if (!user) {
-                Alert.alert('Sign In Required', 'Please sign in to view favorites');
-              } else if (onOpenFavorites) {
-                onOpenFavorites();
-              }
-            }}
+            onPress={toggleFiltersExpanded}
           >
-            <Heart
+            <Filter
               size={22}
-              color={colors.text}
-              fill="transparent"
+              color={isFiltersExpanded ? colors.accent : colors.text}
+              strokeWidth={isFiltersExpanded ? 2.5 : 2}
             />
           </TouchableOpacity>
         </View>
@@ -312,98 +321,103 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         />
       </View>
 
-      {/* Rent / Buy Segmented Control */}
-      <View style={[styles.segmentedControl, { backgroundColor: isDark ? '#2C2C2E' : '#E5E5EA' }]}>
-        <TouchableOpacity
-          style={[
-            styles.segmentButton,
-            transactionType === 'rent' && { backgroundColor: isDark ? '#000000' : '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }
-          ]}
-          onPress={() => setTransactionType('rent')}
-          activeOpacity={0.8}
-        >
-          <Text style={[
-            styles.segmentText,
-            { color: transactionType === 'rent' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }
-          ]}>🏠 Rent</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.segmentButton,
-            transactionType === 'sale' && { backgroundColor: isDark ? '#000000' : '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }
-          ]}
-          onPress={() => setTransactionType('sale')}
-          activeOpacity={0.8}
-        >
-          <Text style={[
-            styles.segmentText,
-            { color: transactionType === 'sale' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }
-          ]}>🏠 Buy</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Dynamic Filter Row */}
-      <View style={styles.filterRow}>
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterList}
-          data={[
-            { id: 'commercial_toggle', label: 'Commercial', isToggle: true },
-            ...(isCommercial ? COMMERCIAL_TYPES : RESIDENTIAL_TYPES).map(t => ({ id: t, label: t, isToggle: false }))
-          ]}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => {
-            if (item.isToggle) {
-              return (
-                <TouchableOpacity
-                  style={[
-                    styles.filterChip,
-                    {
-                      backgroundColor: isCommercial ? colors.accent : (isDark ? '#2C2C2E' : '#F2F2F7'),
-                      borderColor: isCommercial ? colors.accent : (isDark ? '#3A3A3C' : '#E5E5EA'),
-                    },
-                  ]}
-                  onPress={() => {
-                    setIsCommercial(!isCommercial);
-                    setSelectedType(null);
-                  }}
-                >
-                  <Text style={[
-                    styles.filterText,
-                    { color: isCommercial ? '#FFF' : colors.text }
-                  ]}>
-                    {item.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            }
-
-            const isActive = selectedType === item.label;
-            return (
+      {/* Filter Section - Collapsible (toggled via filter icon in top right) */}
+      {isFiltersExpanded && (
+        <View style={styles.filterSection}>
+          {/* Rent / Buy Segmented Control */}
+            <View style={[styles.segmentedControl, { backgroundColor: isDark ? '#2C2C2E' : '#E5E5EA' }]}>
               <TouchableOpacity
                 style={[
-                  styles.filterChip,
-                  {
-                    backgroundColor: isActive ? colors.activeChipBackground : (isDark ? '#2C2C2E' : '#F2F2F7'),
-                    borderColor: isDark ? '#3A3A3C' : '#E5E5EA'
-                  },
+                  styles.segmentButton,
+                  transactionType === 'rent' && { backgroundColor: isDark ? '#000000' : '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }
                 ]}
-                onPress={() => togglePropertyType(item.label)}
+                onPress={() => setTransactionType('rent')}
+                activeOpacity={0.8}
               >
-                <Text
-                  style={[
-                    styles.filterText,
-                    { color: isActive ? colors.activeChipText : colors.text },
-                  ]}
-                >
-                  {item.label}
-                </Text>
+                <Text style={[
+                  styles.segmentText,
+                  { color: transactionType === 'rent' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }
+                ]}>🏠 Rent</Text>
               </TouchableOpacity>
-            );
-          }}
-        />
-      </View>
+              <TouchableOpacity
+                style={[
+                  styles.segmentButton,
+                  transactionType === 'sale' && { backgroundColor: isDark ? '#000000' : '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }
+                ]}
+                onPress={() => setTransactionType('sale')}
+                activeOpacity={0.8}
+              >
+                <Text style={[
+                  styles.segmentText,
+                  { color: transactionType === 'sale' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }
+                ]}>🏠 Buy</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Dynamic Filter Row */}
+            <View style={styles.filterRow}>
+              <FlatList
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.filterList}
+                data={[
+                  { id: 'commercial_toggle', label: 'Commercial', isToggle: true },
+                  ...(isCommercial ? COMMERCIAL_TYPES : RESIDENTIAL_TYPES).map(t => ({ id: t, label: t, isToggle: false }))
+                ]}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => {
+                  if (item.isToggle) {
+                    return (
+                      <TouchableOpacity
+                        style={[
+                          styles.filterChip,
+                          {
+                            backgroundColor: isCommercial ? colors.accent : (isDark ? '#2C2C2E' : '#F2F2F7'),
+                            borderColor: isCommercial ? colors.accent : (isDark ? '#3A3A3C' : '#E5E5EA'),
+                          },
+                        ]}
+                        onPress={() => {
+                          setIsCommercial(!isCommercial);
+                          setSelectedType(null);
+                        }}
+                      >
+                        <Text style={[
+                          styles.filterText,
+                          { color: isCommercial ? '#FFF' : colors.text }
+                        ]}>
+                          {item.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  }
+
+                  const isActive = selectedType === item.label;
+                  return (
+                    <TouchableOpacity
+                      style={[
+                        styles.filterChip,
+                        {
+                          backgroundColor: isActive ? colors.activeChipBackground : (isDark ? '#2C2C2E' : '#F2F2F7'),
+                          borderColor: isDark ? '#3A3A3C' : '#E5E5EA'
+                        },
+                      ]}
+                      onPress={() => togglePropertyType(item.label)}
+                    >
+                      <Text
+                        style={[
+                          styles.filterText,
+                          { color: isActive ? colors.activeChipText : colors.text },
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            </View>
+        </View>
+      )}
 
       <Text style={[styles.resultCount, { color: colors.textSecondary }]}>
         {filteredProperties.length} homes
@@ -572,6 +586,9 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     height: '100%',
+  },
+  filterSection: {
+    marginBottom: 16,
   },
   segmentedControl: {
     flexDirection: 'row',
