@@ -62,6 +62,27 @@ If everything is set up correctly, you should see your new app running in the An
 
 This is one way to run your app — you can also build it directly from Android Studio or Xcode.
 
+### iOS Archive (for App Store)
+
+To create an iOS archive for distribution (e.g. App Store submission), run:
+
+```sh
+./scripts/archive-ios.sh
+```
+
+Or from the project root:
+```sh
+bash scripts/archive-ios.sh
+```
+
+Or manually:
+
+```sh
+cd ios && xcodebuild -workspace JayTap.xcworkspace -scheme JayTap -configuration Release archive
+```
+
+The archive will be created in Xcode's Organizer. You can then use it to upload to App Store Connect or export an IPA.
+
 ## Step 3: Modify your app
 
 Now that you have successfully run the app, let's make changes!
