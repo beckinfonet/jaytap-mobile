@@ -50,7 +50,7 @@ function AppContent() {
       try {
         console.log('Deep link received:', url);
 
-        // Parse URL: https://www.bizdinkonush.com/property/{id}
+        // Parse URL: https://www.moveinplatform.com/property/{id} (also supports legacy bizdinkonush.com links)
         const propertyMatch = url.match(/\/property\/([^\/\?]+)/);
         if (propertyMatch && propertyMatch[1]) {
           const propertyId = propertyMatch[1];

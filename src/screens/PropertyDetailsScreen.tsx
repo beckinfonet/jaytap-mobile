@@ -20,6 +20,7 @@ import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Send, MessageCircle, Heart, Share2, Mail, Phone } from 'lucide-react-native';
 import { Property } from '../types/Property';
+import { getPropertyShareUrl } from '../constants';
 import { useTheme } from '../theme/ThemeContext';
 import { PropertyService } from '../services/PropertyService';
 import { useAuth } from '../context/AuthContext';
@@ -98,8 +99,8 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
   const handleShare = async () => {
     // Generate shareable URL
-    const propertyId = property.id || property.listingId;
-    const shareUrl = `https://www.bizdinkonush.com/property/${propertyId}`;
+    const propertyId = property.id || property.listingId || '';
+    const shareUrl = getPropertyShareUrl(propertyId);
 
     // Create share message
     const priceText = formatPrice(property);

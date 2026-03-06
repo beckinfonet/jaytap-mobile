@@ -15,7 +15,7 @@ Summary of the current state and what to do before publishing.
 | **Deployment target** | iOS 15.1 |
 | **Code signing** | Automatic |
 | **ExportOptions** | `app-store`, teamID `M3W6Y259JR` |
-| **Entitlements** | Associated domains for `applinks:www.bizdinkonush.com` |
+| **Entitlements** | Associated domains for `applinks:www.moveinplatform.com` (+ legacy `applinks:www.bizdinkonush.com`) |
 | **Privacy manifest** | PrivacyInfo.xcprivacy present (required reason APIs, no tracking) |
 | **ATS** | `NSAllowsArbitraryLoads = false` (HTTPS only) |
 | **Usage descriptions** | Location, Photo Library, Camera |

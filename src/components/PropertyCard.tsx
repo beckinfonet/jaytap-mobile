@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Heart, Bed, Bath } from 'lucide-react-native';
 import { Property } from '../types/Property';
+import { getPropertyShareUrl } from '../constants';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -65,8 +66,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     e.stopPropagation(); // Prevent card press
 
     // Generate shareable URL
-    const propertyId = property.id || property.listingId;
-    const shareUrl = `https://www.bizdinkonush.com/property/${propertyId}`;
+    const propertyId = property.id || property.listingId || '';
+    const shareUrl = getPropertyShareUrl(propertyId);
 
     // Create share message
     const priceText = formatPrice(property);

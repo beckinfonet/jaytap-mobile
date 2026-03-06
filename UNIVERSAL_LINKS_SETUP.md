@@ -12,7 +12,7 @@
 2. Click the **"+ Capability"** button
 3. Search for and add **"Associated Domains"**
 4. In the Associated Domains section, click the **"+"** button
-5. Add: `applinks:www.bizdinkonush.com`
+5. Add: `applinks:www.moveinplatform.com` (and optionally `applinks:www.bizdinkonush.com` for legacy link support)
    - **Important**: Use `applinks:` prefix (not `https://`)
    - The format is: `applinks:yourdomain.com`
 
@@ -68,7 +68,7 @@ Create a file named `apple-app-site-association` (no extension) with this conten
 ### Step 2: Upload to Web Server
 1. Upload the file to your web server at this exact path:
    ```
-   https://www.bizdinkonush.com/.well-known/apple-app-site-association
+   https://www.moveinplatform.com/.well-known/apple-app-site-association
    ```
 
 2. **Important Requirements:**
@@ -104,7 +104,7 @@ app.get('/.well-known/apple-app-site-association', (req, res) => {
 ```
 
 ### Step 4: Verify the File
-1. Open a browser and visit: `https://www.bizdinkonush.com/.well-known/apple-app-site-association`
+1. Open a browser and visit: `https://www.moveinplatform.com/.well-known/apple-app-site-association`
 2. You should see the JSON content
 3. Check that the Content-Type header is `application/json` (use browser DevTools)
 
@@ -139,7 +139,7 @@ app.get('/.well-known/apple-app-site-association', (req, res) => {
 ## Quick Checklist
 
 - [ ] Added Associated Domains capability in Xcode
-- [ ] Added `applinks:www.bizdinkonush.com` domain
+- [ ] Added `applinks:www.moveinplatform.com` domain (and optionally legacy `applinks:www.bizdinkonush.com`)
 - [ ] Created `apple-app-site-association` file with correct Team ID and Bundle ID
 - [ ] Uploaded file to `/.well-known/` directory on web server
 - [ ] File is accessible via HTTPS

@@ -4,6 +4,7 @@
 <dict>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
+		<string>applinks:www.moveinplatform.com</string>
 		<string>applinks:www.bizdinkonush.com</string>
 	</array>
 </dict>
