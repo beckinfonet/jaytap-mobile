@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Send, MessageCircle, Heart, Share2 } from 'lucide-react-native';
+import { Send, MessageCircle, Heart, Share2, Mail, Phone } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { useTheme } from '../theme/ThemeContext';
 import { PropertyService } from '../services/PropertyService';
@@ -53,6 +53,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const [activeSlide, setActiveSlide] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isMapFullScreen, setIsMapFullScreen] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
 
   // Fetch property details with owner info when screen mounts
   useEffect(() => {
@@ -212,6 +213,27 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       console.error("Failed to open email", err);
       Alert.alert('Error', 'Could not open email client.');
     });
+  };
+
+  const handlePhone = () => {
+    const owner = (property as any).owner;
+    if (!owner?.phone) {
+      Alert.alert('No Phone', 'This owner has not provided a phone number.');
+      return;
+    }
+    const cleanPhone = owner.phone.replace(/\D/g, '');
+    const telUrl = `tel:${cleanPhone}`;
+    Linking.openURL(telUrl).catch(err => {
+      console.error("Failed to open phone", err);
+      Alert.alert('Error', 'Could not open phone dialer.');
+    });
+  };
+
+  const handleInternalMessage = () => {
+    setShowContactModal(false);
+    if (onMessagePress) {
+      onMessagePress();
+    }
   };
 
   const onScroll = (event: any) => {
@@ -617,47 +639,23 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           })()}
         </View>
 
-        {/* Second Row: Contact Buttons - Telegram and WhatsApp */}
-        {(() => {
-          const owner = (property as any).owner;
-          const hasWhatsApp = owner?.whatsapp;
-          const hasTelegram = owner?.telegram;
-          const hasAnyContact = hasWhatsApp || hasTelegram;
-
-          console.log('Owner contact info:', { hasWhatsApp, hasTelegram, owner });
-
-          if (hasAnyContact) {
-            return (
-              <View style={styles.contactButtonsRow}>
-                {hasTelegram && (
-                  <TouchableOpacity
-                    style={[styles.contactButton, styles.telegramButton]}
-                    onPress={handleTelegram}
-                  >
-                    <Send size={20} color="#FFF" />
-                    <Text style={styles.contactButtonText}>Telegram</Text>
-                  </TouchableOpacity>
-                )}
-                {hasWhatsApp && (
-                  <TouchableOpacity
-                    style={[styles.contactButton, styles.whatsappButton, hasTelegram ? { marginLeft: 8 } : {}]}
-                    onPress={handleWhatsApp}
-                  >
-                    <MessageCircle size={20} color="#FFF" />
-                    <Text style={styles.contactButtonText}>WhatsApp</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            );
-          }
-
-          // Fallback: Show generic contact button if no owner info
-          return (
-            <TouchableOpacity style={[styles.contactButton, { backgroundColor: colors.primary }]}>
-              <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>Contact Agent</Text>
-            </TouchableOpacity>
-          );
-        })()}
+        {/* Contact Agent Button - opens modal with all available channels */}
+        <TouchableOpacity
+          style={[styles.contactButton, { backgroundColor: colors.primary }]}
+          onPress={() => setShowContactModal(true)}
+        >
+          <MessageCircle size={20} color={isDark ? '#121212' : '#FFFFFF'} />
+          <Text
+            style={{
+              marginLeft: 8,
+              fontSize: 14,
+              fontWeight: '600',
+              color: isDark ? '#121212' : '#FFFFFF',
+            }}
+          >
+            Contact now
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Full Screen Image Modal */}
@@ -729,6 +727,119 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             <Text style={[styles.fullScreenMapAddress, { color: colors.text }]}>{property.address}</Text>
           </View>
         </SafeAreaView>
+      </Modal>
+
+      {/* Contact Options Modal */}
+      <Modal
+        visible={showContactModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowContactModal(false)}
+      >
+        <View style={styles.contactModalOverlay}>
+          <TouchableOpacity
+            style={styles.contactModalBackdrop}
+            activeOpacity={1}
+            onPress={() => setShowContactModal(false)}
+          />
+          <View style={[styles.contactModalContent, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.contactModalHandle, { backgroundColor: colors.border }]} />
+            <Text style={[styles.contactModalTitle, { color: colors.text }]}>Contact Listing Owner</Text>
+            <Text style={[styles.contactModalSubtitle, { color: colors.textSecondary }]}>
+              Choose how you'd like to reach out
+            </Text>
+
+            {(() => {
+              const owner = (property as any).owner;
+              const hasEmail = !!owner?.email;
+              const hasPhone = !!owner?.phone;
+              const hasWhatsApp = !!owner?.whatsapp;
+              const hasTelegram = !!owner?.telegram;
+              const hasInternalMessage = !!owner?.uid && owner.uid !== user?.localId;
+              const hasAnyOption = hasEmail || hasPhone || hasWhatsApp || hasTelegram || hasInternalMessage;
+
+              if (!hasAnyOption) {
+                return (
+                  <View style={styles.contactModalEmpty}>
+                    <Text style={[styles.contactModalEmptyText, { color: colors.textSecondary }]}>
+                      No contact options available for this listing.
+                    </Text>
+                  </View>
+                );
+              }
+
+              const options: Array<{ key: string; label: string; onPress: () => void; icon: React.ReactNode; color: string }> = [];
+              if (hasInternalMessage) {
+                options.push({
+                  key: 'message',
+                  label: 'In-App Message',
+                  onPress: handleInternalMessage,
+                  icon: <MessageCircle size={22} color="#FFF" />,
+                  color: colors.primary,
+                });
+              }
+              if (hasEmail) {
+                options.push({
+                  key: 'email',
+                  label: 'Email',
+                  onPress: () => { setShowContactModal(false); handleEmail(); },
+                  icon: <Mail size={22} color="#FFF" />,
+                  color: '#6B7280',
+                });
+              }
+              if (hasPhone) {
+                options.push({
+                  key: 'phone',
+                  label: 'Phone Call',
+                  onPress: () => { setShowContactModal(false); handlePhone(); },
+                  icon: <Phone size={22} color="#FFF" />,
+                  color: '#10B981',
+                });
+              }
+              if (hasWhatsApp) {
+                options.push({
+                  key: 'whatsapp',
+                  label: 'WhatsApp',
+                  onPress: () => { setShowContactModal(false); handleWhatsApp(); },
+                  icon: <MessageCircle size={22} color="#FFF" />,
+                  color: '#25D366',
+                });
+              }
+              if (hasTelegram) {
+                options.push({
+                  key: 'telegram',
+                  label: 'Telegram',
+                  onPress: () => { setShowContactModal(false); handleTelegram(); },
+                  icon: <Send size={22} color="#FFF" />,
+                  color: '#229ED9',
+                });
+              }
+
+              return (
+                <View style={styles.contactModalOptions}>
+                  {options.map((opt) => (
+                    <TouchableOpacity
+                      key={opt.key}
+                      style={[styles.contactModalOption, { backgroundColor: opt.color }]}
+                      onPress={opt.onPress}
+                      activeOpacity={0.8}
+                    >
+                      {opt.icon}
+                      <Text style={styles.contactModalOptionText}>{opt.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              );
+            })()}
+
+            <TouchableOpacity
+              style={[styles.contactModalCancel, { backgroundColor: colors.inputBackground }]}
+              onPress={() => setShowContactModal(false)}
+            >
+              <Text style={[styles.contactModalCancelText, { color: colors.textSecondary }]}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -1115,7 +1226,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderRadius: 30,
-    gap: 8,
+    minHeight: 48,
   },
   whatsappButton: {
     backgroundColor: '#25D366', // WhatsApp Green
@@ -1127,6 +1238,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
+    flexShrink: 0,
   },
   // Location Map Styles
   locationHeader: {
@@ -1249,5 +1361,74 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  // Contact Options Modal
+  contactModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  contactModalBackdrop: {
+    flex: 1,
+  },
+  contactModalContent: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 34,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+  },
+  contactModalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  contactModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  contactModalSubtitle: {
+    fontSize: 14,
+    marginBottom: 24,
+  },
+  contactModalEmpty: {
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  contactModalEmptyText: {
+    fontSize: 15,
+  },
+  contactModalOptions: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  contactModalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    gap: 10,
+  },
+  contactModalOptionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  contactModalCancel: {
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  contactModalCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

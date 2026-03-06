@@ -10,7 +10,7 @@ import {
   Share,
   ActivityIndicator,
 } from 'react-native';
-import { Heart } from 'lucide-react-native';
+import { Heart, Bed, Bath } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -207,11 +207,17 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 )}
               </View>
             ) : (
-              <TouchableOpacity
-                style={[styles.contactButton, { backgroundColor: colors.primary }]}
-              >
-                <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>Contact Agent</Text>
-              </TouchableOpacity>
+              <View style={[styles.specsContainer, { backgroundColor: colors.chipBackground, borderColor: colors.chipBorder }]}>
+                <View style={styles.specItem}>
+                  <Bed size={16} color={colors.textSecondary} strokeWidth={2} />
+                  <Text style={[styles.specValue, { color: colors.text }]}>{property.specs?.beds ?? 0}</Text>
+                </View>
+                <View style={[styles.specDivider, { backgroundColor: colors.border }]} />
+                <View style={styles.specItem}>
+                  <Bath size={16} color={colors.textSecondary} strokeWidth={2} />
+                  <Text style={[styles.specValue, { color: colors.text }]}>{property.specs?.baths ?? 0}</Text>
+                </View>
+              </View>
             )}
           </View>
         </View>
@@ -368,6 +374,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 20,
+  },
+  specsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  specItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  specValue: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  specDivider: {
+    width: 1,
+    height: 18,
+    borderRadius: 1,
   },
   actionButtonsRow: {
     flexDirection: 'row',
