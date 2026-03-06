@@ -16,6 +16,7 @@ import { useAuth } from '../context/AuthContext';
 import { ChatService, Conversation } from '../services/ChatService';
 import { Property } from '../types/Property';
 import { ChatThreadScreen } from './ChatThreadScreen';
+import { ChatComposeScreen } from './ChatComposeScreen';
 
 interface ChatScreenProps {
   onBack: () => void;
@@ -73,22 +74,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     loadConversations();
   }, [loadConversations]);
 
-  useEffect(() => {
-    if (propertyToOpen?.id && user?.localId) {
-      const openFromProperty = async () => {
-        try {
-          const conv = await ChatService.createOrGetConversation(propertyToOpen.id);
-          setInitialConversationFromProperty(conv);
-          setSelectedConversation(conv);
-          onClearPropertyToOpen?.();
-        } catch (error: any) {
-          Alert.alert('Error', error?.response?.data?.message || 'Failed to start chat');
-          onClearPropertyToOpen?.();
-        }
-      };
-      openFromProperty();
-    }
-  }, [propertyToOpen?.id, user?.localId]);
+  // When opening from property: show compose screen (no conversation created until user sends)
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -104,6 +90,27 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     setInitialConversationFromProperty(null);
     loadConversations();
   };
+
+  const handleBackFromCompose = () => {
+    onClearPropertyToOpen?.();
+  };
+
+  const handleConversationCreated = (conv: Conversation) => {
+    setSelectedConversation(conv);
+    onClearPropertyToOpen?.();
+    loadConversations();
+  };
+
+  // Show compose screen when opening from property (no conversation created yet)
+  if (propertyToOpen?.id && user?.localId) {
+    return (
+      <ChatComposeScreen
+        property={propertyToOpen}
+        onBack={handleBackFromCompose}
+        onConversationCreated={handleConversationCreated}
+      />
+    );
+  }
 
   if (selectedConversation) {
     return (
