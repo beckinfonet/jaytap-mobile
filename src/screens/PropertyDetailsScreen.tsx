@@ -768,14 +768,16 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 );
               }
 
-              const options: Array<{ key: string; label: string; onPress: () => void; icon: React.ReactNode; color: string }> = [];
+              const options: Array<{ key: string; label: string; onPress: () => void; icon: React.ReactNode; color: string; contentColor?: string }> = [];
+              const inAppMessageContentColor = isDark ? '#121212' : '#FFFFFF';
               if (hasInternalMessage) {
                 options.push({
                   key: 'message',
                   label: 'In-App Message',
                   onPress: handleInternalMessage,
-                  icon: <MessageCircle size={22} color="#FFF" />,
+                  icon: <MessageCircle size={22} color={inAppMessageContentColor} />,
                   color: colors.primary,
+                  contentColor: inAppMessageContentColor,
                 });
               }
               if (hasEmail) {
@@ -825,7 +827,9 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                       activeOpacity={0.8}
                     >
                       {opt.icon}
-                      <Text style={styles.contactModalOptionText}>{opt.label}</Text>
+                      <Text style={[styles.contactModalOptionText, opt.contentColor ? { color: opt.contentColor } : {}]}>
+                        {opt.label}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
