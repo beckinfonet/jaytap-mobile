@@ -18,7 +18,36 @@ import {
 } from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Send, MessageCircle, Heart, Share2, Mail, Phone } from 'lucide-react-native';
+import {
+  Send,
+  MessageCircle,
+  Heart,
+  Share2,
+  Mail,
+  Phone,
+  Wifi,
+  Tv,
+  WashingMachine,
+  AirVent,
+  Car,
+  Flame,
+  MoveVertical,
+  Dumbbell,
+  WavesLadder,
+  SquareParking,
+  Utensils,
+  Flower2,
+  PawPrint,
+  Thermometer,
+  ThermometerSun,
+  Lock,
+  Shield,
+  Coffee,
+  Microwave,
+  Laptop,
+  Waves,
+  Check,
+} from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { getPropertyShareUrl } from '../constants';
 import { useTheme } from '../theme/ThemeContext';
@@ -37,6 +66,81 @@ interface PropertyDetailsScreenProps {
 }
 
 const { width, height } = Dimensions.get('window');
+
+// Map feature names to Lucide icons (Airbnb-style)
+// Covers common property amenities listing owners may add
+const FEATURE_ICONS: Record<string, React.ComponentType<{ size?: number; color?: string }>> = {
+  // Climate & comfort
+  ac: AirVent,
+  'air conditioning': AirVent,
+  heating: ThermometerSun,
+  heat: ThermometerSun,
+  thermostat: Thermometer,
+  // Parking & garage
+  garage: Car,
+  parking: SquareParking,
+  'parking spot': SquareParking,
+  'free parking': SquareParking,
+  // Laundry
+  washer: WashingMachine,
+  washing: WashingMachine,
+  'washing machine': WashingMachine,
+  dryer: Flame,
+  'hair dryer': Flame,
+  laundry: WashingMachine,
+  // Connectivity & entertainment
+  wifi: Wifi,
+  'wi-fi': Wifi,
+  internet: Wifi,
+  tv: Tv,
+  television: Tv,
+  // Building
+  elevator: MoveVertical,
+  lift: MoveVertical,
+  // Fitness & recreation
+  gym: Dumbbell,
+  fitness: Dumbbell,
+  'fitness center': Dumbbell,
+  'swimming pool': WavesLadder,
+  pool: WavesLadder,
+  'hot tub': Waves,
+  'jacuzzi': Waves,
+  spa: Waves,
+  // Kitchen & dining
+  kitchen: Utensils,
+  kitchenette: Utensils,
+  'full kitchen': Utensils,
+  'kitchen equipped': Utensils,
+  microwave: Microwave,
+  coffee: Coffee,
+  'coffee maker': Coffee,
+  'espresso machine': Coffee,
+  // Outdoor
+  garden: Flower2,
+  balcony: Flower2,
+  terrace: Flower2,
+  patio: Flower2,
+  'outdoor space': Flower2,
+  // Pets
+  'pet friendly': PawPrint,
+  pets: PawPrint,
+  'dogs allowed': PawPrint,
+  'cats allowed': PawPrint,
+  // Security
+  security: Shield,
+  '24/7 security': Shield,
+  'secure building': Lock,
+  'doorman': Shield,
+  // Workspace
+  'workspace': Laptop,
+  'dedicated workspace': Laptop,
+  'desk': Laptop,
+  'wifi workspace': Laptop,
+};
+const getFeatureIcon = (feature: string) => {
+  const key = feature.toLowerCase().trim();
+  return FEATURE_ICONS[key] ?? Check;
+};
 
 export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   property: initialProperty,
@@ -539,15 +643,19 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             </Text>
           </View>
 
-          {/* Features */}
+          {/* Features - Airbnb-style two-column layout with icons */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Features</Text>
-            <View style={styles.featuresRow}>
-              {property.features.map((feature, index) => (
-                <View key={index} style={[styles.featureChip, { backgroundColor: colors.chipBackground, borderColor: colors.chipBorder }]}>
-                  <Text style={[styles.featureText, { color: colors.textSecondary }]}>{feature}</Text>
-                </View>
-              ))}
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>What this place offers</Text>
+            <View style={styles.featuresGrid}>
+              {property.features.map((feature, index) => {
+                const IconComponent = getFeatureIcon(feature);
+                return (
+                  <View key={index} style={styles.featureItem}>
+                    <IconComponent size={20} color={colors.text} strokeWidth={2} />
+                    <Text style={[styles.featureItemText, { color: colors.text }]}>{feature}</Text>
+                  </View>
+                );
+              })}
             </View>
           </View>
 
@@ -994,20 +1102,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 24,
   },
-  featuresRow: {
+  featuresGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    marginHorizontal: -8,
   },
-  featureChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    marginRight: 8,
-    marginBottom: 8,
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '50%',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
   },
-  featureText: {
-    fontSize: 14,
+  featureItemText: {
+    fontSize: 16,
+    marginLeft: 12,
   },
   mediaButtonsContainer: {
     marginBottom: 24,
