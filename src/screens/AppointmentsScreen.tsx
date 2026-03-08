@@ -163,6 +163,14 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
       : 'Unknown';
     const imageUrl = item.property?.images?.[0] || (item.property as any)?.imageUrl;
 
+    const requesterText = item.isInitiator ? 'Requested by you' : `Requested by ${otherName}`;
+    const approverText =
+      item.status === 'confirmed'
+        ? item.isInitiator
+          ? `, approved by ${otherName}`
+          : ', approved by you'
+        : '';
+
     return (
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <View style={styles.cardRow}>
@@ -180,7 +188,7 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
               {item.property?.title || 'Listing'}
             </Text>
             <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-              Requested by {otherName}
+              {requesterText}{approverText}
             </Text>
             <View style={[styles.statusBadge, { backgroundColor: item.status === 'confirmed' ? '#10B981' + '30' : item.status === 'declined' ? '#EF4444' + '30' : colors.accent + '30' }]}>
               <Text style={[styles.statusText, { color: colors.text }]}>
