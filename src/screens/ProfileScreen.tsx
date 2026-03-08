@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../theme/ThemeContext';
 import { AuthService } from '../services/AuthService';
+import { AppointmentService } from '../services/AppointmentService';
 import { DeleteAccountModal } from '../components/DeleteAccountModal';
 
 interface ProfileScreenProps {
@@ -11,9 +12,10 @@ interface ProfileScreenProps {
     onCreateListing?: () => void;
     onViewListings?: () => void;
     onViewFavorites?: () => void;
+    onViewAppointments?: () => void;
 }
 
-export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateListing, onViewListings, onViewFavorites }) => {
+export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateListing, onViewListings, onViewFavorites, onViewAppointments }) => {
     const { user, logout, deleteAccount } = useAuth();
     const { colors, isDark } = useTheme();
 
@@ -29,6 +31,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
     const [saving, setSaving] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [blockSize, setBlockSize] = useState<'30min' | '60min'>('30min');
 
     // Dynamic Theme Colors
     const themeStyles = {
@@ -50,7 +53,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
         if (!user?.localId) return;
         setLoading(true);
         try {
-            const profile = await AuthService.getBackendUser(user.localId);
+            const [profile, settings] = await Promise.all([
+                AuthService.getBackendUser(user.localId),
+                AppointmentService.getOwnerSettings().catch(() => null),
+            ]);
+            if (settings) setBlockSize(settings.blockSize || '30min');
             if (profile) {
                 setFirstName(profile.firstName || '');
                 setLastName(profile.lastName || '');
@@ -178,9 +185,44 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                     <Text style={[styles.arrow, { color: themeStyles.textSecondary }]}>›</Text>
                 </TouchableOpacity>
 
+                <TouchableOpacity
+                    style={[styles.menuItem, { backgroundColor: themeStyles.surface }]}
+                    onPress={onViewAppointments}
+                >
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={{ fontSize: 20, color: themeStyles.accent, marginRight: 12 }}>📅</Text>
+                        <Text style={[styles.menuText, { color: themeStyles.text }]}>Appointments</Text>
+                    </View>
+                    <Text style={[styles.arrow, { color: themeStyles.textSecondary }]}>›</Text>
+                </TouchableOpacity>
+
                 {/* Renter Actions - Only show if userType === 'renter' */}
                 {userType === 'renter' && (
                     <>
+                        <View style={[styles.availabilitySection, { backgroundColor: themeStyles.surface, borderColor: themeStyles.border }]}>
+                            <Text style={[styles.availabilityLabel, { color: themeStyles.text }]}>Viewing time slots</Text>
+                            <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
+                                <TouchableOpacity
+                                    style={[styles.blockSizeButton, { borderColor: themeStyles.accent }, blockSize === '30min' && { backgroundColor: themeStyles.accent }]}
+                                    onPress={async () => {
+                                        setBlockSize('30min');
+                                        await AppointmentService.updateOwnerSettings({ blockSize: '30min' });
+                                    }}
+                                >
+                                    <Text style={[styles.blockSizeText, { color: blockSize === '30min' ? '#FFF' : themeStyles.text }]}>30 min</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.blockSizeButton, { borderColor: themeStyles.accent }, blockSize === '60min' && { backgroundColor: themeStyles.accent }]}
+                                    onPress={async () => {
+                                        setBlockSize('60min');
+                                        await AppointmentService.updateOwnerSettings({ blockSize: '60min' });
+                                    }}
+                                >
+                                    <Text style={[styles.blockSizeText, { color: blockSize === '60min' ? '#FFF' : themeStyles.text }]}>60 min</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <Text style={[styles.availabilityHint, { color: themeStyles.textSecondary }]}>9am–5pm Bishkek time</Text>
+                        </View>
                         <TouchableOpacity
                             style={[styles.menuItem, { backgroundColor: themeStyles.accent }]}
                             onPress={onCreateListing}
@@ -350,6 +392,23 @@ const styles = StyleSheet.create({
     accountSettings: {
         fontSize: 12
     },
+    availabilitySection: {
+        padding: 16,
+        borderRadius: 16,
+        marginBottom: 24,
+        borderWidth: 1,
+    },
+    availabilityLabel: { fontSize: 16, fontWeight: '600' },
+    blockSizeButton: {
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 10,
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: '#3B82F6',
+    },
+    blockSizeText: { fontSize: 14, fontWeight: '600' },
+    availabilityHint: { fontSize: 12, marginTop: 8 },
     menuItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',

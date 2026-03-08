@@ -12,6 +12,8 @@ import { CreateListingScreen } from './src/screens/CreateListingScreen';
 import { RenterListingsScreen } from './src/screens/RenterListingsScreen';
 import { FavoritesScreen } from './src/screens/FavoritesScreen';
 import { ChatScreen } from './src/screens/ChatScreen';
+import { ScheduleViewingScreen } from './src/screens/ScheduleViewingScreen';
+import { AppointmentsScreen } from './src/screens/AppointmentsScreen';
 import { BottomNavigator, TabId } from './src/components/BottomNavigator';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -43,6 +45,10 @@ function AppContent() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [propertyToOpenChat, setPropertyToOpenChat] = useState<Property | null>(null);
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
+  const [isScheduleViewingOpen, setIsScheduleViewingOpen] = useState(false);
+  const [propertyToSchedule, setPropertyToSchedule] = useState<Property | null>(null);
+  const [participantUidForSchedule, setParticipantUidForSchedule] = useState<string | undefined>();
+  const [isAppointmentsOpen, setIsAppointmentsOpen] = useState(false);
 
   // Handle deep linking for shared property links
   useEffect(() => {
@@ -279,6 +285,18 @@ function AppContent() {
             setSelectedProperty(null);
             setIsChatOpen(true);
           }}
+          onScheduleViewing={() => {
+            if (!user) {
+              setAuthPromptMessage('Please sign in to schedule a viewing');
+              setShowAuthPrompt(true);
+              return;
+            }
+            const ownerUid = selectedProperty.owner?.uid || (selectedProperty as any).ownerUid;
+            if (ownerUid === user.localId) return;
+            setPropertyToSchedule(selectedProperty);
+            setSelectedProperty(null);
+            setIsScheduleViewingOpen(true);
+          }}
           returnToMap={homeViewMode === 'map'}
           onFavorite={handleFavorite}
           isFavorited={favoriteStatuses[selectedProperty.id] || false}
@@ -295,6 +313,12 @@ function AppContent() {
               onFavorite={handleFavorite}
               favoriteLoading={favoriteLoading}
             />
+          ) : isAppointmentsOpen ? (
+            <AppointmentsScreen
+              onBack={() => setIsAppointmentsOpen(false)}
+              propertyToOpen={propertyToSchedule}
+              participantUid={undefined}
+            />
           ) : isProfileOpen ? (
             <ProfileScreen
               onBack={() => setIsProfileOpen(false)}
@@ -303,6 +327,26 @@ function AppContent() {
               onViewFavorites={() => {
                 setIsProfileOpen(false);
                 setIsFavoritesOpen(true);
+              }}
+              onViewAppointments={() => {
+                setIsProfileOpen(false);
+                setIsAppointmentsOpen(true);
+              }}
+            />
+          ) : isScheduleViewingOpen && propertyToSchedule ? (
+            <ScheduleViewingScreen
+              property={propertyToSchedule}
+              participantUid={participantUidForSchedule}
+              onBack={() => {
+                setIsScheduleViewingOpen(false);
+                setPropertyToSchedule(null);
+                setParticipantUidForSchedule(undefined);
+              }}
+              onSuccess={() => {
+                setIsScheduleViewingOpen(false);
+                setPropertyToSchedule(null);
+                setParticipantUidForSchedule(undefined);
+                setIsAppointmentsOpen(true);
               }}
             />
           ) : isChatOpen ? (
@@ -314,6 +358,13 @@ function AppContent() {
               propertyToOpen={propertyToOpenChat}
               onClearPropertyToOpen={() => setPropertyToOpenChat(null)}
               onUnreadCountChange={setChatUnreadCount}
+              onScheduleViewing={(property, participantUid) => {
+                setPropertyToSchedule(property);
+                setParticipantUidForSchedule(participantUid);
+                setIsChatOpen(false);
+                setPropertyToOpenChat(null);
+                setIsScheduleViewingOpen(true);
+              }}
             />
           ) : (
             <HomeScreen
@@ -344,7 +395,7 @@ function AppContent() {
           )}
           <BottomNavigator
             activeTab={
-              isFavoritesOpen ? 'favorites' : isProfileOpen ? 'profile' : isChatOpen ? 'chat' : 'home'
+              isFavoritesOpen ? 'favorites' : isProfileOpen ? 'profile' : isAppointmentsOpen ? 'profile' : isChatOpen ? 'chat' : 'home'
             }
             chatUnreadCount={chatUnreadCount}
             onTabChange={(tab: TabId) => {

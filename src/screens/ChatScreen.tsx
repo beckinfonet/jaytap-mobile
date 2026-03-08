@@ -23,6 +23,7 @@ interface ChatScreenProps {
   propertyToOpen?: Property | null;
   onClearPropertyToOpen?: () => void;
   onUnreadCountChange?: (count: number) => void;
+  onScheduleViewing?: (property: Property, participantUid?: string) => void;
 }
 
 const formatTime = (dateStr?: string) => {
@@ -40,6 +41,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   propertyToOpen,
   onClearPropertyToOpen,
   onUnreadCountChange,
+  onScheduleViewing,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -108,6 +110,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         property={propertyToOpen}
         onBack={handleBackFromCompose}
         onConversationCreated={handleConversationCreated}
+        onScheduleViewing={onScheduleViewing ? () => onScheduleViewing(propertyToOpen) : undefined}
       />
     );
   }
@@ -118,6 +121,30 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         conversation={selectedConversation}
         onBack={handleBackFromThread}
         onConversationUpdate={loadConversations}
+        onScheduleViewing={
+          onScheduleViewing && selectedConversation.property?.id
+            ? () => {
+                const prop = selectedConversation.property!;
+                const isOwner = selectedConversation.listingOwnerUid === user?.localId;
+                const propertyForSchedule: Property = {
+                  id: prop.id,
+                  title: prop.title || 'Listing',
+                  address: prop.address || '',
+                  price: 0,
+                  currency: '$',
+                  description: '',
+                  specs: { beds: 0, baths: 0, sqft: 0 },
+                  features: [],
+                  imageUrl: prop.imageUrl || '',
+                  is3DTourAvailable: false,
+                  tours: [],
+                  type: 'rent',
+                  owner: { uid: selectedConversation.listingOwnerUid },
+                };
+                onScheduleViewing(propertyForSchedule, isOwner ? selectedConversation.participantUid : undefined);
+              }
+            : undefined
+        }
       />
     );
   }

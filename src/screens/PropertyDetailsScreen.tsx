@@ -25,6 +25,7 @@ import {
   Share2,
   Mail,
   Phone,
+  Calendar,
   Wifi,
   Tv,
   WashingMachine,
@@ -59,6 +60,7 @@ interface PropertyDetailsScreenProps {
   onBack: () => void;
   onOpenTours: () => void;
   onMessagePress?: () => void;
+  onScheduleViewing?: (property: Property) => void;
   returnToMap?: boolean; // If true, user came from map view
   onFavorite?: (property: Property) => void; // Optional favorite handler
   isFavorited?: boolean; // Whether this property is favorited
@@ -147,6 +149,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   onBack,
   onOpenTours,
   onMessagePress,
+  onScheduleViewing,
   onFavorite,
   isFavorited = false,
   isLoading = false,
@@ -865,7 +868,8 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               const hasWhatsApp = !!owner?.whatsapp;
               const hasTelegram = !!owner?.telegram;
               const hasInternalMessage = !!owner?.uid && owner.uid !== user?.localId;
-              const hasAnyOption = hasEmail || hasPhone || hasWhatsApp || hasTelegram || hasInternalMessage;
+              const hasScheduleViewing = !!owner?.uid && owner.uid !== user?.localId && !!onScheduleViewing;
+              const hasAnyOption = hasEmail || hasPhone || hasWhatsApp || hasTelegram || hasInternalMessage || hasScheduleViewing;
 
               if (!hasAnyOption) {
                 return (
@@ -879,6 +883,16 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
               const options: Array<{ key: string; label: string; onPress: () => void; icon: React.ReactNode; color: string; contentColor?: string }> = [];
               const inAppMessageContentColor = isDark ? '#121212' : '#FFFFFF';
+              if (hasScheduleViewing) {
+                options.push({
+                  key: 'schedule',
+                  label: 'Schedule viewing',
+                  onPress: () => { setShowContactModal(false); onScheduleViewing?.(property); },
+                  icon: <Calendar size={22} color={inAppMessageContentColor} />,
+                  color: '#06B6D4',
+                  contentColor: inAppMessageContentColor,
+                });
+              }
               if (hasInternalMessage) {
                 options.push({
                   key: 'message',

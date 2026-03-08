@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Send, Flag } from 'lucide-react-native';
+import { Send, Flag, Calendar } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { ChatService, Conversation, Message } from '../services/ChatService';
@@ -21,6 +21,7 @@ interface ChatThreadScreenProps {
   conversation: Conversation;
   onBack: () => void;
   onConversationUpdate: () => void;
+  onScheduleViewing?: () => void;
 }
 
 const REPORT_REASONS = [
@@ -35,6 +36,7 @@ export const ChatThreadScreen: React.FC<ChatThreadScreenProps> = ({
   conversation,
   onBack,
   onConversationUpdate,
+  onScheduleViewing,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -138,9 +140,16 @@ export const ChatThreadScreen: React.FC<ChatThreadScreenProps> = ({
             : 'User'}
         </Text>
       </View>
-      <TouchableOpacity onPress={handleReport} style={styles.reportButton}>
-        <Flag size={20} color={colors.textSecondary} />
-      </TouchableOpacity>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        {onScheduleViewing && (
+          <TouchableOpacity onPress={onScheduleViewing} style={styles.scheduleButton}>
+            <Calendar size={20} color={colors.accent} />
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity onPress={handleReport} style={styles.reportButton}>
+          <Flag size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -227,6 +236,7 @@ const styles = StyleSheet.create({
   headerCenter: { flex: 1, marginLeft: 8 },
   headerTitle: { fontSize: 16, fontWeight: '600' },
   headerSubtitle: { fontSize: 13 },
+  scheduleButton: { padding: 8 },
   reportButton: { padding: 8 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   keyboardView: { flex: 1 },

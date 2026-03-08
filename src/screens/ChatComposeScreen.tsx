@@ -12,7 +12,7 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Send } from 'lucide-react-native';
+import { Send, Calendar } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { ChatService, Conversation } from '../services/ChatService';
@@ -22,6 +22,7 @@ interface ChatComposeScreenProps {
   property: Property;
   onBack: () => void;
   onConversationCreated: (conversation: Conversation) => void;
+  onScheduleViewing?: () => void;
 }
 
 /**
@@ -32,6 +33,7 @@ export const ChatComposeScreen: React.FC<ChatComposeScreenProps> = ({
   property,
   onBack,
   onConversationCreated,
+  onScheduleViewing,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -64,7 +66,7 @@ export const ChatComposeScreen: React.FC<ChatComposeScreenProps> = ({
   };
 
   const renderHeader = () => (
-    <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
         <Text style={[styles.backButtonText, { color: colors.text }]}>← Back</Text>
       </TouchableOpacity>
@@ -76,7 +78,13 @@ export const ChatComposeScreen: React.FC<ChatComposeScreenProps> = ({
           {ownerName}
         </Text>
       </View>
-      <View style={{ width: 40 }} />
+      {onScheduleViewing ? (
+        <TouchableOpacity onPress={onScheduleViewing} style={styles.scheduleButton}>
+          <Calendar size={20} color={colors.accent} />
+        </TouchableOpacity>
+      ) : (
+        <View style={{ width: 40 }} />
+      )}
     </View>
   );
 
@@ -148,6 +156,7 @@ const styles = StyleSheet.create({
   },
   backButton: { padding: 8 },
   backButtonText: { fontSize: 16 },
+  scheduleButton: { padding: 8 },
   headerCenter: { flex: 1, marginLeft: 8 },
   headerTitle: { fontSize: 16, fontWeight: '600' },
   headerSubtitle: { fontSize: 13 },
