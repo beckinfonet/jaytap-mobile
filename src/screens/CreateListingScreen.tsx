@@ -103,16 +103,15 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
       setTitle(propertyToEdit.title || '');
       setDescription(propertyToEdit.description || '');
 
-      // Parse address to extract street, district, city
-      const addressParts = propertyToEdit.address?.split(',') || [];
-      if (addressParts.length > 0) {
-        setAddress(addressParts[0].trim());
-      }
-      if (addressParts.length > 1) {
-        setDistrict(addressParts[1].trim());
-      }
-      if (addressParts.length > 2) {
-        setCity(addressParts[2].trim());
+      // Parse address to extract street, district, city (may end with ", Kyrgyzstan")
+      const addressParts = propertyToEdit.address?.split(',').map((p) => p.trim()) || [];
+      const lastPart = addressParts[addressParts.length - 1];
+      const hasCountry = lastPart?.toLowerCase() === 'kyrgyzstan';
+      const relevantParts = hasCountry ? addressParts.slice(0, -1) : addressParts;
+      if (relevantParts.length > 0) setAddress(relevantParts[0]);
+      if (relevantParts.length > 1) setDistrict(relevantParts[1]);
+      if (relevantParts.length > 2) {
+        setCity(relevantParts[2]);
       } else if (propertyToEdit.city) {
         setCity(propertyToEdit.city);
       }
@@ -277,13 +276,16 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
 
     setLoading(true);
     try {
-      // Build full address with district if provided
-      let fullAddress = address;
-      if (district) {
-        fullAddress = `${address}, ${district}`;
+      // Build full address for storage and geocoding (street, district, city, country)
+      let fullAddress = address.trim();
+      if (district?.trim()) {
+        fullAddress = `${fullAddress}, ${district.trim()}`;
       }
-      if (city) {
-        fullAddress = `${fullAddress}, ${city}`;
+      const cityVal = (city || 'Bishkek').trim();
+      fullAddress = `${fullAddress}, ${cityVal}`;
+      // Add Kyrgyzstan for Bishkek addresses - improves geocoding accuracy
+      if (cityVal.toLowerCase() === 'bishkek') {
+        fullAddress = `${fullAddress}, Kyrgyzstan`;
       }
 
       // Separate existing images (URLs) from new images (files to upload)
