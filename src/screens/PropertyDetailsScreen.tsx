@@ -59,6 +59,7 @@ interface PropertyDetailsScreenProps {
   property: Property;
   onBack: () => void;
   onOpenTours: () => void;
+  onOpenPhotos?: (url: string) => void;
   onMessagePress?: () => void;
   onScheduleViewing?: (property: Property) => void;
   returnToMap?: boolean; // If true, user came from map view
@@ -144,10 +145,13 @@ const getFeatureIcon = (feature: string) => {
   return FEATURE_ICONS[key] ?? Check;
 };
 
+const RICOH_PHOTOS_FALLBACK = 'https://view.ricoh360.com/17e27731-db17-4973-b9b7-72130ba12a66';
+
 export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   property: initialProperty,
   onBack,
   onOpenTours,
+  onOpenPhotos,
   onMessagePress,
   onScheduleViewing,
   onFavorite,
@@ -494,7 +498,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
           {/* Media Buttons - Two Rows */}
           <View style={styles.mediaButtonsContainer}>
-            {/* Row 1: Start 3D Tour and Instagram */}
+            {/* Row 1: 3D Tour, Instagram */}
             <View style={styles.mediaButtonsRow}>
               {/* Start 3D Tour Button */}
               <TouchableOpacity
@@ -549,8 +553,29 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               </TouchableOpacity>
             </View>
 
-            {/* Row 2: Video and Internal Message */}
+            {/* Row 2: Photos, Videos */}
             <View style={styles.mediaButtonsRow}>
+              {/* Photos Button (Ricoh 360 panoramic) */}
+              <TouchableOpacity
+                style={[
+                  styles.mediaButton,
+                  (property.photosUrl || RICOH_PHOTOS_FALLBACK)
+                    ? [styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]
+                    : [styles.inactiveButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]
+                ]}
+                onPress={onOpenPhotos ? () => onOpenPhotos(property.photosUrl || RICOH_PHOTOS_FALLBACK) : undefined}
+                disabled={!onOpenPhotos}
+              >
+                <Text style={styles.videoIcon}>📷</Text>
+                <Text style={[
+                  styles.secondaryButtonText,
+                  { color: (property.photosUrl || RICOH_PHOTOS_FALLBACK) ? colors.text : colors.textSecondary }
+                ]}>Photos</Text>
+                {(property.photosUrl || RICOH_PHOTOS_FALLBACK) && onOpenPhotos && (
+                  <Text style={[styles.secondaryButtonArrow, { color: colors.text }]}>→</Text>
+                )}
+              </TouchableOpacity>
+
               {/* Video Button */}
               <TouchableOpacity
                 style={[
@@ -571,8 +596,10 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                   <Text style={[styles.secondaryButtonArrow, { color: colors.text }]}>→</Text>
                 )}
               </TouchableOpacity>
+            </View>
 
-              {/* Internal Message Button */}
+            {/* Row 3: Message */}
+            <View style={styles.mediaButtonsRow}>
               <TouchableOpacity
                 style={[
                   styles.mediaButton,
@@ -583,17 +610,19 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 onPress={onMessagePress}
                 disabled={!property.owner}
               >
-                <View style={styles.messageIconContainer}>
-                  <MessageCircle
-                    size={20}
-                    color={property.owner ? colors.text : colors.textSecondary}
-                    strokeWidth={2}
-                  />
+                <View style={styles.messageButtonCenter}>
+                  <View style={styles.messageIconContainer}>
+                    <MessageCircle
+                      size={20}
+                      color={property.owner ? colors.text : colors.textSecondary}
+                    />
+                  </View>
+                  <Text style={[
+                    styles.secondaryButtonText,
+                    styles.messageButtonText,
+                    { color: property.owner ? colors.text : colors.textSecondary }
+                  ]}>Message</Text>
                 </View>
-                <Text style={[
-                  styles.secondaryButtonText,
-                  { color: property.owner ? colors.text : colors.textSecondary }
-                ]}>Message</Text>
                 {property.owner && (
                   <Text style={[styles.secondaryButtonArrow, { color: colors.text }]}>→</Text>
                 )}
@@ -654,7 +683,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 const IconComponent = getFeatureIcon(feature);
                 return (
                   <View key={index} style={styles.featureItem}>
-                    <IconComponent size={20} color={colors.text} strokeWidth={2} />
+                    <IconComponent size={20} color={colors.text} />
                     <Text style={[styles.featureItemText, { color: colors.text }]}>{feature}</Text>
                   </View>
                 );
@@ -1250,6 +1279,15 @@ const styles = StyleSheet.create({
     marginRight: 12,
     width: 24, // Match icon container width
     textAlign: 'center',
+  },
+  messageButtonCenter: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  messageButtonText: {
+    flex: 0,
   },
   messageIconContainer: {
     marginRight: 12,

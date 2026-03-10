@@ -38,6 +38,7 @@ export interface Property {
   propertyType?: string; // Added propertyType (apartment, house, office, etc.)
   matterportUrl?: string; // Kept for backward compatibility if needed, but prefer tours[]
   instagramUrl?: string; // Instagram URL for renter contact
+  photosUrl?: string; // Ricoh 360 panoramic photos URL
   owner?: {
     uid?: string;
     email?: string;

@@ -28,6 +28,7 @@ function AppContent() {
   const { colors } = useTheme();
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [activeTourUrl, setActiveTourUrl] = useState<string | null>(null);
+  const [activePhotosUrl, setActivePhotosUrl] = useState<string | null>(null);
   const [propertyForTourSelection, setPropertyForTourSelection] = useState<Property | null>(null);
   const [isLoginView, setIsLoginView] = useState(true);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -222,6 +223,16 @@ function AppContent() {
     );
   }
 
+  // Top-most layer: Full screen Ricoh 360 Photos
+  if (activePhotosUrl) {
+    return (
+      <Tour3DScreen
+        url={activePhotosUrl}
+        onClose={() => setActivePhotosUrl(null)}
+      />
+    );
+  }
+
   if (isRenterListingsOpen) {
     return (
       <RenterListingsScreen
@@ -271,6 +282,7 @@ function AppContent() {
             // View mode will be restored by HomeScreen's internal state
           }}
           onOpenTours={() => handleOpenTours(selectedProperty)}
+          onOpenPhotos={(url) => setActivePhotosUrl(url)}
           onMessagePress={() => {
             if (!user) {
               setAuthPromptMessage('Please sign in to message the listing owner');
