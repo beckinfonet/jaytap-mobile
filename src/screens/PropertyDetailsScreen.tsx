@@ -175,12 +175,9 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       setLoading(true);
       try {
         const propertyDetails = await PropertyService.getPropertyById(initialProperty.id);
-        console.log('Property details fetched:', JSON.stringify(propertyDetails, null, 2));
-        console.log('Owner info:', propertyDetails.owner);
         setProperty(propertyDetails);
       } catch (error) {
         console.error('Error fetching property details:', error);
-        // Keep using initial property if fetch fails
       } finally {
         setLoading(false);
       }
