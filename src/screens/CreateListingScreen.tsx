@@ -22,6 +22,11 @@ import { AuthService } from '../services/AuthService';
 import { Property } from '../types/Property';
 import * as ImagePicker from 'react-native-image-picker';
 
+const CURRENCY_OPTIONS = [
+  { value: '$', label: '🇺🇸 USD' },
+  { value: 'сом', label: '🇰🇬 сом' },
+] as const;
+
 const RESIDENTIAL_TYPES = ['Apartment', 'House', 'Townhome', 'Condo'];
 const COMMERCIAL_TYPES = ['Office', 'Retail', 'Warehouse', 'Land', 'Industrial'];
 const BISHKEK_DISTRICTS = [
@@ -59,7 +64,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
   const [city, setCity] = useState('Bishkek');
   const [district, setDistrict] = useState('');
   const [price, setPrice] = useState('');
-  const [currency, setCurrency] = useState('$');
+  const [currency, setCurrency] = useState<string>(''); // User must select USD or сом
   const [type, setType] = useState<'rent' | 'sale'>('rent');
   const [propertyType, setPropertyType] = useState('Apartment');
   const [bedrooms, setBedrooms] = useState('');
@@ -113,7 +118,14 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
       }
 
       setPrice(typeof propertyToEdit.price === 'number' ? propertyToEdit.price.toString() : propertyToEdit.price || '');
-      setCurrency(propertyToEdit.currency || '$');
+      const existingCurrency = (propertyToEdit.currency || '').toLowerCase();
+      if (existingCurrency === '$' || existingCurrency === 'usd') {
+        setCurrency('$');
+      } else if (existingCurrency === 'сом' || existingCurrency === 'som' || existingCurrency === 'kgs') {
+        setCurrency('сом');
+      } else {
+        setCurrency('');
+      }
       setType(propertyToEdit.type || 'rent');
       setPropertyType(propertyToEdit.propertyType || 'Apartment');
       setBedrooms(propertyToEdit.specs?.beds?.toString() || '');
@@ -252,6 +264,10 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
     }
     if (!address.trim()) {
       Alert.alert('Error', 'Address is required');
+      return;
+    }
+    if (!currency) {
+      Alert.alert('Error', 'Please select a currency (USD or сом)');
       return;
     }
     if (!price.trim()) {
@@ -424,31 +440,37 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
         {/* Property Details */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Property Details</Text>
-          <Text style={[styles.label, { color: colors.textSecondary, marginBottom: 8 }]}>Price *</Text>
-          <View style={styles.row}>
-            <View style={styles.halfInput}>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-                placeholder="Amount (e.g., 850)"
-                placeholderTextColor={colors.textSecondary}
-                value={price}
-                onChangeText={setPrice}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.halfInput}>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-                placeholder="Currency (e.g., $, €, ₽)"
-                placeholderTextColor={colors.textSecondary}
-                value={currency}
-                onChangeText={setCurrency}
-                maxLength={5}
-              />
-            </View>
+          <Text style={[styles.label, { color: colors.textSecondary, marginBottom: 8 }]}>Currency *</Text>
+          <View style={styles.currencyRow}>
+            {CURRENCY_OPTIONS.map((opt) => (
+              <TouchableOpacity
+                key={opt.value}
+                style={[
+                  styles.currencyOption,
+                  {
+                    backgroundColor: currency === opt.value ? colors.accent : colors.inputBackground,
+                    borderColor: currency === opt.value ? colors.accent : colors.border,
+                  },
+                ]}
+                onPress={() => setCurrency(opt.value)}
+              >
+                <Text style={[styles.currencyOptionText, { color: currency === opt.value ? '#FFF' : colors.text }]}>
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
+          <Text style={[styles.label, { color: colors.textSecondary, marginBottom: 8, marginTop: 12 }]}>Price *</Text>
+          <TextInput
+            style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
+            placeholder="Amount (e.g., 850)"
+            placeholderTextColor={colors.textSecondary}
+            value={price}
+            onChangeText={setPrice}
+            keyboardType="numeric"
+          />
           <Text style={[styles.hint, { color: colors.textSecondary }]}>
-            Enter the price amount and currency symbol (e.g., 850 and $ for $850)
+            Select currency first, then enter the price amount
           </Text>
 
           <Text style={[styles.label, { color: colors.textSecondary }]}>Property Type</Text>
@@ -825,6 +847,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     marginBottom: 12,
+  },
+  currencyRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 4,
+  },
+  currencyOption: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  currencyOptionText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   halfInput: {
     flex: 1,
