@@ -10,6 +10,7 @@ import { SignupScreen } from './src/screens/SignupScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { CreateListingScreen } from './src/screens/CreateListingScreen';
 import { RenterListingsScreen } from './src/screens/RenterListingsScreen';
+import { OwnerListingsScreen } from './src/screens/OwnerListingsScreen';
 import { FavoritesScreen } from './src/screens/FavoritesScreen';
 import { ChatScreen } from './src/screens/ChatScreen';
 import { ScheduleViewingScreen } from './src/screens/ScheduleViewingScreen';
@@ -50,6 +51,8 @@ function AppContent() {
   const [propertyToSchedule, setPropertyToSchedule] = useState<Property | null>(null);
   const [participantUidForSchedule, setParticipantUidForSchedule] = useState<string | undefined>();
   const [isAppointmentsOpen, setIsAppointmentsOpen] = useState(false);
+  const [ownerListingsUid, setOwnerListingsUid] = useState<string | null>(null);
+  const [ownerListingsName, setOwnerListingsName] = useState<string>('');
 
   // Handle deep linking for shared property links
   useEffect(() => {
@@ -248,6 +251,28 @@ function AppContent() {
     );
   }
 
+  if (ownerListingsUid) {
+    return (
+      <OwnerListingsScreen
+        ownerUid={ownerListingsUid}
+        ownerName={ownerListingsName}
+        onBack={() => {
+          setOwnerListingsUid(null);
+          setOwnerListingsName('');
+        }}
+        onSelectProperty={(property) => {
+          setSelectedProperty(property);
+          setOwnerListingsUid(null);
+          setOwnerListingsName('');
+        }}
+        onOpenTours={handleOpenTours}
+        onFavorite={handleFavorite}
+        isFavorited={(id) => favoriteStatuses[id] || false}
+        favoriteLoading={(id) => favoriteLoading[id] || false}
+      />
+    );
+  }
+
   if (isCreateListingOpen) {
     // Require authentication for creating listings
     if (!user) {
@@ -313,6 +338,11 @@ function AppContent() {
           onFavorite={handleFavorite}
           isFavorited={favoriteStatuses[selectedProperty.id] || false}
           isLoading={favoriteLoading[selectedProperty.id] || false}
+          onLandlordPress={(ownerUid, ownerName) => {
+            setSelectedProperty(null);
+            setOwnerListingsUid(ownerUid);
+            setOwnerListingsName(ownerName);
+          }}
         />
       ) : (
         <View style={{ flex: 1 }}>

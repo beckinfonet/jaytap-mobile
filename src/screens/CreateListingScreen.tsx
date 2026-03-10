@@ -68,6 +68,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
   const [features, setFeatures] = useState<string[]>([]);
   const [featureInput, setFeatureInput] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
+  const [panoramicPhotosUrl, setPanoramicPhotosUrl] = useState('');
   const [instagramUrl, setInstagramUrl] = useState('');
   const [status, setStatus] = useState<'draft' | 'live'>('draft');
 
@@ -120,6 +121,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
       setAreaSqm(propertyToEdit.specs?.sqft?.toString() || '');
       setFeatures(propertyToEdit.features || []);
       setVideoUrl(propertyToEdit.videoUrl || '');
+      setPanoramicPhotosUrl((propertyToEdit as any).panoramicPhotosUrl || '');
       setInstagramUrl((propertyToEdit as any).instagramUrl || '');
       setStatus((propertyToEdit as any).status || 'draft');
 
@@ -287,6 +289,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
         areaSqm: parseFloat(areaSqm) || 0,
         features,
         videoUrl: videoUrl.trim(),
+        panoramicPhotosUrl: panoramicPhotosUrl.trim(),
         instagramUrl: instagramUrl.trim(),
         status,
         tours: tours.length > 0 ? tours : undefined, // Include Matterport tours
@@ -635,6 +638,14 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
             placeholderTextColor={colors.textSecondary}
             value={videoUrl}
             onChangeText={setVideoUrl}
+            keyboardType="url"
+          />
+          <TextInput
+            style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
+            placeholder="Panoramic Photos URL (optional, e.g. Ricoh 360)"
+            placeholderTextColor={colors.textSecondary}
+            value={panoramicPhotosUrl}
+            onChangeText={setPanoramicPhotosUrl}
             keyboardType="url"
           />
           <TextInput

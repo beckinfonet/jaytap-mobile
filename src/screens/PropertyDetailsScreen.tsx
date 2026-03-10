@@ -66,6 +66,7 @@ interface PropertyDetailsScreenProps {
   onFavorite?: (property: Property) => void; // Optional favorite handler
   isFavorited?: boolean; // Whether this property is favorited
   isLoading?: boolean; // Whether favorite is being toggled
+  onLandlordPress?: (ownerUid: string, ownerName: string) => void; // Navigate to owner's listings
 }
 
 const { width, height } = Dimensions.get('window');
@@ -155,6 +156,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   onFavorite,
   isFavorited = false,
   isLoading = false,
+  onLandlordPress,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -557,19 +559,19 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               <TouchableOpacity
                 style={[
                   styles.mediaButton,
-                  property.photosUrl
+                  property.panoramicPhotosUrl
                     ? [styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]
                     : [styles.inactiveButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]
                 ]}
-                onPress={property.photosUrl && onOpenPhotos ? () => onOpenPhotos(property.photosUrl!) : undefined}
-                disabled={!onOpenPhotos || !property.photosUrl}
+                onPress={property.panoramicPhotosUrl && onOpenPhotos ? () => onOpenPhotos(property.panoramicPhotosUrl!) : undefined}
+                disabled={!onOpenPhotos || !property.panoramicPhotosUrl}
               >
                 <Text style={styles.videoIcon}>📷</Text>
                 <Text style={[
                   styles.secondaryButtonText,
-                  { color: property.photosUrl ? colors.text : colors.textSecondary }
+                  { color: property.panoramicPhotosUrl ? colors.text : colors.textSecondary }
                 ]}>Photos</Text>
-                {property.photosUrl && onOpenPhotos && (
+                {property.panoramicPhotosUrl && onOpenPhotos && (
                   <Text style={[styles.secondaryButtonArrow, { color: colors.text }]}>→</Text>
                 )}
               </TouchableOpacity>
@@ -769,12 +771,24 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           {(() => {
             const owner = (property as any).owner;
             const ownerName = owner ? `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || 'Owner' : null;
-            return ownerName ? (
+            const ownerUid = owner?.uid;
+            const canViewListings = ownerName && ownerUid && onLandlordPress;
+            if (!ownerName) return null;
+            return canViewListings ? (
+              <TouchableOpacity
+                onPress={() => onLandlordPress(ownerUid, ownerName)}
+                activeOpacity={0.7}
+                style={styles.ownerContainer}
+              >
+                <Text style={[styles.ownerLabel, { color: colors.textSecondary }]}>Landlord</Text>
+                <Text style={[styles.ownerName, { color: colors.text, textDecorationLine: 'underline' }]}>{ownerName}</Text>
+              </TouchableOpacity>
+            ) : (
               <View style={styles.ownerContainer}>
                 <Text style={[styles.ownerLabel, { color: colors.textSecondary }]}>Landlord</Text>
                 <Text style={[styles.ownerName, { color: colors.text }]}>{ownerName}</Text>
               </View>
-            ) : null;
+            );
           })()}
         </View>
 

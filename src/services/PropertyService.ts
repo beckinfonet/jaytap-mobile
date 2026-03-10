@@ -75,6 +75,7 @@ export const PropertyService = {
       formData.append('areaSqm', propertyData.areaSqm?.toString() || '0');
       formData.append('features', JSON.stringify(propertyData.features || []));
       formData.append('videoUrl', propertyData.videoUrl || '');
+      formData.append('panoramicPhotosUrl', propertyData.panoramicPhotosUrl || '');
       formData.append('instagramUrl', propertyData.instagramUrl || '');
       formData.append('status', propertyData.status || 'draft');
       
@@ -134,6 +135,7 @@ export const PropertyService = {
       formData.append('areaSqm', propertyData.areaSqm?.toString() || '0');
       formData.append('features', JSON.stringify(propertyData.features || []));
       formData.append('videoUrl', propertyData.videoUrl || '');
+      formData.append('panoramicPhotosUrl', propertyData.panoramicPhotosUrl || '');
       formData.append('instagramUrl', propertyData.instagramUrl || '');
       formData.append('status', propertyData.status || 'draft');
       
