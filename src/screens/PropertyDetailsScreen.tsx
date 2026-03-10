@@ -145,8 +145,6 @@ const getFeatureIcon = (feature: string) => {
   return FEATURE_ICONS[key] ?? Check;
 };
 
-const RICOH_PHOTOS_FALLBACK = 'https://view.ricoh360.com/17e27731-db17-4973-b9b7-72130ba12a66';
-
 export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   property: initialProperty,
   onBack,
@@ -559,19 +557,19 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               <TouchableOpacity
                 style={[
                   styles.mediaButton,
-                  (property.photosUrl || RICOH_PHOTOS_FALLBACK)
+                  property.photosUrl
                     ? [styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]
                     : [styles.inactiveButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]
                 ]}
-                onPress={onOpenPhotos ? () => onOpenPhotos(property.photosUrl || RICOH_PHOTOS_FALLBACK) : undefined}
-                disabled={!onOpenPhotos}
+                onPress={property.photosUrl && onOpenPhotos ? () => onOpenPhotos(property.photosUrl!) : undefined}
+                disabled={!onOpenPhotos || !property.photosUrl}
               >
                 <Text style={styles.videoIcon}>📷</Text>
                 <Text style={[
                   styles.secondaryButtonText,
-                  { color: (property.photosUrl || RICOH_PHOTOS_FALLBACK) ? colors.text : colors.textSecondary }
+                  { color: property.photosUrl ? colors.text : colors.textSecondary }
                 ]}>Photos</Text>
-                {(property.photosUrl || RICOH_PHOTOS_FALLBACK) && onOpenPhotos && (
+                {property.photosUrl && onOpenPhotos && (
                   <Text style={[styles.secondaryButtonArrow, { color: colors.text }]}>→</Text>
                 )}
               </TouchableOpacity>
