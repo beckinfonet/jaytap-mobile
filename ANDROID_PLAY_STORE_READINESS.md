@@ -42,7 +42,7 @@ Without this, release builds would use the debug keystore, which Play Store does
 - Play prefers AAB over APK. Build with:
 
   ```bash
-  cd android && ./gradlew bundleRelease
+  ./build-android-release.sh
   ```
 
 - Output: `android/app/build/outputs/bundle/release/app-release.aab`. Upload this in Play Console.
