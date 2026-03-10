@@ -224,14 +224,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       if (result.action === Share.sharedAction) {
         if (result.activityType) {
           // Shared with activity type
-          console.log('Shared with', result.activityType);
-        } else {
-          // Shared
-          console.log('Shared successfully');
-        }
-      } else if (result.action === Share.dismissedAction) {
-        // Dismissed
-        console.log('Share dismissed');
+        } 
       }
     } catch (error: any) {
       console.error('Error sharing:', error.message);

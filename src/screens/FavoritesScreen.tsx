@@ -45,16 +45,12 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
 
   const loadFavorites = async () => {
     if (!user?.localId) {
-      console.log('No user localId, skipping favorites load');
       setLoading(false);
       return;
     }
 
     try {
-      console.log('Loading favorites for user:', user.localId);
       const data = await FavoritesService.getFavorites();
-      console.log('Favorites loaded:', data?.length || 0, 'items');
-      console.log('Favorites data:', data);
       
       if (data && Array.isArray(data) && data.length > 0) {
         setProperties(data);
@@ -64,7 +60,6 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
     } catch (error: any) {
       console.error('Error loading favorites:', error);
       console.error('Error details:', error?.response?.data || error?.message);
-      // Don't show alert, just log and set empty
       setProperties([]);
     } finally {
       setLoading(false);
@@ -98,7 +93,6 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
 
   const handleFavorite = async (property: Property) => {
     await onFavorite(property);
-    // Reload favorites after toggling
     await loadFavorites();
   };
 

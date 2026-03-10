@@ -58,8 +58,6 @@ function AppContent() {
   useEffect(() => {
     const handleDeepLink = async (url: string) => {
       try {
-        console.log('Deep link received:', url);
-
         // Parse URL: https://www.moveinplatform.com/property/{id} (also supports legacy bizdinkonush.com links)
         const propertyMatch = url.match(/\/property\/([^\/\?]+)/);
         if (propertyMatch && propertyMatch[1]) {
@@ -245,7 +243,6 @@ function AppContent() {
       } catch (error: any) {
         // Silently handle errors - user might not have favorites yet or backend might be unavailable
         // Don't crash the app or show errors for this
-        console.log('Could not load favorite statuses (this is okay):', error?.response?.status || error?.message);
         setFavoriteStatuses({});
       }
     };
