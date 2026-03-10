@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, Linking, Alert } from 'react-native';
+import { View, ActivityIndicator, Linking, Alert, BackHandler, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { PropertyDetailsScreen } from './src/screens/PropertyDetailsScreen';
@@ -125,6 +125,99 @@ function AppContent() {
     const interval = setInterval(loadChatUnread, 60000);
     return () => clearInterval(interval);
   }, [user?.localId]);
+
+  // Android hardware back button support
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const onBackPress = () => {
+      if (showLoginModal) {
+        setShowLoginModal(false);
+        return true;
+      }
+      if (showSignupModal) {
+        setShowSignupModal(false);
+        return true;
+      }
+      if (showAuthPrompt) {
+        setShowAuthPrompt(false);
+        return true;
+      }
+      if (propertyForTourSelection) {
+        setPropertyForTourSelection(null);
+        return true;
+      }
+      if (activeTourUrl) {
+        setActiveTourUrl(null);
+        return true;
+      }
+      if (activePhotosUrl) {
+        setActivePhotosUrl(null);
+        return true;
+      }
+      if (isRenterListingsOpen) {
+        setIsRenterListingsOpen(false);
+        return true;
+      }
+      if (ownerListingsUid) {
+        setOwnerListingsUid(null);
+        setOwnerListingsName('');
+        return true;
+      }
+      if (isCreateListingOpen) {
+        setIsCreateListingOpen(false);
+        setPropertyToEdit(null);
+        return true;
+      }
+      if (selectedProperty) {
+        setSelectedProperty(null);
+        return true;
+      }
+      if (isScheduleViewingOpen) {
+        setIsScheduleViewingOpen(false);
+        setPropertyToSchedule(null);
+        setParticipantUidForSchedule(undefined);
+        return true;
+      }
+      if (isFavoritesOpen) {
+        setIsFavoritesOpen(false);
+        return true;
+      }
+      if (isAppointmentsOpen) {
+        setIsAppointmentsOpen(false);
+        return true;
+      }
+      if (isProfileOpen) {
+        setIsProfileOpen(false);
+        return true;
+      }
+      if (isChatOpen) {
+        setIsChatOpen(false);
+        setPropertyToOpenChat(null);
+        return true;
+      }
+      return false; // Let default behavior (exit app) when on home
+    };
+
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, [
+    showLoginModal,
+    showSignupModal,
+    showAuthPrompt,
+    propertyForTourSelection,
+    activeTourUrl,
+    activePhotosUrl,
+    isRenterListingsOpen,
+    ownerListingsUid,
+    isCreateListingOpen,
+    selectedProperty,
+    isScheduleViewingOpen,
+    isFavoritesOpen,
+    isAppointmentsOpen,
+    isProfileOpen,
+    isChatOpen,
+  ]);
 
   // Load favorite statuses when user logs in
   useEffect(() => {

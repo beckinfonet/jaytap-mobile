@@ -9,6 +9,8 @@ import {
   Alert,
   Image,
   RefreshControl,
+  BackHandler,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
@@ -96,6 +98,29 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const handleBackFromCompose = () => {
     onClearPropertyToOpen?.();
   };
+
+  // Android hardware back button support for nested screens
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const onBackPress = () => {
+      if (propertyToOpen?.id && user?.localId) {
+        onClearPropertyToOpen?.();
+        return true;
+      }
+      if (selectedConversation) {
+        setSelectedConversation(null);
+        setInitialConversationFromProperty(null);
+        loadConversations();
+        return true;
+      }
+      onBack();
+      return true;
+    };
+
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, [propertyToOpen, selectedConversation, user?.localId, onBack, onClearPropertyToOpen, loadConversations]);
 
   const handleConversationCreated = (conv: Conversation) => {
     setSelectedConversation(conv);

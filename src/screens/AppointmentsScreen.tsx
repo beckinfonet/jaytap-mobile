@@ -11,6 +11,8 @@ import {
   RefreshControl,
   Modal,
   ScrollView,
+  BackHandler,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, Check, X, Clock } from 'lucide-react-native';
@@ -83,6 +85,29 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
       setScheduleParticipantUid(participantUid);
     }
   }, [propertyToOpen, participantUid]);
+
+  // Android hardware back button support for nested screens
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const onBackPress = () => {
+      if (scheduleProperty) {
+        setScheduleProperty(null);
+        setScheduleParticipantUid(undefined);
+        return true;
+      }
+      if (showSuggestModal) {
+        setShowSuggestModal(false);
+        setSuggestAppointment(null);
+        return true;
+      }
+      onBack();
+      return true;
+    };
+
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, [scheduleProperty, showSuggestModal, onBack]);
 
   const handleConfirm = async (a: Appointment) => {
     setRespondingId(a.id);
