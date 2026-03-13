@@ -179,10 +179,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 const oneMonthMs = 30 * 24 * 60 * 60 * 1000;
                 const isSoon = date.getTime() - now.getTime() > oneMonthMs;
                 const formattedDate = date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-                const label = isSoon ? `soon, ${formattedDate}` : 'now';
+                const label = isSoon ? formattedDate : 'now';
                 return (
                   <View style={[styles.availabilityChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                    <Text style={[styles.availabilityText, { color: colors.text }]}>
+                    <Text style={[styles.availabilityText, { color: colors.text }]} numberOfLines={1}>
                       Available: {label}
                     </Text>
                   </View>
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   availabilityText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
   },
   listingIdChip: {
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   listingIdText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     color: '#FFFFFF',
     letterSpacing: 0.5,

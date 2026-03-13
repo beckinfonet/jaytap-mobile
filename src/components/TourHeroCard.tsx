@@ -1,0 +1,183 @@
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Eye, ChevronRight } from 'lucide-react-native';
+import Svg, { Defs, LinearGradient as SvgLinearGradient, Rect, Stop } from 'react-native-svg';
+
+interface TourHeroCardProps {
+  isActive: boolean;
+  tourCount: number;
+  isDark: boolean;
+  inputBackground: string;
+  textSecondary: string;
+  borderColor: string;
+  onPress: () => void;
+}
+
+export function TourHeroCard({
+  isActive,
+  tourCount,
+  isDark,
+  inputBackground,
+  textSecondary,
+  borderColor,
+  onPress,
+}: TourHeroCardProps) {
+  const titleColor = isActive ? '#FFF' : textSecondary;
+  const subtitleColor = isActive ? 'rgba(255,255,255,0.9)' : textSecondary;
+
+  return (
+    <TouchableOpacity
+      style={[styles.card, { backgroundColor: isActive ? 'transparent' : inputBackground }]}
+      onPress={isActive ? onPress : undefined}
+      disabled={!isActive}
+      activeOpacity={0.9}
+    >
+      {isActive && (
+        <View style={styles.gradientLayer} pointerEvents="none">
+          <Svg
+            style={styles.gradientSvg}
+            width="100%"
+            height="100%"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+          >
+            <Defs>
+              <SvgLinearGradient id="tourCardGrad" x1="0" y1="0" x2="1" y2="0">
+                <Stop offset="0" stopColor={isDark ? '#4C1D95' : '#5B21B6'} />
+                <Stop offset="1" stopColor={isDark ? '#7C3AED' : '#8B5CF6'} />
+              </SvgLinearGradient>
+            </Defs>
+            <Rect x="0" y="0" width="100" height="100" fill="url(#tourCardGrad)" />
+          </Svg>
+        </View>
+      )}
+      <View style={styles.topRow}>
+        {isActive && (
+          <View style={[styles.premiumTag, { backgroundColor: isDark ? 'rgba(34,197,94,0.3)' : 'rgba(34,197,94,0.25)' }]}>
+            <View style={styles.premiumDot} />
+            <Text style={styles.premiumText}>PREMIUM</Text>
+          </View>
+        )}
+        {isActive && (
+          <Text style={styles.meta} numberOfLines={1} ellipsizeMode="tail">
+            {tourCount} {tourCount === 1 ? 'tour' : 'tours'}
+          </Text>
+        )}
+      </View>
+      <View style={styles.content}>
+        <View style={[styles.iconCircle, { backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : borderColor }]}>
+          <Eye size={20} color={isActive ? '#FFF' : textSecondary} />
+        </View>
+        <View style={styles.textBlock}>
+          <Text style={[styles.title, { color: titleColor }]} numberOfLines={1} ellipsizeMode="tail">
+            3D Virtual Tour
+          </Text>
+          <Text style={[styles.subtitle, { color: subtitleColor }]} numberOfLines={1} ellipsizeMode="tail">
+            Explore every corner
+          </Text>
+        </View>
+        {isActive && (
+          <View style={styles.chevron}>
+            <ChevronRight size={24} color="#FFF" />
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: 20,
+    padding: 16,
+    paddingBottom: 14,
+    minHeight: 110,
+    overflow: 'hidden',
+    alignSelf: 'stretch',
+    width: '100%',
+    maxWidth: '100%',
+    position: 'relative',
+  },
+  gradientLayer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  gradientSvg: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    minWidth: 0,
+  },
+  premiumTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 6,
+    flexShrink: 0,
+  },
+  premiumDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#22C55E',
+  },
+  premiumText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFF',
+    letterSpacing: 0.5,
+  },
+  meta: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.9)',
+    flexShrink: 0,
+  },
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+    minWidth: 0,
+  },
+  iconCircle: {
+    width: 44,
+    height: 44,
+    flexShrink: 0,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  textBlock: {
+    flex: 1,
+    minWidth: 0,
+    flexShrink: 1,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  subtitle: {
+    fontSize: 14,
+    opacity: 0.9,
+  },
+  chevron: {
+    flexShrink: 0,
+  },
+});

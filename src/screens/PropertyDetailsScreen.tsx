@@ -48,8 +48,14 @@ import {
   Laptop,
   Waves,
   Check,
+  ImageIcon,
+  Video,
+  ChevronRight,
+  MapPin,
+  Instagram,
 } from 'lucide-react-native';
 import { Property } from '../types/Property';
+import { TourHeroCard } from '../components/TourHeroCard';
 import { getPropertyShareUrl } from '../constants';
 import { useTheme } from '../theme/ThemeContext';
 import { PropertyService } from '../services/PropertyService';
@@ -486,172 +492,123 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
         <View style={styles.contentContainer}>
 
-          {/* Media Buttons - Two Rows */}
+          {/* Media Buttons - Redesigned: Hero 3D Tour + 2x2 Grid */}
           <View style={styles.mediaButtonsContainer}>
-            {/* Row 1: 3D Tour, Instagram */}
-            <View style={styles.mediaButtonsRow}>
-              {/* Start 3D Tour Button */}
-              <TouchableOpacity
-                style={[
-                  styles.mediaButton,
-                  (property.is3DTourAvailable && property.tours.length > 0)
-                    ? styles.tour3DButton
-                    : [styles.inactiveButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]
-                ]}
-                onPress={(property.is3DTourAvailable && property.tours.length > 0) ? onOpenTours : undefined}
-                disabled={!(property.is3DTourAvailable && property.tours.length > 0)}
-              >
-                <Text style={styles.tour3DIcon}>🥽</Text>
-                <Text style={[
-                  styles.tour3DButtonText,
-                  { color: (property.is3DTourAvailable && property.tours.length > 0) ? '#FFF' : colors.textSecondary }
-                ]}>3D Tour</Text>
-                {(property.is3DTourAvailable && property.tours.length > 0) && (
-                  <Text style={styles.tour3DArrow}>→</Text>
-                )}
-              </TouchableOpacity>
+            {/* Hero 3D Tour Card - platform-specific component */}
+            <TourHeroCard
+              isActive={!!(property.is3DTourAvailable && property.tours.length > 0)}
+              tourCount={property.tours.length}
+              isDark={isDark}
+              inputBackground={colors.inputBackground}
+              textSecondary={colors.textSecondary}
+              borderColor={colors.border}
+              onPress={onOpenTours}
+            />
 
-              {/* Instagram Button */}
+            {/* 2x2 Grid: Instagram, Photos, Videos, Message */}
+            <View style={styles.mediaGrid}>
               <TouchableOpacity
                 style={[
-                  styles.mediaButton,
-                  property.instagramUrl
-                    ? [styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]
-                    : [styles.inactiveButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]
+                  styles.mediaGridCard,
+                  { backgroundColor: colors.surface, borderColor: colors.border },
+                  !property.instagramUrl && { opacity: 0.6 }
                 ]}
                 onPress={property.instagramUrl ? () => handleOpenLink(property.instagramUrl, 'Instagram') : undefined}
                 disabled={!property.instagramUrl}
               >
-                {property.instagramUrl ? (
-                  <View style={styles.instagramIconContainer}>
-                    <View style={styles.instagramLogo}>
-                      <View style={styles.instagramSquare} />
-                      <View style={styles.instagramCircle} />
-                      <View style={styles.instagramDot} />
-                    </View>
-                  </View>
-                ) : (
-                  <Text style={styles.videoIcon}>📷</Text>
-                )}
-                <Text style={[
-                  styles.secondaryButtonText,
-                  { color: property.instagramUrl ? colors.text : colors.textSecondary }
-                ]}>Instagram</Text>
-                {property.instagramUrl && (
-                  <Text style={[styles.secondaryButtonArrow, { color: colors.text }]}>→</Text>
-                )}
+                <Instagram
+                  size={24}
+                  color={property.instagramUrl ? colors.text : colors.textSecondary}
+                  strokeWidth={1.5}
+                />
+                <Text style={[styles.mediaGridLabel, { color: property.instagramUrl ? colors.text : colors.textSecondary }]}>Instagram</Text>
+                <ChevronRight size={20} color={property.instagramUrl ? colors.textSecondary : colors.textTertiary} />
               </TouchableOpacity>
-            </View>
 
-            {/* Row 2: Photos, Videos */}
-            <View style={styles.mediaButtonsRow}>
-              {/* Photos Button (Ricoh 360 panoramic) */}
               <TouchableOpacity
                 style={[
-                  styles.mediaButton,
-                  property.panoramicPhotosUrl
-                    ? [styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]
-                    : [styles.inactiveButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]
+                  styles.mediaGridCard,
+                  { backgroundColor: colors.surface, borderColor: colors.border },
+                  (!property.panoramicPhotosUrl || !onOpenPhotos) && { opacity: 0.6 }
                 ]}
                 onPress={property.panoramicPhotosUrl && onOpenPhotos ? () => onOpenPhotos(property.panoramicPhotosUrl!) : undefined}
                 disabled={!onOpenPhotos || !property.panoramicPhotosUrl}
               >
-                <Text style={styles.videoIcon}>📷</Text>
-                <Text style={[
-                  styles.secondaryButtonText,
-                  { color: property.panoramicPhotosUrl ? colors.text : colors.textSecondary }
-                ]}>Photos</Text>
-                {property.panoramicPhotosUrl && onOpenPhotos && (
-                  <Text style={[styles.secondaryButtonArrow, { color: colors.text }]}>→</Text>
-                )}
+                <ImageIcon size={24} color={(property.panoramicPhotosUrl && onOpenPhotos) ? colors.text : colors.textSecondary} />
+                <Text style={[styles.mediaGridLabel, { color: (property.panoramicPhotosUrl && onOpenPhotos) ? colors.text : colors.textSecondary }]}>Photos</Text>
+                <ChevronRight size={20} color={(property.panoramicPhotosUrl && onOpenPhotos) ? colors.textSecondary : colors.textTertiary} />
               </TouchableOpacity>
 
-              {/* Video Button */}
               <TouchableOpacity
                 style={[
-                  styles.mediaButton,
-                  property.videoUrl
-                    ? [styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]
-                    : [styles.inactiveButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]
+                  styles.mediaGridCard,
+                  { backgroundColor: colors.surface, borderColor: colors.border },
+                  !property.videoUrl && { opacity: 0.6 }
                 ]}
                 onPress={property.videoUrl ? () => handleOpenLink(property.videoUrl, 'Video') : undefined}
                 disabled={!property.videoUrl}
               >
-                <Text style={styles.videoIcon}>▶</Text>
-                <Text style={[
-                  styles.secondaryButtonText,
-                  { color: property.videoUrl ? colors.text : colors.textSecondary }
-                ]}>Videos</Text>
-                {property.videoUrl && (
-                  <Text style={[styles.secondaryButtonArrow, { color: colors.text }]}>→</Text>
-                )}
+                <Video size={24} color={property.videoUrl ? colors.text : colors.textSecondary} />
+                <Text style={[styles.mediaGridLabel, { color: property.videoUrl ? colors.text : colors.textSecondary }]}>Videos</Text>
+                <ChevronRight size={20} color={property.videoUrl ? colors.textSecondary : colors.textTertiary} />
               </TouchableOpacity>
-            </View>
 
-            {/* Row 3: Message */}
-            <View style={styles.mediaButtonsRow}>
               <TouchableOpacity
                 style={[
-                  styles.mediaButton,
-                  property.owner
-                    ? [styles.secondaryButton, { backgroundColor: colors.surface, borderColor: colors.border }]
-                    : [styles.inactiveButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]
+                  styles.mediaGridCard,
+                  { backgroundColor: colors.surface, borderColor: colors.border },
+                  !property.owner && { opacity: 0.6 }
                 ]}
                 onPress={onMessagePress}
                 disabled={!property.owner}
               >
-                <View style={styles.messageButtonCenter}>
-                  <View style={styles.messageIconContainer}>
-                    <MessageCircle
-                      size={20}
-                      color={property.owner ? colors.text : colors.textSecondary}
-                    />
-                  </View>
-                  <Text style={[
-                    styles.secondaryButtonText,
-                    styles.messageButtonText,
-                    { color: property.owner ? colors.text : colors.textSecondary }
-                  ]}>Message</Text>
-                </View>
-                {property.owner && (
-                  <Text style={[styles.secondaryButtonArrow, { color: colors.text }]}>→</Text>
-                )}
+                <MessageCircle size={24} color={property.owner ? colors.text : colors.textSecondary} />
+                <Text style={[styles.mediaGridLabel, { color: property.owner ? colors.text : colors.textSecondary }]}>Message</Text>
+                <ChevronRight size={20} color={property.owner ? colors.textSecondary : colors.textTertiary} />
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Title and Address */}
+          {/* Title, ID, Availability, Address - in a card */}
           <View style={styles.section}>
-            <Text style={[styles.title, { color: colors.text }]}>{property.title}</Text>
-            <View style={styles.chipContainer}>
-              {property.listingId && (
-                <View style={[styles.listingIdChip, { backgroundColor: isDark ? '#E91E63' : '#6B7280' }]}>
-                  <Text style={styles.listingIdLabel}>ID:</Text>
-                  <Text style={styles.listingIdText}>
-                    {property.listingId}
-                  </Text>
-                </View>
-              )}
-              {(() => {
-                const raw = (property as any).availableDate;
-                if (!raw) return null;
-                const date = typeof raw === 'string' ? new Date(raw) : raw instanceof Date ? raw : null;
-                if (!date || isNaN(date.getTime())) return null;
-                const now = new Date();
-                const oneMonthMs = 30 * 24 * 60 * 60 * 1000;
-                const isSoon = date.getTime() - now.getTime() > oneMonthMs;
-                const formattedDate = date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-                const label = isSoon ? `soon, exact date: ${formattedDate}` : 'now';
-                return (
-                  <View style={[styles.availabilityChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                    <Text style={[styles.availabilityText, { color: colors.text }]}>
-                      Available: {label}
+            <View style={[styles.listingInfoCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Text style={[styles.title, { color: colors.text }]}>{property.title}</Text>
+              <View style={styles.chipContainer}>
+                {property.listingId && (
+                  <View style={[styles.listingIdChip, { backgroundColor: isDark ? '#E91E63' : '#E5E7EB' }]}>
+                    <Text style={[styles.listingIdLabel, { color: isDark ? '#FFF' : colors.text }]}>ID:</Text>
+                    <Text style={[styles.listingIdText, { color: isDark ? '#FFF' : colors.text }]}>
+                      {property.listingId}
                     </Text>
                   </View>
-                );
-              })()}
+                )}
+                {(() => {
+                  const raw = (property as any).availableDate;
+                  if (!raw) return null;
+                  const date = typeof raw === 'string' ? new Date(raw) : raw instanceof Date ? raw : null;
+                  if (!date || isNaN(date.getTime())) return null;
+                  const now = new Date();
+                  const oneMonthMs = 30 * 24 * 60 * 60 * 1000;
+                  const isSoon = date.getTime() - now.getTime() > oneMonthMs;
+                  const formattedDate = date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+                  const label = isSoon ? formattedDate : 'now';
+                  return (
+                    <View style={[styles.availabilityChip, { backgroundColor: isDark ? 'rgba(34,197,94,0.25)' : 'rgba(34,197,94,0.2)', borderWidth: 0, borderColor: 'transparent', gap: 6 }]}>
+                      <View style={styles.availabilityDot} />
+                      <Text style={[styles.availabilityText, { color: colors.text }]}>
+                        Available: {label}
+                      </Text>
+                    </View>
+                  );
+                })()}
+              </View>
+              <View style={styles.addressRow}>
+                <View style={{ marginRight: 6 }}>
+                  <MapPin size={16} color={colors.textSecondary} />
+                </View>
+                <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>{property.address}</Text>
+              </View>
             </View>
-            <Text style={[styles.address, { color: colors.textSecondary }]}>{property.address}</Text>
           </View>
 
           {/* Specs */}
@@ -1090,9 +1047,33 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 20,
+    width: width,
+    maxWidth: width,
   },
   section: {
     marginBottom: 24,
+  },
+  listingInfoCard: {
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  addressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  availabilityDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#22C55E',
+    marginRight: 8,
   },
   title: {
     fontSize: 24,
@@ -1110,13 +1091,13 @@ const styles = StyleSheet.create({
   availabilityChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 20,
-    borderWidth: 1,
+    gap: 6,
   },
   availabilityText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
   },
   listingIdChip: {
@@ -1136,7 +1117,7 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   listingIdText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     color: '#FFFFFF',
     letterSpacing: 0.5,
@@ -1200,6 +1181,27 @@ const styles = StyleSheet.create({
   mediaButtonsContainer: {
     marginBottom: 24,
     gap: 12,
+    width: '100%',
+  },
+  mediaGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  mediaGridCard: {
+    width: '47%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 10,
+  },
+  mediaGridLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    flexShrink: 1,
   },
   mediaButtonsRow: {
     flexDirection: 'row',
