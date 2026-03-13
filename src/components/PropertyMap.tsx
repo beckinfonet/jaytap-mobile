@@ -4,6 +4,7 @@ import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { Property } from '../types/Property';
 import { formatPrice } from '../utils/formatPrice';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 interface PropertyMapProps {
   properties: Property[];
@@ -19,6 +20,7 @@ const BISHKEK_COORDINATES = {
 
 export const PropertyMap: React.FC<PropertyMapProps> = ({ properties, onSelectProperty, onCloseMap }) => {
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <View style={styles.container}>
@@ -58,7 +60,7 @@ export const PropertyMap: React.FC<PropertyMapProps> = ({ properties, onSelectPr
             >
               <View style={[styles.markerContainer, { backgroundColor: colors.background, borderColor: colors.border }]}>
                 <Text style={[styles.markerText, { color: colors.text }]}>
-                  {formatPrice(property)}
+                  {formatPrice(property, t('property.perMonth'))}
                 </Text>
               </View>
             </Marker>
@@ -71,7 +73,7 @@ export const PropertyMap: React.FC<PropertyMapProps> = ({ properties, onSelectPr
         style={[styles.listButton, { backgroundColor: colors.text, shadowColor: colors.cardShadow }]}
         onPress={onCloseMap}
       >
-        <Text style={[styles.listButtonText, { color: colors.background }]}>≡ List</Text>
+        <Text style={[styles.listButtonText, { color: colors.background }]}>≡ {t('property.list')}</Text>
       </TouchableOpacity>
     </View>
   );

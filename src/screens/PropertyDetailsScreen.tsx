@@ -59,6 +59,7 @@ import { TourHeroCard } from '../components/TourHeroCard';
 import { getPropertyShareUrl } from '../constants';
 import { formatPrice } from '../utils/formatPrice';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { PropertyService } from '../services/PropertyService';
 import { useAuth } from '../context/AuthContext';
 
@@ -167,6 +168,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [property, setProperty] = useState<Property>(initialProperty);
   const [loading, setLoading] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
@@ -204,7 +206,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
     const shareUrl = getPropertyShareUrl(propertyId);
 
     // Create share message
-    const priceText = formatPrice(property);
+    const priceText = formatPrice(property, t('property.perMonth'));
     const shareMessage = `${property.title}\n${property.address}\n${priceText}\n\n${shareUrl}`;
 
     try {
@@ -230,17 +232,17 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       if (supported) {
         await Linking.openURL(url);
       } else {
-        Alert.alert('Error', `Cannot open ${label}`);
+        Alert.alert(t('common.error'), t('error.cannotOpen', { label }));
       }
     } else {
-      Alert.alert('Info', `No ${label} available.`);
+      Alert.alert(t('common.info'), t('error.noLabelAvailable', { label }));
     }
   };
 
   const handleWhatsApp = () => {
     const owner = (property as any).owner;
     if (!owner?.whatsapp) {
-      Alert.alert('No WhatsApp', 'This owner has not provided a WhatsApp number.');
+      Alert.alert(t('common.error'), t('error.noWhatsApp'));
       return;
     }
 
@@ -268,7 +270,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const handleTelegram = () => {
     const owner = (property as any).owner;
     if (!owner?.telegram) {
-      Alert.alert('No Telegram', 'This owner has not provided a Telegram username.');
+      Alert.alert(t('common.error'), t('error.noTelegram'));
       return;
     }
 
@@ -278,7 +280,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
     username = username.replace('@', '');
 
     if (!username) {
-      Alert.alert('Invalid Telegram', 'The provided Telegram username is invalid.');
+      Alert.alert(t('common.error'), t('error.invalidTelegram'));
       return;
     }
 
@@ -296,7 +298,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const handleEmail = () => {
     const owner = (property as any).owner;
     if (!owner?.email) {
-      Alert.alert('No Email', 'This owner has not provided an email address.');
+      Alert.alert(t('common.error'), t('error.noEmail'));
       return;
     }
 
@@ -306,21 +308,21 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
     Linking.openURL(emailUrl).catch(err => {
       console.error("Failed to open email", err);
-      Alert.alert('Error', 'Could not open email client.');
+      Alert.alert(t('common.error'), t('error.cannotOpenEmail'));
     });
   };
 
   const handlePhone = () => {
     const owner = (property as any).owner;
     if (!owner?.phone) {
-      Alert.alert('No Phone', 'This owner has not provided a phone number.');
+      Alert.alert(t('common.error'), t('error.noPhone'));
       return;
     }
     const cleanPhone = owner.phone.replace(/\D/g, '');
     const telUrl = `tel:${cleanPhone}`;
     Linking.openURL(telUrl).catch(err => {
       console.error("Failed to open phone", err);
-      Alert.alert('Error', 'Could not open phone dialer.');
+      Alert.alert(t('common.error'), t('error.cannotOpenPhone'));
     });
   };
 
@@ -393,7 +395,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           <TouchableOpacity onPress={onBack} style={[styles.iconButton, { backgroundColor: colors.surface }]}>
             <Text style={[styles.iconText, { color: colors.text }]}>←</Text>
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Details</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('property.details')}</Text>
           <View style={[styles.iconButton, { backgroundColor: colors.surface }]} />
         </View>
         <View style={styles.loadingContainer}>
@@ -415,7 +417,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         <TouchableOpacity onPress={onBack} style={[styles.iconButton, { backgroundColor: colors.surface }]}>
           <Text style={[styles.iconText, { color: colors.text }]}>←</Text>
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Details</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('property.details')}</Text>
         <View style={styles.headerRightActions}>
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
@@ -463,7 +465,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           <View style={styles.imageOverlay}>
             <View style={[styles.statusBadge, { backgroundColor: colors.surface }]}>
               <Text style={[styles.statusText, { color: colors.text }]}>
-                {property.type === 'rent' ? 'FOR RENT' : 'FOR SALE'}
+                {property.type === 'rent' ? t('property.forRent') : t('property.forSale')}
               </Text>
             </View>
 
@@ -500,7 +502,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                   { backgroundColor: colors.surface, borderColor: colors.border },
                   !property.instagramUrl && { opacity: 0.6 }
                 ]}
-                onPress={property.instagramUrl ? () => handleOpenLink(property.instagramUrl, 'Instagram') : undefined}
+                onPress={property.instagramUrl ? () => handleOpenLink(property.instagramUrl, t('property.instagram')) : undefined}
                 disabled={!property.instagramUrl}
               >
                 <Instagram
@@ -508,7 +510,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                   color={property.instagramUrl ? colors.text : colors.textSecondary}
                   strokeWidth={1.5}
                 />
-                <Text style={[styles.mediaGridLabel, { color: property.instagramUrl ? colors.text : colors.textSecondary }]}>Instagram</Text>
+                <Text style={[styles.mediaGridLabel, { color: property.instagramUrl ? colors.text : colors.textSecondary }]}>{t('property.instagram')}</Text>
                 <ChevronRight size={20} color={property.instagramUrl ? colors.textSecondary : colors.textTertiary} />
               </TouchableOpacity>
 
@@ -522,7 +524,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 disabled={!onOpenPhotos || !property.panoramicPhotosUrl}
               >
                 <ImageIcon size={24} color={(property.panoramicPhotosUrl && onOpenPhotos) ? colors.text : colors.textSecondary} />
-                <Text style={[styles.mediaGridLabel, { color: (property.panoramicPhotosUrl && onOpenPhotos) ? colors.text : colors.textSecondary }]}>Photos</Text>
+                <Text style={[styles.mediaGridLabel, { color: (property.panoramicPhotosUrl && onOpenPhotos) ? colors.text : colors.textSecondary }]}>{t('property.photos')}</Text>
                 <ChevronRight size={20} color={(property.panoramicPhotosUrl && onOpenPhotos) ? colors.textSecondary : colors.textTertiary} />
               </TouchableOpacity>
 
@@ -532,11 +534,11 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                   { backgroundColor: colors.surface, borderColor: colors.border },
                   !property.videoUrl && { opacity: 0.6 }
                 ]}
-                onPress={property.videoUrl ? () => handleOpenLink(property.videoUrl, 'Video') : undefined}
+                onPress={property.videoUrl ? () => handleOpenLink(property.videoUrl, t('property.videos')) : undefined}
                 disabled={!property.videoUrl}
               >
                 <Video size={24} color={property.videoUrl ? colors.text : colors.textSecondary} />
-                <Text style={[styles.mediaGridLabel, { color: property.videoUrl ? colors.text : colors.textSecondary }]}>Videos</Text>
+                <Text style={[styles.mediaGridLabel, { color: property.videoUrl ? colors.text : colors.textSecondary }]}>{t('property.videos')}</Text>
                 <ChevronRight size={20} color={property.videoUrl ? colors.textSecondary : colors.textTertiary} />
               </TouchableOpacity>
 
@@ -550,7 +552,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 disabled={!property.owner}
               >
                 <MessageCircle size={24} color={property.owner ? colors.text : colors.textSecondary} />
-                <Text style={[styles.mediaGridLabel, { color: property.owner ? colors.text : colors.textSecondary }]}>Message</Text>
+                <Text style={[styles.mediaGridLabel, { color: property.owner ? colors.text : colors.textSecondary }]}>{t('property.message')}</Text>
                 <ChevronRight size={20} color={property.owner ? colors.textSecondary : colors.textTertiary} />
               </TouchableOpacity>
             </View>
@@ -563,7 +565,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               <View style={styles.chipContainer}>
                 {property.listingId && (
                   <View style={[styles.listingIdChip, { backgroundColor: isDark ? '#E91E63' : '#E5E7EB' }]}>
-                    <Text style={[styles.listingIdLabel, { color: isDark ? '#FFF' : colors.text }]}>ID:</Text>
+                    <Text style={[styles.listingIdLabel, { color: isDark ? '#FFF' : colors.text }]}>{t('property.id')}</Text>
                     <Text style={[styles.listingIdText, { color: isDark ? '#FFF' : colors.text }]}>
                       {property.listingId}
                     </Text>
@@ -578,12 +580,12 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                   const oneMonthMs = 30 * 24 * 60 * 60 * 1000;
                   const isSoon = date.getTime() - now.getTime() > oneMonthMs;
                   const formattedDate = date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-                  const label = isSoon ? formattedDate : 'now';
+                  const label = isSoon ? formattedDate : t('property.now');
                   return (
                     <View style={[styles.availabilityChip, { backgroundColor: isDark ? 'rgba(34,197,94,0.25)' : 'rgba(34,197,94,0.2)', borderWidth: 0, borderColor: 'transparent', gap: 6 }]}>
                       <View style={styles.availabilityDot} />
                       <Text style={[styles.availabilityText, { color: colors.text }]}>
-                        Available: {label}
+                        {t('property.available')} {label}
                       </Text>
                     </View>
                   );
@@ -603,13 +605,13 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             <View style={styles.specItem}>
               <Text style={styles.specIcon}>🛏</Text>
               <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.beds}</Text>
-              <Text style={[styles.specLabel, { color: colors.textSecondary }]}>Beds</Text>
+              <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.beds')}</Text>
             </View>
             <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
             <View style={styles.specItem}>
               <Text style={styles.specIcon}>🚿</Text>
               <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.baths}</Text>
-              <Text style={[styles.specLabel, { color: colors.textSecondary }]}>Baths</Text>
+              <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.baths')}</Text>
             </View>
             <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
             <View style={styles.specItem}>
@@ -621,7 +623,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
           {/* Description */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Description</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('property.description')}</Text>
             <Text style={[styles.description, { color: colors.textSecondary }]}>
               {property.description}
             </Text>
@@ -629,7 +631,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
           {/* Features - Airbnb-style two-column layout with icons */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>What this place offers</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('property.whatThisPlaceOffers')}</Text>
             <View style={styles.featuresGrid}>
               {property.features.map((feature, index) => {
                 const IconComponent = getFeatureIcon(feature);
@@ -646,7 +648,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           {/* Location Map */}
           <View style={styles.section}>
             <View style={styles.locationHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Location</Text>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('property.location')}</Text>
             </View>
             <Text style={[styles.address, { color: colors.textSecondary, marginBottom: 12 }]}>{property.address}</Text>
             <View style={[styles.mapContainer, { borderColor: colors.border }]}>
@@ -678,7 +680,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 activeOpacity={0.8}
               >
                 <Text style={{ fontSize: 20, marginRight: 6 }}>🗺️</Text>
-                <Text style={[styles.mapOverlayButtonText, { color: colors.text }]}>Full Screen</Text>
+                <Text style={[styles.mapOverlayButtonText, { color: colors.text }]}>{t('property.fullScreen')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -717,8 +719,8 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         {/* First Row: Price and Owner Name */}
         <View style={styles.footerTopRow}>
           <View style={styles.priceContainer}>
-            <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>Price</Text>
-            <Text style={[styles.footerPrice, { color: colors.text }]}>{formatPrice(property)}</Text>
+            <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>{t('property.price')}</Text>
+            <Text style={[styles.footerPrice, { color: colors.text }]}>{formatPrice(property, t('property.perMonth'))}</Text>
           </View>
           {(() => {
             const owner = (property as any).owner;
@@ -732,12 +734,12 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 activeOpacity={0.7}
                 style={styles.ownerContainer}
               >
-                <Text style={[styles.ownerLabel, { color: colors.textSecondary }]}>Landlord</Text>
+                <Text style={[styles.ownerLabel, { color: colors.textSecondary }]}>{t('property.landlord')}</Text>
                 <Text style={[styles.ownerName, { color: colors.text, textDecorationLine: 'underline' }]}>{ownerName}</Text>
               </TouchableOpacity>
             ) : (
               <View style={styles.ownerContainer}>
-                <Text style={[styles.ownerLabel, { color: colors.textSecondary }]}>Landlord</Text>
+                <Text style={[styles.ownerLabel, { color: colors.textSecondary }]}>{t('property.landlord')}</Text>
                 <Text style={[styles.ownerName, { color: colors.text }]}>{ownerName}</Text>
               </View>
             );
@@ -849,9 +851,9 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           />
           <View style={[styles.contactModalContent, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={[styles.contactModalHandle, { backgroundColor: colors.border }]} />
-            <Text style={[styles.contactModalTitle, { color: colors.text }]}>Contact Listing Owner</Text>
+            <Text style={[styles.contactModalTitle, { color: colors.text }]}>{t('property.contactListingOwner')}</Text>
             <Text style={[styles.contactModalSubtitle, { color: colors.textSecondary }]}>
-              Choose how you'd like to reach out
+              {t('property.contactModalSubtitle')}
             </Text>
 
             {(() => {
@@ -868,7 +870,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 return (
                   <View style={styles.contactModalEmpty}>
                     <Text style={[styles.contactModalEmptyText, { color: colors.textSecondary }]}>
-                      No contact options available for this listing.
+                      {t('property.noContactOptions')}
                     </Text>
                   </View>
                 );
@@ -879,7 +881,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               if (hasScheduleViewing) {
                 options.push({
                   key: 'schedule',
-                  label: 'Schedule viewing',
+                  label: t('property.scheduleViewing'),
                   onPress: () => { setShowContactModal(false); onScheduleViewing?.(property); },
                   icon: <Calendar size={22} color={inAppMessageContentColor} />,
                   color: '#06B6D4',
@@ -889,7 +891,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               if (hasInternalMessage) {
                 options.push({
                   key: 'message',
-                  label: 'In-App Message',
+                  label: t('property.inAppMessage'),
                   onPress: handleInternalMessage,
                   icon: <MessageCircle size={22} color={inAppMessageContentColor} />,
                   color: colors.primary,
@@ -899,7 +901,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               if (hasEmail) {
                 options.push({
                   key: 'email',
-                  label: 'Email',
+                  label: t('property.email'),
                   onPress: () => { setShowContactModal(false); handleEmail(); },
                   icon: <Mail size={22} color="#FFF" />,
                   color: '#6B7280',
@@ -908,7 +910,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               if (hasPhone) {
                 options.push({
                   key: 'phone',
-                  label: 'Phone Call',
+                  label: t('property.phoneCall'),
                   onPress: () => { setShowContactModal(false); handlePhone(); },
                   icon: <Phone size={22} color="#FFF" />,
                   color: '#10B981',
@@ -917,7 +919,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               if (hasWhatsApp) {
                 options.push({
                   key: 'whatsapp',
-                  label: 'WhatsApp',
+                  label: t('property.whatsapp'),
                   onPress: () => { setShowContactModal(false); handleWhatsApp(); },
                   icon: <MessageCircle size={22} color="#FFF" />,
                   color: '#25D366',
@@ -926,7 +928,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               if (hasTelegram) {
                 options.push({
                   key: 'telegram',
-                  label: 'Telegram',
+                  label: t('property.telegram'),
                   onPress: () => { setShowContactModal(false); handleTelegram(); },
                   icon: <Send size={22} color="#FFF" />,
                   color: '#229ED9',
@@ -956,7 +958,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               style={[styles.contactModalCancel, { backgroundColor: colors.inputBackground }]}
               onPress={() => setShowContactModal(false)}
             >
-              <Text style={[styles.contactModalCancelText, { color: colors.textSecondary }]}>Cancel</Text>
+              <Text style={[styles.contactModalCancelText, { color: colors.textSecondary }]}>{t('common.cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>

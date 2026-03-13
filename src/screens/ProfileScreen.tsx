@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
 import { AuthService } from '../services/AuthService';
 import { AppointmentService } from '../services/AppointmentService';
@@ -17,6 +18,7 @@ interface ProfileScreenProps {
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateListing, onViewListings, onViewFavorites, onViewAppointments, onViewAccountSettings }) => {
     const { user, logout } = useAuth();
+    const { t } = useLanguage();
     const { colors, isDark } = useTheme();
 
     const [isRenterApplicant, setIsRenterApplicant] = useState(false);
@@ -63,12 +65,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
 
     const handleLogout = async () => {
         Alert.alert(
-            'Log Out',
-            'Are you sure you want to log out?',
+            t('profile.logOut'),
+            t('profile.logOutConfirm'),
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('common.cancel'), style: 'cancel' },
                 {
-                    text: 'Log Out',
+                    text: t('profile.logOut'),
                     style: 'destructive',
                     onPress: async () => {
                         try {
@@ -77,7 +79,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                             onBack(); // Close profile and return to main/home screen
                         } catch (error) {
                             console.error('Logout failed', error);
-                            Alert.alert('Error', 'Failed to log out. Please try again.');
+                            Alert.alert(t('common.error'), t('profile.logOutFailed'));
                         } finally {
                             setLoggingOut(false);
                         }
@@ -101,7 +103,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                 <TouchableOpacity onPress={onBack} style={styles.iconButton}>
                     <Text style={{ fontSize: 24, color: themeStyles.accent }}>←</Text>
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: themeStyles.text }]}>My Profile</Text>
+                <Text style={[styles.headerTitle, { color: themeStyles.text }]}>{t('profile.myProfile')}</Text>
                 <View style={{ width: 40 }} />
             </View>
 
@@ -119,8 +121,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                         </View>
                         <View style={{ marginLeft: 16, flex: 1 }}>
                             <Text style={[styles.email, { color: themeStyles.text }]}>{user?.email}</Text>
-                            <Text style={[styles.role, { color: themeStyles.accent }]}>{isRenterApplicant ? 'Applicant' : 'Buyer Account'}</Text>
-                            <Text style={[styles.accountSettings, { color: themeStyles.textSecondary }]}>Account Settings</Text>
+                            <Text style={[styles.role, { color: themeStyles.accent }]}>{isRenterApplicant ? t('profile.applicant') : t('profile.buyerAccount')}</Text>
+                            <Text style={[styles.accountSettings, { color: themeStyles.textSecondary }]}>{t('profile.accountSettings')}</Text>
                         </View>
                         <Text style={[styles.arrow, { color: themeStyles.textSecondary }]}>›</Text>
                     </View>
@@ -132,7 +134,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                 >
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={{ fontSize: 20, color: themeStyles.accent, marginRight: 12 }}>♡</Text>
-                        <Text style={[styles.menuText, { color: themeStyles.text }]}>Favorites</Text>
+                        <Text style={[styles.menuText, { color: themeStyles.text }]}>{t('profile.favorites')}</Text>
                     </View>
                     <Text style={[styles.arrow, { color: themeStyles.textSecondary }]}>›</Text>
                 </TouchableOpacity>
@@ -143,7 +145,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                 >
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={{ fontSize: 20, color: themeStyles.accent, marginRight: 12 }}>📅</Text>
-                        <Text style={[styles.menuText, { color: themeStyles.text }]}>Appointments</Text>
+                        <Text style={[styles.menuText, { color: themeStyles.text }]}>{t('profile.appointments')}</Text>
                     </View>
                     <Text style={[styles.arrow, { color: themeStyles.textSecondary }]}>›</Text>
                 </TouchableOpacity>
@@ -182,7 +184,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                         >
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 <Text style={{ fontSize: 20, color: themeStyles.accent, marginRight: 12 }}>📋</Text>
-                                <Text style={[styles.menuText, { color: themeStyles.text }]}>My Listings</Text>
+                                <Text style={[styles.menuText, { color: themeStyles.text }]}>{t('profile.myListings')}</Text>
                             </View>
                             <Text style={[styles.arrow, { color: themeStyles.textSecondary }]}>›</Text>
                         </TouchableOpacity>
@@ -193,7 +195,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                         >
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 <Text style={{ fontSize: 20, color: '#FFF', marginRight: 12 }}>➕</Text>
-                                <Text style={[styles.menuText, { color: '#FFF' }]}>Create Listing</Text>
+                                <Text style={[styles.menuText, { color: '#FFF' }]}>{t('profile.createListing')}</Text>
                             </View>
                             <Text style={[styles.arrow, { color: '#FFF' }]}>›</Text>
                         </TouchableOpacity>
@@ -208,7 +210,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                     {loggingOut ? (
                         <ActivityIndicator color={themeStyles.danger} />
                     ) : (
-                        <Text style={[styles.logoutText, { color: themeStyles.danger }]}>→  Log Out</Text>
+                        <Text style={[styles.logoutText, { color: themeStyles.danger }]}>→  {t('profile.logOut')}</Text>
                     )}
                 </TouchableOpacity>
             </ScrollView>

@@ -19,7 +19,7 @@ import { AppointmentsScreen } from './src/screens/AppointmentsScreen';
 import { BottomNavigator, TabId } from './src/components/BottomNavigator';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
-import { LanguageProvider } from './src/context/LanguageContext';
+import { LanguageProvider, useLanguage } from './src/context/LanguageContext';
 import { Property } from './src/types/Property';
 import { PropertyService } from './src/services/PropertyService';
 import { FavoritesService } from './src/services/FavoritesService';
@@ -28,6 +28,7 @@ import { AuthPromptModal } from './src/components/AuthPromptModal';
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const { t } = useLanguage();
   const { colors } = useTheme();
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [activeTourUrl, setActiveTourUrl] = useState<string | null>(null);
@@ -41,7 +42,7 @@ function AppContent() {
   const [isRenterListingsOpen, setIsRenterListingsOpen] = useState(false);
   const [homeViewMode, setHomeViewMode] = useState<'list' | 'map'>('list'); // Track view mode to restore after details
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
-  const [authPromptMessage, setAuthPromptMessage] = useState('Please sign in to continue');
+  const [authPromptMessage, setAuthPromptMessage] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [favoriteStatuses, setFavoriteStatuses] = useState<Record<string, boolean>>({});
@@ -285,7 +286,7 @@ function AppContent() {
 
   const handleFavorite = async (property: Property) => {
     if (!user) {
-      setAuthPromptMessage('Please sign in to favorite listings');
+      setAuthPromptMessage(t('auth.pleaseSignInToFavorite'));
       setShowAuthPrompt(true);
       return;
     }
@@ -369,7 +370,7 @@ function AppContent() {
   if (isCreateListingOpen) {
     // Require authentication for creating listings
     if (!user) {
-      setAuthPromptMessage('Please sign in to create a listing');
+      setAuthPromptMessage(t('auth.pleaseSignInToCreateListing'));
       setShowAuthPrompt(true);
       setIsCreateListingOpen(false);
       return null;
@@ -403,7 +404,7 @@ function AppContent() {
           onOpenPhotos={(url) => setActivePhotosUrl(url)}
           onMessagePress={() => {
             if (!user) {
-              setAuthPromptMessage('Please sign in to message the listing owner');
+              setAuthPromptMessage(t('auth.pleaseSignInToMessage'));
               setShowAuthPrompt(true);
               return;
             }
@@ -417,7 +418,7 @@ function AppContent() {
           }}
           onScheduleViewing={() => {
             if (!user) {
-              setAuthPromptMessage('Please sign in to schedule a viewing');
+              setAuthPromptMessage(t('auth.pleaseSignInToSchedule'));
               setShowAuthPrompt(true);
               return;
             }
@@ -516,7 +517,7 @@ function AppContent() {
               onOpenTours={handleOpenTours}
               onOpenProfile={() => {
                 if (!user) {
-                  setAuthPromptMessage('Please sign in to view your profile');
+                  setAuthPromptMessage(t('auth.pleaseSignInToViewProfile'));
                   setShowAuthPrompt(true);
                 } else {
                   setIsProfileOpen(true);
@@ -524,7 +525,7 @@ function AppContent() {
               }}
               onOpenFavorites={() => {
                 if (!user) {
-                  setAuthPromptMessage('Please sign in to view favorites');
+                  setAuthPromptMessage(t('auth.pleaseSignInToViewFavorites'));
                   setShowAuthPrompt(true);
                 } else {
                   setIsFavoritesOpen(true);
@@ -545,7 +546,7 @@ function AppContent() {
             onTabChange={(tab: TabId) => {
               if (tab === 'add') {
                 if (!user) {
-                  setAuthPromptMessage('Please sign in to create a listing');
+                  setAuthPromptMessage(t('auth.pleaseSignInToCreateListing'));
                   setShowAuthPrompt(true);
                   return;
                 }
@@ -554,7 +555,7 @@ function AppContent() {
               }
               if (tab === 'favorites') {
                 if (!user) {
-                  setAuthPromptMessage('Please sign in to view favorites');
+                  setAuthPromptMessage(t('auth.pleaseSignInToViewFavorites'));
                   setShowAuthPrompt(true);
                   return;
                 }
@@ -565,7 +566,7 @@ function AppContent() {
               }
               if (tab === 'profile') {
                 if (!user) {
-                  setAuthPromptMessage('Please sign in to view your profile');
+                  setAuthPromptMessage(t('auth.pleaseSignInToViewProfile'));
                   setShowAuthPrompt(true);
                   return;
                 }
@@ -576,7 +577,7 @@ function AppContent() {
               }
               if (tab === 'chat') {
                 if (!user) {
-                  setAuthPromptMessage('Please sign in to view your chats');
+                  setAuthPromptMessage(t('auth.pleaseSignInToViewChats'));
                   setShowAuthPrompt(true);
                   return;
                 }

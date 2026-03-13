@@ -15,6 +15,7 @@ import { Property } from '../types/Property';
 import { PropertyCard } from '../components/PropertyCard';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { FavoritesService } from '../services/FavoritesService';
 
 interface FavoritesScreenProps {
@@ -36,6 +37,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -74,7 +76,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
     if (property.tours && property.tours.length > 0) {
       onOpenTours(property);
     } else {
-      Alert.alert('Info', 'No 3D Tour available for this property.');
+      Alert.alert(t('common.info'), t('tour.notAvailable'));
     }
   };
 
@@ -99,9 +101,9 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
   const renderHeader = () => (
     <View style={styles.header}>
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <Text style={[styles.backButtonText, { color: colors.text }]}>← Back</Text>
+        <Text style={[styles.backButtonText, { color: colors.text }]}>← {t('common.back')}</Text>
       </TouchableOpacity>
-      <Text style={[styles.headerTitle, { color: colors.text }]}>Favorites</Text>
+      <Text style={[styles.headerTitle, { color: colors.text }]}>{t('favorites.title')}</Text>
       <View style={{ width: 60 }} />
     </View>
   );
@@ -143,10 +145,10 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
           <View style={styles.emptyContainer}>
             <Text style={[styles.emptyIcon, { color: colors.textSecondary }]}>♡</Text>
             <Text style={[styles.emptyText, { color: colors.text }]}>
-              No favorites yet
+              {t('favorites.empty')}
             </Text>
             <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
-              Start favoriting listings to see them here
+              {t('favorites.emptyHint')}
             </Text>
           </View>
         }

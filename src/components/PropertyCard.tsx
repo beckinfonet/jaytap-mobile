@@ -16,6 +16,7 @@ import { getPropertyShareUrl } from '../constants';
 import { formatPrice } from '../utils/formatPrice';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 interface PropertyCardProps {
   property: Property;
@@ -48,6 +49,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const handleShare = async (e: any) => {
     e.stopPropagation(); // Prevent card press
@@ -57,7 +59,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     const shareUrl = getPropertyShareUrl(propertyId);
 
     // Create share message
-    const priceText = formatPrice(property);
+    const priceText = formatPrice(property, t('property.perMonth'));
     const shareMessage = `${property.title}\n${property.address}\n${priceText}\n\n${shareUrl}`;
 
     try {
@@ -90,7 +92,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           <View style={styles.topBadges}>
             <View style={[styles.badge, styles.statusBadge]}>
               <Text style={styles.statusText}>
-                {property.type === 'rent' ? 'FOR RENT' : 'FOR SALE'}
+                {property.type === 'rent' ? t('property.forRent') : t('property.forSale')}
               </Text>
             </View>
           </View>
@@ -151,7 +153,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             <View style={styles.chipContainer}>
               {property.listingId && (
                 <View style={[styles.listingIdChip, { backgroundColor: isDark ? '#E91E63' : '#6B7280' }]}>
-                  <Text style={styles.listingIdLabel}>ID:</Text>
+                  <Text style={styles.listingIdLabel}>{t('property.id')}</Text>
                   <Text style={styles.listingIdText}>
                     {property.listingId}
                   </Text>
@@ -166,11 +168,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 const oneMonthMs = 30 * 24 * 60 * 60 * 1000;
                 const isSoon = date.getTime() - now.getTime() > oneMonthMs;
                 const formattedDate = date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-                const label = isSoon ? formattedDate : 'now';
+                const label = isSoon ? formattedDate : t('property.now');
                 return (
                   <View style={[styles.availabilityChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                     <Text style={[styles.availabilityText, { color: colors.text }]} numberOfLines={1}>
-                      Available: {label}
+                      {t('property.available')} {label}
                     </Text>
                   </View>
                 );
@@ -182,7 +184,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           </View>
 
           <View style={styles.footerRow}>
-            <Text style={[styles.price, { color: colors.text }]}>{formatPrice(property)}</Text>
+            <Text style={[styles.price, { color: colors.text }]}>{formatPrice(property, t('property.perMonth'))}</Text>
 
             {showEditButton ? (
               <View style={styles.actionButtonsRow}>
@@ -192,7 +194,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                     onPress={() => onEdit(property)}
                     activeOpacity={0.8}
                   >
-                    <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>✏️ Edit</Text>
+                    <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>✏️ {t('common.edit')}</Text>
                   </TouchableOpacity>
                 )}
                 {onDelete && (
@@ -201,7 +203,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                     onPress={() => onDelete(property)}
                     activeOpacity={0.8}
                   >
-                    <Text style={[styles.contactButtonText, { color: '#FFFFFF' }]}>🗑️ Delete</Text>
+                    <Text style={[styles.contactButtonText, { color: '#FFFFFF' }]}>🗑️ {t('common.delete')}</Text>
                   </TouchableOpacity>
                 )}
               </View>

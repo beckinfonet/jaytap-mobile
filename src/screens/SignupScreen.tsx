@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
 
 export const SignupScreen = ({ onNavigateToLogin, onClose }: { onNavigateToLogin: () => void; onClose?: () => void }) => {
   const { signup } = useAuth();
+  const { t } = useLanguage();
   const { colors, isDark } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,17 +18,17 @@ export const SignupScreen = ({ onNavigateToLogin, onClose }: { onNavigateToLogin
   const handleSignup = async () => {
     setErrorMessage('');
     if (!email || !password || !confirmPassword) {
-      setErrorMessage('Please fill all fields');
+      setErrorMessage(t('auth.pleaseFillAllFields'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMessage('Passwords do not match');
+      setErrorMessage(t('auth.passwordsDoNotMatch'));
       return;
     }
 
     if (password.length < 6) {
-        setErrorMessage('Password should be at least 6 characters');
+        setErrorMessage(t('auth.passwordMinLength'));
         return;
     }
 
@@ -38,7 +40,7 @@ export const SignupScreen = ({ onNavigateToLogin, onClose }: { onNavigateToLogin
         onClose();
       }
     } catch (error: any) {
-      setErrorMessage(error.message || 'Signup failed');
+      setErrorMessage(error.message || t('auth.signupFailed'));
     } finally {
       setLoading(false);
     }
@@ -52,8 +54,8 @@ export const SignupScreen = ({ onNavigateToLogin, onClose }: { onNavigateToLogin
         </TouchableOpacity>
       )}
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Create Account</Text>
-        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Sign up to get started</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('auth.createAccountTitle')}</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{t('auth.signUpToGetStarted')}</Text>
       </View>
 
       <View style={styles.content}>
@@ -70,7 +72,7 @@ export const SignupScreen = ({ onNavigateToLogin, onClose }: { onNavigateToLogin
                 color: colors.text,
                 borderColor: colors.border
             }]}
-            placeholder="Email"
+            placeholder={t('auth.email')}
             placeholderTextColor={colors.textSecondary}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -86,7 +88,7 @@ export const SignupScreen = ({ onNavigateToLogin, onClose }: { onNavigateToLogin
                 color: colors.text,
                 borderColor: colors.border
             }]}
-            placeholder="Password"
+            placeholder={t('auth.password')}
             placeholderTextColor={colors.textSecondary}
             secureTextEntry
             value={password}
@@ -101,7 +103,7 @@ export const SignupScreen = ({ onNavigateToLogin, onClose }: { onNavigateToLogin
                 color: colors.text,
                 borderColor: colors.border
             }]}
-            placeholder="Confirm Password"
+            placeholder={t('auth.confirmPassword')}
             placeholderTextColor={colors.textSecondary}
             secureTextEntry
             value={confirmPassword}
@@ -117,13 +119,13 @@ export const SignupScreen = ({ onNavigateToLogin, onClose }: { onNavigateToLogin
           {loading ? (
               <ActivityIndicator color={isDark ? '#000' : '#FFF'} />
           ) : (
-              <Text style={[styles.buttonText, { color: isDark ? '#000' : '#FFF' }]}>Sign Up</Text>
+              <Text style={[styles.buttonText, { color: isDark ? '#000' : '#FFF' }]}>{t('auth.signUp')}</Text>
           )}
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.linkButton} onPress={onNavigateToLogin}>
           <Text style={[styles.linkText, { color: colors.textSecondary }]}>
-              Already have an account? <Text style={{ color: colors.accent, fontWeight: 'bold' }}>Sign In</Text>
+              {t('auth.alreadyHaveAccount')} <Text style={{ color: colors.accent, fontWeight: 'bold' }}>{t('auth.signIn')}</Text>
           </Text>
         </TouchableOpacity>
       </View>

@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 interface AuthPromptModalProps {
   visible: boolean;
@@ -22,9 +23,11 @@ export const AuthPromptModal: React.FC<AuthPromptModalProps> = ({
   onClose,
   onLogin,
   onSignup,
-  message = 'Please sign in to continue',
+  message,
 }) => {
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
+  const displayMessage = message ?? t('auth.pleaseSignIn');
 
   return (
     <Modal
@@ -46,10 +49,10 @@ export const AuthPromptModal: React.FC<AuthPromptModalProps> = ({
               ]}
             >
               <Text style={[styles.title, { color: colors.text }]}>
-                Sign In Required
+                {t('auth.signInRequired')}
               </Text>
               <Text style={[styles.message, { color: colors.textSecondary }]}>
-                {message}
+                {displayMessage}
               </Text>
 
               <View style={styles.buttonContainer}>
@@ -67,7 +70,7 @@ export const AuthPromptModal: React.FC<AuthPromptModalProps> = ({
                       { color: isDark ? '#121212' : '#FFFFFF' },
                     ]}
                   >
-                    Sign In
+                    {t('auth.signIn')}
                   </Text>
                 </TouchableOpacity>
 
@@ -80,7 +83,7 @@ export const AuthPromptModal: React.FC<AuthPromptModalProps> = ({
                   onPress={onSignup}
                 >
                   <Text style={[styles.buttonText, { color: colors.text }]}>
-                    Create Account
+                    {t('auth.createAccount')}
                   </Text>
                 </TouchableOpacity>
 
@@ -89,7 +92,7 @@ export const AuthPromptModal: React.FC<AuthPromptModalProps> = ({
                   onPress={onClose}
                 >
                   <Text style={[styles.cancelText, { color: colors.textSecondary }]}>
-                    Cancel
+                    {t('common.cancel')}
                   </Text>
                 </TouchableOpacity>
               </View>

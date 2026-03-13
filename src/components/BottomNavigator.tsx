@@ -3,8 +3,19 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search, Heart, Plus, MessageCircle, User } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export type TabId = 'home' | 'favorites' | 'add' | 'chat' | 'profile';
+
+const TAB_IDS: TabId[] = ['home', 'favorites', 'add', 'chat', 'profile'];
+
+const TAB_ICONS: Record<TabId, typeof Search> = {
+  home: Search,
+  favorites: Heart,
+  add: Plus,
+  chat: MessageCircle,
+  profile: User,
+};
 
 interface BottomNavigatorProps {
   activeTab: TabId;
@@ -12,16 +23,9 @@ interface BottomNavigatorProps {
   chatUnreadCount?: number;
 }
 
-const TAB_CONFIG: { id: TabId; label: string; Icon: typeof Search }[] = [
-  { id: 'home', label: 'Search', Icon: Search },
-  { id: 'favorites', label: 'Favorites', Icon: Heart },
-  { id: 'add', label: 'Add', Icon: Plus },
-  { id: 'chat', label: 'Chat', Icon: MessageCircle },
-  { id: 'profile', label: 'Profile', Icon: User },
-];
-
 export const BottomNavigator: React.FC<BottomNavigatorProps> = ({ activeTab, onTabChange, chatUnreadCount = 0 }) => {
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const bottomInset = Math.max(insets.bottom, 8);
 
@@ -37,7 +41,9 @@ export const BottomNavigator: React.FC<BottomNavigatorProps> = ({ activeTab, onT
       { backgroundColor: tabBarBg, paddingBottom: bottomInset },
       !isDark && { borderTopWidth: 1, borderTopColor: colors.border },
     ]}>
-      {TAB_CONFIG.map(({ id, label, Icon }) => {
+      {TAB_IDS.map((id) => {
+        const Icon = TAB_ICONS[id];
+        const label = id === 'home' ? t('nav.search') : id === 'favorites' ? t('nav.favorites') : id === 'add' ? t('nav.add') : id === 'chat' ? t('nav.chat') : t('nav.profile');
         const isActive = activeTab === id;
         const isAdd = id === 'add';
 

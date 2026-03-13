@@ -29,6 +29,7 @@ import { PropertyMap } from '../components/PropertyMap';
 import { ThemeToggleSwitch } from '../components/ThemeToggleSwitch';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { PropertyService } from '../services/PropertyService';
 
 interface HomeScreenProps {
@@ -68,6 +69,7 @@ const BISHKEK_DISTRICTS = [
 export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile, onOpenFavorites, viewMode: propViewMode, onViewModeChange, onFavorite, favoriteStatuses = {}, favoriteLoading = {} }) => {
   const { colors, theme, isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
 
   // New Filter State
@@ -311,7 +313,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         <TextInput
           key="search-input"
           style={[styles.searchInput, { color: colors.text }]}
-          placeholder="Search city, address, or listing ID"
+          placeholder={t('home.searchPlaceholder')}
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor={colors.textSecondary}
@@ -337,7 +339,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
                 <Text style={[
                   styles.segmentText,
                   { color: transactionType === 'rent' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }
-                ]}>🏠 Rent</Text>
+                ]}>🏠 {t('home.rent')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
@@ -350,7 +352,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
                 <Text style={[
                   styles.segmentText,
                   { color: transactionType === 'sale' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }
-                ]}>🏠 Buy</Text>
+                ]}>🏠 {t('home.buy')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -420,7 +422,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
       )}
 
       <Text style={[styles.resultCount, { color: colors.textSecondary }]}>
-        {filteredProperties.length} homes
+        {filteredProperties.length} {t('home.homes')}
       </Text>
     </View>
   );
@@ -477,7 +479,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
             onPress={() => setViewMode('map')}
           >
             <Text style={{ fontSize: 18, marginRight: 6 }}>📍</Text>
-            <Text style={[styles.mapButtonText, { color: colors.text }]}>On map</Text>
+            <Text style={[styles.mapButtonText, { color: colors.text }]}>{t('home.onMap')}</Text>
           </TouchableOpacity>
         </View>
       )}

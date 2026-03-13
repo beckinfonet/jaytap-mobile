@@ -14,7 +14,7 @@ interface AccountSettingsScreenProps {
 
 export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ onBack, onAccountDeleted }) => {
     const { user, deleteAccount } = useAuth();
-    const { language, setLanguage } = useLanguage();
+    const { language, setLanguage, t } = useLanguage();
     const { colors, isDark } = useTheme();
 
     const [firstName, setFirstName] = useState('');
@@ -74,10 +74,10 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                 telegram,
                 isRenterApplicant
             });
-            Alert.alert('Success', 'Profile updated successfully');
+            Alert.alert(t('common.success'), t('accountSettings.profileUpdated'));
             setIsEditing(false);
         } catch (error) {
-            Alert.alert('Error', 'Failed to update profile');
+            Alert.alert(t('common.error'), t('accountSettings.profileUpdateFailed'));
         } finally {
             setSaving(false);
         }
@@ -116,33 +116,33 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                 <TouchableOpacity onPress={onBack} style={styles.iconButton}>
                     <Text style={{ fontSize: 24, color: themeStyles.accent }}>←</Text>
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: themeStyles.text }]}>Account Settings</Text>
+                <Text style={[styles.headerTitle, { color: themeStyles.text }]}>{t('accountSettings.title')}</Text>
                 <View style={{ width: 40 }} />
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Text style={[styles.sectionTitle, { color: themeStyles.accent }]}>Main Information</Text>
+                        <Text style={[styles.sectionTitle, { color: themeStyles.accent }]}>{t('accountSettings.mainInformation')}</Text>
                         <TouchableOpacity onPress={() => setIsEditing(!isEditing)} disabled={saving}>
                             <Text style={{ fontSize: 18, color: themeStyles.accent }}>{isEditing ? '' : '✎'}</Text>
                         </TouchableOpacity>
                     </View>
 
                     <View style={[styles.infoContainer, { backgroundColor: themeStyles.surface }]}>
-                        {renderInfoRow("First Name", firstName, setFirstName, isEditing)}
+                        {renderInfoRow(t('accountSettings.firstName'), firstName, setFirstName, isEditing)}
                         <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
-                        {renderInfoRow("Last Name", lastName, setLastName, isEditing)}
+                        {renderInfoRow(t('accountSettings.lastName'), lastName, setLastName, isEditing)}
                         <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
-                        {renderInfoRow("Phone Number", phone, setPhone, isEditing, "phone-pad", "+996...")}
+                        {renderInfoRow(t('accountSettings.phoneNumber'), phone, setPhone, isEditing, "phone-pad", t('accountSettings.placeholderPhone'))}
                         <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
-                        {renderInfoRow("Telegram", telegram, setTelegram, isEditing, "default", "@username")}
+                        {renderInfoRow(t('accountSettings.telegram'), telegram, setTelegram, isEditing, "default", t('accountSettings.placeholderTelegram'))}
                     </View>
                 </View>
 
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Text style={[styles.sectionTitle, { color: themeStyles.accent }]}>Language</Text>
+                        <Text style={[styles.sectionTitle, { color: themeStyles.accent }]}>{t('accountSettings.language')}</Text>
                     </View>
                     <View style={[styles.languageRow, { backgroundColor: themeStyles.surface, borderColor: themeStyles.border }]}>
                         <TouchableOpacity
@@ -155,7 +155,7 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                             ]}
                             onPress={() => setLanguage('en')}
                         >
-                            <Text style={[styles.languageOptionText, { color: language === 'en' ? '#FFF' : themeStyles.text }]}>English</Text>
+                            <Text style={[styles.languageOptionText, { color: language === 'en' ? '#FFF' : themeStyles.text }]}>{t('accountSettings.english')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[
@@ -167,18 +167,18 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                             ]}
                             onPress={() => setLanguage('ru')}
                         >
-                            <Text style={[styles.languageOptionText, { color: language === 'ru' ? '#FFF' : themeStyles.text }]}>Русский</Text>
+                            <Text style={[styles.languageOptionText, { color: language === 'ru' ? '#FFF' : themeStyles.text }]}>{t('accountSettings.russian')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Text style={[styles.sectionTitle, { color: themeStyles.accent }]}>Application Status</Text>
+                        <Text style={[styles.sectionTitle, { color: themeStyles.accent }]}>{t('accountSettings.applicationStatus')}</Text>
                     </View>
                     <View style={[styles.infoContainer, { backgroundColor: themeStyles.surface }]}>
                         <View style={styles.infoRow}>
-                            <Text style={[styles.infoLabel, { color: isDark ? '#FFF' : '#000' }]}>Renter Application</Text>
+                            <Text style={[styles.infoLabel, { color: isDark ? '#FFF' : '#000' }]}>{t('accountSettings.renterApplication')}</Text>
                             {isEditing ? (
                                 <Switch
                                     value={isRenterApplicant}
@@ -186,7 +186,7 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                                     trackColor={{ false: '#767577', true: '#34C759' }}
                                 />
                             ) : (
-                                <Text style={[styles.infoValue, { color: themeStyles.textSecondary }]}>{isRenterApplicant ? 'Active' : 'Inactive'}</Text>
+                                <Text style={[styles.infoValue, { color: themeStyles.textSecondary }]}>{isRenterApplicant ? t('accountSettings.active') : t('accountSettings.inactive')}</Text>
                             )}
                         </View>
                     </View>
@@ -199,7 +199,7 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                             onPress={() => setIsEditing(false)}
                             disabled={saving}
                         >
-                            <Text style={[styles.cancelButtonText, { color: themeStyles.text }]}>Cancel</Text>
+                            <Text style={[styles.cancelButtonText, { color: themeStyles.text }]}>{t('common.cancel')}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -207,7 +207,7 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                             onPress={handleSave}
                             disabled={saving}
                         >
-                            <Text style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save'}</Text>
+                            <Text style={styles.saveButtonText}>{saving ? t('accountSettings.saving') : t('common.save')}</Text>
                         </TouchableOpacity>
                     </View>
                 )}
@@ -216,7 +216,7 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                     style={styles.deleteLink}
                     onPress={() => setShowDeleteModal(true)}
                 >
-                    <Text style={[styles.deleteLinkText, { color: themeStyles.danger }]}>Delete Account</Text>
+                    <Text style={[styles.deleteLinkText, { color: themeStyles.danger }]}>{t('accountSettings.deleteAccount')}</Text>
                 </TouchableOpacity>
             </ScrollView>
 

@@ -5,7 +5,7 @@ import { Property } from '../types/Property';
  * - USD: "$USD1,399/mo"
  * - Kyrgyz som: "сом1,399/mo"
  */
-export function formatPrice(p: Property): string {
+export function formatPrice(p: Property, monthlySuffix: string = '/mo'): string {
   const numPrice = typeof p.price === 'number' ? p.price : parseFloat(String(p.price).replace(/,/g, '')) || 0;
   const formattedNumber = Number.isFinite(numPrice) ? numPrice.toLocaleString() : String(p.price);
   const currency = (p.currency || '').trim().toLowerCase();
@@ -22,8 +22,8 @@ export function formatPrice(p: Property): string {
   }
 
   let priceDisplay = `${prefix} ${formattedNumber}`;
-  if (p.period === 'month' && !priceDisplay.includes('/')) {
-    priceDisplay += '/mo';
+  if (p.period === 'month' && !priceDisplay.includes('/') && !priceDisplay.includes('мес')) {
+    priceDisplay += monthlySuffix;
   }
   return priceDisplay;
 }

@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
 
 export const LoginScreen = ({ onNavigateToSignup, onClose }: { onNavigateToSignup: () => void; onClose?: () => void }) => {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const { colors, isDark } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,7 +17,7 @@ export const LoginScreen = ({ onNavigateToSignup, onClose }: { onNavigateToSignu
   const handleLogin = async () => {
     setErrorMessage('');
     if (!email || !password) {
-      setErrorMessage('Please fill all fields');
+      setErrorMessage(t('auth.pleaseFillAllFields'));
       return;
     }
 
@@ -27,7 +29,7 @@ export const LoginScreen = ({ onNavigateToSignup, onClose }: { onNavigateToSignu
         onClose();
       }
     } catch (error: any) {
-      setErrorMessage(error.message || 'Login failed');
+      setErrorMessage(error.message || t('auth.loginFailed'));
     } finally {
       setLoading(false);
     }
@@ -41,8 +43,8 @@ export const LoginScreen = ({ onNavigateToSignup, onClose }: { onNavigateToSignu
         </TouchableOpacity>
       )}
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Welcome Back</Text>
-        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Sign in to continue</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('auth.welcomeBack')}</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{t('auth.signInToContinue')}</Text>
       </View>
 
       <View style={styles.content}>
@@ -59,7 +61,7 @@ export const LoginScreen = ({ onNavigateToSignup, onClose }: { onNavigateToSignu
                 color: colors.text,
                 borderColor: colors.border
             }]}
-            placeholder="Email"
+            placeholder={t('auth.email')}
             placeholderTextColor={colors.textSecondary}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -75,7 +77,7 @@ export const LoginScreen = ({ onNavigateToSignup, onClose }: { onNavigateToSignu
                 color: colors.text,
                 borderColor: colors.border
             }]}
-            placeholder="Password"
+            placeholder={t('auth.password')}
             placeholderTextColor={colors.textSecondary}
             secureTextEntry
             value={password}
@@ -91,13 +93,13 @@ export const LoginScreen = ({ onNavigateToSignup, onClose }: { onNavigateToSignu
           {loading ? (
               <ActivityIndicator color={isDark ? '#000' : '#FFF'} />
           ) : (
-              <Text style={[styles.buttonText, { color: isDark ? '#000' : '#FFF' }]}>Sign In</Text>
+              <Text style={[styles.buttonText, { color: isDark ? '#000' : '#FFF' }]}>{t('auth.signIn')}</Text>
           )}
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.linkButton} onPress={onNavigateToSignup}>
           <Text style={[styles.linkText, { color: colors.textSecondary }]}>
-              Don't have an account? <Text style={{ color: colors.accent, fontWeight: 'bold' }}>Sign Up</Text>
+              {t('auth.dontHaveAccount')} <Text style={{ color: colors.accent, fontWeight: 'bold' }}>{t('auth.signUp')}</Text>
           </Text>
         </TouchableOpacity>
       </View>
