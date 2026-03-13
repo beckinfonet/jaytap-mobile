@@ -171,9 +171,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 const label = isSoon ? formattedDate : t('property.now');
                 return (
                   <View style={[styles.availabilityChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                    <Text style={[styles.availabilityText, { color: colors.text }]} numberOfLines={1}>
-                      {t('property.available')} {label}
-                    </Text>
+                    <View style={{ flex: 1, minWidth: 0, justifyContent: 'center', alignItems: 'center' }}>
+                      <Text style={[styles.availabilityText, { color: colors.text }]} numberOfLines={1}>
+                        {t('property.available')} {label}
+                      </Text>
+                    </View>
                   </View>
                 );
               })()}
@@ -341,7 +343,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   availabilityChip: {
-    flex: 1,
+    flex: 0.65,
+    minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -353,9 +356,10 @@ const styles = StyleSheet.create({
   availabilityText: {
     fontSize: 11,
     fontWeight: '600',
+    textAlign: 'center',
   },
   listingIdChip: {
-    flex: 1,
+    flex: 0.35,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

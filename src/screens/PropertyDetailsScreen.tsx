@@ -584,9 +584,11 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                   return (
                     <View style={[styles.availabilityChip, { backgroundColor: isDark ? 'rgba(34,197,94,0.25)' : 'rgba(34,197,94,0.2)', borderWidth: 0, borderColor: 'transparent', gap: 6 }]}>
                       <View style={styles.availabilityDot} />
-                      <Text style={[styles.availabilityText, { color: colors.text }]}>
-                        {t('property.available')} {label}
-                      </Text>
+                      <View style={{ flex: 1, minWidth: 0, justifyContent: 'center', alignItems: 'center' }}>
+                        <Text style={[styles.availabilityText, { color: colors.text }]} numberOfLines={1}>
+                          {t('property.available')} {label}
+                        </Text>
+                      </View>
                     </View>
                   );
                 })()}
@@ -1078,7 +1080,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   availabilityChip: {
-    flex: 1,
+    flex: 0.65,
+    minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1090,9 +1093,10 @@ const styles = StyleSheet.create({
   availabilityText: {
     fontSize: 12,
     fontWeight: '600',
+    textAlign: 'center',
   },
   listingIdChip: {
-    flex: 1,
+    flex: 0.35,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
