@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, TextInput, ScrollView, Switch, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
 import { AuthService } from '../services/AuthService';
 import { DeleteAccountModal } from '../components/DeleteAccountModal';
@@ -13,6 +14,7 @@ interface AccountSettingsScreenProps {
 
 export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ onBack, onAccountDeleted }) => {
     const { user, deleteAccount } = useAuth();
+    const { language, setLanguage } = useLanguage();
     const { colors, isDark } = useTheme();
 
     const [firstName, setFirstName] = useState('');
@@ -135,6 +137,38 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                         {renderInfoRow("Phone Number", phone, setPhone, isEditing, "phone-pad", "+996...")}
                         <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
                         {renderInfoRow("Telegram", telegram, setTelegram, isEditing, "default", "@username")}
+                    </View>
+                </View>
+
+                <View style={styles.section}>
+                    <View style={styles.sectionHeader}>
+                        <Text style={[styles.sectionTitle, { color: themeStyles.accent }]}>Language</Text>
+                    </View>
+                    <View style={[styles.languageRow, { backgroundColor: themeStyles.surface, borderColor: themeStyles.border }]}>
+                        <TouchableOpacity
+                            style={[
+                                styles.languageOption,
+                                {
+                                    backgroundColor: language === 'en' ? themeStyles.accent : 'transparent',
+                                    borderColor: themeStyles.border,
+                                },
+                            ]}
+                            onPress={() => setLanguage('en')}
+                        >
+                            <Text style={[styles.languageOptionText, { color: language === 'en' ? '#FFF' : themeStyles.text }]}>English</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[
+                                styles.languageOption,
+                                {
+                                    backgroundColor: language === 'ru' ? themeStyles.accent : 'transparent',
+                                    borderColor: themeStyles.border,
+                                },
+                            ]}
+                            onPress={() => setLanguage('ru')}
+                        >
+                            <Text style={[styles.languageOptionText, { color: language === 'ru' ? '#FFF' : themeStyles.text }]}>Русский</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
 
@@ -265,6 +299,26 @@ const styles = StyleSheet.create({
     },
     separator: {
         height: 1,
+    },
+    languageRow: {
+        flexDirection: 'row',
+        gap: 12,
+        padding: 4,
+        borderRadius: 16,
+        borderWidth: 1,
+    },
+    languageOption: {
+        flex: 1,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+    },
+    languageOptionText: {
+        fontSize: 16,
+        fontWeight: '600',
     },
     actionButtonsContainer: {
         flexDirection: 'row',

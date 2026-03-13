@@ -19,6 +19,7 @@ import { AppointmentsScreen } from './src/screens/AppointmentsScreen';
 import { BottomNavigator, TabId } from './src/components/BottomNavigator';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { LanguageProvider } from './src/context/LanguageContext';
 import { Property } from './src/types/Property';
 import { PropertyService } from './src/services/PropertyService';
 import { FavoritesService } from './src/services/FavoritesService';
@@ -651,9 +652,11 @@ function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );
