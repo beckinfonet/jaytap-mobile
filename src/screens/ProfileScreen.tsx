@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, TextInput, ScrollView, Switch, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../theme/ThemeContext';
 import { AuthService } from '../services/AuthService';
 import { AppointmentService } from '../services/AppointmentService';
-import { DeleteAccountModal } from '../components/DeleteAccountModal';
 
 interface ProfileScreenProps {
     onBack: () => void;
@@ -13,24 +12,17 @@ interface ProfileScreenProps {
     onViewListings?: () => void;
     onViewFavorites?: () => void;
     onViewAppointments?: () => void;
+    onViewAccountSettings?: () => void;
 }
 
-export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateListing, onViewListings, onViewFavorites, onViewAppointments }) => {
-    const { user, logout, deleteAccount } = useAuth();
+export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateListing, onViewListings, onViewFavorites, onViewAppointments, onViewAccountSettings }) => {
+    const { user, logout } = useAuth();
     const { colors, isDark } = useTheme();
 
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [phone, setPhone] = useState('');
-    const [whatsapp, setWhatsapp] = useState('');
-    const [telegram, setTelegram] = useState('');
     const [isRenterApplicant, setIsRenterApplicant] = useState(false);
-    const [userType, setUserType] = useState<string>(''); // Track userType
-    const [isEditing, setIsEditing] = useState(false);
+    const [userType, setUserType] = useState<string>('');
     const [loading, setLoading] = useState(false);
-    const [saving, setSaving] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [blockSize, setBlockSize] = useState<'30min' | '60min'>('30min');
 
     // Dynamic Theme Colors
@@ -59,39 +51,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
             ]);
             if (settings) setBlockSize(settings.blockSize || '30min');
             if (profile) {
-                setFirstName(profile.firstName || '');
-                setLastName(profile.lastName || '');
-                setPhone(profile.phone || '');
-                setWhatsapp(profile.whatsapp || '');
-                setTelegram(profile.telegram || '');
                 setIsRenterApplicant(profile.isRenterApplicant || false);
-                setUserType(profile.userType || ''); // Load userType
+                setUserType(profile.userType || '');
             }
         } catch (error) {
             console.error('Failed to load profile', error);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleSave = async () => {
-        if (!user?.localId) return;
-        setSaving(true);
-        try {
-            await AuthService.createBackendUser(user.localId, user.email, {
-                firstName,
-                lastName,
-                phone,
-                whatsapp,
-                telegram,
-                isRenterApplicant
-            });
-            Alert.alert('Success', 'Profile updated successfully');
-            setIsEditing(false);
-        } catch (error) {
-            Alert.alert('Error', 'Failed to update profile');
-        } finally {
-            setSaving(false);
         }
     };
 
@@ -121,25 +87,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
         );
     };
 
-    const renderInfoRow = (label: string, value: string, setValue: (v: string) => void, isEditing: boolean, keyboardType: any = 'default', placeholder = '') => (
-        <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: isDark ? '#FFF' : '#000' }]}>{label}</Text>
-            {isEditing ? (
-                <TextInput
-                    style={[styles.infoInput, { color: themeStyles.text }]}
-                    value={value}
-                    onChangeText={setValue}
-                    placeholder={placeholder}
-                    placeholderTextColor={themeStyles.textSecondary}
-                    textAlign="right"
-                    keyboardType={keyboardType}
-                />
-            ) : (
-                <Text style={[styles.infoValue, { color: themeStyles.textSecondary }]}>{value || '-'}</Text>
-            )}
-        </View>
-    );
-
     if (loading) {
         return (
             <View style={[styles.container, { backgroundColor: themeStyles.background, justifyContent: 'center', alignItems: 'center' }]}>
@@ -159,20 +106,25 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                <View style={[styles.profileCard, { backgroundColor: themeStyles.surface }]}>
+                <TouchableOpacity
+                    style={[styles.profileCard, { backgroundColor: themeStyles.surface }]}
+                    onPress={onViewAccountSettings}
+                    activeOpacity={0.8}
+                >
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <View style={[styles.avatar, { backgroundColor: themeStyles.avatarBg }]}>
                             <Text style={[styles.avatarText, { color: themeStyles.text }]}>
                                 {user?.email?.charAt(0).toUpperCase() || 'U'}
                             </Text>
                         </View>
-                        <View style={{ marginLeft: 16 }}>
+                        <View style={{ marginLeft: 16, flex: 1 }}>
                             <Text style={[styles.email, { color: themeStyles.text }]}>{user?.email}</Text>
                             <Text style={[styles.role, { color: themeStyles.accent }]}>{isRenterApplicant ? 'Applicant' : 'Buyer Account'}</Text>
                             <Text style={[styles.accountSettings, { color: themeStyles.textSecondary }]}>Account Settings</Text>
                         </View>
+                        <Text style={[styles.arrow, { color: themeStyles.textSecondary }]}>›</Text>
                     </View>
-                </View>
+                </TouchableOpacity>
 
                 <TouchableOpacity
                     style={[styles.menuItem, { backgroundColor: themeStyles.surface }]}
@@ -199,7 +151,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                 {/* Renter Actions - Only show if userType === 'renter' */}
                 {userType === 'renter' && (
                     <>
-                        <View style={[styles.availabilitySection, { backgroundColor: themeStyles.surface, borderColor: themeStyles.border }]}>
+                        {/* <View style={[styles.availabilitySection, { backgroundColor: themeStyles.surface, borderColor: themeStyles.border }]}>
                             <Text style={[styles.availabilityLabel, { color: themeStyles.text }]}>Viewing time slots</Text>
                             <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
                                 <TouchableOpacity
@@ -222,17 +174,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                                 </TouchableOpacity>
                             </View>
                             <Text style={[styles.availabilityHint, { color: themeStyles.textSecondary }]}>9am–5pm Bishkek time</Text>
-                        </View>
-                        <TouchableOpacity
-                            style={[styles.menuItem, { backgroundColor: themeStyles.accent }]}
-                            onPress={onCreateListing}
-                        >
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <Text style={{ fontSize: 20, color: '#FFF', marginRight: 12 }}>➕</Text>
-                                <Text style={[styles.menuText, { color: '#FFF' }]}>Create Listing</Text>
-                            </View>
-                            <Text style={[styles.arrow, { color: '#FFF' }]}>›</Text>
-                        </TouchableOpacity>
+                        </View> */}
 
                         <TouchableOpacity
                             style={[styles.menuItem, { backgroundColor: themeStyles.surface }]}
@@ -244,66 +186,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                             </View>
                             <Text style={[styles.arrow, { color: themeStyles.textSecondary }]}>›</Text>
                         </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.menuItem, { backgroundColor: themeStyles.accent }]}
+                            onPress={onCreateListing}
+                        >
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Text style={{ fontSize: 20, color: '#FFF', marginRight: 12 }}>➕</Text>
+                                <Text style={[styles.menuText, { color: '#FFF' }]}>Create Listing</Text>
+                            </View>
+                            <Text style={[styles.arrow, { color: '#FFF' }]}>›</Text>
+                        </TouchableOpacity>
                     </>
-                )}
-
-                <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={[styles.sectionTitle, { color: themeStyles.accent }]}>Main Information</Text>
-                        <TouchableOpacity onPress={() => setIsEditing(!isEditing)} disabled={saving}>
-                            <Text style={{ fontSize: 18, color: themeStyles.accent }}>{isEditing ? '' : '✎'}</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <View style={[styles.infoContainer, { backgroundColor: themeStyles.surface }]}>
-                        {renderInfoRow("First Name", firstName, setFirstName, isEditing)}
-                        <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
-                        {renderInfoRow("Last Name", lastName, setLastName, isEditing)}
-                        <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
-                        {renderInfoRow("Phone Number", phone, setPhone, isEditing, "phone-pad", "+996...")}
-                        <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
-                        {renderInfoRow("Telegram", telegram, setTelegram, isEditing, "default", "@username")}
-                    </View>
-                </View>
-
-                <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={[styles.sectionTitle, { color: themeStyles.accent }]}>Application Status</Text>
-                    </View>
-                    <View style={[styles.infoContainer, { backgroundColor: themeStyles.surface }]}>
-                        <View style={styles.infoRow}>
-                            <Text style={[styles.infoLabel, { color: isDark ? '#FFF' : '#000' }]}>Renter Application</Text>
-                            {isEditing ? (
-                                <Switch
-                                    value={isRenterApplicant}
-                                    onValueChange={setIsRenterApplicant}
-                                    trackColor={{ false: '#767577', true: '#34C759' }}
-                                />
-                            ) : (
-                                <Text style={[styles.infoValue, { color: themeStyles.textSecondary }]}>{isRenterApplicant ? 'Active' : 'Inactive'}</Text>
-                            )}
-                        </View>
-                    </View>
-                </View>
-
-                {isEditing && (
-                    <View style={styles.actionButtonsContainer}>
-                        <TouchableOpacity
-                            style={[styles.cancelButton, { backgroundColor: themeStyles.surface, borderColor: themeStyles.border }]}
-                            onPress={() => setIsEditing(false)}
-                            disabled={saving}
-                        >
-                            <Text style={[styles.cancelButtonText, { color: themeStyles.text }]}>Cancel</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[styles.saveButton, { backgroundColor: themeStyles.accent }]}
-                            onPress={handleSave}
-                            disabled={saving}
-                        >
-                            <Text style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save'}</Text>
-                        </TouchableOpacity>
-                    </View>
                 )}
 
                 <TouchableOpacity
@@ -317,25 +211,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                         <Text style={[styles.logoutText, { color: themeStyles.danger }]}>→  Log Out</Text>
                     )}
                 </TouchableOpacity>
-
-                <TouchableOpacity 
-                    style={styles.deleteLink} 
-                    onPress={() => setShowDeleteModal(true)}
-                >
-                    <Text style={[styles.deleteLinkText, { color: themeStyles.danger }]}>Delete Account</Text>
-                </TouchableOpacity>
             </ScrollView>
-
-            <DeleteAccountModal
-                visible={showDeleteModal}
-                onClose={() => setShowDeleteModal(false)}
-                onConfirm={async () => {
-                    await deleteAccount();
-                    setShowDeleteModal(false);
-                    onBack(); // Navigate back after successful deletion
-                }}
-                userEmail={user?.email}
-            />
         </SafeAreaView>
     );
 };
@@ -425,78 +301,6 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
     },
-    section: {
-        marginBottom: 24,
-    },
-    sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-        paddingHorizontal: 4,
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: '700',
-    },
-    infoContainer: {
-        borderRadius: 16,
-        paddingHorizontal: 16,
-        paddingVertical: 4,
-    },
-    infoRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 14,
-        minHeight: 50,
-    },
-    infoLabel: {
-        fontSize: 16,
-    },
-    infoValue: {
-        fontSize: 16,
-        fontWeight: '400',
-    },
-    infoInput: {
-        fontSize: 16,
-        fontWeight: '500',
-        minWidth: 150,
-        padding: 0,
-    },
-    separator: {
-        height: 1,
-    },
-    actionButtonsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: 12,
-        marginBottom: 24,
-    },
-    cancelButton: {
-        flex: 1,
-        height: 50,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-    },
-    cancelButtonText: {
-        fontWeight: '600',
-        fontSize: 16,
-    },
-    saveButton: {
-        flex: 1,
-        height: 50,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    saveButtonText: {
-        color: '#FFF',
-        fontWeight: '600',
-        fontSize: 16,
-    },
     logoutButton: {
         height: 56,
         borderRadius: 16,
@@ -510,12 +314,4 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
-    deleteLink: {
-        marginTop: 24,
-        alignItems: 'center',
-    },
-    deleteLinkText: {
-        textDecorationLine: 'underline',
-        fontSize: 16,
-    }
 });

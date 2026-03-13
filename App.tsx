@@ -8,6 +8,7 @@ import { TourSelectionScreen } from './src/screens/TourSelectionScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { SignupScreen } from './src/screens/SignupScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
+import { AccountSettingsScreen } from './src/screens/AccountSettingsScreen';
 import { CreateListingScreen } from './src/screens/CreateListingScreen';
 import { RenterListingsScreen } from './src/screens/RenterListingsScreen';
 import { OwnerListingsScreen } from './src/screens/OwnerListingsScreen';
@@ -33,6 +34,7 @@ function AppContent() {
   const [propertyForTourSelection, setPropertyForTourSelection] = useState<Property | null>(null);
   const [isLoginView, setIsLoginView] = useState(true);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false);
   const [isCreateListingOpen, setIsCreateListingOpen] = useState(false);
   const [propertyToEdit, setPropertyToEdit] = useState<Property | null>(null);
   const [isRenterListingsOpen, setIsRenterListingsOpen] = useState(false);
@@ -451,6 +453,14 @@ function AppContent() {
               propertyToOpen={propertyToSchedule}
               participantUid={undefined}
             />
+          ) : isAccountSettingsOpen ? (
+            <AccountSettingsScreen
+              onBack={() => setIsAccountSettingsOpen(false)}
+              onAccountDeleted={() => {
+                setIsAccountSettingsOpen(false);
+                setIsProfileOpen(false);
+              }}
+            />
           ) : isProfileOpen ? (
             <ProfileScreen
               onBack={() => setIsProfileOpen(false)}
@@ -464,6 +474,7 @@ function AppContent() {
                 setIsProfileOpen(false);
                 setIsAppointmentsOpen(true);
               }}
+              onViewAccountSettings={() => setIsAccountSettingsOpen(true)}
             />
           ) : isScheduleViewingOpen && propertyToSchedule ? (
             <ScheduleViewingScreen
