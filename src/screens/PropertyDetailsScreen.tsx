@@ -57,6 +57,7 @@ import {
 import { Property } from '../types/Property';
 import { TourHeroCard } from '../components/TourHeroCard';
 import { getPropertyShareUrl } from '../constants';
+import { formatPrice } from '../utils/formatPrice';
 import { useTheme } from '../theme/ThemeContext';
 import { PropertyService } from '../services/PropertyService';
 import { useAuth } from '../context/AuthContext';
@@ -196,20 +197,6 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const images = property.images && property.images.length > 0
     ? property.images
     : (property.imageUrl ? [property.imageUrl] : ['https://via.placeholder.com/800']);
-
-  const formatPrice = (p: Property) => {
-    let priceDisplay = '';
-    if (typeof p.price === 'number') {
-      priceDisplay = `${p.currency}${p.price.toLocaleString()}`;
-    } else {
-      priceDisplay = p.price.toString();
-    }
-
-    if (p.period === 'month' && !priceDisplay.includes('/')) {
-      priceDisplay += '/mo';
-    }
-    return priceDisplay;
-  };
 
   const handleShare = async () => {
     // Generate shareable URL
@@ -1083,14 +1070,16 @@ const styles = StyleSheet.create({
   },
   chipContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 8,
     marginBottom: 8,
-    alignItems: 'center',
+    alignItems: 'stretch',
+    width: '100%',
   },
   availabilityChip: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -1101,9 +1090,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   listingIdChip: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
+    justifyContent: 'center',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,

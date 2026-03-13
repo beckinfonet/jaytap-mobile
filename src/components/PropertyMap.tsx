@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { Property } from '../types/Property';
+import { formatPrice } from '../utils/formatPrice';
 import { useTheme } from '../theme/ThemeContext';
 
 interface PropertyMapProps {
@@ -57,7 +58,7 @@ export const PropertyMap: React.FC<PropertyMapProps> = ({ properties, onSelectPr
             >
               <View style={[styles.markerContainer, { backgroundColor: colors.background, borderColor: colors.border }]}>
                 <Text style={[styles.markerText, { color: colors.text }]}>
-                  {property.currency}{typeof property.price === 'number' ? property.price.toLocaleString() : property.price}
+                  {formatPrice(property)}
                 </Text>
               </View>
             </Marker>

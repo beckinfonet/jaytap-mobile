@@ -13,6 +13,7 @@ import {
 import { Heart, Bed, Bath } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { getPropertyShareUrl } from '../constants';
+import { formatPrice } from '../utils/formatPrice';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -47,20 +48,6 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
-
-  const formatPrice = (p: Property) => {
-    let priceDisplay = '';
-    if (typeof p.price === 'number') {
-      priceDisplay = `${p.currency}${p.price.toLocaleString()}`;
-    } else {
-      priceDisplay = p.price.toString();
-    }
-
-    if (p.period === 'month' && !priceDisplay.includes('/')) {
-      priceDisplay += '/mo';
-    }
-    return priceDisplay;
-  };
 
   const handleShare = async (e: any) => {
     e.stopPropagation(); // Prevent card press
@@ -346,14 +333,16 @@ const styles = StyleSheet.create({
   },
   chipContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 8,
     marginBottom: 6,
-    alignItems: 'center',
+    alignItems: 'stretch',
+    width: '100%',
   },
   availabilityChip: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -364,9 +353,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   listingIdChip: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
+    justifyContent: 'center',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
