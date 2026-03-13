@@ -623,16 +623,34 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           {/* Title and Address */}
           <View style={styles.section}>
             <Text style={[styles.title, { color: colors.text }]}>{property.title}</Text>
-            {property.listingId && (
-              <View style={styles.chipContainer}>
+            <View style={styles.chipContainer}>
+              {property.listingId && (
                 <View style={[styles.listingIdChip, { backgroundColor: isDark ? '#E91E63' : '#6B7280' }]}>
                   <Text style={styles.listingIdLabel}>ID:</Text>
                   <Text style={styles.listingIdText}>
                     {property.listingId}
                   </Text>
                 </View>
-              </View>
-            )}
+              )}
+              {(() => {
+                const raw = (property as any).availableDate;
+                if (!raw) return null;
+                const date = typeof raw === 'string' ? new Date(raw) : raw instanceof Date ? raw : null;
+                if (!date || isNaN(date.getTime())) return null;
+                const now = new Date();
+                const oneMonthMs = 30 * 24 * 60 * 60 * 1000;
+                const isSoon = date.getTime() - now.getTime() > oneMonthMs;
+                const formattedDate = date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+                const label = isSoon ? `soon, exact date: ${formattedDate}` : 'now';
+                return (
+                  <View style={[styles.availabilityChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <Text style={[styles.availabilityText, { color: colors.text }]}>
+                      Available: {label}
+                    </Text>
+                  </View>
+                );
+              })()}
+            </View>
             <Text style={[styles.address, { color: colors.textSecondary }]}>{property.address}</Text>
           </View>
 
@@ -1083,7 +1101,23 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   chipContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
     marginBottom: 8,
+    alignItems: 'center',
+  },
+  availabilityChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  availabilityText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   listingIdChip: {
     flexDirection: 'row',

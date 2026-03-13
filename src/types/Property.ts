@@ -48,4 +48,6 @@ export interface Property {
     firstName?: string;
     lastName?: string;
   };
+  /** ISO date string - when the property becomes available (for rent). If within 1 month, shows "now" */
+  availableDate?: string;
 }

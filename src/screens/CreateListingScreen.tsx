@@ -14,6 +14,7 @@ import {
   FlatList,
   Dimensions,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -75,6 +76,8 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
   const [videoUrl, setVideoUrl] = useState('');
   const [panoramicPhotosUrl, setPanoramicPhotosUrl] = useState('');
   const [instagramUrl, setInstagramUrl] = useState('');
+  const [availableDate, setAvailableDate] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [status, setStatus] = useState<'draft' | 'live'>('draft');
 
   // Images state
@@ -134,6 +137,13 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
       setVideoUrl(propertyToEdit.videoUrl || '');
       setPanoramicPhotosUrl((propertyToEdit as any).panoramicPhotosUrl || '');
       setInstagramUrl((propertyToEdit as any).instagramUrl || '');
+      const avail = (propertyToEdit as any).availableDate;
+      if (avail) {
+        const d = typeof avail === 'string' ? new Date(avail) : avail;
+        if (!isNaN(d.getTime())) {
+          setAvailableDate(d.toISOString().slice(0, 10));
+        }
+      }
       setStatus((propertyToEdit as any).status || 'draft');
 
       // Load existing images (if editing and images exist)
@@ -309,6 +319,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
         videoUrl: videoUrl.trim(),
         panoramicPhotosUrl: panoramicPhotosUrl.trim(),
         instagramUrl: instagramUrl.trim(),
+        availableDate: availableDate.trim() || undefined,
         status,
         tours: tours.length > 0 ? tours : undefined, // Include Matterport tours
         existingImages: existingImageUrls, // Send existing image URLs for merging
@@ -528,6 +539,42 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
               />
             </View>
           </View>
+          <Text style={[styles.label, { color: colors.textSecondary, marginTop: 12 }]}>Available from</Text>
+          <TouchableOpacity
+            style={[styles.datePickerButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text style={[styles.datePickerButtonText, { color: availableDate ? colors.text : colors.textSecondary }]}>
+              {availableDate
+                ? new Date(availableDate + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+                : 'Select date'}
+            </Text>
+            <Text style={[styles.datePickerChevron, { color: colors.textSecondary }]}>📅</Text>
+          </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              value={availableDate ? new Date(availableDate + 'T12:00:00') : new Date()}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : undefined}
+              themeVariant={Platform.OS === 'ios' ? (isDark ? 'dark' : 'light') : undefined}
+              textColor={Platform.OS === 'ios' ? (isDark ? '#FFFFFF' : '#000000') : undefined}
+              onChange={(_, d) => {
+                if (Platform.OS === 'android') setShowDatePicker(false);
+                if (d) setAvailableDate(d.toISOString().slice(0, 10));
+              }}
+            />
+          )}
+          {showDatePicker && Platform.OS === 'ios' && (
+            <TouchableOpacity
+              style={[styles.datePickerDoneButton, { backgroundColor: colors.primary }]}
+              onPress={() => setShowDatePicker(false)}
+            >
+              <Text style={[styles.datePickerDoneButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>Done</Text>
+            </TouchableOpacity>
+          )}
+          <Text style={[styles.hint, { color: colors.textSecondary }]}>
+            When the property becomes available. If within 1 month, shows &quot;now&quot;; otherwise &quot;soon&quot; with date.
+          </Text>
         </View>
 
         {/* Features */}
@@ -831,6 +878,56 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 16,
     marginBottom: 12,
+  },
+  datePickerButton: {
+    height: 50,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  datePickerButtonText: {
+    fontSize: 16,
+  },
+  datePickerChevron: {
+    fontSize: 18,
+  },
+  datePickerModalWrapper: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  datePickerModal: {
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingBottom: 34,
+    maxHeight: '70%',
+  },
+  datePickerCalendarContainer: {
+    minHeight: 320,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  datePickerDone: {
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  datePickerDoneButton: {
+    marginTop: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  datePickerDoneButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   textArea: {
     minHeight: 100,

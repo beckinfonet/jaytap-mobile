@@ -78,6 +78,9 @@ export const PropertyService = {
       formData.append('panoramicPhotosUrl', propertyData.panoramicPhotosUrl || '');
       formData.append('instagramUrl', propertyData.instagramUrl || '');
       formData.append('status', propertyData.status || 'draft');
+      if (propertyData.availableDate) {
+        formData.append('availableDate', propertyData.availableDate);
+      }
       
       // Add Matterport tours if provided
       if (propertyData.tours && propertyData.tours.length > 0) {
@@ -138,6 +141,9 @@ export const PropertyService = {
       formData.append('panoramicPhotosUrl', propertyData.panoramicPhotosUrl || '');
       formData.append('instagramUrl', propertyData.instagramUrl || '');
       formData.append('status', propertyData.status || 'draft');
+      if (propertyData.availableDate) {
+        formData.append('availableDate', propertyData.availableDate);
+      }
       
       // Add Matterport tours if provided
       if (propertyData.tours && propertyData.tours.length > 0) {
