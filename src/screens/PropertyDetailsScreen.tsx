@@ -510,7 +510,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                   color={property.instagramUrl ? colors.text : colors.textSecondary}
                   strokeWidth={1.5}
                 />
-                <Text style={[styles.mediaGridLabel, { color: property.instagramUrl ? colors.text : colors.textSecondary }]}>{t('property.instagram')}</Text>
+                <Text style={[styles.mediaGridLabel, { color: property.instagramUrl ? colors.text : colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">{t('property.instagram')}</Text>
                 <ChevronRight size={20} color={property.instagramUrl ? colors.textSecondary : colors.textTertiary} />
               </TouchableOpacity>
 
@@ -524,7 +524,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 disabled={!onOpenPhotos || !property.panoramicPhotosUrl}
               >
                 <ImageIcon size={24} color={(property.panoramicPhotosUrl && onOpenPhotos) ? colors.text : colors.textSecondary} />
-                <Text style={[styles.mediaGridLabel, { color: (property.panoramicPhotosUrl && onOpenPhotos) ? colors.text : colors.textSecondary }]}>{t('property.photos')}</Text>
+                <Text style={[styles.mediaGridLabel, { color: (property.panoramicPhotosUrl && onOpenPhotos) ? colors.text : colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">{t('property.photos')}</Text>
                 <ChevronRight size={20} color={(property.panoramicPhotosUrl && onOpenPhotos) ? colors.textSecondary : colors.textTertiary} />
               </TouchableOpacity>
 
@@ -538,7 +538,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 disabled={!property.videoUrl}
               >
                 <Video size={24} color={property.videoUrl ? colors.text : colors.textSecondary} />
-                <Text style={[styles.mediaGridLabel, { color: property.videoUrl ? colors.text : colors.textSecondary }]}>{t('property.videos')}</Text>
+                <Text style={[styles.mediaGridLabel, { color: property.videoUrl ? colors.text : colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">{t('property.videos')}</Text>
                 <ChevronRight size={20} color={property.videoUrl ? colors.textSecondary : colors.textTertiary} />
               </TouchableOpacity>
 
@@ -552,7 +552,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 disabled={!property.owner}
               >
                 <MessageCircle size={24} color={property.owner ? colors.text : colors.textSecondary} />
-                <Text style={[styles.mediaGridLabel, { color: property.owner ? colors.text : colors.textSecondary }]}>{t('property.message')}</Text>
+                <Text style={[styles.mediaGridLabel, { color: property.owner ? colors.text : colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">{t('property.message')}</Text>
                 <ChevronRight size={20} color={property.owner ? colors.textSecondary : colors.textTertiary} />
               </TouchableOpacity>
             </View>
@@ -1183,9 +1183,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
+    width: '100%',
   },
   mediaGridCard: {
-    width: '47%',
+    flex: 1,
+    minWidth: '48%',
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
@@ -1195,9 +1197,10 @@ const styles = StyleSheet.create({
   },
   mediaGridLabel: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     flexShrink: 1,
+    minWidth: 0,
   },
   mediaButtonsRow: {
     flexDirection: 'row',
