@@ -626,24 +626,28 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           {/* Description */}
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('property.description')}</Text>
-            <Text style={[styles.description, { color: colors.textSecondary }]}>
-              {property.description}
-            </Text>
+            <View style={[styles.sectionContentBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Text style={[styles.description, { color: colors.text }]}>
+                {property.description}
+              </Text>
+            </View>
           </View>
 
-          {/* Features - Airbnb-style two-column layout with icons */}
+          {/* Features - title + box with two-column grid */}
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('property.whatThisPlaceOffers')}</Text>
-            <View style={styles.featuresGrid}>
-              {property.features.map((feature, index) => {
-                const IconComponent = getFeatureIcon(feature);
-                return (
-                  <View key={index} style={styles.featureItem}>
-                    <IconComponent size={20} color={colors.text} />
-                    <Text style={[styles.featureItemText, { color: colors.text }]}>{feature}</Text>
-                  </View>
-                );
-              })}
+            <View style={[styles.sectionContentBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.featuresGrid}>
+                {property.features.map((feature, index) => {
+                  const IconComponent = getFeatureIcon(feature);
+                  return (
+                    <View key={index} style={styles.featureItem}>
+                      <IconComponent size={20} color={colors.textSecondary} />
+                      <Text style={[styles.featureItemText, { color: colors.text }]}>{feature}</Text>
+                    </View>
+                  );
+                })}
+              </View>
             </View>
           </View>
 
@@ -1152,7 +1156,19 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
+    marginTop: 16,
     marginBottom: 12,
+  },
+  sectionContentBox: {
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    marginTop: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   description: {
     fontSize: 15,
@@ -1167,11 +1183,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width: '50%',
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 8,
   },
   featureItemText: {
-    fontSize: 16,
+    fontSize: 15,
     marginLeft: 12,
   },
   mediaButtonsContainer: {
