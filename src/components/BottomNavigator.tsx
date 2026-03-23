@@ -27,7 +27,7 @@ export const BottomNavigator: React.FC<BottomNavigatorProps> = ({ activeTab, onT
   const { colors, isDark } = useTheme();
   const { t } = useLanguage();
   const insets = useSafeAreaInsets();
-  const bottomInset = Math.max(insets.bottom, 8);
+  const bottomInset = Platform.OS === 'android' ? Math.max(insets.bottom, 16) : Math.max(insets.bottom, 8);
 
   const tabBarBg = isDark ? '#1A1B1E' : colors.surface;
   const inactiveColor = isDark ? '#9CA3AF' : colors.textSecondary;
@@ -124,7 +124,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-end',
-    marginBottom: -8,
     paddingBottom: 2,
   },
   addButton: {

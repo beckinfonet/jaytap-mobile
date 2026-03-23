@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Heart, Calendar, ClipboardList, Plus, ChevronRight, LogOut } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
@@ -99,7 +100,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: themeStyles.background }]}>
-            <View style={styles.header}>
+            <View style={[styles.header, { borderBottomColor: themeStyles.border }]}>
                 <TouchableOpacity onPress={onBack} style={styles.iconButton}>
                     <Text style={{ fontSize: 24, color: themeStyles.accent }}>←</Text>
                 </TouchableOpacity>
@@ -107,7 +108,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                 <View style={{ width: 40 }} />
             </View>
 
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} style={styles.scrollView}>
+                {/* User Info Card */}
                 <TouchableOpacity
                     style={[styles.profileCard, { backgroundColor: themeStyles.surface }]}
                     onPress={onViewAccountSettings}
@@ -124,96 +126,71 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
                             <Text style={[styles.role, { color: themeStyles.accent }]}>{isRenterApplicant ? t('profile.applicant') : t('profile.buyerAccount')}</Text>
                             <Text style={[styles.accountSettings, { color: themeStyles.textSecondary }]}>{t('profile.accountSettings')}</Text>
                         </View>
-                        <Text style={[styles.arrow, { color: themeStyles.textSecondary }]}>›</Text>
+                        <ChevronRight size={20} color={themeStyles.textSecondary} />
                     </View>
                 </TouchableOpacity>
 
+                {/* Menu Card - grouped items with internal dividers */}
+                <View style={[styles.menuCard, { backgroundColor: themeStyles.surface, borderColor: themeStyles.border }]}>
+                    <TouchableOpacity style={styles.menuRow} onPress={onViewFavorites} activeOpacity={0.7}>
+                        <Heart size={22} color={themeStyles.accent} strokeWidth={1.5} />
+                        <Text style={[styles.menuText, { color: themeStyles.text, flex: 1 }]}>{t('profile.favorites')}</Text>
+                        <ChevronRight size={20} color={themeStyles.textSecondary} />
+                    </TouchableOpacity>
+
+                    <View style={[styles.menuDivider, { backgroundColor: themeStyles.border }]} />
+                    <TouchableOpacity style={styles.menuRow} onPress={onViewAppointments} activeOpacity={0.7}>
+                        <Calendar size={22} color={themeStyles.accent} strokeWidth={1.5} />
+                        <Text style={[styles.menuText, { color: themeStyles.text, flex: 1 }]}>{t('profile.appointments')}</Text>
+                        <ChevronRight size={20} color={themeStyles.textSecondary} />
+                    </TouchableOpacity>
+
+                    {userType === 'renter' && (
+                        <>
+                            <View style={[styles.menuDivider, { backgroundColor: themeStyles.border }]} />
+                            <TouchableOpacity style={styles.menuRow} onPress={onViewListings} activeOpacity={0.7}>
+                                <ClipboardList size={22} color={themeStyles.accent} strokeWidth={1.5} />
+                                <Text style={[styles.menuText, { color: themeStyles.text, flex: 1 }]}>{t('profile.myListings')}</Text>
+                                <ChevronRight size={20} color={themeStyles.textSecondary} />
+                            </TouchableOpacity>
+                            <View style={[styles.menuDivider, { backgroundColor: themeStyles.border }]} />
+                            <TouchableOpacity
+                                style={[styles.menuRow, styles.createListingRow, { backgroundColor: themeStyles.accent }]}
+                                onPress={onCreateListing}
+                                activeOpacity={0.7}
+                            >
+                                <Plus size={22} color="#FFF" strokeWidth={2} />
+                                <Text style={[styles.menuText, { color: '#FFF', flex: 1 }]}>{t('profile.createListing')}</Text>
+                                <ChevronRight size={20} color="#FFF" />
+                            </TouchableOpacity>
+                        </>
+                    )}
+                </View>
+            </ScrollView>
+
+            {/* Log Out - pinned to bottom */}
+            <View style={[styles.logoutFooter, { backgroundColor: themeStyles.background, borderTopColor: themeStyles.border }]}>
                 <TouchableOpacity
-                    style={[styles.menuItem, { backgroundColor: themeStyles.surface }]}
-                    onPress={onViewFavorites}
-                >
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={{ fontSize: 20, color: themeStyles.accent, marginRight: 12 }}>♡</Text>
-                        <Text style={[styles.menuText, { color: themeStyles.text }]}>{t('profile.favorites')}</Text>
-                    </View>
-                    <Text style={[styles.arrow, { color: themeStyles.textSecondary }]}>›</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={[styles.menuItem, { backgroundColor: themeStyles.surface }]}
-                    onPress={onViewAppointments}
-                >
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={{ fontSize: 20, color: themeStyles.accent, marginRight: 12 }}>📅</Text>
-                        <Text style={[styles.menuText, { color: themeStyles.text }]}>{t('profile.appointments')}</Text>
-                    </View>
-                    <Text style={[styles.arrow, { color: themeStyles.textSecondary }]}>›</Text>
-                </TouchableOpacity>
-
-                {/* Renter Actions - Only show if userType === 'renter' */}
-                {userType === 'renter' && (
-                    <>
-                        {/* <View style={[styles.availabilitySection, { backgroundColor: themeStyles.surface, borderColor: themeStyles.border }]}>
-                            <Text style={[styles.availabilityLabel, { color: themeStyles.text }]}>Viewing time slots</Text>
-                            <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
-                                <TouchableOpacity
-                                    style={[styles.blockSizeButton, { borderColor: themeStyles.accent }, blockSize === '30min' && { backgroundColor: themeStyles.accent }]}
-                                    onPress={async () => {
-                                        setBlockSize('30min');
-                                        await AppointmentService.updateOwnerSettings({ blockSize: '30min' });
-                                    }}
-                                >
-                                    <Text style={[styles.blockSizeText, { color: blockSize === '30min' ? '#FFF' : themeStyles.text }]}>30 min</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={[styles.blockSizeButton, { borderColor: themeStyles.accent }, blockSize === '60min' && { backgroundColor: themeStyles.accent }]}
-                                    onPress={async () => {
-                                        setBlockSize('60min');
-                                        await AppointmentService.updateOwnerSettings({ blockSize: '60min' });
-                                    }}
-                                >
-                                    <Text style={[styles.blockSizeText, { color: blockSize === '60min' ? '#FFF' : themeStyles.text }]}>60 min</Text>
-                                </TouchableOpacity>
-                            </View>
-                            <Text style={[styles.availabilityHint, { color: themeStyles.textSecondary }]}>9am–5pm Bishkek time</Text>
-                        </View> */}
-
-                        <TouchableOpacity
-                            style={[styles.menuItem, { backgroundColor: themeStyles.surface }]}
-                            onPress={onViewListings}
-                        >
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <Text style={{ fontSize: 20, color: themeStyles.accent, marginRight: 12 }}>📋</Text>
-                                <Text style={[styles.menuText, { color: themeStyles.text }]}>{t('profile.myListings')}</Text>
-                            </View>
-                            <Text style={[styles.arrow, { color: themeStyles.textSecondary }]}>›</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[styles.menuItem, { backgroundColor: themeStyles.accent }]}
-                            onPress={onCreateListing}
-                        >
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <Text style={{ fontSize: 20, color: '#FFF', marginRight: 12 }}>➕</Text>
-                                <Text style={[styles.menuText, { color: '#FFF' }]}>{t('profile.createListing')}</Text>
-                            </View>
-                            <Text style={[styles.arrow, { color: '#FFF' }]}>›</Text>
-                        </TouchableOpacity>
-                    </>
-                )}
-
-                <TouchableOpacity
-                    style={[styles.logoutButton, { borderColor: themeStyles.danger }]}
+                    style={[
+                        styles.logoutButton,
+                        {
+                            backgroundColor: isDark ? themeStyles.surface : 'transparent',
+                            borderColor: themeStyles.danger,
+                        },
+                    ]}
                     onPress={handleLogout}
                     disabled={loggingOut}
                 >
                     {loggingOut ? (
                         <ActivityIndicator color={themeStyles.danger} />
                     ) : (
-                        <Text style={[styles.logoutText, { color: themeStyles.danger }]}>→  {t('profile.logOut')}</Text>
+                        <View style={styles.logoutContent}>
+                            <LogOut size={20} color={themeStyles.danger} strokeWidth={2} />
+                            <Text style={[styles.logoutText, { color: themeStyles.danger }]}>{t('profile.logOut')}</Text>
+                        </View>
                     )}
                 </TouchableOpacity>
-            </ScrollView>
+            </View>
         </SafeAreaView>
     );
 };
@@ -222,9 +199,12 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    scrollView: {
+        flex: 1,
+    },
     scrollContent: {
         padding: 20,
-        paddingBottom: 40,
+        paddingBottom: 1,
     },
     header: {
         flexDirection: 'row',
@@ -233,6 +213,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 0,
         paddingVertical: 10,
         marginBottom: 20,
+        borderBottomWidth: 1,
     },
     headerTitle: {
         fontSize: 20,
@@ -245,7 +226,7 @@ const styles = StyleSheet.create({
     profileCard: {
         padding: 20,
         borderRadius: 16,
-        marginBottom: 24,
+        marginBottom: 12,
     },
     avatar: {
         width: 50,
@@ -287,21 +268,32 @@ const styles = StyleSheet.create({
     },
     blockSizeText: { fontSize: 14, fontWeight: '600' },
     availabilityHint: { fontSize: 12, marginTop: 8 },
-    menuItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 16,
+    menuCard: {
         borderRadius: 16,
+        borderWidth: 1,
+        overflow: 'hidden',
         marginBottom: 24,
     },
+    menuRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 16,
+        paddingHorizontal: 16,
+        gap: 12,
+    },
+    menuDivider: {
+        height: 1,
+        marginLeft: 50,
+    },
+    createListingRow: {},
     menuText: {
         fontSize: 16,
         fontWeight: '600',
     },
-    arrow: {
-        fontSize: 20,
-        fontWeight: 'bold',
+    logoutFooter: {
+        paddingHorizontal: 20,
+        paddingTop: 12,
+        borderTopWidth: 1,
     },
     logoutButton: {
         height: 56,
@@ -309,8 +301,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
-        backgroundColor: 'transparent',
-        marginTop: 20,
+        flexDirection: 'row',
+    },
+    logoutContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
     },
     logoutText: {
         fontSize: 16,
