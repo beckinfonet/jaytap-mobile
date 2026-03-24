@@ -55,8 +55,17 @@ function AppContent() {
   const [propertyToSchedule, setPropertyToSchedule] = useState<Property | null>(null);
   const [participantUidForSchedule, setParticipantUidForSchedule] = useState<string | undefined>();
   const [isAppointmentsOpen, setIsAppointmentsOpen] = useState(false);
+  const [returnToProfileAfterFavorites, setReturnToProfileAfterFavorites] = useState(false);
+  const [returnToProfileAfterAppointments, setReturnToProfileAfterAppointments] = useState(false);
   const [ownerListingsUid, setOwnerListingsUid] = useState<string | null>(null);
   const [ownerListingsName, setOwnerListingsName] = useState<string>('');
+  const [tabEverMounted, setTabEverMounted] = useState({
+    favorites: false,
+    appointments: false,
+    accountSettings: false,
+    profile: false,
+    chat: false,
+  });
 
   // Handle deep linking for shared property links
   useEffect(() => {
@@ -183,10 +192,18 @@ function AppContent() {
       }
       if (isFavoritesOpen) {
         setIsFavoritesOpen(false);
+        if (returnToProfileAfterFavorites) {
+          setIsProfileOpen(true);
+          setReturnToProfileAfterFavorites(false);
+        }
         return true;
       }
       if (isAppointmentsOpen) {
         setIsAppointmentsOpen(false);
+        if (returnToProfileAfterAppointments) {
+          setIsProfileOpen(true);
+          setReturnToProfileAfterAppointments(false);
+        }
         return true;
       }
       if (isProfileOpen) {
@@ -219,6 +236,8 @@ function AppContent() {
     isAppointmentsOpen,
     isProfileOpen,
     isChatOpen,
+    returnToProfileAfterFavorites,
+    returnToProfileAfterAppointments,
   ]);
 
   // Load favorite statuses when user logs in
@@ -258,6 +277,59 @@ function AppContent() {
       setFavoriteStatuses({});
     }
   }, [user]);
+
+  // Main-stack tab visibility (must run before any early return; drives tab keep-alive)
+  const inMainStack = !selectedProperty;
+  const showFavorites = inMainStack && isFavoritesOpen;
+  const showAppointments = inMainStack && !isFavoritesOpen && isAppointmentsOpen;
+  const showAccountSettings = inMainStack && !isFavoritesOpen && !isAppointmentsOpen && isAccountSettingsOpen;
+  const showProfile = inMainStack && !isFavoritesOpen && !isAppointmentsOpen && !isAccountSettingsOpen && isProfileOpen;
+  const showSchedule =
+    inMainStack &&
+    !isFavoritesOpen &&
+    !isAppointmentsOpen &&
+    !isAccountSettingsOpen &&
+    !isProfileOpen &&
+    isScheduleViewingOpen &&
+    !!propertyToSchedule;
+  const showChat =
+    inMainStack &&
+    !isFavoritesOpen &&
+    !isAppointmentsOpen &&
+    !isAccountSettingsOpen &&
+    !isProfileOpen &&
+    !(isScheduleViewingOpen && propertyToSchedule) &&
+    isChatOpen;
+  const showHome =
+    inMainStack &&
+    !isFavoritesOpen &&
+    !isAppointmentsOpen &&
+    !isAccountSettingsOpen &&
+    !isProfileOpen &&
+    !(isScheduleViewingOpen && propertyToSchedule) &&
+    !isChatOpen;
+
+  useEffect(() => {
+    setTabEverMounted((m) => {
+      const next = {
+        favorites: m.favorites || showFavorites,
+        appointments: m.appointments || showAppointments,
+        accountSettings: m.accountSettings || showAccountSettings,
+        profile: m.profile || showProfile,
+        chat: m.chat || showChat,
+      };
+      if (
+        next.favorites === m.favorites &&
+        next.appointments === m.appointments &&
+        next.accountSettings === m.accountSettings &&
+        next.profile === m.profile &&
+        next.chat === m.chat
+      ) {
+        return m;
+      }
+      return next;
+    });
+  }, [showFavorites, showAppointments, showAccountSettings, showProfile, showChat]);
 
   if (loading) {
     return (
@@ -391,127 +463,122 @@ function AppContent() {
     );
   }
 
+  const mainStackScreenStyle = (visible: boolean) =>
+    ({
+      flex: 1,
+      display: visible ? 'flex' : 'none',
+    }) as const;
+
   return (
     <>
-      {selectedProperty ? (
-        <PropertyDetailsScreen
-          property={selectedProperty}
-          onBack={() => {
-            setSelectedProperty(null);
-            // View mode will be restored by HomeScreen's internal state
-          }}
-          onOpenTours={() => handleOpenTours(selectedProperty)}
-          onOpenPhotos={(url) => setActivePhotosUrl(url)}
-          onMessagePress={() => {
-            if (!user) {
-              setAuthPromptMessage(t('auth.pleaseSignInToMessage'));
-              setShowAuthPrompt(true);
-              return;
-            }
-            const ownerUid = selectedProperty.owner?.uid || (selectedProperty as any).ownerUid;
-            if (ownerUid === user.localId) {
-              return; // Cannot message own listing - button disabled
-            }
-            setPropertyToOpenChat(selectedProperty);
-            setSelectedProperty(null);
-            setIsChatOpen(true);
-          }}
-          onScheduleViewing={() => {
-            if (!user) {
-              setAuthPromptMessage(t('auth.pleaseSignInToSchedule'));
-              setShowAuthPrompt(true);
-              return;
-            }
-            const ownerUid = selectedProperty.owner?.uid || (selectedProperty as any).ownerUid;
-            if (ownerUid === user.localId) return;
-            setPropertyToSchedule(selectedProperty);
-            setSelectedProperty(null);
-            setIsScheduleViewingOpen(true);
-          }}
-          returnToMap={homeViewMode === 'map'}
-          onFavorite={handleFavorite}
-          isFavorited={favoriteStatuses[selectedProperty.id] || false}
-          isLoading={favoriteLoading[selectedProperty.id] || false}
-          onLandlordPress={(ownerUid, ownerName) => {
-            setSelectedProperty(null);
-            setOwnerListingsUid(ownerUid);
-            setOwnerListingsName(ownerName);
-          }}
-        />
-      ) : (
-        <View style={{ flex: 1 }}>
-          {isFavoritesOpen ? (
-            <FavoritesScreen
-              onBack={() => setIsFavoritesOpen(false)}
-              onSelectProperty={setSelectedProperty}
-              onOpenTours={handleOpenTours}
-              favoriteStatuses={favoriteStatuses}
-              onFavorite={handleFavorite}
-              favoriteLoading={favoriteLoading}
-            />
-          ) : isAppointmentsOpen ? (
-            <AppointmentsScreen
-              onBack={() => setIsAppointmentsOpen(false)}
-              propertyToOpen={propertyToSchedule}
-              participantUid={undefined}
-            />
-          ) : isAccountSettingsOpen ? (
-            <AccountSettingsScreen
-              onBack={() => setIsAccountSettingsOpen(false)}
-              onAccountDeleted={() => {
-                setIsAccountSettingsOpen(false);
-                setIsProfileOpen(false);
-              }}
-            />
-          ) : isProfileOpen ? (
-            <ProfileScreen
-              onBack={() => setIsProfileOpen(false)}
-              onCreateListing={() => setIsCreateListingOpen(true)}
-              onViewListings={() => setIsRenterListingsOpen(true)}
-              onViewFavorites={() => {
-                setIsProfileOpen(false);
-                setIsFavoritesOpen(true);
-              }}
-              onViewAppointments={() => {
-                setIsProfileOpen(false);
-                setIsAppointmentsOpen(true);
-              }}
-              onViewAccountSettings={() => setIsAccountSettingsOpen(true)}
-            />
-          ) : isScheduleViewingOpen && propertyToSchedule ? (
-            <ScheduleViewingScreen
-              property={propertyToSchedule}
-              participantUid={participantUidForSchedule}
-              onBack={() => {
-                setIsScheduleViewingOpen(false);
-                setPropertyToSchedule(null);
-                setParticipantUidForSchedule(undefined);
-              }}
-              onSuccess={() => {
-                setIsScheduleViewingOpen(false);
-                setPropertyToSchedule(null);
-                setParticipantUidForSchedule(undefined);
-                setIsAppointmentsOpen(true);
-              }}
-            />
-          ) : isChatOpen ? (
-            <ChatScreen
-              onBack={() => {
-                setIsChatOpen(false);
-                setPropertyToOpenChat(null);
-              }}
-              propertyToOpen={propertyToOpenChat}
-              onClearPropertyToOpen={() => setPropertyToOpenChat(null)}
-              onUnreadCountChange={setChatUnreadCount}
-              onScheduleViewing={(property, participantUid) => {
-                setPropertyToSchedule(property);
-                setParticipantUidForSchedule(participantUid);
-                setIsChatOpen(false);
-                setPropertyToOpenChat(null);
-                setIsScheduleViewingOpen(true);
-              }}
-            />
-          ) : (
+      <View style={{ flex: 1 }}>
+        {/* Keep main stack mounted while details open (hidden) so returning does not remount Home / tabs */}
+        <View style={{ flex: 1, display: selectedProperty ? 'none' : 'flex' }}>
+          {(tabEverMounted.favorites || showFavorites) && (
+            <View style={mainStackScreenStyle(showFavorites)}>
+              <FavoritesScreen
+                onBack={() => {
+                  setIsFavoritesOpen(false);
+                  if (returnToProfileAfterFavorites) {
+                    setIsProfileOpen(true);
+                    setReturnToProfileAfterFavorites(false);
+                  }
+                }}
+                onSelectProperty={setSelectedProperty}
+                onOpenTours={handleOpenTours}
+                favoriteStatuses={favoriteStatuses}
+                onFavorite={handleFavorite}
+                favoriteLoading={favoriteLoading}
+              />
+            </View>
+          )}
+          {(tabEverMounted.appointments || showAppointments) && (
+            <View style={mainStackScreenStyle(showAppointments)}>
+              <AppointmentsScreen
+                onBack={() => {
+                  setIsAppointmentsOpen(false);
+                  if (returnToProfileAfterAppointments) {
+                    setIsProfileOpen(true);
+                    setReturnToProfileAfterAppointments(false);
+                  }
+                }}
+                propertyToOpen={propertyToSchedule}
+                participantUid={undefined}
+              />
+            </View>
+          )}
+          {(tabEverMounted.accountSettings || showAccountSettings) && (
+            <View style={mainStackScreenStyle(showAccountSettings)}>
+              <AccountSettingsScreen
+                onBack={() => setIsAccountSettingsOpen(false)}
+                onAccountDeleted={() => {
+                  setIsAccountSettingsOpen(false);
+                  setIsProfileOpen(false);
+                }}
+              />
+            </View>
+          )}
+          {(tabEverMounted.profile || showProfile) && (
+            <View style={mainStackScreenStyle(showProfile)}>
+              <ProfileScreen
+                onBack={() => setIsProfileOpen(false)}
+                onCreateListing={() => setIsCreateListingOpen(true)}
+                onViewListings={() => setIsRenterListingsOpen(true)}
+                onViewFavorites={() => {
+                  setReturnToProfileAfterFavorites(true);
+                  setIsProfileOpen(false);
+                  setIsFavoritesOpen(true);
+                }}
+                onViewAppointments={() => {
+                  setReturnToProfileAfterAppointments(true);
+                  setIsProfileOpen(false);
+                  setIsAppointmentsOpen(true);
+                }}
+                onViewAccountSettings={() => setIsAccountSettingsOpen(true)}
+              />
+            </View>
+          )}
+          {showSchedule && propertyToSchedule && (
+            <View style={{ flex: 1 }}>
+              <ScheduleViewingScreen
+                property={propertyToSchedule}
+                participantUid={participantUidForSchedule}
+                onBack={() => {
+                  setIsScheduleViewingOpen(false);
+                  setPropertyToSchedule(null);
+                  setParticipantUidForSchedule(undefined);
+                }}
+                onSuccess={() => {
+                  setIsScheduleViewingOpen(false);
+                  setPropertyToSchedule(null);
+                  setParticipantUidForSchedule(undefined);
+                  setReturnToProfileAfterAppointments(false);
+                  setIsAppointmentsOpen(true);
+                }}
+              />
+            </View>
+          )}
+          {(tabEverMounted.chat || showChat) && (
+            <View style={mainStackScreenStyle(showChat)}>
+              <ChatScreen
+                onBack={() => {
+                  setIsChatOpen(false);
+                  setPropertyToOpenChat(null);
+                }}
+                propertyToOpen={propertyToOpenChat}
+                onClearPropertyToOpen={() => setPropertyToOpenChat(null)}
+                onUnreadCountChange={setChatUnreadCount}
+                onScheduleViewing={(property, participantUid) => {
+                  setPropertyToSchedule(property);
+                  setParticipantUidForSchedule(participantUid);
+                  setIsChatOpen(false);
+                  setPropertyToOpenChat(null);
+                  setIsScheduleViewingOpen(true);
+                }}
+              />
+            </View>
+          )}
+          <View style={mainStackScreenStyle(showHome)}>
             <HomeScreen
               onSelectProperty={setSelectedProperty}
               onOpenTours={handleOpenTours}
@@ -528,6 +595,7 @@ function AppContent() {
                   setAuthPromptMessage(t('auth.pleaseSignInToViewFavorites'));
                   setShowAuthPrompt(true);
                 } else {
+                  setReturnToProfileAfterFavorites(false);
                   setIsFavoritesOpen(true);
                 }
               }}
@@ -537,7 +605,7 @@ function AppContent() {
               favoriteStatuses={favoriteStatuses}
               favoriteLoading={favoriteLoading}
             />
-          )}
+          </View>
           <BottomNavigator
             activeTab={
               isFavoritesOpen ? 'favorites' : isProfileOpen ? 'profile' : isAppointmentsOpen ? 'profile' : isChatOpen ? 'chat' : 'home'
@@ -559,6 +627,7 @@ function AppContent() {
                   setShowAuthPrompt(true);
                   return;
                 }
+                setReturnToProfileAfterFavorites(false);
                 setIsFavoritesOpen(true);
                 setIsProfileOpen(false);
                 setIsChatOpen(false);
@@ -570,6 +639,8 @@ function AppContent() {
                   setShowAuthPrompt(true);
                   return;
                 }
+                setReturnToProfileAfterFavorites(false);
+                setReturnToProfileAfterAppointments(false);
                 setIsProfileOpen(true);
                 setIsFavoritesOpen(false);
                 setIsChatOpen(false);
@@ -581,12 +652,16 @@ function AppContent() {
                   setShowAuthPrompt(true);
                   return;
                 }
+                setReturnToProfileAfterFavorites(false);
+                setReturnToProfileAfterAppointments(false);
                 setIsChatOpen(true);
                 setIsFavoritesOpen(false);
                 setIsProfileOpen(false);
                 return;
               }
               if (tab === 'home') {
+                setReturnToProfileAfterFavorites(false);
+                setReturnToProfileAfterAppointments(false);
                 setIsFavoritesOpen(false);
                 setIsProfileOpen(false);
                 setIsChatOpen(false);
@@ -594,7 +669,64 @@ function AppContent() {
             }}
           />
         </View>
-      )}
+        {selectedProperty && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 2,
+              elevation: 4,
+            }}
+          >
+            <PropertyDetailsScreen
+              property={selectedProperty}
+              onBack={() => {
+                setSelectedProperty(null);
+              }}
+              onOpenTours={() => handleOpenTours(selectedProperty)}
+              onOpenPhotos={(url) => setActivePhotosUrl(url)}
+              onMessagePress={() => {
+                if (!user) {
+                  setAuthPromptMessage(t('auth.pleaseSignInToMessage'));
+                  setShowAuthPrompt(true);
+                  return;
+                }
+                const ownerUid = selectedProperty.owner?.uid || (selectedProperty as any).ownerUid;
+                if (ownerUid === user.localId) {
+                  return;
+                }
+                setPropertyToOpenChat(selectedProperty);
+                setSelectedProperty(null);
+                setIsChatOpen(true);
+              }}
+              onScheduleViewing={() => {
+                if (!user) {
+                  setAuthPromptMessage(t('auth.pleaseSignInToSchedule'));
+                  setShowAuthPrompt(true);
+                  return;
+                }
+                const ownerUid = selectedProperty.owner?.uid || (selectedProperty as any).ownerUid;
+                if (ownerUid === user.localId) return;
+                setPropertyToSchedule(selectedProperty);
+                setSelectedProperty(null);
+                setIsScheduleViewingOpen(true);
+              }}
+              returnToMap={homeViewMode === 'map'}
+              onFavorite={handleFavorite}
+              isFavorited={favoriteStatuses[selectedProperty.id] || false}
+              isLoading={favoriteLoading[selectedProperty.id] || false}
+              onLandlordPress={(ownerUid, ownerName) => {
+                setSelectedProperty(null);
+                setOwnerListingsUid(ownerUid);
+                setOwnerListingsName(ownerName);
+              }}
+            />
+          </View>
+        )}
+      </View>
 
       {/* Modal Layer: Tour Selection */}
       {propertyForTourSelection && (
