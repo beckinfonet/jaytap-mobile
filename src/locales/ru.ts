@@ -12,6 +12,8 @@ export const ru: Record<TranslationKeys, string> = {
   'common.info': 'Информация',
   'common.success': 'Успешно',
   'common.confirm': 'Подтвердить',
+  'common.ok': 'ОК',
+  'common.no': 'Нет',
 
   // Auth
   'auth.signInRequired': 'Требуется вход',
@@ -254,11 +256,17 @@ export const ru: Record<TranslationKeys, string> = {
 
   // Schedule Viewing
   'schedule.title': 'Запланировать просмотр',
+  'schedule.today': 'Сегодня',
+  'schedule.tomorrow': 'Завтра',
   'schedule.timesBishkek': 'Время по Бишкеку (Asia/Bishkek)',
   'schedule.selectDate': 'Выберите дату',
   'schedule.selectTime': 'Выберите время',
   'schedule.noOwner': 'У этого объявления нет владельца. Невозможно запланировать просмотр.',
   'schedule.pendingRequest': 'Ожидающий запрос:',
+  'schedule.pendingRequestDetail': 'Ожидающий запрос: {date}, {start}–{end}',
+  'schedule.requestSentTitle': 'Запрос отправлен',
+  'schedule.cancelRequestTitle': 'Отменить запрос',
+  'schedule.yesCancel': 'Да, отменить',
   'schedule.waitingConfirmation': 'Ожидание подтверждения',
   'schedule.cancelRequest': 'Отменить запрос',
   'schedule.requestAppointment': 'Запросить встречу',

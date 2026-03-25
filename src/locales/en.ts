@@ -10,6 +10,8 @@ export const en = {
   'common.info': 'Info',
   'common.success': 'Success',
   'common.confirm': 'Confirm',
+  'common.ok': 'OK',
+  'common.no': 'No',
 
   // Auth
   'auth.signInRequired': 'Sign In Required',
@@ -252,11 +254,17 @@ export const en = {
 
   // Schedule Viewing
   'schedule.title': 'Schedule viewing',
+  'schedule.today': 'Today',
+  'schedule.tomorrow': 'Tomorrow',
   'schedule.timesBishkek': 'Times in Bishkek (Asia/Bishkek)',
   'schedule.selectDate': 'Select date',
   'schedule.selectTime': 'Select time',
   'schedule.noOwner': 'This listing has no owner. Cannot schedule a viewing.',
   'schedule.pendingRequest': 'Pending request:',
+  'schedule.pendingRequestDetail': 'Pending request: {date} at {start}–{end}',
+  'schedule.requestSentTitle': 'Request sent',
+  'schedule.cancelRequestTitle': 'Cancel request',
+  'schedule.yesCancel': 'Yes, cancel',
   'schedule.waitingConfirmation': 'Waiting for confirmation',
   'schedule.cancelRequest': 'Cancel request',
   'schedule.requestAppointment': 'Request appointment',

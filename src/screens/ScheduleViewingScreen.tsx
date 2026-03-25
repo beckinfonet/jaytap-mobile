@@ -11,6 +11,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage, type Language } from '../context/LanguageContext';
+import type { TranslationKeys } from '../locales';
 import { AppointmentService } from '../services/AppointmentService';
 import { Property } from '../types/Property';
 import type { Appointment, TimeSlot } from '../types/Appointment';
@@ -34,17 +36,20 @@ function getDateRange(days: number): string[] {
   return out;
 }
 
-function formatDateLabel(dateStr: string): string {
+type TFn = (key: TranslationKeys, params?: Record<string, string>) => string;
+
+function formatDateLabel(dateStr: string, language: Language, t: TFn): string {
   const d = new Date(dateStr + 'T12:00:00');
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const dNorm = new Date(d);
   dNorm.setHours(0, 0, 0, 0);
-  if (dNorm.getTime() === today.getTime()) return 'Today';
+  if (dNorm.getTime() === today.getTime()) return t('schedule.today');
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  if (dNorm.getTime() === tomorrow.getTime()) return 'Tomorrow';
-  return d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+  if (dNorm.getTime() === tomorrow.getTime()) return t('schedule.tomorrow');
+  const loc = language === 'ru' ? 'ru-RU' : 'en-US';
+  return d.toLocaleDateString(loc, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
 export const ScheduleViewingScreen: React.FC<ScheduleViewingScreenProps> = ({
@@ -55,6 +60,7 @@ export const ScheduleViewingScreen: React.FC<ScheduleViewingScreenProps> = ({
 }) => {
   const { colors } = useTheme();
   const { user } = useAuth();
+  const { t, language } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [availability, setAvailability] = useState<{ blockSize: string; available: TimeSlot[] } | null>(null);
@@ -88,11 +94,11 @@ export const ScheduleViewingScreen: React.FC<ScheduleViewingScreenProps> = ({
         return res.available.length > 0 ? res.available[0].date : prev;
       });
     } catch (error: any) {
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to load availability');
+      Alert.alert(t('common.error'), error?.response?.data?.message || t('schedule.loadFailed'));
     } finally {
       setLoading(false);
     }
-  }, [property?.id, dates]);
+  }, [property?.id, dates, t]);
 
   useEffect(() => {
     loadAvailability();
@@ -116,11 +122,11 @@ export const ScheduleViewingScreen: React.FC<ScheduleViewingScreenProps> = ({
         selectedSlot,
         participantUid
       );
-      Alert.alert('Request sent', 'The other party will be notified to confirm the appointment.', [
-        { text: 'OK', onPress: () => { onSuccess?.(); onBack(); } },
+      Alert.alert(t('schedule.requestSentTitle'), t('schedule.requestSent'), [
+        { text: t('common.ok'), onPress: () => { onSuccess?.(); onBack(); } },
       ]);
     } catch (error: any) {
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to request appointment');
+      Alert.alert(t('common.error'), error?.response?.data?.message || t('schedule.requestFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -133,24 +139,20 @@ export const ScheduleViewingScreen: React.FC<ScheduleViewingScreenProps> = ({
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Text style={[styles.backButtonText, { color: colors.text }]}>← Back</Text>
+          <Text style={[styles.backButtonText, { color: colors.text }]}>{`← ${t('common.back')}`}</Text>
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Schedule viewing</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('schedule.title')}</Text>
         <View style={{ width: 60 }} />
       </View>
 
       <Text style={[styles.propertyTitle, { color: colors.text }]} numberOfLines={1}>
         {property.title}
       </Text>
-      <Text style={[styles.tzNote, { color: colors.textSecondary }]}>
-        Times in Bishkek (Asia/Bishkek)
-      </Text>
+      <Text style={[styles.tzNote, { color: colors.textSecondary }]}>{t('schedule.timesBishkek')}</Text>
 
       {!canSchedule ? (
         <View style={styles.emptyState}>
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            This listing has no owner. Cannot schedule a viewing.
-          </Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('schedule.noOwner')}</Text>
         </View>
       ) : loading ? (
         <View style={styles.loadingContainer}>
@@ -165,28 +167,32 @@ export const ScheduleViewingScreen: React.FC<ScheduleViewingScreenProps> = ({
           {pendingAppointment && pendingSlot && (
             <View style={[styles.pendingBanner, { backgroundColor: colors.accent + '25', borderColor: colors.accent }]}>
               <Text style={[styles.pendingBannerText, { color: colors.text }]}>
-                Pending request: {pendingDateStr} at {pendingSlot.startTime}–{pendingSlot.endTime}
+                {t('schedule.pendingRequestDetail', {
+                  date: pendingDateStr,
+                  start: pendingSlot.startTime,
+                  end: pendingSlot.endTime,
+                })}
               </Text>
               <Text style={[styles.pendingBannerSubtext, { color: colors.textSecondary }]}>
-                Waiting for confirmation
+                {t('schedule.waitingConfirmation')}
               </Text>
               <TouchableOpacity
                 style={[styles.cancelRequestButton, { borderColor: colors.textSecondary }]}
                 onPress={() => {
                   Alert.alert(
-                    'Cancel request',
-                    'Are you sure you want to cancel this viewing request?',
+                    t('schedule.cancelRequestTitle'),
+                    t('schedule.cancelConfirm'),
                     [
-                      { text: 'No', style: 'cancel' },
+                      { text: t('common.no'), style: 'cancel' },
                       {
-                        text: 'Yes, cancel',
+                        text: t('schedule.yesCancel'),
                         style: 'destructive',
                         onPress: async () => {
                           try {
                             await AppointmentService.declineAppointment(pendingAppointment.id);
                             loadAvailability();
                           } catch (e: any) {
-                            Alert.alert('Error', e?.response?.data?.message || 'Failed to cancel');
+                            Alert.alert(t('common.error'), e?.response?.data?.message || t('schedule.cancelFailed'));
                           }
                         },
                       },
@@ -194,12 +200,12 @@ export const ScheduleViewingScreen: React.FC<ScheduleViewingScreenProps> = ({
                   );
                 }}
               >
-                <Text style={[styles.cancelRequestText, { color: colors.textSecondary }]}>Cancel request</Text>
+                <Text style={[styles.cancelRequestText, { color: colors.textSecondary }]}>{t('schedule.cancelRequest')}</Text>
               </TouchableOpacity>
             </View>
           )}
           <View style={styles.dateSection}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Select date</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('schedule.selectDate')}</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -229,7 +235,7 @@ export const ScheduleViewingScreen: React.FC<ScheduleViewingScreenProps> = ({
                         { color: hasSlots ? (active ? '#FFF' : colors.text) : colors.textSecondary },
                       ]}
                     >
-                      {formatDateLabel(d).split(' ')[0]}
+                      {formatDateLabel(d, language, t).split(' ')[0]}
                     </Text>
                     <Text
                       style={[
@@ -248,7 +254,7 @@ export const ScheduleViewingScreen: React.FC<ScheduleViewingScreenProps> = ({
             </ScrollView>
           </View>
 
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Select time</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('schedule.selectTime')}</Text>
           <View style={styles.slotsGrid}>
             {slotsForDate.map((slot) => {
               const active = selectedSlot?.date === slot.date && selectedSlot?.startTime === slot.startTime;
@@ -281,9 +287,7 @@ export const ScheduleViewingScreen: React.FC<ScheduleViewingScreenProps> = ({
             })}
           </View>
           {selectedDate && slotsForDate.length === 0 && (
-            <Text style={[styles.noSlots, { color: colors.textSecondary }]}>
-              No available slots for this date
-            </Text>
+            <Text style={[styles.noSlots, { color: colors.textSecondary }]}>{t('schedule.noSlots')}</Text>
           )}
 
           <TouchableOpacity
@@ -298,9 +302,9 @@ export const ScheduleViewingScreen: React.FC<ScheduleViewingScreenProps> = ({
             {submitting ? (
               <ActivityIndicator size="small" color="#FFF" />
             ) : pendingAppointment ? (
-              <Text style={styles.submitButtonText}>Request pending</Text>
+              <Text style={styles.submitButtonText}>{t('schedule.requestPending')}</Text>
             ) : (
-              <Text style={styles.submitButtonText}>Request appointment</Text>
+              <Text style={styles.submitButtonText}>{t('schedule.requestAppointment')}</Text>
             )}
           </TouchableOpacity>
         </ScrollView>
