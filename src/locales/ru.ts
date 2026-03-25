@@ -42,7 +42,7 @@ export const ru: Record<TranslationKeys, string> = {
   'auth.pleaseSignInToViewChats': 'Войдите, чтобы просмотреть чаты',
 
   // Home
-  'home.searchPlaceholder': 'Поиск по городу, адресу или ID объявления',
+  'home.searchPlaceholder': 'Поиск по городу, адресу или ID',
   'home.rent': 'Аренда',
   'home.buy': 'Продажа',
   'home.commercial': 'Коммерческая',
