@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef, memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Heart, Calendar, ClipboardList, Plus, ChevronRight, LogOut } from 'lucide-react-native';
@@ -17,52 +17,69 @@ interface ProfileScreenProps {
     onViewAccountSettings?: () => void;
 }
 
-export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateListing, onViewListings, onViewFavorites, onViewAppointments, onViewAccountSettings }) => {
+function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onViewFavorites, onViewAppointments, onViewAccountSettings }: ProfileScreenProps) {
     const { user, logout } = useAuth();
     const { t } = useLanguage();
-    const { colors, isDark } = useTheme();
+    const { isDark } = useTheme();
 
     const [isRenterApplicant, setIsRenterApplicant] = useState(false);
     const [userType, setUserType] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
     const [blockSize, setBlockSize] = useState<'30min' | '60min'>('30min');
+    const profileDataLoadedRef = useRef(false);
 
-    // Dynamic Theme Colors
-    const themeStyles = {
-        background: isDark ? '#000000' : '#F2F2F7',
-        surface: isDark ? '#1E1E1E' : '#FFFFFF',
-        text: isDark ? '#FFFFFF' : '#000000',
-        textSecondary: isDark ? '#8E8E93' : '#3C3C4399', // iOS Gray
-        border: isDark ? '#2C2C2E' : '#E5E5EA',
-        accent: '#3B82F6', // Blue accent for both modes (System Blue)
-        avatarBg: isDark ? '#2C2C2E' : '#E5E5EA',
-        danger: '#FF453A',
-    };
+    const themeStyles = useMemo(
+        () => ({
+            background: isDark ? '#000000' : '#F2F2F7',
+            surface: isDark ? '#1E1E1E' : '#FFFFFF',
+            text: isDark ? '#FFFFFF' : '#000000',
+            textSecondary: isDark ? '#8E8E93' : '#3C3C4399',
+            border: isDark ? '#2C2C2E' : '#E5E5EA',
+            accent: '#3B82F6',
+            avatarBg: isDark ? '#2C2C2E' : '#E5E5EA',
+            danger: '#FF453A',
+        }),
+        [isDark],
+    );
 
     useEffect(() => {
-        loadProfile();
-    }, []);
-
-    const loadProfile = async () => {
-        if (!user?.localId) return;
-        setLoading(true);
-        try {
-            const [profile, settings] = await Promise.all([
-                AuthService.getBackendUser(user.localId),
-                AppointmentService.getOwnerSettings().catch(() => null),
-            ]);
-            if (settings) setBlockSize(settings.blockSize || '30min');
-            if (profile) {
-                setIsRenterApplicant(profile.isRenterApplicant || false);
-                setUserType(profile.userType || '');
-            }
-        } catch (error) {
-            console.error('Failed to load profile', error);
-        } finally {
+        if (!user?.localId) {
+            profileDataLoadedRef.current = false;
             setLoading(false);
+            return;
         }
-    };
+        let cancelled = false;
+        const run = async () => {
+            const showBlockingLoader = !profileDataLoadedRef.current;
+            if (showBlockingLoader) {
+                setLoading(true);
+            }
+            try {
+                const [profile, settings] = await Promise.all([
+                    AuthService.getBackendUser(user.localId),
+                    AppointmentService.getOwnerSettings().catch(() => null),
+                ]);
+                if (cancelled) return;
+                if (settings) setBlockSize(settings.blockSize || '30min');
+                if (profile) {
+                    setIsRenterApplicant(profile.isRenterApplicant || false);
+                    setUserType(profile.userType || '');
+                }
+                profileDataLoadedRef.current = true;
+            } catch (error) {
+                console.error('Failed to load profile', error);
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        };
+        run();
+        return () => {
+            cancelled = true;
+        };
+    }, [user?.localId]);
 
     const handleLogout = async () => {
         Alert.alert(
@@ -193,7 +210,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onBack, onCreateLi
             </View>
         </SafeAreaView>
     );
-};
+}
+
+export const ProfileScreen = memo(ProfileScreenComponent);
 
 const styles = StyleSheet.create({
     container: {

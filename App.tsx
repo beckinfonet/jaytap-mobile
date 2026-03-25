@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, ActivityIndicator, Linking, Alert, BackHandler, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { HomeScreen } from './src/screens/HomeScreen';
@@ -331,6 +331,21 @@ function AppContent() {
     });
   }, [showFavorites, showAppointments, showAccountSettings, showProfile, showChat]);
 
+  const onProfileBack = useCallback(() => setIsProfileOpen(false), []);
+  const onProfileCreateListing = useCallback(() => setIsCreateListingOpen(true), []);
+  const onProfileViewListings = useCallback(() => setIsRenterListingsOpen(true), []);
+  const onProfileViewFavorites = useCallback(() => {
+    setReturnToProfileAfterFavorites(true);
+    setIsProfileOpen(false);
+    setIsFavoritesOpen(true);
+  }, []);
+  const onProfileViewAppointments = useCallback(() => {
+    setReturnToProfileAfterAppointments(true);
+    setIsProfileOpen(false);
+    setIsAppointmentsOpen(true);
+  }, []);
+  const onProfileViewAccountSettings = useCallback(() => setIsAccountSettingsOpen(true), []);
+
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
@@ -521,20 +536,12 @@ function AppContent() {
           {(tabEverMounted.profile || showProfile) && (
             <View style={mainStackScreenStyle(showProfile)}>
               <ProfileScreen
-                onBack={() => setIsProfileOpen(false)}
-                onCreateListing={() => setIsCreateListingOpen(true)}
-                onViewListings={() => setIsRenterListingsOpen(true)}
-                onViewFavorites={() => {
-                  setReturnToProfileAfterFavorites(true);
-                  setIsProfileOpen(false);
-                  setIsFavoritesOpen(true);
-                }}
-                onViewAppointments={() => {
-                  setReturnToProfileAfterAppointments(true);
-                  setIsProfileOpen(false);
-                  setIsAppointmentsOpen(true);
-                }}
-                onViewAccountSettings={() => setIsAccountSettingsOpen(true)}
+                onBack={onProfileBack}
+                onCreateListing={onProfileCreateListing}
+                onViewListings={onProfileViewListings}
+                onViewFavorites={onProfileViewFavorites}
+                onViewAppointments={onProfileViewAppointments}
+                onViewAccountSettings={onProfileViewAccountSettings}
               />
             </View>
           )}

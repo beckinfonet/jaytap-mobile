@@ -83,6 +83,11 @@ cd ios && xcodebuild -workspace JayTap.xcworkspace -scheme JayTap -configuration
 
 The archive will be created in Xcode's Organizer. You can then use it to upload to App Store Connect or export an IPA.
 
+Android:
+```sh
+./build-android-release.sh
+```
+
 ## Step 3: Modify your app
 
 Now that you have successfully run the app, let's make changes!
