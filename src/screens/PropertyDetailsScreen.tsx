@@ -741,7 +741,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               color: isDark ? '#121212' : '#FFFFFF',
             }}
           >
-            Contact now
+            {t('property.contactNow')}
           </Text>
         </TouchableOpacity>
       </View>

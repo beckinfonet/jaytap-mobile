@@ -78,6 +78,7 @@ export const en = {
   'property.location': 'Location',
   'property.fullScreen': 'Full Screen',
   'property.landlord': 'Landlord',
+  'property.contactNow': 'Contact now',
   'property.contactListingOwner': 'Contact Listing Owner',
   'property.contactModalSubtitle': "Choose how you'd like to reach out",
   'property.noContactOptions': 'No contact options available for this listing.',
@@ -268,6 +269,13 @@ export const en = {
   'schedule.cancelFailed': 'Failed to cancel',
 
   // Tours
+  'tour.heroPremium': 'PREMIUM',
+  'tour.heroTitle': '3D Virtual Tour',
+  'tour.heroSubtitle': 'Explore every corner',
+  'tour.heroTourCountOne': '{count} tour',
+  'tour.heroTourCountOther': '{count} tours',
+  'tour.heroTourCountFew': '{count} tours',
+  'tour.heroTourCountMany': '{count} tours',
   'tour.selectTitle': 'Select 3D Tour',
   'tour.subtitle': 'Interactive 3D Walkthrough',
   'tour.view360': '360° VIEW',

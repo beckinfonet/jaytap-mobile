@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Eye, ChevronRight } from 'lucide-react-native';
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Rect, Stop } from 'react-native-svg';
+import { useLanguage } from '../context/LanguageContext';
+import { formatTourHeroCount } from '../utils/formatTourHeroCount';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 40; // Screen minus content padding
@@ -25,6 +27,7 @@ export function TourHeroCard({
   borderColor,
   onPress,
 }: TourHeroCardProps) {
+  const { t, language } = useLanguage();
   const titleColor = isActive ? '#FFF' : textSecondary;
   const subtitleColor = isActive ? 'rgba(255,255,255,0.9)' : textSecondary;
 
@@ -58,12 +61,12 @@ export function TourHeroCard({
         {isActive && (
           <View style={[styles.premiumTag, { backgroundColor: isDark ? 'rgba(34,197,94,0.3)' : 'rgba(34,197,94,0.25)' }]}>
             <View style={styles.premiumDot} />
-            <Text style={styles.premiumText}>PREMIUM</Text>
+            <Text style={styles.premiumText}>{t('tour.heroPremium')}</Text>
           </View>
         )}
         {isActive && (
           <Text style={styles.meta} numberOfLines={1} ellipsizeMode="tail">
-            {tourCount} {tourCount === 1 ? 'tour' : 'tours'}
+            {formatTourHeroCount(tourCount, language, t)}
           </Text>
         )}
       </View>
@@ -73,10 +76,10 @@ export function TourHeroCard({
         </View>
         <View style={styles.textBlock}>
           <Text style={[styles.title, { color: titleColor }]} numberOfLines={1} ellipsizeMode="tail">
-            3D Virtual Tour
+            {t('tour.heroTitle')}
           </Text>
           <Text style={[styles.subtitle, { color: subtitleColor }]} numberOfLines={1} ellipsizeMode="tail">
-            Explore every corner
+            {t('tour.heroSubtitle')}
           </Text>
         </View>
         {isActive && (

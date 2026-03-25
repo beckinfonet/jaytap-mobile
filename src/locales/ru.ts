@@ -80,6 +80,7 @@ export const ru: Record<TranslationKeys, string> = {
   'property.location': 'Местоположение',
   'property.fullScreen': 'На весь экран',
   'property.landlord': 'Арендодатель',
+  'property.contactNow': 'Связаться сейчас',
   'property.contactListingOwner': 'Связаться с владельцем',
   'property.contactModalSubtitle': 'Выберите способ связи',
   'property.noContactOptions': 'Нет контактных данных для этого объявления.',
@@ -270,6 +271,13 @@ export const ru: Record<TranslationKeys, string> = {
   'schedule.cancelFailed': 'Не удалось отменить',
 
   // Tours
+  'tour.heroPremium': 'ПРЕМИУМ',
+  'tour.heroTitle': '3D виртуальный тур',
+  'tour.heroSubtitle': 'Осмотрите каждый угол',
+  'tour.heroTourCountOne': '{count} тур',
+  'tour.heroTourCountOther': '{count} туров',
+  'tour.heroTourCountFew': '{count} тура',
+  'tour.heroTourCountMany': '{count} туров',
   'tour.selectTitle': 'Выбрать 3D тур',
   'tour.subtitle': 'Интерактивный 3D обзор',
   'tour.view360': '360° ВИД',
