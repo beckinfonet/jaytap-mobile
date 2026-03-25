@@ -53,6 +53,8 @@ export const en = {
   'property.forRent': 'FOR RENT',
   'property.forSale': 'FOR SALE',
   'property.id': 'ID:',
+  'property.metaId': 'ID:',
+  'property.metaAvailable': 'Available:',
   'property.available': 'Available:',
   'property.now': 'now',
   'property.beds': 'Beds',

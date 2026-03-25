@@ -56,6 +56,7 @@ import {
 } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { TourHeroCard } from '../components/TourHeroCard';
+import { ListingMetaTable } from '../components/ListingMetaTable';
 import { getPropertyShareUrl } from '../constants';
 import { formatPrice } from '../utils/formatPrice';
 import { useTheme } from '../theme/ThemeContext';
@@ -562,37 +563,11 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           <View style={styles.section}>
             <View style={[styles.listingInfoCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <Text style={[styles.title, { color: colors.text }]}>{property.title}</Text>
-              <View style={styles.chipContainer}>
-                {property.listingId && (
-                  <View style={[styles.listingIdChip, { backgroundColor: isDark ? '#E91E63' : '#E5E7EB' }]}>
-                    <Text style={[styles.listingIdLabel, { color: isDark ? '#FFF' : colors.text }]}>{t('property.id')}</Text>
-                    <Text style={[styles.listingIdText, { color: isDark ? '#FFF' : colors.text }]}>
-                      {property.listingId}
-                    </Text>
-                  </View>
-                )}
-                {(() => {
-                  const raw = (property as any).availableDate;
-                  if (!raw) return null;
-                  const date = typeof raw === 'string' ? new Date(raw) : raw instanceof Date ? raw : null;
-                  if (!date || isNaN(date.getTime())) return null;
-                  const now = new Date();
-                  const oneMonthMs = 30 * 24 * 60 * 60 * 1000;
-                  const isSoon = date.getTime() - now.getTime() > oneMonthMs;
-                  const formattedDate = date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-                  const label = isSoon ? formattedDate : t('property.now');
-                  return (
-                    <View style={[styles.availabilityChip, { backgroundColor: isDark ? 'rgba(34,197,94,0.25)' : 'rgba(34,197,94,0.2)', borderWidth: 0, borderColor: 'transparent', gap: 6 }]}>
-                      <View style={styles.availabilityDot} />
-                      <View style={{ flex: 1, minWidth: 0, justifyContent: 'center', alignItems: 'center' }}>
-                        <Text style={[styles.availabilityText, { color: colors.text }]} numberOfLines={1}>
-                          {t('property.available')} {label}
-                        </Text>
-                      </View>
-                    </View>
-                  );
-                })()}
-              </View>
+              <ListingMetaTable
+                listingId={property.listingId}
+                availableDate={(property as any).availableDate}
+                showAvailabilityDot
+              />
               <View style={styles.addressRow}>
                 <View style={{ marginRight: 6 }}>
                   <MapPin size={16} color={colors.textSecondary} />
@@ -1063,64 +1038,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
-  availabilityDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#22C55E',
-    marginRight: 8,
-  },
   title: {
     fontSize: 24,
     fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }),
     fontWeight: '600',
     marginBottom: 8,
-  },
-  chipContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 8,
-    alignItems: 'stretch',
-    width: '100%',
-  },
-  availabilityChip: {
-    flex: 0.65,
-    minWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 6,
-  },
-  availabilityText: {
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  listingIdChip: {
-    flex: 0.35,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
-  },
-  listingIdLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-    opacity: 0.9,
-  },
-  listingIdText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
   },
   address: {
     fontSize: 16,

@@ -55,6 +55,8 @@ export const ru: Record<TranslationKeys, string> = {
   'property.forRent': 'АРЕНДА',
   'property.forSale': 'ПРОДАЖА',
   'property.id': 'ID:',
+  'property.metaId': 'ID:',
+  'property.metaAvailable': 'Доступно:',
   'property.available': 'Доступно:',
   'property.now': 'сейчас',
   'property.beds': 'Спален',
