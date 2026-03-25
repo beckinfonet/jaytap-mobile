@@ -137,6 +137,25 @@ function AppContent() {
     return () => clearInterval(interval);
   }, [user?.localId]);
 
+  useEffect(() => {
+    if (!isCreateListingOpen || user) return;
+    setAuthPromptMessage(t('auth.pleaseSignInToCreateListing'));
+    setShowAuthPrompt(true);
+    setIsCreateListingOpen(false);
+  }, [isCreateListingOpen, user, t]);
+
+  const [renterListingsEverMounted, setRenterListingsEverMounted] = useState(false);
+  useEffect(() => {
+    if (isRenterListingsOpen) {
+      setRenterListingsEverMounted((m) => m || true);
+    }
+  }, [isRenterListingsOpen]);
+  useEffect(() => {
+    if (!user?.localId) {
+      setRenterListingsEverMounted(false);
+    }
+  }, [user?.localId]);
+
   // Android hardware back button support
   useEffect(() => {
     if (Platform.OS !== 'android') return;
@@ -417,21 +436,6 @@ function AppContent() {
     );
   }
 
-  if (isRenterListingsOpen) {
-    return (
-      <RenterListingsScreen
-        onBack={() => setIsRenterListingsOpen(false)}
-        onSelectProperty={setSelectedProperty}
-        onOpenTours={handleOpenTours}
-        onEditProperty={(property) => {
-          setPropertyToEdit(property);
-          setIsRenterListingsOpen(false);
-          setIsCreateListingOpen(true);
-        }}
-      />
-    );
-  }
-
   if (ownerListingsUid) {
     return (
       <OwnerListingsScreen
@@ -454,41 +458,30 @@ function AppContent() {
     );
   }
 
-  if (isCreateListingOpen) {
-    // Require authentication for creating listings
-    if (!user) {
-      setAuthPromptMessage(t('auth.pleaseSignInToCreateListing'));
-      setShowAuthPrompt(true);
-      setIsCreateListingOpen(false);
-      return null;
-    }
-    return (
-      <CreateListingScreen
-        onBack={() => {
-          setIsCreateListingOpen(false);
-          setPropertyToEdit(null);
-        }}
-        onSuccess={() => {
-          setIsCreateListingOpen(false);
-          setPropertyToEdit(null);
-          setIsRenterListingsOpen(true); // Navigate to listings after successful creation/update
-        }}
-        propertyToEdit={propertyToEdit || undefined}
-      />
-    );
-  }
-
   const mainStackScreenStyle = (visible: boolean) =>
     ({
       flex: 1,
       display: visible ? 'flex' : 'none',
     }) as const;
 
+  const hideMainStackUnderOverlay =
+    !!selectedProperty || isRenterListingsOpen || (!!user && isCreateListingOpen);
+
+  const fullScreenOverlayWrap = {
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 3,
+    elevation: 5,
+  };
+
   return (
     <>
       <View style={{ flex: 1 }}>
-        {/* Keep main stack mounted while details open (hidden) so returning does not remount Home / tabs */}
-        <View style={{ flex: 1, display: selectedProperty ? 'none' : 'flex' }}>
+        {/* Keep main stack mounted under full-screen flows so Profile / Home are not torn down */}
+        <View style={{ flex: 1, display: hideMainStackUnderOverlay ? 'none' : 'flex' }}>
           {(tabEverMounted.favorites || showFavorites) && (
             <View style={mainStackScreenStyle(showFavorites)}>
               <FavoritesScreen
@@ -730,6 +723,39 @@ function AppContent() {
                 setOwnerListingsUid(ownerUid);
                 setOwnerListingsName(ownerName);
               }}
+            />
+          </View>
+        )}
+        {(renterListingsEverMounted || isRenterListingsOpen) && (
+          <View style={[fullScreenOverlayWrap, { display: isRenterListingsOpen ? 'flex' : 'none' }]}>
+            <RenterListingsScreen
+              onBack={() => setIsRenterListingsOpen(false)}
+              onSelectProperty={(property) => {
+                setSelectedProperty(property);
+                setIsRenterListingsOpen(false);
+              }}
+              onOpenTours={handleOpenTours}
+              onEditProperty={(property) => {
+                setPropertyToEdit(property);
+                setIsRenterListingsOpen(false);
+                setIsCreateListingOpen(true);
+              }}
+            />
+          </View>
+        )}
+        {!!user && isCreateListingOpen && (
+          <View style={fullScreenOverlayWrap}>
+            <CreateListingScreen
+              onBack={() => {
+                setIsCreateListingOpen(false);
+                setPropertyToEdit(null);
+              }}
+              onSuccess={() => {
+                setIsCreateListingOpen(false);
+                setPropertyToEdit(null);
+                setIsRenterListingsOpen(true);
+              }}
+              propertyToEdit={propertyToEdit || undefined}
             />
           </View>
         )}
