@@ -10,7 +10,7 @@ import {
   Share,
   ActivityIndicator,
 } from 'react-native';
-import { Heart, Bed, Bath } from 'lucide-react-native';
+import { Heart, Bed, Bath, Pencil, Trash2 } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { getPropertyShareUrl } from '../constants';
 import { formatPrice } from '../utils/formatPrice';
@@ -186,26 +186,42 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           </View>
 
           <View style={styles.footerRow}>
-            <Text style={[styles.price, { color: colors.text }]}>{formatPrice(property, t('property.perMonth'))}</Text>
+            <Text
+              style={[styles.price, { color: colors.text, flex: 1, flexShrink: 1, marginRight: 12 }]}
+              numberOfLines={1}
+            >
+              {formatPrice(property, t('property.perMonth'))}
+            </Text>
 
             {showEditButton ? (
-              <View style={styles.actionButtonsRow}>
+              <View style={styles.ownerActionsRow}>
                 {onEdit && (
                   <TouchableOpacity
-                    style={[styles.actionButton, { backgroundColor: colors.primary, marginRight: 8 }]}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.edit')}
+                    style={[
+                      styles.listingActionBtnIcon,
+                      styles.listingActionBtnEdit,
+                      {
+                        backgroundColor: isDark ? '#F3F4F6' : colors.inputBackground,
+                        borderColor: colors.border,
+                      },
+                    ]}
                     onPress={() => onEdit(property)}
-                    activeOpacity={0.8}
+                    activeOpacity={0.75}
                   >
-                    <Text style={[styles.contactButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>✏️ {t('common.edit')}</Text>
+                    <Pencil size={19} color={isDark ? '#111827' : colors.text} strokeWidth={2} />
                   </TouchableOpacity>
                 )}
                 {onDelete && (
                   <TouchableOpacity
-                    style={[styles.actionButton, { backgroundColor: '#FF453A' }]}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.delete')}
+                    style={[styles.listingActionBtnIcon, styles.listingActionBtnDelete]}
                     onPress={() => onDelete(property)}
                     activeOpacity={0.8}
                   >
-                    <Text style={[styles.contactButtonText, { color: '#FFFFFF' }]}>🗑️ {t('common.delete')}</Text>
+                    <Trash2 size={19} color="#FFFFFF" strokeWidth={2} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -389,6 +405,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  ownerActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flexShrink: 0,
+  },
   price: {
     fontSize: 22,
     fontWeight: '500', // Slightly lighter bold
@@ -427,17 +449,39 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 1,
   },
-  actionButtonsRow: {
-    flexDirection: 'row',
+  listingActionBtnIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  actionButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 20,
+  listingActionBtnEdit: {
+    borderWidth: 1,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.06,
+        shadowRadius: 2,
+      },
+      android: { elevation: 1 },
+    }),
+  },
+  listingActionBtnDelete: {
+    backgroundColor: '#DC2626',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#DC2626',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.35,
+        shadowRadius: 4,
+      },
+      android: { elevation: 3 },
+    }),
   },
   contactButtonText: {
     fontSize: 14,
     fontWeight: '500',
-  }
+  },
 });
