@@ -29,6 +29,9 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
     const [blockSize, setBlockSize] = useState<'30min' | '60min'>('30min');
     const profileDataLoadedRef = useRef(false);
 
+    /** Same listing tools as renters; admins keep access after userType change */
+    const canManageListings = userType === 'renter' || userType === 'admin';
+
     const themeStyles = useMemo(
         () => ({
             background: isDark ? '#000000' : '#F2F2F7',
@@ -162,7 +165,7 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
                         <ChevronRight size={20} color={themeStyles.textSecondary} />
                     </TouchableOpacity>
 
-                    {userType === 'renter' && (
+                    {canManageListings && (
                         <>
                             <View style={[styles.menuDivider, { backgroundColor: themeStyles.border }]} />
                             <TouchableOpacity style={styles.menuRow} onPress={onViewListings} activeOpacity={0.7}>
