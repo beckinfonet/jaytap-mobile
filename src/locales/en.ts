@@ -179,6 +179,22 @@ export const en = {
   'createListing.updatedSuccess': 'Listing updated successfully!',
   'createListing.draftSuccess': 'Listing saved as draft!',
   'createListing.createdSuccess': 'Listing created successfully!',
+  'createListing.updateListing': 'Update Listing',
+  'createListing.saveAsDraft': 'Save as Draft',
+  'createListing.statusHint': 'Draft: Save for later. Submit: Publish listing (images will be added by platform).',
+  'createListing.addImagesHintCount': 'Add up to 40 images ({current}/40)',
+  'createListing.matterportUrlExample': 'Matterport URL (e.g., https://my.matterport.com/show/?m=...)',
+  'createListing.availableHintDetail':
+    'When the property becomes available. If within 1 month, shows "now"; otherwise "soon" with date.',
+  'createListing.maxReachedTitle': 'Maximum reached',
+  'createListing.imagePickerUnavailable': 'Image Picker Not Available',
+  'createListing.imagePickerUnavailableMessage':
+    'Please rebuild the app after installing react-native-image-picker. Run: cd ios && pod install && cd .. && npx react-native run-ios',
+  'createListing.contactEmail': 'Email',
+  'createListing.contactPhone': 'Phone',
+  'createListing.contactWhatsapp': 'WhatsApp',
+  'createListing.contactTelegram': 'Telegram',
+  'createListing.updateFailed': 'Failed to update listing',
 
   // Property types
   'propertyType.apartment': 'Apartment',

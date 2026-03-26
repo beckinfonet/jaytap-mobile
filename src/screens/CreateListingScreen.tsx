@@ -18,9 +18,11 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { PropertyService } from '../services/PropertyService';
 import { AuthService } from '../services/AuthService';
 import { Property } from '../types/Property';
+import type { TranslationKeys } from '../locales';
 import * as ImagePicker from 'react-native-image-picker';
 
 const CURRENCY_OPTIONS = [
@@ -28,24 +30,17 @@ const CURRENCY_OPTIONS = [
   { value: 'сом', label: '🇰🇬 сом' },
 ] as const;
 
-const RESIDENTIAL_TYPES = ['Apartment', 'House', 'Townhome', 'Condo'];
-const COMMERCIAL_TYPES = ['Office', 'Retail', 'Warehouse', 'Land', 'Industrial'];
-const BISHKEK_DISTRICTS = [
-  'Asanbay',
-  'Jal',
-  'Tunguch',
-  'Alamedin-1',
-  'Microdistrict 3',
-  'Microdistrict 4',
-  'Microdistrict 5',
-  'Microdistrict 6',
-  'Microdistrict 7',
-  'Microdistrict 8',
-  'Microdistrict 9',
-  'Microdistrict 10',
-  'Microdistrict 11',
-  'Microdistrict 12',
-  'Kok-Jar',
+/** Stored values stay English for API compatibility; labels are localized. */
+const PROPERTY_TYPES: { value: string; labelKey: TranslationKeys }[] = [
+  { value: 'Apartment', labelKey: 'propertyType.apartment' },
+  { value: 'House', labelKey: 'propertyType.house' },
+  { value: 'Townhome', labelKey: 'propertyType.townhome' },
+  { value: 'Condo', labelKey: 'propertyType.condo' },
+  { value: 'Office', labelKey: 'propertyType.office' },
+  { value: 'Retail', labelKey: 'propertyType.retail' },
+  { value: 'Warehouse', labelKey: 'propertyType.warehouse' },
+  { value: 'Land', labelKey: 'propertyType.land' },
+  { value: 'Industrial', labelKey: 'propertyType.industrial' },
 ];
 
 interface CreateListingScreenProps {
@@ -57,6 +52,8 @@ interface CreateListingScreenProps {
 export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack, onSuccess, propertyToEdit }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'ru' ? 'ru-RU' : 'en-US';
 
   // Form state
   const [title, setTitle] = useState('');
@@ -199,16 +196,13 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
   const handleSelectImages = () => {
     const remainingSlots = 40 - selectedImages.length;
     if (remainingSlots <= 0) {
-      Alert.alert('Maximum reached', 'You can add up to 40 images');
+      Alert.alert(t('createListing.maxReachedTitle'), t('createListing.maxImagesReachedAlert'));
       return;
     }
 
     // Check if ImagePicker is available
     if (!ImagePicker || !ImagePicker.launchImageLibrary) {
-      Alert.alert(
-        'Image Picker Not Available',
-        'Please rebuild the app after installing react-native-image-picker. Run: cd ios && pod install && cd .. && npx react-native run-ios'
-      );
+      Alert.alert(t('createListing.imagePickerUnavailable'), t('createListing.imagePickerUnavailableMessage'));
       return;
     }
 
@@ -225,7 +219,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
         }
 
         if (response.errorMessage) {
-          Alert.alert('Error', response.errorMessage);
+          Alert.alert(t('common.error'), response.errorMessage);
           return;
         }
 
@@ -257,7 +251,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
       setTourTitle('');
       setTourUrl('');
     } else {
-      Alert.alert('Error', 'Please enter both tour title and URL');
+      Alert.alert(t('common.error'), t('createListing.tourTitleUrlRequired'));
     }
   };
 
@@ -268,19 +262,19 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
   const handleSubmit = async () => {
     // Validation
     if (!title.trim()) {
-      Alert.alert('Error', 'Title is required');
+      Alert.alert(t('common.error'), t('createListing.titleRequired'));
       return;
     }
     if (!address.trim()) {
-      Alert.alert('Error', 'Address is required');
+      Alert.alert(t('common.error'), t('createListing.addressRequired'));
       return;
     }
     if (!currency) {
-      Alert.alert('Error', 'Please select a currency (USD or сом)');
+      Alert.alert(t('common.error'), t('createListing.currencyRequired'));
       return;
     }
     if (!price.trim()) {
-      Alert.alert('Error', 'Price is required');
+      Alert.alert(t('common.error'), t('createListing.priceRequired'));
       return;
     }
 
@@ -327,18 +321,24 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
 
       if (isEditMode && propertyToEdit?.id) {
         await PropertyService.updateProperty(propertyToEdit.id, propertyData, newImages);
-        Alert.alert('Success', 'Listing updated successfully!', [
-          { text: 'OK', onPress: onSuccess },
+        Alert.alert(t('common.success'), t('createListing.updatedSuccess'), [
+          { text: t('common.ok'), onPress: onSuccess },
         ]);
       } else {
         await PropertyService.createProperty(propertyData, newImages);
-        Alert.alert('Success', status === 'draft' ? 'Listing saved as draft!' : 'Listing created successfully!', [
-          { text: 'OK', onPress: onSuccess },
-        ]);
+        Alert.alert(
+          t('common.success'),
+          status === 'draft' ? t('createListing.draftSuccess') : t('createListing.createdSuccess'),
+          [{ text: t('common.ok'), onPress: onSuccess }]
+        );
       }
     } catch (error: any) {
       console.error('Error creating listing:', error);
-      Alert.alert('Error', error.response?.data?.message || 'Failed to create listing');
+      const msg = error.response?.data?.message;
+      Alert.alert(
+        t('common.error'),
+        msg || (isEditMode ? t('createListing.updateFailed') : t('createListing.createFailed'))
+      );
     } finally {
       setLoading(false);
     }
@@ -361,10 +361,10 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Text style={[styles.backButtonText, { color: colors.text }]}>← Cancel</Text>
+          <Text style={[styles.backButtonText, { color: colors.text }]}>{`← ${t('createListing.cancel')}`}</Text>
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {isEditMode ? 'Edit Listing' : 'Create Listing'}
+          {isEditMode ? t('createListing.editListing') : t('createListing.createListing')}
         </Text>
         <View style={{ width: 80 }} />
       </View>
@@ -376,7 +376,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
       >
         {/* Transaction Type */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Transaction Type</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.transactionType')}</Text>
           <View style={[styles.segmentedControl, { backgroundColor: isDark ? '#2C2C2E' : '#E5E5EA' }]}>
             <TouchableOpacity
               style={[
@@ -386,7 +386,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
               onPress={() => setType('rent')}
             >
               <Text style={[styles.segmentText, { color: type === 'rent' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }]}>
-                🏠 Rent
+                {`🏠 ${t('createListing.rent')}`}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -397,7 +397,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
               onPress={() => setType('sale')}
             >
               <Text style={[styles.segmentText, { color: type === 'sale' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }]}>
-                💰 Sell
+                {`💰 ${t('createListing.sell')}`}
               </Text>
             </TouchableOpacity>
           </View>
@@ -405,17 +405,17 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
 
         {/* Basic Info */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Basic Information</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.basicInfo')}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder="Title *"
+            placeholder={t('createListing.title')}
             placeholderTextColor={colors.textSecondary}
             value={title}
             onChangeText={setTitle}
           />
           <TextInput
             style={[styles.textArea, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder="Description"
+            placeholder={t('createListing.description')}
             placeholderTextColor={colors.textSecondary}
             value={description}
             onChangeText={setDescription}
@@ -426,24 +426,24 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
 
         {/* Location */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Location</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.location')}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder="Street Address *"
+            placeholder={t('createListing.streetAddress')}
             placeholderTextColor={colors.textSecondary}
             value={address}
             onChangeText={setAddress}
           />
           <TextInput
             style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder="District (optional)"
+            placeholder={t('createListing.district')}
             placeholderTextColor={colors.textSecondary}
             value={district}
             onChangeText={setDistrict}
           />
           <TextInput
             style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder="City"
+            placeholder={t('createListing.city')}
             placeholderTextColor={colors.textSecondary}
             value={city}
             onChangeText={setCity}
@@ -452,8 +452,8 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
 
         {/* Property Details */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Property Details</Text>
-          <Text style={[styles.label, { color: colors.textSecondary, marginBottom: 8 }]}>Currency *</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.propertyDetails')}</Text>
+          <Text style={[styles.label, { color: colors.textSecondary, marginBottom: 8 }]}>{t('createListing.currency')}</Text>
           <View style={styles.currencyRow}>
             {CURRENCY_OPTIONS.map((opt) => (
               <TouchableOpacity
@@ -473,35 +473,33 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
               </TouchableOpacity>
             ))}
           </View>
-          <Text style={[styles.label, { color: colors.textSecondary, marginBottom: 8, marginTop: 12 }]}>Price *</Text>
+          <Text style={[styles.label, { color: colors.textSecondary, marginBottom: 8, marginTop: 12 }]}>{t('createListing.price')}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder="Amount (e.g., 850)"
+            placeholder={t('createListing.amount')}
             placeholderTextColor={colors.textSecondary}
             value={price}
             onChangeText={setPrice}
             keyboardType="numeric"
           />
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>
-            Select currency first, then enter the price amount
-          </Text>
+          <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('createListing.selectCurrencyHint')}</Text>
 
-          <Text style={[styles.label, { color: colors.textSecondary }]}>Property Type</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>{t('createListing.propertyType')}</Text>
           <View style={styles.chipRow}>
-            {[...RESIDENTIAL_TYPES, ...COMMERCIAL_TYPES].map((pt) => (
+            {PROPERTY_TYPES.map(({ value, labelKey }) => (
               <TouchableOpacity
-                key={pt}
+                key={value}
                 style={[
                   styles.chip,
                   {
-                    backgroundColor: propertyType === pt ? colors.accent : colors.inputBackground,
+                    backgroundColor: propertyType === value ? colors.accent : colors.inputBackground,
                     borderColor: colors.border,
                   },
                 ]}
-                onPress={() => setPropertyType(pt)}
+                onPress={() => setPropertyType(value)}
               >
-                <Text style={[styles.chipText, { color: propertyType === pt ? '#FFF' : colors.text }]}>
-                  {pt}
+                <Text style={[styles.chipText, { color: propertyType === value ? '#FFF' : colors.text }]}>
+                  {t(labelKey)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -511,7 +509,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
             <View style={styles.thirdInput}>
               <TextInput
                 style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-                placeholder="Bedrooms"
+                placeholder={t('createListing.bedrooms')}
                 placeholderTextColor={colors.textSecondary}
                 value={bedrooms}
                 onChangeText={setBedrooms}
@@ -521,7 +519,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
             <View style={styles.thirdInput}>
               <TextInput
                 style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-                placeholder="Bathrooms"
+                placeholder={t('createListing.bathrooms')}
                 placeholderTextColor={colors.textSecondary}
                 value={bathrooms}
                 onChangeText={setBathrooms}
@@ -531,7 +529,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
             <View style={styles.thirdInput}>
               <TextInput
                 style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-                placeholder="Area (m²)"
+                placeholder={t('createListing.area')}
                 placeholderTextColor={colors.textSecondary}
                 value={areaSqm}
                 onChangeText={setAreaSqm}
@@ -539,15 +537,19 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
               />
             </View>
           </View>
-          <Text style={[styles.label, { color: colors.textSecondary, marginTop: 12 }]}>Available from</Text>
+          <Text style={[styles.label, { color: colors.textSecondary, marginTop: 12 }]}>{t('createListing.availableFrom')}</Text>
           <TouchableOpacity
             style={[styles.datePickerButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}
             onPress={() => setShowDatePicker(true)}
           >
             <Text style={[styles.datePickerButtonText, { color: availableDate ? colors.text : colors.textSecondary }]}>
               {availableDate
-                ? new Date(availableDate + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
-                : 'Select date'}
+                ? new Date(availableDate + 'T12:00:00').toLocaleDateString(dateLocale, {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  })
+                : t('createListing.selectDate')}
             </Text>
             <Text style={[styles.datePickerChevron, { color: colors.textSecondary }]}>📅</Text>
           </TouchableOpacity>
@@ -569,21 +571,19 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
               style={[styles.datePickerDoneButton, { backgroundColor: colors.primary }]}
               onPress={() => setShowDatePicker(false)}
             >
-              <Text style={[styles.datePickerDoneButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>Done</Text>
+              <Text style={[styles.datePickerDoneButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>{t('common.done')}</Text>
             </TouchableOpacity>
           )}
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>
-            When the property becomes available. If within 1 month, shows &quot;now&quot;; otherwise &quot;soon&quot; with date.
-          </Text>
+          <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('createListing.availableHintDetail')}</Text>
         </View>
 
         {/* Features */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Features</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.features')}</Text>
           <View style={styles.row}>
             <TextInput
               style={[styles.input, { flex: 1, backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-              placeholder="Add feature"
+              placeholder={t('createListing.addFeature')}
               placeholderTextColor={colors.textSecondary}
               value={featureInput}
               onChangeText={setFeatureInput}
@@ -610,9 +610,9 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
 
         {/* Images */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Images</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.images')}</Text>
           <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: 12 }]}>
-            Add up to 40 images ({selectedImages.length}/40)
+            {t('createListing.addImagesHintCount', { current: String(selectedImages.length) })}
           </Text>
           <TouchableOpacity
             style={[styles.imagePickerButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}
@@ -620,7 +620,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
             disabled={selectedImages.length >= 40}
           >
             <Text style={[styles.imagePickerButtonText, { color: colors.text }]}>
-              📷 {selectedImages.length >= 40 ? 'Maximum images reached' : 'Select Images'}
+              {`📷 ${selectedImages.length >= 40 ? t('createListing.maxImagesReached') : t('createListing.selectImages')}`}
             </Text>
           </TouchableOpacity>
 
@@ -647,21 +647,19 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
 
         {/* Matterport 3D Tours */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>3D Matterport Tours</Text>
-          <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: 12 }]}>
-            Add Matterport tour URLs for interactive 3D walkthroughs
-          </Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.tours3d')}</Text>
+          <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: 12 }]}>{t('createListing.matterportHint')}</Text>
 
           <TextInput
             style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder="Tour Title (e.g., Full Apartment Walkthrough)"
+            placeholder={t('createListing.tourTitle')}
             placeholderTextColor={colors.textSecondary}
             value={tourTitle}
             onChangeText={setTourTitle}
           />
           <TextInput
             style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder="Matterport URL (e.g., https://my.matterport.com/show/?m=...)"
+            placeholder={t('createListing.matterportUrlExample')}
             placeholderTextColor={colors.textSecondary}
             value={tourUrl}
             onChangeText={setTourUrl}
@@ -671,9 +669,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
             style={[styles.addTourButton, { backgroundColor: colors.primary, borderColor: colors.border }]}
             onPress={addTour}
           >
-            <Text style={[styles.addTourButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>
-              + Add 3D Tour
-            </Text>
+            <Text style={[styles.addTourButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>{t('createListing.add3dTour')}</Text>
           </TouchableOpacity>
 
           {tours.length > 0 && (
@@ -702,10 +698,10 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
 
         {/* Links */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Links</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.links')}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder="Video URL (optional)"
+            placeholder={t('createListing.videoUrl')}
             placeholderTextColor={colors.textSecondary}
             value={videoUrl}
             onChangeText={setVideoUrl}
@@ -713,7 +709,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
           />
           <TextInput
             style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder="Panoramic Photos URL (optional, e.g. Ricoh 360)"
+            placeholder={t('createListing.panoramicUrl')}
             placeholderTextColor={colors.textSecondary}
             value={panoramicPhotosUrl}
             onChangeText={setPanoramicPhotosUrl}
@@ -721,44 +717,42 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
           />
           <TextInput
             style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder="Instagram URL *"
+            placeholder={t('createListing.instagramUrl')}
             placeholderTextColor={colors.textSecondary}
             value={instagramUrl}
             onChangeText={setInstagramUrl}
             keyboardType="url"
           />
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>
-            Add your Instagram link so viewers can contact you
-          </Text>
+          <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('createListing.instagramHint')}</Text>
         </View>
 
         {/* Contact Info (Auto-filled, read-only) */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Contact Information (Auto-filled from Profile)</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.contactInfo')}</Text>
           <TextInput
             style={[styles.input, styles.readOnlyInput, { backgroundColor: colors.inputBackground, color: colors.textSecondary, borderColor: colors.border }]}
-            placeholder="Email"
+            placeholder={t('createListing.contactEmail')}
             placeholderTextColor={colors.textSecondary}
             value={contactEmail}
             editable={false}
           />
           <TextInput
             style={[styles.input, styles.readOnlyInput, { backgroundColor: colors.inputBackground, color: colors.textSecondary, borderColor: colors.border }]}
-            placeholder="Phone"
+            placeholder={t('createListing.contactPhone')}
             placeholderTextColor={colors.textSecondary}
             value={contactPhone}
             editable={false}
           />
           <TextInput
             style={[styles.input, styles.readOnlyInput, { backgroundColor: colors.inputBackground, color: colors.textSecondary, borderColor: colors.border }]}
-            placeholder="WhatsApp"
+            placeholder={t('createListing.contactWhatsapp')}
             placeholderTextColor={colors.textSecondary}
             value={contactWhatsapp}
             editable={false}
           />
           <TextInput
             style={[styles.input, styles.readOnlyInput, { backgroundColor: colors.inputBackground, color: colors.textSecondary, borderColor: colors.border }]}
-            placeholder="Telegram"
+            placeholder={t('createListing.contactTelegram')}
             placeholderTextColor={colors.textSecondary}
             value={contactTelegram}
             editable={false}
@@ -768,7 +762,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
         {/* Status - Only show when creating new listing, not when editing */}
         {!isEditMode && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Status</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.status')}</Text>
             <View style={[styles.segmentedControl, { backgroundColor: isDark ? '#2C2C2E' : '#E5E5EA' }]}>
               <TouchableOpacity
                 style={[
@@ -780,7 +774,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
                 <View style={styles.segmentContent}>
                   <Text style={styles.segmentIcon}>📄</Text>
                   <Text style={[styles.segmentText, { color: status === 'draft' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }]}>
-                    Draft
+                    {t('createListing.draft')}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -794,14 +788,12 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
                 <View style={styles.segmentContent}>
                   <Text style={styles.segmentIcon}>🚀</Text>
                   <Text style={[styles.segmentText, { color: status === 'live' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }]}>
-                    Submit
+                    {t('createListing.submit')}
                   </Text>
                 </View>
               </TouchableOpacity>
             </View>
-            <Text style={[styles.hint, { color: colors.textSecondary }]}>
-              Draft: Save for later. Submit: Publish listing (images will be added by platform).
-            </Text>
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('createListing.statusHint')}</Text>
           </View>
         )}
 
@@ -816,9 +808,10 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
           ) : (
             <Text style={[styles.submitButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>
               {isEditMode
-                ? 'Update Listing'
-                : (status === 'draft' ? 'Save as Draft' : 'Create Listing')
-              }
+                ? t('createListing.updateListing')
+                : status === 'draft'
+                  ? t('createListing.saveAsDraft')
+                  : t('createListing.createListing')}
             </Text>
           )}
         </TouchableOpacity>

@@ -181,6 +181,23 @@ export const ru: Record<TranslationKeys, string> = {
   'createListing.updatedSuccess': 'Объявление успешно обновлено!',
   'createListing.draftSuccess': 'Объявление сохранено как черновик!',
   'createListing.createdSuccess': 'Объявление успешно создано!',
+  'createListing.updateListing': 'Обновить объявление',
+  'createListing.saveAsDraft': 'Сохранить как черновик',
+  'createListing.statusHint':
+    'Черновик: сохранить позже. Отправить: опубликовать объявление (изображения добавит платформа).',
+  'createListing.addImagesHintCount': 'Добавьте до 40 изображений ({current}/40)',
+  'createListing.matterportUrlExample': 'URL Matterport (напр., https://my.matterport.com/show/?m=...)',
+  'createListing.availableHintDetail':
+    'Когда объект станет доступен. Если в пределах месяца — «сейчас», иначе «скоро» с датой.',
+  'createListing.maxReachedTitle': 'Достигнут лимит',
+  'createListing.imagePickerUnavailable': 'Выбор изображений недоступен',
+  'createListing.imagePickerUnavailableMessage':
+    'Пересоберите приложение после установки react-native-image-picker. Выполните: cd ios && pod install && cd .. && npx react-native run-ios',
+  'createListing.contactEmail': 'Email',
+  'createListing.contactPhone': 'Телефон',
+  'createListing.contactWhatsapp': 'WhatsApp',
+  'createListing.contactTelegram': 'Telegram',
+  'createListing.updateFailed': 'Не удалось обновить объявление',
 
   // Property types
   'propertyType.apartment': 'Квартира',
