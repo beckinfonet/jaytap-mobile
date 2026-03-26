@@ -53,6 +53,7 @@ import {
   ChevronRight,
   MapPin,
   Instagram,
+  ShieldCheck,
 } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { TourHeroCard } from '../components/TourHeroCard';
@@ -76,6 +77,8 @@ interface PropertyDetailsScreenProps {
   isFavorited?: boolean; // Whether this property is favorited
   isLoading?: boolean; // Whether favorite is being toggled
   onLandlordPress?: (ownerUid: string, ownerName: string) => void; // Navigate to owner's listings
+  /** Admin: open document verification editor for this listing */
+  onAdminVerifyDocuments?: (property: Property) => void;
 }
 
 const { width, height } = Dimensions.get('window');
@@ -166,10 +169,12 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   isFavorited = false,
   isLoading = false,
   onLandlordPress,
+  onAdminVerifyDocuments,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
   const { t } = useLanguage();
+  const isAdmin = user?.backendProfile?.userType === 'admin';
   const [property, setProperty] = useState<Property>(initialProperty);
   const [loading, setLoading] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
@@ -420,6 +425,15 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('property.details')}</Text>
         <View style={styles.headerRightActions}>
+          {isAdmin && onAdminVerifyDocuments && (
+            <TouchableOpacity
+              style={[styles.iconButton, { backgroundColor: colors.surface }]}
+              onPress={() => onAdminVerifyDocuments(property)}
+              accessibilityLabel={t('verification.screenTitle')}
+            >
+              <ShieldCheck size={22} color={colors.accent} />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={handleShare}
@@ -665,6 +679,39 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               </TouchableOpacity>
             </View>
           </View>
+
+          {(() => {
+            const pv = property.platformVerifications;
+            if (!pv) return null;
+            const rows: { key: string; label: string }[] = [];
+            if (pv.ownershipDocuments) rows.push({ key: 'o', label: t('verification.ownershipDocuments') });
+            if (pv.ownerIdentityVerified) rows.push({ key: 'i', label: t('verification.ownerIdentity') });
+            if (pv.stateIssuedDocumentsVerified) rows.push({ key: 's', label: t('verification.stateIssued') });
+            if (rows.length === 0) return null;
+            return (
+              <View style={styles.section}>
+                <View style={styles.verificationHeaderRow}>
+                  <View style={styles.verificationIconColumn}>
+                    <ShieldCheck size={22} color={colors.accent} />
+                  </View>
+                  <View style={styles.verificationHeaderTextColumn}>
+                    <Text style={[styles.verificationTitle, { color: colors.text }]}>{t('verification.sectionTitle')}</Text>
+                    <Text style={[styles.verificationSubtitle, { color: colors.textSecondary }]}>
+                      {t('verification.subtitle')}
+                    </Text>
+                  </View>
+                </View>
+                <View style={[styles.verificationList, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  {rows.map((row) => (
+                    <View key={row.key} style={styles.verificationRow}>
+                      <Check size={18} color="#22C55E" strokeWidth={2.5} />
+                      <Text style={[styles.verificationRowText, { color: colors.text }]}>{row.label}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            );
+          })()}
 
           {/* Agent Info */}
           {property.agent && (
@@ -1080,6 +1127,49 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 16,
     marginBottom: 12,
+  },
+  verificationHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  verificationIconColumn: {
+    width: 28,
+    paddingTop: 2,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  verificationHeaderTextColumn: {
+    flex: 1,
+    paddingLeft: 4,
+  },
+  verificationTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    lineHeight: 24,
+    marginBottom: 6,
+  },
+  verificationSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  verificationList: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    gap: 12,
+  },
+  verificationRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  verificationRowText: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 21,
+    fontWeight: '500',
   },
   sectionContentBox: {
     borderRadius: 16,

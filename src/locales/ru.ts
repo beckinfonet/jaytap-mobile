@@ -125,6 +125,20 @@ export const ru: Record<TranslationKeys, string> = {
   'accountSettings.profileUpdated': 'Профиль успешно обновлён',
   'accountSettings.profileUpdateFailed': 'Не удалось обновить профиль',
 
+  // Platform verification (MoveIn / admin only)
+  'verification.sectionTitle': 'Проверено MoveIn',
+  'verification.subtitle':
+    'Наша команда проверила следующее по этому объявлению. Отметки ставят только сотрудники платформы.',
+  'verification.ownershipDocuments': 'Документы права собственности / титул проверены',
+  'verification.ownerIdentity': 'Удостоверение личности владельца проверено',
+  'verification.stateIssued': 'Государственные документы по объекту проверены',
+  'verification.adminSectionTitle': 'Проверка документов MoveIn',
+  'verification.adminSectionHint':
+    'Отмечайте пункт только после того, как команда получила и проверила соответствующие документы. Арендаторы не видят этот раздел.',
+  'verification.screenTitle': 'Проверка документов',
+  'verification.save': 'Сохранить проверку',
+  'verification.saved': 'Данные проверки обновлены.',
+
   // Create Listing
   'createListing.cancel': 'Отмена',
   'createListing.editListing': 'Редактировать объявление',

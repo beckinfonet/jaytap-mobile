@@ -9,6 +9,7 @@ import {
   StatusBar,
   Alert,
   ActivityIndicator,
+  Switch,
   Platform,
   Image,
   FlatList,
@@ -47,9 +48,16 @@ interface CreateListingScreenProps {
   onBack: () => void;
   onSuccess: () => void; // Navigate to renter's listings page
   propertyToEdit?: Property; // Optional property to edit
+  /** Admin-only: minimal screen to PATCH verification flags (e.g. from property details) */
+  verificationOnly?: boolean;
 }
 
-export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack, onSuccess, propertyToEdit }) => {
+export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
+  onBack,
+  onSuccess,
+  propertyToEdit,
+  verificationOnly = false,
+}) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
   const { t, language } = useLanguage();
@@ -92,11 +100,53 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
   const [contactTelegram, setContactTelegram] = useState('');
 
   const [loading, setLoading] = useState(false);
-  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(!verificationOnly);
+
+  const [verifyOwnership, setVerifyOwnership] = useState(false);
+  const [verifyOwnerId, setVerifyOwnerId] = useState(false);
+  const [verifyStateDocs, setVerifyStateDocs] = useState(false);
 
   const isEditMode = !!propertyToEdit;
+  const isAdmin = user?.backendProfile?.userType === 'admin';
+
+  const verificationSwitchRow = (
+    label: string,
+    value: boolean,
+    setVal: React.Dispatch<React.SetStateAction<boolean>>
+  ) => (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 16,
+        paddingVertical: 4,
+      }}
+    >
+      <Text style={{ flex: 1, color: colors.text, fontSize: 15, paddingRight: 12, fontWeight: '500' }}>{label}</Text>
+      <Switch
+        value={value}
+        onValueChange={setVal}
+        trackColor={{ false: '#767577', true: colors.accent }}
+        thumbColor="#f4f3f4"
+      />
+    </View>
+  );
+
+  const applyVerificationFromProperty = (p: Property | undefined) => {
+    const pv = p?.platformVerifications;
+    setVerifyOwnership(!!pv?.ownershipDocuments);
+    setVerifyOwnerId(!!pv?.ownerIdentityVerified);
+    setVerifyStateDocs(!!pv?.stateIssuedDocumentsVerified);
+  };
 
   useEffect(() => {
+    if (verificationOnly) {
+      setLoadingProfile(false);
+      applyVerificationFromProperty(propertyToEdit);
+      return;
+    }
+
     loadUserProfile();
     if (propertyToEdit) {
       // Populate form with existing property data
@@ -157,8 +207,13 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
           url: tour.url || '',
         })));
       }
+      applyVerificationFromProperty(propertyToEdit);
+    } else {
+      setVerifyOwnership(false);
+      setVerifyOwnerId(false);
+      setVerifyStateDocs(false);
     }
-  }, [propertyToEdit]);
+  }, [propertyToEdit, verificationOnly]);
 
   const loadUserProfile = async () => {
     if (!user?.localId) {
@@ -260,6 +315,27 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
   };
 
   const handleSubmit = async () => {
+    if (verificationOnly) {
+      if (!propertyToEdit?.id || !isAdmin) return;
+      setLoading(true);
+      try {
+        await PropertyService.patchPlatformVerifications(propertyToEdit.id, {
+          ownershipDocuments: verifyOwnership,
+          ownerIdentityVerified: verifyOwnerId,
+          stateIssuedDocumentsVerified: verifyStateDocs,
+        });
+        Alert.alert(t('common.success'), t('verification.saved'), [
+          { text: t('common.ok'), onPress: onSuccess },
+        ]);
+      } catch (error: any) {
+        const msg = error.response?.data?.message || error.message;
+        Alert.alert(t('common.error'), msg || t('createListing.updateFailed'));
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     // Validation
     if (!title.trim()) {
       Alert.alert(t('common.error'), t('createListing.titleRequired'));
@@ -317,6 +393,15 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
         status,
         tours: tours.length > 0 ? tours : undefined, // Include Matterport tours
         existingImages: existingImageUrls, // Send existing image URLs for merging
+        ...(isAdmin
+          ? {
+              platformVerifications: {
+                ownershipDocuments: verifyOwnership,
+                ownerIdentityVerified: verifyOwnerId,
+                stateIssuedDocumentsVerified: verifyStateDocs,
+              },
+            }
+          : {}),
       };
 
       if (isEditMode && propertyToEdit?.id) {
@@ -344,12 +429,52 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
     }
   };
 
-  if (loadingProfile) {
+  if (loadingProfile && !verificationOnly) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (verificationOnly) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+            <Text style={[styles.backButtonText, { color: colors.text }]}>{`← ${t('createListing.cancel')}`}</Text>
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
+            {t('verification.screenTitle')}
+          </Text>
+          <View style={{ width: 80 }} />
+        </View>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+          <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: 16 }]}>
+            {propertyToEdit?.title ? propertyToEdit.title : ''}
+          </Text>
+          <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 8 }]}>{t('verification.adminSectionTitle')}</Text>
+          <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: 20 }]}>{t('verification.adminSectionHint')}</Text>
+          {verificationSwitchRow(t('verification.ownershipDocuments'), verifyOwnership, setVerifyOwnership)}
+          {verificationSwitchRow(t('verification.ownerIdentity'), verifyOwnerId, setVerifyOwnerId)}
+          {verificationSwitchRow(t('verification.stateIssued'), verifyStateDocs, setVerifyStateDocs)}
+          <TouchableOpacity
+            style={[styles.submitButton, { backgroundColor: colors.primary }]}
+            onPress={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={[styles.submitButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>
+                {t('verification.save')}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -794,6 +919,18 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({ onBack
               </TouchableOpacity>
             </View>
             <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('createListing.statusHint')}</Text>
+          </View>
+        )}
+
+        {isAdmin && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('verification.adminSectionTitle')}</Text>
+            <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: 12 }]}>{t('verification.adminSectionHint')}</Text>
+            <View style={{ backgroundColor: colors.inputBackground, borderColor: colors.border, borderWidth: 1, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 8 }}>
+              {verificationSwitchRow(t('verification.ownershipDocuments'), verifyOwnership, setVerifyOwnership)}
+              {verificationSwitchRow(t('verification.ownerIdentity'), verifyOwnerId, setVerifyOwnerId)}
+              {verificationSwitchRow(t('verification.stateIssued'), verifyStateDocs, setVerifyStateDocs)}
+            </View>
           </View>
         )}
 

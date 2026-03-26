@@ -87,6 +87,10 @@ export const PropertyService = {
         formData.append('tours', JSON.stringify(propertyData.tours));
       }
 
+      if (propertyData.platformVerifications) {
+        formData.append('platformVerifications', JSON.stringify(propertyData.platformVerifications));
+      }
+
       // Add images
       images.forEach((image, index) => {
         formData.append('images', {
@@ -150,6 +154,10 @@ export const PropertyService = {
         formData.append('tours', JSON.stringify(propertyData.tours));
       }
 
+      if (propertyData.platformVerifications) {
+        formData.append('platformVerifications', JSON.stringify(propertyData.platformVerifications));
+      }
+
       // Add existing images (URLs) if provided (for updates)
       if (propertyData.existingImages && propertyData.existingImages.length > 0) {
         formData.append('existingImages', JSON.stringify(propertyData.existingImages));
@@ -176,6 +184,32 @@ export const PropertyService = {
       console.error('Error updating property:', error);
       throw error;
     }
+  },
+
+  /** Admin only: update verification flags on any listing */
+  patchPlatformVerifications: async (
+    propertyId: string,
+    platformVerifications: {
+      ownershipDocuments: boolean;
+      ownerIdentityVerified: boolean;
+      stateIssuedDocumentsVerified: boolean;
+    }
+  ) => {
+    const userData = await AuthService.getUserData();
+    if (!userData?.localId) {
+      throw new Error('User not authenticated');
+    }
+    const response = await axios.patch(
+      `${API_URL}/properties/${propertyId}/verifications`,
+      { firebaseUid: userData.localId, platformVerifications },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-firebase-uid': userData.localId,
+        },
+      }
+    );
+    return { ...response.data, id: response.data._id };
   },
 
   deleteProperty: async (propertyId: string) => {

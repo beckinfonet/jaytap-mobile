@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, ActivityIndicator, Linking, Alert, BackHandler, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { HomeScreen } from './src/screens/HomeScreen';
@@ -39,6 +39,8 @@ function AppContent() {
   const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false);
   const [isCreateListingOpen, setIsCreateListingOpen] = useState(false);
   const [propertyToEdit, setPropertyToEdit] = useState<Property | null>(null);
+  const [isAdminVerificationMode, setIsAdminVerificationMode] = useState(false);
+  const skipRenterListingsReopenRef = useRef(false);
   const [isRenterListingsOpen, setIsRenterListingsOpen] = useState(false);
   const [homeViewMode, setHomeViewMode] = useState<'list' | 'map'>('list'); // Track view mode to restore after details
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
@@ -351,7 +353,11 @@ function AppContent() {
   }, [showFavorites, showAppointments, showAccountSettings, showProfile, showChat]);
 
   const onProfileBack = useCallback(() => setIsProfileOpen(false), []);
-  const onProfileCreateListing = useCallback(() => setIsCreateListingOpen(true), []);
+  const onProfileCreateListing = useCallback(() => {
+    setIsAdminVerificationMode(false);
+    setPropertyToEdit(null);
+    setIsCreateListingOpen(true);
+  }, []);
   const onProfileViewListings = useCallback(() => setIsRenterListingsOpen(true), []);
   const onProfileViewFavorites = useCallback(() => {
     setReturnToProfileAfterFavorites(true);
@@ -618,6 +624,8 @@ function AppContent() {
                   setShowAuthPrompt(true);
                   return;
                 }
+                setIsAdminVerificationMode(false);
+                setPropertyToEdit(null);
                 setIsCreateListingOpen(true);
                 return;
               }
@@ -723,6 +731,13 @@ function AppContent() {
                 setOwnerListingsUid(ownerUid);
                 setOwnerListingsName(ownerName);
               }}
+              onAdminVerifyDocuments={(p) => {
+                skipRenterListingsReopenRef.current = true;
+                setPropertyToEdit(p);
+                setIsAdminVerificationMode(true);
+                setIsCreateListingOpen(true);
+                setSelectedProperty(null);
+              }}
             />
           </View>
         )}
@@ -736,6 +751,7 @@ function AppContent() {
               }}
               onOpenTours={handleOpenTours}
               onEditProperty={(property) => {
+                setIsAdminVerificationMode(false);
                 setPropertyToEdit(property);
                 setIsRenterListingsOpen(false);
                 setIsCreateListingOpen(true);
@@ -749,13 +765,20 @@ function AppContent() {
               onBack={() => {
                 setIsCreateListingOpen(false);
                 setPropertyToEdit(null);
+                setIsAdminVerificationMode(false);
+                skipRenterListingsReopenRef.current = false;
               }}
               onSuccess={() => {
                 setIsCreateListingOpen(false);
                 setPropertyToEdit(null);
-                setIsRenterListingsOpen(true);
+                setIsAdminVerificationMode(false);
+                if (!skipRenterListingsReopenRef.current) {
+                  setIsRenterListingsOpen(true);
+                }
+                skipRenterListingsReopenRef.current = false;
               }}
               propertyToEdit={propertyToEdit || undefined}
+              verificationOnly={isAdminVerificationMode}
             />
           </View>
         )}

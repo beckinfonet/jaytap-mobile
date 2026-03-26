@@ -123,6 +123,20 @@ export const en = {
   'accountSettings.profileUpdated': 'Profile updated successfully',
   'accountSettings.profileUpdateFailed': 'Failed to update profile',
 
+  // Platform verification (MoveIn / admin only)
+  'verification.sectionTitle': 'Verified by MoveIn',
+  'verification.subtitle':
+    'Our team has reviewed the following for this listing. Verification is performed by platform staff only.',
+  'verification.ownershipDocuments': 'Ownership / title documents reviewed',
+  'verification.ownerIdentity': "Owner's ID or identity documents verified",
+  'verification.stateIssued': 'State-issued property documents verified',
+  'verification.adminSectionTitle': 'MoveIn document verification',
+  'verification.adminSectionHint':
+    'Check each item only after your team has obtained and reviewed the corresponding documents. Renters cannot edit this section.',
+  'verification.screenTitle': 'Document verification',
+  'verification.save': 'Save verification',
+  'verification.saved': 'Verification flags updated.',
+
   // Create Listing
   'createListing.cancel': 'Cancel',
   'createListing.editListing': 'Edit Listing',

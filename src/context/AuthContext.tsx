@@ -23,8 +23,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const loadStorageData = async () => {
     try {
       const userData = await AuthService.getUserData();
+      if (userData?.localId) {
+        try {
+          const backendUser = await AuthService.getBackendUser(userData.localId);
+          if (backendUser) {
+            userData.backendProfile = backendUser;
+          }
+        } catch (_) {
+          /* keep cached user without profile */
+        }
+      }
       if (userData) {
-         setUser(userData);
+        setUser(userData);
       }
     } catch (e) {
       console.error(e);

@@ -5,6 +5,13 @@ export interface Tour {
   thumbnailUrl?: string;
 }
 
+/** Platform (MoveIn) trust signals — writable only by admin in API */
+export interface PlatformVerifications {
+  ownershipDocuments?: boolean;
+  ownerIdentityVerified?: boolean;
+  stateIssuedDocumentsVerified?: boolean;
+}
+
 export interface Property {
   id: string;
   listingId?: string; // 6-digit listing ID in format "123-456"
@@ -50,4 +57,7 @@ export interface Property {
   };
   /** ISO date string - when the property becomes available (for rent). If within 1 month, shows "now" */
   availableDate?: string;
+  platformVerifications?: PlatformVerifications;
+  verificationUpdatedAt?: string;
+  verificationUpdatedByUid?: string;
 }
