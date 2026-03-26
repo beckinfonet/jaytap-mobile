@@ -1,5 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, TextInput, ScrollView, Switch, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Alert,
+    TextInput,
+    ScrollView,
+    Switch,
+    ActivityIndicator,
+    Animated,
+    LayoutChangeEvent,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -12,10 +24,25 @@ interface AccountSettingsScreenProps {
     onAccountDeleted?: () => void;
 }
 
+const LANG_TRACK_PADDING = 4;
+const LANG_INNER_GAP = 4;
+
 export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ onBack, onAccountDeleted }) => {
     const { user, deleteAccount } = useAuth();
     const { language, setLanguage, t } = useLanguage();
     const { colors, isDark } = useTheme();
+
+    const langSlide = useRef(new Animated.Value(language === 'en' ? 0 : 1)).current;
+    const [langTrackWidth, setLangTrackWidth] = useState(0);
+
+    useEffect(() => {
+        Animated.spring(langSlide, {
+            toValue: language === 'en' ? 0 : 1,
+            useNativeDriver: true,
+            friction: 9,
+            tension: 80,
+        }).start();
+    }, [language, langSlide]);
 
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -144,31 +171,88 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                     <View style={styles.sectionHeader}>
                         <Text style={[styles.sectionTitle, { color: themeStyles.accent }]}>{t('accountSettings.language')}</Text>
                     </View>
-                    <View style={[styles.languageRow, { backgroundColor: themeStyles.surface, borderColor: themeStyles.border }]}>
-                        <TouchableOpacity
-                            style={[
-                                styles.languageOption,
-                                {
-                                    backgroundColor: language === 'en' ? themeStyles.accent : 'transparent',
-                                    borderColor: themeStyles.border,
-                                },
-                            ]}
-                            onPress={() => setLanguage('en')}
-                        >
-                            <Text style={[styles.languageOptionText, { color: language === 'en' ? '#FFF' : themeStyles.text }]}>{t('accountSettings.english')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[
-                                styles.languageOption,
-                                {
-                                    backgroundColor: language === 'ru' ? themeStyles.accent : 'transparent',
-                                    borderColor: themeStyles.border,
-                                },
-                            ]}
-                            onPress={() => setLanguage('ru')}
-                        >
-                            <Text style={[styles.languageOptionText, { color: language === 'ru' ? '#FFF' : themeStyles.text }]}>{t('accountSettings.russian')}</Text>
-                        </TouchableOpacity>
+                    <View
+                        style={[
+                            styles.languageTrack,
+                            {
+                                backgroundColor: isDark ? '#2C2C2E' : '#E8E8ED',
+                                shadowColor: '#000',
+                            },
+                        ]}
+                        onLayout={(e: LayoutChangeEvent) => setLangTrackWidth(e.nativeEvent.layout.width)}
+                    >
+                        {langTrackWidth > 0 && (
+                            <Animated.View
+                                pointerEvents="none"
+                                style={[
+                                    styles.languageSlidingPill,
+                                    {
+                                        width:
+                                            (langTrackWidth - LANG_TRACK_PADDING * 2 - LANG_INNER_GAP) / 2,
+                                        backgroundColor: themeStyles.accent,
+                                        transform: [
+                                            {
+                                                translateX: langSlide.interpolate({
+                                                    inputRange: [0, 1],
+                                                    outputRange: [
+                                                        LANG_TRACK_PADDING,
+                                                        LANG_TRACK_PADDING +
+                                                            (langTrackWidth - LANG_TRACK_PADDING * 2 - LANG_INNER_GAP) / 2 +
+                                                            LANG_INNER_GAP,
+                                                    ],
+                                                }),
+                                            },
+                                        ],
+                                    },
+                                ]}
+                            />
+                        )}
+                        <View style={styles.languageOptionsRow}>
+                            <TouchableOpacity
+                                style={styles.languageTouch}
+                                onPress={() => setLanguage('en')}
+                                activeOpacity={0.85}
+                                accessibilityRole="button"
+                                accessibilityState={{ selected: language === 'en' }}
+                            >
+                                <Text style={styles.languageFlag}>🇺🇸</Text>
+                                <Text
+                                    style={[
+                                        styles.languageLabel,
+                                        {
+                                            color: language === 'en' ? '#FFFFFF' : themeStyles.text,
+                                            opacity: language === 'en' ? 1 : 0.55,
+                                        },
+                                    ]}
+                                    numberOfLines={1}
+                                >
+                                    {t('accountSettings.english')}
+                                </Text>
+                                {language === 'en' ? <Text style={styles.languageCheck}>✓</Text> : <View style={styles.languageCheckSpacer} />}
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.languageTouch}
+                                onPress={() => setLanguage('ru')}
+                                activeOpacity={0.85}
+                                accessibilityRole="button"
+                                accessibilityState={{ selected: language === 'ru' }}
+                            >
+                                <Text style={styles.languageFlag}>🇷🇺</Text>
+                                <Text
+                                    style={[
+                                        styles.languageLabel,
+                                        {
+                                            color: language === 'ru' ? '#FFFFFF' : themeStyles.text,
+                                            opacity: language === 'ru' ? 1 : 0.55,
+                                        },
+                                    ]}
+                                    numberOfLines={1}
+                                >
+                                    {t('accountSettings.russian')}
+                                </Text>
+                                {language === 'ru' ? <Text style={styles.languageCheck}>✓</Text> : <View style={styles.languageCheckSpacer} />}
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
 
@@ -300,25 +384,53 @@ const styles = StyleSheet.create({
     separator: {
         height: 1,
     },
-    languageRow: {
-        flexDirection: 'row',
-        gap: 12,
-        padding: 4,
-        borderRadius: 16,
-        borderWidth: 1,
+    languageTrack: {
+        borderRadius: 22,
+        paddingVertical: LANG_TRACK_PADDING,
+        paddingHorizontal: LANG_TRACK_PADDING,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+        elevation: 3,
     },
-    languageOption: {
+    languageSlidingPill: {
+        position: 'absolute',
+        top: LANG_TRACK_PADDING,
+        bottom: LANG_TRACK_PADDING,
+        borderRadius: 18,
+    },
+    languageOptionsRow: {
+        flexDirection: 'row',
+        gap: LANG_INNER_GAP,
+    },
+    languageTouch: {
         flex: 1,
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        borderRadius: 12,
+        flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        borderWidth: 1,
+        paddingVertical: 14,
+        paddingHorizontal: 10,
+        gap: 8,
     },
-    languageOptionText: {
-        fontSize: 16,
-        fontWeight: '600',
+    languageFlag: {
+        fontSize: 22,
+    },
+    languageLabel: {
+        fontSize: 15,
+        fontWeight: '700',
+        letterSpacing: 0.2,
+    },
+    languageCheck: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: 'rgba(255,255,255,0.95)',
+        marginLeft: 2,
+        width: 16,
+        textAlign: 'center',
+    },
+    languageCheckSpacer: {
+        width: 16,
+        marginLeft: 2,
     },
     actionButtonsContainer: {
         flexDirection: 'row',
