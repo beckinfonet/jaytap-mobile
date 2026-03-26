@@ -138,6 +138,9 @@ export const ru: Record<TranslationKeys, string> = {
   'verification.screenTitle': 'Проверка документов',
   'verification.save': 'Сохранить проверку',
   'verification.saved': 'Данные проверки обновлены.',
+  'verification.unverifiedTitle': 'Документы не проверены MoveIn',
+  'verification.unverifiedBody':
+    'По этому объявлению MoveIn выполнил только 3D-сканирование и фотосъёмку. Право собственности, личность владельца и иные юридические документы платформой не проверяются. Перед сделкой самостоятельно убедитесь в подлинности документов и информации.',
 
   // Create Listing
   'createListing.cancel': 'Отмена',

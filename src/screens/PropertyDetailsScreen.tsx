@@ -54,6 +54,7 @@ import {
   MapPin,
   Instagram,
   ShieldCheck,
+  AlertTriangle,
 } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { TourHeroCard } from '../components/TourHeroCard';
@@ -682,32 +683,58 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
           {(() => {
             const pv = property.platformVerifications;
-            if (!pv) return null;
             const rows: { key: string; label: string }[] = [];
-            if (pv.ownershipDocuments) rows.push({ key: 'o', label: t('verification.ownershipDocuments') });
-            if (pv.ownerIdentityVerified) rows.push({ key: 'i', label: t('verification.ownerIdentity') });
-            if (pv.stateIssuedDocumentsVerified) rows.push({ key: 's', label: t('verification.stateIssued') });
-            if (rows.length === 0) return null;
-            return (
-              <View style={styles.section}>
-                <View style={styles.verificationHeaderRow}>
-                  <View style={styles.verificationIconColumn}>
-                    <ShieldCheck size={22} color={colors.accent} />
+            if (pv?.ownershipDocuments) rows.push({ key: 'o', label: t('verification.ownershipDocuments') });
+            if (pv?.ownerIdentityVerified) rows.push({ key: 'i', label: t('verification.ownerIdentity') });
+            if (pv?.stateIssuedDocumentsVerified) rows.push({ key: 's', label: t('verification.stateIssued') });
+            const hasVerifiedItems = rows.length > 0;
+
+            if (hasVerifiedItems) {
+              return (
+                <View style={styles.section}>
+                  <View style={styles.verificationHeaderRow}>
+                    <View style={styles.verificationIconColumn}>
+                      <ShieldCheck size={22} color={colors.accent} />
+                    </View>
+                    <View style={styles.verificationHeaderTextColumn}>
+                      <Text style={[styles.verificationTitle, { color: colors.text }]}>{t('verification.sectionTitle')}</Text>
+                      <Text style={[styles.verificationSubtitle, { color: colors.textSecondary }]}>
+                        {t('verification.subtitle')}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.verificationHeaderTextColumn}>
-                    <Text style={[styles.verificationTitle, { color: colors.text }]}>{t('verification.sectionTitle')}</Text>
-                    <Text style={[styles.verificationSubtitle, { color: colors.textSecondary }]}>
-                      {t('verification.subtitle')}
-                    </Text>
+                  <View style={[styles.verificationList, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    {rows.map((row) => (
+                      <View key={row.key} style={styles.verificationRow}>
+                        <Check size={18} color="#22C55E" strokeWidth={2.5} />
+                        <Text style={[styles.verificationRowText, { color: colors.text }]}>{row.label}</Text>
+                      </View>
+                    ))}
                   </View>
                 </View>
-                <View style={[styles.verificationList, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                  {rows.map((row) => (
-                    <View key={row.key} style={styles.verificationRow}>
-                      <Check size={18} color="#22C55E" strokeWidth={2.5} />
-                      <Text style={[styles.verificationRowText, { color: colors.text }]}>{row.label}</Text>
-                    </View>
-                  ))}
+              );
+            }
+
+            return (
+              <View style={styles.section}>
+                <View
+                  style={[
+                    styles.verificationWarningBox,
+                    {
+                      backgroundColor: isDark ? 'rgba(234, 179, 8, 0.12)' : '#FFFBEB',
+                      borderColor: isDark ? 'rgba(234, 179, 8, 0.45)' : '#FDE68A',
+                    },
+                  ]}
+                >
+                  <View style={styles.verificationWarningHeader}>
+                    <AlertTriangle size={22} color="#D97706" />
+                    <Text style={[styles.verificationWarningTitle, { color: colors.text }]}>
+                      {t('verification.unverifiedTitle')}
+                    </Text>
+                  </View>
+                  <Text style={[styles.verificationWarningBody, { color: colors.textSecondary }]}>
+                    {t('verification.unverifiedBody')}
+                  </Text>
                 </View>
               </View>
             );
@@ -1153,6 +1180,27 @@ const styles = StyleSheet.create({
   verificationSubtitle: {
     fontSize: 13,
     lineHeight: 18,
+  },
+  verificationWarningBox: {
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 14,
+  },
+  verificationWarningHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 10,
+  },
+  verificationWarningTitle: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '700',
+    lineHeight: 22,
+  },
+  verificationWarningBody: {
+    fontSize: 14,
+    lineHeight: 21,
   },
   verificationList: {
     borderRadius: 16,

@@ -136,6 +136,9 @@ export const en = {
   'verification.screenTitle': 'Document verification',
   'verification.save': 'Save verification',
   'verification.saved': 'Verification flags updated.',
+  'verification.unverifiedTitle': 'Documents not verified by MoveIn',
+  'verification.unverifiedBody':
+    'For this listing, MoveIn has completed 3D scanning and photography only. We have not verified ownership, identity, or other legal documents. Prospective buyers and renters should independently confirm the validity of all documents and listing details before proceeding.',
 
   // Create Listing
   'createListing.cancel': 'Cancel',
