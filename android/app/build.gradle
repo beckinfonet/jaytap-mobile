@@ -83,13 +83,13 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.jaytap"
+    namespace "com.movein"
     defaultConfig {
-        applicationId "com.jaytap"
+        applicationId "com.movein"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 16
-        versionName "1.0.15"
+        versionCode 17
+        versionName "1.0.16"
         resConfigs "ru", "en"
 
         manifestPlaceholders = [

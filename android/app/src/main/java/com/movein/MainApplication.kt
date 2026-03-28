@@ -1,4 +1,4 @@
-package com.jaytap
+package com.movein
 
 import android.app.Application
 import com.facebook.react.PackageList

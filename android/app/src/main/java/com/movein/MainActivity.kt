@@ -1,4 +1,4 @@
-package com.jaytap
+package com.movein
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
