@@ -177,29 +177,22 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const { t } = useLanguage();
   const isAdmin = user?.backendProfile?.userType === 'admin';
   const [property, setProperty] = useState<Property>(initialProperty);
-  const [loading, setLoading] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isMapFullScreen, setIsMapFullScreen] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
 
-  // Fetch property details with owner info when screen mounts
+  // Silently refresh property data in the background without blocking the UI.
+  // The passed-in initialProperty is shown immediately.
   useEffect(() => {
-    const fetchPropertyDetails = async () => {
-      if (!initialProperty?.id) return;
+    if (!initialProperty?.id) return;
+    let cancelled = false;
 
-      setLoading(true);
-      try {
-        const propertyDetails = await PropertyService.getPropertyById(initialProperty.id);
-        setProperty(propertyDetails);
-      } catch (error) {
-        console.error('Error fetching property details:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    PropertyService.getPropertyById(initialProperty.id)
+      .then(fresh => { if (!cancelled) setProperty(fresh); })
+      .catch(() => {});
 
-    fetchPropertyDetails();
+    return () => { cancelled = true; };
   }, [initialProperty?.id]);
 
   // Consolidate images into a single array
@@ -390,27 +383,6 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       />
     </View>
   );
-
-  if (loading) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
-        <StatusBar
-          barStyle={isDark ? 'light-content' : 'dark-content'}
-          backgroundColor={colors.background}
-        />
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={[styles.iconButton, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.iconText, { color: colors.text }]}>←</Text>
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('property.details')}</Text>
-          <View style={[styles.iconButton, { backgroundColor: colors.surface }]} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
@@ -1635,11 +1607,6 @@ const styles = StyleSheet.create({
   fullScreenMapAddress: {
     fontSize: 16,
     fontWeight: '500',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   // Contact Options Modal
   contactModalOverlay: {
