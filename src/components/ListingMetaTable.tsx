@@ -154,6 +154,7 @@ const styles = StyleSheet.create({
   },
   metaPairAvail: {
     flex: 1,
+    justifyContent: 'center',
   },
   vDivider: {
     width: StyleSheet.hairlineWidth,
