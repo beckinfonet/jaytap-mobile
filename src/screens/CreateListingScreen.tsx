@@ -682,6 +682,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
             <DateTimePicker
               value={availableDate ? new Date(availableDate + 'T12:00:00') : new Date()}
               mode="date"
+              locale={dateLocale}
               display={Platform.OS === 'ios' ? 'spinner' : undefined}
               themeVariant={Platform.OS === 'ios' ? (isDark ? 'dark' : 'light') : undefined}
               textColor={Platform.OS === 'ios' ? (isDark ? '#FFFFFF' : '#000000') : undefined}

@@ -5,7 +5,8 @@ import { useLanguage } from '../context/LanguageContext';
 
 function availabilityValueFromRaw(
   raw: unknown,
-  tNow: string
+  tNow: string,
+  locale: string
 ): string | null {
   if (raw == null || raw === '') return null;
   const date =
@@ -18,7 +19,7 @@ function availabilityValueFromRaw(
   const now = new Date();
   const oneMonthMs = 30 * 24 * 60 * 60 * 1000;
   const isSoon = date.getTime() - now.getTime() > oneMonthMs;
-  const formattedDate = date.toLocaleDateString(undefined, {
+  const formattedDate = date.toLocaleDateString(locale, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -42,9 +43,10 @@ export const ListingMetaTable: React.FC<ListingMetaTableProps> = ({
   showAvailabilityDot = false,
 }) => {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'ru' ? 'ru-RU' : 'en-US';
 
-  const availValue = availabilityValueFromRaw(availableDate, t('property.now'));
+  const availValue = availabilityValueFromRaw(availableDate, t('property.now'), dateLocale);
   const hasId = Boolean(listingId?.trim());
   const hasAvail = availValue != null;
 
@@ -71,7 +73,7 @@ export const ListingMetaTable: React.FC<ListingMetaTableProps> = ({
     >
       <View style={styles.row}>
         {hasId && (
-          <View style={styles.metaPair}>
+          <View style={[styles.metaPair, both && styles.metaPairId]}>
             <Text
               style={[styles.cellLabel, { color: colors.textSecondary, fontSize: labelSize }]}
               numberOfLines={1}
@@ -94,7 +96,7 @@ export const ListingMetaTable: React.FC<ListingMetaTableProps> = ({
           <View style={[styles.vDivider, { backgroundColor: colors.border }]} />
         ) : null}
         {hasAvail && (
-          <View style={styles.metaPair}>
+          <View style={[styles.metaPair, both && styles.metaPairAvail]}>
             <Text
               style={[styles.cellLabel, { color: colors.textSecondary, fontSize: labelSize }]}
               numberOfLines={1}
@@ -145,6 +147,13 @@ const styles = StyleSheet.create({
     gap: 6,
     flex: 1,
     minWidth: 0,
+  },
+  metaPairId: {
+    flex: 0,
+    flexShrink: 0,
+  },
+  metaPairAvail: {
+    flex: 1,
   },
   vDivider: {
     width: StyleSheet.hairlineWidth,
