@@ -27,6 +27,7 @@ import { Property } from '../types/Property';
 import { PropertyCard } from '../components/PropertyCard';
 import { PropertyMap } from '../components/PropertyMap';
 import { ThemeToggleSwitch } from '../components/ThemeToggleSwitch';
+import { LanguageToggleSwitch } from '../components/LanguageToggleSwitch';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -294,33 +295,41 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
 
         <View style={styles.rightIcons}>
           <ThemeToggleSwitch />
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={toggleFiltersExpanded}
-          >
-            <Filter
-              size={22}
-              color={isFiltersExpanded ? colors.accent : colors.text}
-              strokeWidth={isFiltersExpanded ? 2.5 : 2}
-            />
-          </TouchableOpacity>
+          <LanguageToggleSwitch />
         </View>
       </View>
 
-      {/* Search Bar */}
-      <View style={[styles.searchContainer, { backgroundColor: colors.inputBackground }]}>
-        <Text style={[styles.searchIcon, { color: colors.textSecondary }]}>🔍</Text>
-        <TextInput
-          key="search-input"
-          style={[styles.searchInput, { color: colors.text }]}
-          placeholder={t('home.searchPlaceholder')}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholderTextColor={colors.textSecondary}
-          autoCorrect={false}
-          autoCapitalize="none"
-          returnKeyType="search"
-        />
+      {/* Search Bar + Filter Icon Row */}
+      <View style={styles.searchRow}>
+        <View style={[styles.searchContainer, { backgroundColor: colors.inputBackground }]}>
+          <Text style={[styles.searchIcon, { color: colors.textSecondary }]}>🔍</Text>
+          <TextInput
+            key="search-input"
+            style={[styles.searchInput, { color: colors.text }]}
+            placeholder={t('home.searchPlaceholder')}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholderTextColor={colors.textSecondary}
+            autoCorrect={false}
+            autoCapitalize="none"
+            returnKeyType="search"
+          />
+        </View>
+        <TouchableOpacity
+          style={[
+            styles.filterButton,
+            {
+              backgroundColor: isFiltersExpanded ? colors.accent : colors.inputBackground,
+            },
+          ]}
+          onPress={toggleFiltersExpanded}
+        >
+          <Filter
+            size={22}
+            color={isFiltersExpanded ? '#FFF' : colors.text}
+            strokeWidth={isFiltersExpanded ? 2.5 : 2}
+          />
+        </TouchableOpacity>
       </View>
 
       {/* Filter Section - Collapsible (toggled via filter icon in top right) */}
@@ -572,13 +581,26 @@ const styles = StyleSheet.create({
     gap: 16,
     alignItems: 'center',
   },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 20,
+  },
   searchContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 30,
     paddingHorizontal: 16,
     height: 50,
-    marginBottom: 20,
+  },
+  filterButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   searchIcon: {
     fontSize: 18,
