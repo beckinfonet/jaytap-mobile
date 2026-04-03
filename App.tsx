@@ -7,6 +7,9 @@ import { Tour3DScreen } from './src/screens/Tour3DScreen';
 import { TourSelectionScreen } from './src/screens/TourSelectionScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { SignupScreen } from './src/screens/SignupScreen';
+import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen';
+import { ResetPasswordScreen } from './src/screens/ResetPasswordScreen';
+import { parseOobCodeFromResetInput } from './src/utils/parseOobCode';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { AccountSettingsScreen } from './src/screens/AccountSettingsScreen';
 import { CreateListingScreen } from './src/screens/CreateListingScreen';
@@ -47,6 +50,9 @@ function AppContent() {
   const [authPromptMessage, setAuthPromptMessage] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [resetPasswordInitialOobCode, setResetPasswordInitialOobCode] = useState<string | null>(null);
   const [favoriteStatuses, setFavoriteStatuses] = useState<Record<string, boolean>>({});
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState<Record<string, boolean>>({});
@@ -73,6 +79,19 @@ function AppContent() {
   useEffect(() => {
     const handleDeepLink = async (url: string) => {
       try {
+        // Firebase reset links include mode=resetPassword (avoid matching verifyEmail, etc.)
+        if (url.toLowerCase().includes('mode=resetpassword')) {
+          const oob = parseOobCodeFromResetInput(url);
+          if (oob) {
+            setShowLoginModal(false);
+            setShowSignupModal(false);
+            setShowForgotPasswordModal(false);
+            setResetPasswordInitialOobCode(oob);
+            setShowResetPasswordModal(true);
+            return;
+          }
+        }
+
         // Parse URL: https://www.moveinplatform.com/property/{id} (also supports legacy bizdinkonush.com links)
         const propertyMatch = url.match(/\/property\/([^\/\?]+)/);
         if (propertyMatch && propertyMatch[1]) {
@@ -116,6 +135,9 @@ function AppContent() {
     if (user) {
       setShowLoginModal(false);
       setShowSignupModal(false);
+      setShowForgotPasswordModal(false);
+      setShowResetPasswordModal(false);
+      setResetPasswordInitialOobCode(null);
       setShowAuthPrompt(false);
     }
   }, [user]);
@@ -163,6 +185,17 @@ function AppContent() {
     if (Platform.OS !== 'android') return;
 
     const onBackPress = () => {
+      if (showResetPasswordModal) {
+        setShowResetPasswordModal(false);
+        setResetPasswordInitialOobCode(null);
+        setShowLoginModal(true);
+        return true;
+      }
+      if (showForgotPasswordModal) {
+        setShowForgotPasswordModal(false);
+        setShowLoginModal(true);
+        return true;
+      }
       if (showLoginModal) {
         setShowLoginModal(false);
         return true;
@@ -244,6 +277,8 @@ function AppContent() {
   }, [
     showLoginModal,
     showSignupModal,
+    showForgotPasswordModal,
+    showResetPasswordModal,
     showAuthPrompt,
     propertyForTourSelection,
     activeTourUrl,
@@ -799,38 +834,90 @@ function AppContent() {
         onClose={() => setShowAuthPrompt(false)}
         onLogin={() => {
           setShowAuthPrompt(false);
+          setShowForgotPasswordModal(false);
+          setShowResetPasswordModal(false);
+          setResetPasswordInitialOobCode(null);
           setShowLoginModal(true);
         }}
         onSignup={() => {
           setShowAuthPrompt(false);
+          setShowForgotPasswordModal(false);
+          setShowResetPasswordModal(false);
+          setResetPasswordInitialOobCode(null);
           setShowSignupModal(true);
         }}
         message={authPromptMessage}
       />
 
-      {/* Login Modal */}
-      {showLoginModal && (
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, backgroundColor: colors.background }}>
-          <LoginScreen
-            onNavigateToSignup={() => {
-              setShowLoginModal(false);
-              setShowSignupModal(true);
-            }}
-            onClose={() => setShowLoginModal(false)}
-          />
-        </View>
-      )}
-
-      {/* Signup Modal */}
-      {showSignupModal && (
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, backgroundColor: colors.background }}>
-          <SignupScreen
-            onNavigateToLogin={() => {
-              setShowSignupModal(false);
-              setShowLoginModal(true);
-            }}
-            onClose={() => setShowSignupModal(false)}
-          />
+      {/* Auth: reset password, forgot password, login, signup (single full-screen stack) */}
+      {(showResetPasswordModal ||
+        showForgotPasswordModal ||
+        showLoginModal ||
+        showSignupModal) && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1000,
+            backgroundColor: colors.background,
+          }}
+        >
+          {showResetPasswordModal ? (
+            <ResetPasswordScreen
+              initialOobCode={resetPasswordInitialOobCode}
+              onConsumedInitialOobCode={() => setResetPasswordInitialOobCode(null)}
+              onBackToLogin={() => {
+                setShowResetPasswordModal(false);
+                setResetPasswordInitialOobCode(null);
+                setShowLoginModal(true);
+              }}
+              onClose={() => {
+                setShowResetPasswordModal(false);
+                setResetPasswordInitialOobCode(null);
+              }}
+            />
+          ) : showForgotPasswordModal ? (
+            <ForgotPasswordScreen
+              onOpenSetNewPassword={() => {
+                setShowForgotPasswordModal(false);
+                setShowResetPasswordModal(true);
+              }}
+              onBackToLogin={() => {
+                setShowForgotPasswordModal(false);
+                setShowLoginModal(true);
+              }}
+              onClose={() => setShowForgotPasswordModal(false)}
+            />
+          ) : showLoginModal ? (
+            <LoginScreen
+              onNavigateToForgotPassword={() => {
+                setShowLoginModal(false);
+                setShowForgotPasswordModal(true);
+              }}
+              onNavigateToSignup={() => {
+                setShowLoginModal(false);
+                setShowForgotPasswordModal(false);
+                setShowResetPasswordModal(false);
+                setResetPasswordInitialOobCode(null);
+                setShowSignupModal(true);
+              }}
+              onClose={() => setShowLoginModal(false)}
+            />
+          ) : (
+            <SignupScreen
+              onNavigateToLogin={() => {
+                setShowSignupModal(false);
+                setShowForgotPasswordModal(false);
+                setShowResetPasswordModal(false);
+                setResetPasswordInitialOobCode(null);
+                setShowLoginModal(true);
+              }}
+              onClose={() => setShowSignupModal(false)}
+            />
+          )}
         </View>
       )}
     </>

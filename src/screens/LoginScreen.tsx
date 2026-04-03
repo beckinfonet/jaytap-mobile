@@ -4,8 +4,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
+import { AuthModalCloseButton } from '../components/AuthModalCloseButton';
 
-export const LoginScreen = ({ onNavigateToSignup, onClose }: { onNavigateToSignup: () => void; onClose?: () => void }) => {
+export const LoginScreen = ({
+  onNavigateToSignup,
+  onNavigateToForgotPassword,
+  onClose,
+}: {
+  onNavigateToSignup: () => void;
+  onNavigateToForgotPassword: () => void;
+  onClose?: () => void;
+}) => {
   const { login } = useAuth();
   const { t } = useLanguage();
   const { colors, isDark } = useTheme();
@@ -37,11 +46,7 @@ export const LoginScreen = ({ onNavigateToSignup, onClose }: { onNavigateToSignu
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {onClose && (
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Text style={[styles.closeButtonText, { color: colors.text }]}>✕</Text>
-        </TouchableOpacity>
-      )}
+      {onClose ? <AuthModalCloseButton onPress={onClose} /> : null}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('auth.welcomeBack')}</Text>
         <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{t('auth.signInToContinue')}</Text>
@@ -84,6 +89,10 @@ export const LoginScreen = ({ onNavigateToSignup, onClose }: { onNavigateToSignu
             onChangeText={setPassword}
             />
         </View>
+
+        <TouchableOpacity style={styles.forgotRow} onPress={onNavigateToForgotPassword}>
+          <Text style={{ color: colors.accent, fontSize: 14, fontWeight: '600' }}>{t('auth.forgotPassword')}</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity 
             style={[styles.button, { backgroundColor: colors.primary }]} 
@@ -153,21 +162,10 @@ const styles = StyleSheet.create({
   linkText: {
     fontSize: 14,
   },
-  closeButton: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(0,0,0,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  closeButtonText: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  forgotRow: {
+    alignSelf: 'flex-end',
+    marginTop: -8,
+    marginBottom: 4,
   },
   errorContainer: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',

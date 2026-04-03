@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
+import { AuthModalCloseButton } from '../components/AuthModalCloseButton';
 
 export const SignupScreen = ({ onNavigateToLogin, onClose }: { onNavigateToLogin: () => void; onClose?: () => void }) => {
   const { signup } = useAuth();
@@ -48,11 +49,7 @@ export const SignupScreen = ({ onNavigateToLogin, onClose }: { onNavigateToLogin
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {onClose && (
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Text style={[styles.closeButtonText, { color: colors.text }]}>✕</Text>
-        </TouchableOpacity>
-      )}
+      {onClose ? <AuthModalCloseButton onPress={onClose} /> : null}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('auth.createAccountTitle')}</Text>
         <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{t('auth.signUpToGetStarted')}</Text>
@@ -178,22 +175,6 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 14,
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(0,0,0,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  closeButtonText: {
-    fontSize: 20,
-    fontWeight: 'bold',
   },
   errorContainer: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',

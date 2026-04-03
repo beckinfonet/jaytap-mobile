@@ -36,6 +36,31 @@ export const AuthService = {
     }
   },
 
+  /** Firebase Identity Toolkit REST — same flow as CarEx; no Firebase client SDK. */
+  sendPasswordResetEmail: async (email: string) => {
+    try {
+      const response = await axios.post(`${AUTH_URL}:sendOobCode?key=${API_KEY}`, {
+        requestType: 'PASSWORD_RESET',
+        email,
+      });
+      return response.data;
+    } catch (error: any) {
+      throw error.response ? error.response.data.error : error;
+    }
+  },
+
+  confirmPasswordReset: async (oobCode: string, newPassword: string) => {
+    try {
+      const response = await axios.post(`${AUTH_URL}:resetPassword?key=${API_KEY}`, {
+        oobCode,
+        newPassword,
+      });
+      return response.data;
+    } catch (error: any) {
+      throw error.response ? error.response.data.error : error;
+    }
+  },
+
   saveToken: async (token: string, userData: any) => {
     await AsyncStorage.setItem('userToken', token);
     await AsyncStorage.setItem('userData', JSON.stringify(userData));
