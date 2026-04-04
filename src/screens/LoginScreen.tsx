@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
 import { AuthModalCloseButton } from '../components/AuthModalCloseButton';
+import { PasswordTextInput } from '../components/PasswordTextInput';
 
 export const LoginScreen = ({
   onNavigateToSignup,
@@ -76,7 +77,7 @@ export const LoginScreen = ({
         </View>
         
         <View style={styles.inputContainer}>
-            <TextInput
+            <PasswordTextInput
             style={[styles.input, { 
                 backgroundColor: colors.inputBackground, 
                 color: colors.text,
@@ -84,7 +85,6 @@ export const LoginScreen = ({
             }]}
             placeholder={t('auth.password')}
             placeholderTextColor={colors.textSecondary}
-            secureTextEntry
             value={password}
             onChangeText={setPassword}
             />

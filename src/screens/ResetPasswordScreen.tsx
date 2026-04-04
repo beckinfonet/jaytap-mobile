@@ -8,6 +8,9 @@ import { parseOobCodeFromResetInput } from '../utils/parseOobCode';
 import type { TranslationKeys } from '../locales';
 import { KeyRound } from 'lucide-react-native';
 import { AuthModalCloseButton } from '../components/AuthModalCloseButton';
+import { PasswordRequirements } from '../components/PasswordRequirements';
+import { PasswordTextInput } from '../components/PasswordTextInput';
+import { passwordMeetsPolicy } from '../utils/passwordPolicy';
 
 type FirebaseRestError = { message?: string };
 type TFn = (key: TranslationKeys, params?: Record<string, string>) => string;
@@ -65,7 +68,7 @@ export const ResetPasswordScreen = ({
       setErrorMessage(t('auth.passwordsDoNotMatch'));
       return;
     }
-    if (password.length < 6) {
+    if (!passwordMeetsPolicy(password)) {
       setErrorMessage(t('auth.passwordMinLength'));
       return;
     }
@@ -130,26 +133,28 @@ export const ResetPasswordScreen = ({
         </View>
 
         <View style={styles.inputContainer}>
-          <TextInput
+          <PasswordTextInput
             style={[
               styles.input,
               {
                 backgroundColor: colors.inputBackground,
                 color: colors.text,
-                borderColor: colors.border,
+                borderColor:
+                  password.length > 0 && !passwordMeetsPolicy(password) ? colors.accent : colors.border,
               },
             ]}
             placeholder={t('auth.newPassword')}
             placeholderTextColor={colors.textSecondary}
-            secureTextEntry
             value={password}
             onChangeText={setPassword}
             editable={!loading}
           />
         </View>
 
+        <PasswordRequirements password={password} />
+
         <View style={styles.inputContainer}>
-          <TextInput
+          <PasswordTextInput
             style={[
               styles.input,
               {
@@ -160,7 +165,6 @@ export const ResetPasswordScreen = ({
             ]}
             placeholder={t('auth.confirmPassword')}
             placeholderTextColor={colors.textSecondary}
-            secureTextEntry
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             editable={!loading}

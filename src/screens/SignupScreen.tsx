@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
 import { AuthModalCloseButton } from '../components/AuthModalCloseButton';
+import { PasswordRequirements } from '../components/PasswordRequirements';
+import { PasswordTextInput } from '../components/PasswordTextInput';
+import { passwordMeetsPolicy } from '../utils/passwordPolicy';
 
 export const SignupScreen = ({ onNavigateToLogin, onClose }: { onNavigateToLogin: () => void; onClose?: () => void }) => {
   const { signup } = useAuth();
@@ -28,9 +31,9 @@ export const SignupScreen = ({ onNavigateToLogin, onClose }: { onNavigateToLogin
       return;
     }
 
-    if (password.length < 6) {
-        setErrorMessage(t('auth.passwordMinLength'));
-        return;
+    if (!passwordMeetsPolicy(password)) {
+      setErrorMessage(t('auth.passwordMinLength'));
+      return;
     }
 
     setLoading(true);
@@ -79,22 +82,26 @@ export const SignupScreen = ({ onNavigateToLogin, onClose }: { onNavigateToLogin
         </View>
         
         <View style={styles.inputContainer}>
-            <TextInput
+            <PasswordTextInput
             style={[styles.input, { 
                 backgroundColor: colors.inputBackground, 
                 color: colors.text,
-                borderColor: colors.border
+                borderColor:
+                  password.length > 0 && !passwordMeetsPolicy(password)
+                    ? colors.accent
+                    : colors.border,
             }]}
             placeholder={t('auth.password')}
             placeholderTextColor={colors.textSecondary}
-            secureTextEntry
             value={password}
             onChangeText={setPassword}
             />
         </View>
 
+        <PasswordRequirements password={password} />
+
         <View style={styles.inputContainer}>
-            <TextInput
+            <PasswordTextInput
             style={[styles.input, { 
                 backgroundColor: colors.inputBackground, 
                 color: colors.text,
@@ -102,7 +109,6 @@ export const SignupScreen = ({ onNavigateToLogin, onClose }: { onNavigateToLogin
             }]}
             placeholder={t('auth.confirmPassword')}
             placeholderTextColor={colors.textSecondary}
-            secureTextEntry
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             />
