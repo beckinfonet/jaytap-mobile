@@ -116,51 +116,52 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ## Traceability
 
-Populated by the roadmap step. Each v1 REQ-ID will be mapped to exactly one phase.
+Each v1 REQ-ID maps to exactly one phase in ROADMAP.md.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NAV-01 | TBD | Pending |
-| NAV-02 | TBD | Pending |
-| NAV-03 | TBD | Pending |
-| KBD-01 | TBD | Pending |
-| KBD-02 | TBD | Pending |
-| KBD-03 | TBD | Pending |
-| KBD-04 | TBD | Pending |
-| ALIGN-01 | TBD | Pending |
-| ALIGN-02 | TBD | Pending |
-| FORM-01 | TBD | Pending |
-| FORM-02 | TBD | Pending |
-| FORM-03 | TBD | Pending |
-| FORM-04 | TBD | Pending |
-| FORM-05 | TBD | Pending |
-| FORM-06 | TBD | Pending |
-| FORM-07 | TBD | Pending |
-| FORM-08 | TBD | Pending |
-| FORM-09 | TBD | Pending |
-| HOSP-01 | TBD | Pending |
-| HOSP-02 | TBD | Pending |
-| HOSP-03 | TBD | Pending |
-| HOSP-04 | TBD | Pending |
-| HOSP-05 | TBD | Pending |
-| HOSP-06 | TBD | Pending |
-| GATE-01 | TBD | Pending |
-| GATE-02 | TBD | Pending |
-| GATE-03 | TBD | Pending |
-| GATE-04 | TBD | Pending |
-| GATE-05 | TBD | Pending |
-| REL-01 | TBD | Pending |
-| REL-02 | TBD | Pending |
-| REL-03 | TBD | Pending |
-| REL-04 | TBD | Pending |
-| REL-05 | TBD | Pending |
-| REL-06 | TBD | Pending |
+| NAV-01 | Phase 1: Nav Reliability | Pending |
+| NAV-02 | Phase 1: Nav Reliability | Pending |
+| NAV-03 | Phase 1: Nav Reliability | Pending |
+| KBD-01 | Phase 2: Universal Keyboard Handling | Pending |
+| KBD-02 | Phase 2: Universal Keyboard Handling | Pending |
+| KBD-03 | Phase 2: Universal Keyboard Handling | Pending |
+| KBD-04 | Phase 2: Universal Keyboard Handling | Pending |
+| ALIGN-01 | Phase 7: Alignment Pass | Pending |
+| ALIGN-02 | Phase 7: Alignment Pass | Pending |
+| FORM-01 | Phase 4: Listing Form Taxonomy & Decomposition | Pending |
+| FORM-02 | Phase 4: Listing Form Taxonomy & Decomposition | Pending |
+| FORM-03 | Phase 4: Listing Form Taxonomy & Decomposition | Pending |
+| FORM-04 | Phase 5: Listing Form Validation & Edit Flow | Pending |
+| FORM-05 | Phase 4: Listing Form Taxonomy & Decomposition | Pending |
+| FORM-06 | Phase 5: Listing Form Validation & Edit Flow | Pending |
+| FORM-07 | Phase 5: Listing Form Validation & Edit Flow | Pending |
+| FORM-08 | Phase 5: Listing Form Validation & Edit Flow | Pending |
+| FORM-09 | Phase 4: Listing Form Taxonomy & Decomposition | Pending |
+| HOSP-01 | Phase 6: Hospitality Rendering | Pending |
+| HOSP-02 | Phase 6: Hospitality Rendering | Pending |
+| HOSP-03 | Phase 6: Hospitality Rendering | Pending |
+| HOSP-04 | Phase 6: Hospitality Rendering | Pending |
+| HOSP-05 | Phase 6: Hospitality Rendering | Pending |
+| HOSP-06 | Phase 6: Hospitality Rendering | Pending |
+| GATE-01 | Phase 3: Role Gating Precursor | Pending |
+| GATE-02 | Phase 3: Role Gating Precursor | Pending |
+| GATE-03 | Phase 3: Role Gating Precursor | Pending |
+| GATE-04 | Phase 3: Role Gating Precursor | Pending |
+| GATE-05 | Phase 3: Role Gating Precursor | Pending |
+| REL-01 | Phase 8: Release & Store Submission | Pending |
+| REL-02 | Phase 8: Release & Store Submission | Pending |
+| REL-03 | Phase 8: Release & Store Submission | Pending |
+| REL-04 | Phase 8: Release & Store Submission | Pending |
+| REL-05 | Phase 8: Release & Store Submission | Pending |
+| REL-06 | Phase 8: Release & Store Submission | Pending |
 
 **Coverage:**
 - v1 requirements: 35 total
-- Mapped to phases: 0 (pre-roadmap)
-- Unmapped: 35 ⚠️ (expected — the roadmap step fills this in)
+- Mapped to phases: 35 ✓
+- Unmapped: 0
 
 ---
+
 *Requirements defined: 2026-04-22*
-*Last updated: 2026-04-22 after initial definition*
+*Last updated: 2026-04-22 after roadmap creation (phase mappings populated)*
