@@ -8,9 +8,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Send, Flag, Calendar } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
@@ -180,11 +179,7 @@ export const ChatThreadScreen: React.FC<ChatThreadScreenProps> = ({
           <ActivityIndicator size="large" color={colors.accent} />
         </View>
       ) : (
-        <KeyboardAvoidingView
-          style={styles.keyboardView}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-        >
+        <KeyboardAvoidingView style={styles.keyboardView}>
           <FlatList
             ref={flatListRef}
             data={messages}
