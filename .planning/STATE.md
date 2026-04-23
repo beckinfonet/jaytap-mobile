@@ -1,6 +1,6 @@
 # STATE: JayTap
 
-**Last updated:** 2026-04-22 (Phase 2 CONTEXT.md gathered — library, peer-dep install order, and KeyboardProvider placement locked from research; CreateListingScreen scope and Chat pattern decided interactively. Next: /gsd-plan-phase 2.)
+**Last updated:** 2026-04-22 (Phase 2 planned — 6 plans across 4 waves; Wave 0 install precondition is `[BLOCKING]` and `autonomous: false`; v4 plugin name correction `'react-native-worklets/plugin'` encoded in 02-01 to prevent silent no-op. Next: /gsd-execute-phase 2.)
 
 ## Project Reference
 
@@ -11,15 +11,15 @@
 
 ## Current Position
 
-**Phase:** Phase 2 — Universal Keyboard Handling (not started)
-**Plan:** 6/6 Phase 1 plans resolved (Plan 05 SKIPPED per D-15). Phase 2 gating: verify `react-native-reanimated` is in `package.json` before `/gsd-plan-phase 2` begins — install with Babel plugin as the LAST entry if absent (research flag from `.planning/research/STACK.md`).
-**Status:** Phase 1 closed — bottom-nav navigation reliable across Profile sub-screen surface on iPhone 15 Pro Max / iOS 26.4 and Moto G XT2513V / Android 16. Root cause landed: tab handler at `App.tsx:678–735` now calls `resetProfileSubScreens()` first, then sets its one target flag, so the `show*` priority ladder (`App.tsx:360–389`) always promotes the tapped tab. See `01-CONTEXT.md` D-11..D-15 for the full reassessment trail.
-**Progress:** [█░░░░░░░] 1/8 phases complete
+**Phase:** Phase 2 — Universal Keyboard Handling (Ready to execute)
+**Plan:** 0/6 Phase 2 plans executed. Plan structure: Wave 0 (02-01 install — `autonomous: false` BLOCKING) → Wave 1 (02-02 KeyboardProvider wiring — `autonomous: false` boot smoke) → Wave 2 parallel [02-03 auth ×4, 02-04 settings + listing ×3, 02-05 chat ×2] → Wave 3 (02-06 matrix verify + sign-off — `autonomous: false`). All 4 KBD requirements covered; plan-checker returned VERIFICATION PASSED on 12/12 phase-specific anchors and all standard dimensions.
+**Status:** Phase 2 planned 2026-04-22. RESEARCH surfaced load-bearing v4 correction (reanimated 4.x ships separately from `react-native-worklets@^0.8`; Babel plugin name is `'react-native-worklets/plugin'` NOT `'react-native-reanimated/plugin'`). Encoded in every plan that touches Babel. Phase 1 remains closed — bottom-nav reliable across Profile sub-screen surface on iPhone 15 Pro Max / iOS 26.4 + Moto G XT2513V / Android 16 (see `01-CONTEXT.md` D-11..D-15).
+**Progress:** [█░░░░░░░] 1/8 phases complete (1 executed + 1 planned)
 
 ### Phase pipeline
 
 1. Nav Reliability — Complete (6/6 plans resolved; Plan 05 SKIPPED per D-15) — 2026-04-22
-2. Universal Keyboard Handling — Not started (next up; check `react-native-reanimated` install precondition first)
+2. Universal Keyboard Handling — Planned (6 plans, 4 waves; ready to execute; reanimated NOT in package.json today — Wave 0 installs reanimated v4 + worklets + keyboard-controller per 02-01)
 3. Role Gating Precursor — Not started
 4. Listing Form Taxonomy & Decomposition — Not started
 5. Listing Form Validation & Edit Flow — Not started
@@ -33,8 +33,9 @@
 |--------|-------|
 | v1 requirements defined | 35 |
 | v1 requirements mapped to phases | 35 |
-| Phases planned | 1/8 |
+| Phases planned | 2/8 |
 | Plans completed | 6 (5 implemented + 1 skipped per D-15) |
+| Phase 2 plans created | 6 (0 executed) |
 | Code review passes | 0 |
 
 ## Accumulated Context
@@ -76,7 +77,7 @@
 
 - [ ] User to provide screenshots that concretize Phase 7 alignment fixes
 - [ ] Coordinate with Railway backend team in Phase 3 to confirm admin-endpoint enforcement
-- [ ] Verify `react-native-reanimated` presence in `package.json` before Phase 2 planning begins
+- [x] Verify `react-native-reanimated` presence in `package.json` before Phase 2 planning begins (confirmed ABSENT 2026-04-22 — Wave 0 of Phase 2 / Plan 02-01 installs reanimated v4 + worklets)
 - [ ] Verify Xcode 26 / iOS 26 SDK on build machine before Phase 8 begins
 
 ### Blockers
@@ -85,24 +86,25 @@
 
 ## Session Continuity
 
-**Last session:** Phase 1 plan — produced `01-RESEARCH.md` (C1→C4 diagnostic protocol, reproduction-matrix spec, RN 0.84/Fabric landmines, Validation Architecture), `01-PATTERNS.md` (analog code excerpts for every App.tsx edit site), `01-VALIDATION.md` (manual-device-QA only), and 6 plans `01-01..01-06-PLAN.md` in 5 waves. Research surfaced a load-bearing correction to CONTEXT D-08/D-09/D-10: no `isTour3DOpen` state exists in App.tsx — Tour3D renders via early-return at lines 461-478 using `activeTourUrl`/`activePhotosUrl` URL strings. CONTEXT.md amended (commit a8f45a3) and user resolved as "future-proof": OVERLAY_FLAGS now lists 5 entries including `!!activeTourUrl` and `!!activePhotosUrl`. Plan checker returned VERIFICATION PASSED on all 10 phase-specific checks — NAV-01/02/03 covered, D-04 gate encoded mechanically, diagnostic-log cleanup pairing correct, pointerEvents uses style form (not deprecated prop form), Plan 05 escalation `autonomous: false`.
+**Last session:** Phase 2 plan — produced `02-RESEARCH.md` (§2 install-precondition deep-dive with v4-name correction, §3 per-screen mechanics for 9 input-bearing screens, §4 wave structure, §6 SC→evidence, §7 Validation Architecture, §8 RN 0.84/Fabric landmines, §9 assumptions log; commit `8870122`), `02-VALIDATION.md` (manual physical-device QA + grep-based mechanical gates per project M1 testing bar; commit `71b044a`), `02-PATTERNS.md` (verbatim BEFORE-state excerpts for App.tsx provider tree, 4 auth screens, AccountSettings, both CreateListing branches, both Chat KAV sites, HomeScreen workaround, and PasswordTextInput unchanged-claim), and 6 plans `02-01..02-06-PLAN.md` in 4 waves (commit `1eac961`). Research surfaced a load-bearing correction: reanimated v4 ships in TWO packages (`react-native-reanimated` + `react-native-worklets@^0.8`) and the Babel plugin name moved to `'react-native-worklets/plugin'`. v3 plugin name `'react-native-reanimated/plugin'` would silently no-op on v4 — encoded as a hard "must NOT appear" gate in 02-01 acceptance criteria. Plan checker returned VERIFICATION PASSED on 12/12 phase-specific anchors and all standard dimensions (KBD-01..04 covered, D-01..D-14 honored, install order fidelity confirmed, KeyboardProvider slot exact between SafeAreaProvider and ThemeProvider, chat KAV swap completeness, CreateListing both branches, mechanical exit gate, autonomous discipline, DAG, Wave-2 file disjointness, out-of-scope discipline, threat models present, read_first/acceptance_criteria density).
 
-**Resume with:** `/gsd-execute-phase 1` — orchestrator will run Plan 01 (Wave 0 scaffolding) first; Plan 02 is human-gated (baseline matrix run); Plan 03 lands the code changes; Plan 04's decision gate (A PROCEED / B ESCALATE / C PAUSE / D ZERO-BASELINE) drives whether Plan 05 or Plan 06 runs next.
+**Resume with:** `/gsd-execute-phase 2` — orchestrator will run Plan 02-01 (Wave 0 install) first; 02-01 Task 4 is human-gated (physical-device build verify on iPhone 15 Pro Max + Moto G XT2513V — both must pass before Wave 1 unblocks). Plan 02-02 wires `<KeyboardProvider>` into `App.tsx` between `SafeAreaProvider` and `ThemeProvider` with another human boot smoke check before Wave 2 unblocks. Plans 02-03/04/05 are parallelizable (disjoint file sets — auth / settings+listing / chat). Plan 02-06 is the manual matrix walk + phase sign-off.
 
-**Resume file:** `.planning/phases/01-nav-reliability/01-01-PLAN.md`
+**Resume file:** `.planning/phases/02-universal-keyboard-handling/02-01-PLAN.md`
 
 **Key files to load first on resume:**
-- `.planning/phases/01-nav-reliability/01-CONTEXT.md` (USER DECISIONS — D-08/D-09/D-10 amended)
-- `.planning/phases/01-nav-reliability/01-RESEARCH.md` (§2 C1-C4 protocol; §3 matrix; §6 SC→evidence; §8 validation; §9 assumptions log)
-- `.planning/phases/01-nav-reliability/01-PATTERNS.md` (verbatim current-code snippets for App.tsx:502-519 edit sites; all 6 `mainStackScreenStyle` callers enumerated)
-- `.planning/phases/01-nav-reliability/01-VALIDATION.md` (manual-device-QA contract; Wave 0 infrastructure checklist)
-- `.planning/phases/01-nav-reliability/01-0{1,2,3,4,5,6}-PLAN.md` (6 plans, 5 waves, dependency graph verified acyclic)
+- `.planning/phases/02-universal-keyboard-handling/02-CONTEXT.md` (USER DECISIONS D-01..D-14)
+- `.planning/phases/02-universal-keyboard-handling/02-RESEARCH.md` (§2 install w/ v4 name correction; §3 per-screen mechanics; §6 SC→evidence; §7 Validation Architecture; §8 landmines)
+- `.planning/phases/02-universal-keyboard-handling/02-PATTERNS.md` (verbatim BEFORE-state excerpts inlined into every plan's `<interfaces>` block)
+- `.planning/phases/02-universal-keyboard-handling/02-VALIDATION.md` (per-task verification map + manual matrix contract)
+- `.planning/phases/02-universal-keyboard-handling/02-0{1,2,3,4,5,6}-PLAN.md` (6 plans, 4 waves, DAG verified acyclic)
 
 **Pre-execute check (raised by research):**
-- Confirm access to both physical iOS and physical Android device (release-blocking per RESEARCH §11; Plan 01 Task 3 captures device IDs).
-- Confirm at least one Railway test listing has ≥1 Matterport tour URL (required for S9 / HR-4 / HR-5 matrix cells; seed if absent).
+- Confirm access to both physical iOS (iPhone 15 Pro Max / iOS 26.4) and physical Android (Moto G XT2513V / Android 16) per D-13. Same devices used in Phase 1 — already validated.
+- Confirm `newArchEnabled=true` in `android/gradle.properties` (Reanimated v4 is Fabric-only — Wave 0 install will fail under Paper renderer).
+- Confirm 1–2h budget for Wave 0 install precondition per RESEARCH §2 (reanimated install + Babel plugin + iOS pod install + clean Android rebuild + both-platform device verify).
 
 ---
 
 *State initialized: 2026-04-22 after roadmap creation*
-*Last updated: 2026-04-22 after Phase 1 plan session*
+*Last updated: 2026-04-22 after Phase 2 plan session*
