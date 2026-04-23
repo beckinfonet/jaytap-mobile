@@ -1,6 +1,6 @@
 # STATE: JayTap
 
-**Last updated:** 2026-04-22 (post-roadmap)
+**Last updated:** 2026-04-22 (post Phase 1 context)
 
 ## Project Reference
 
@@ -11,9 +11,9 @@
 
 ## Current Position
 
-**Phase:** Pre-Phase 1 (roadmap complete, awaiting `/gsd-plan-phase 1`)
+**Phase:** Phase 1 — Nav Reliability (context gathered, awaiting `/gsd-plan-phase 1`)
 **Plan:** —
-**Status:** Not started
+**Status:** Context captured
 **Progress:** [░░░░░░░░] 0/8 phases complete
 
 ### Phase pipeline
@@ -85,9 +85,11 @@
 
 ## Session Continuity
 
-**Last session:** Initial project setup — PROJECT.md, REQUIREMENTS.md (v1 + v2), research/ (STACK/FEATURES/ARCHITECTURE/PITFALLS/SUMMARY), codebase/ map, and ROADMAP.md created on 2026-04-22.
+**Last session:** Phase 1 discuss — captured `01-CONTEXT.md` with 10 implementation decisions across diagnostic depth (D-01…D-04), `pointerEvents` belt-and-suspenders scope (D-05…D-07), and overlay inventory / `hideMainStackUnderOverlay` refactor (D-08…D-10). Also wrote `01-DISCUSSION-LOG.md` audit trail. Two decisions locked that diverge from initial research: (a) `hideMainStackUnderOverlay` is already derived, so C1's "derive-not-store" fix is already partially done — remaining gap is the missing `isTour3DOpen`; (b) belt-and-suspenders applies up front, not after root-cause fix.
 
-**Resume with:** `/gsd-plan-phase 1` — begin diagnostic-first planning for the bottom-nav reproduction and fix.
+**Resume with:** `/gsd-plan-phase 1` — planner should read `01-CONTEXT.md` + research ARCHITECTURE §2 + PITFALLS §1/§3 before task breakdown.
+
+**Resume file:** `.planning/phases/01-nav-reliability/01-CONTEXT.md`
 
 **Key files to load first on resume:**
 - `.planning/ROADMAP.md` (phase definitions + success criteria)
@@ -100,3 +102,4 @@
 ---
 
 *State initialized: 2026-04-22 after roadmap creation*
+*Last updated: 2026-04-22 after Phase 1 discuss session*
