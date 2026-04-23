@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TextInput,
   TouchableOpacity,
   StatusBar,
@@ -17,6 +16,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -452,7 +452,12 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
           </Text>
           <View style={{ width: 80 }} />
         </View>
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <KeyboardAwareScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          bottomOffset={20}
+        >
           <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: 16 }]}>
             {propertyToEdit?.title ? propertyToEdit.title : ''}
           </Text>
@@ -474,7 +479,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
               </Text>
             )}
           </TouchableOpacity>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </SafeAreaView>
     );
   }
@@ -494,10 +499,12 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
         <View style={{ width: 80 }} />
       </View>
 
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={20}
       >
         {/* Transaction Type */}
         <View style={styles.section}>
@@ -953,7 +960,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
             </Text>
           )}
         </TouchableOpacity>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };
