@@ -98,6 +98,21 @@ function AppContent() {
     hide: hideMainStackUnderOverlay,
   });
 
+  // Tab-tap takes precedence: clears every flag the show* priority ladder checks
+  // so the target tab can always promote. Adding a new Profile sub-screen flag
+  // requires adding its setter here.
+  const resetProfileSubScreens = () => {
+    setIsFavoritesOpen(false);
+    setIsAppointmentsOpen(false);
+    setIsAccountSettingsOpen(false);
+    setIsProfileOpen(false);
+    setIsChatOpen(false);
+    setIsScheduleViewingOpen(false);
+    setPropertyToSchedule(null);
+    setReturnToProfileAfterFavorites(false);
+    setReturnToProfileAfterAppointments(false);
+  };
+
   // Handle deep linking for shared property links
   useEffect(() => {
     const handleDeepLink = async (url: string) => {
@@ -694,10 +709,8 @@ function AppContent() {
                   setShowAuthPrompt(true);
                   return;
                 }
-                setReturnToProfileAfterFavorites(false);
+                resetProfileSubScreens();
                 setIsFavoritesOpen(true);
-                setIsProfileOpen(false);
-                setIsChatOpen(false);
                 return;
               }
               if (tab === 'profile') {
@@ -706,11 +719,8 @@ function AppContent() {
                   setShowAuthPrompt(true);
                   return;
                 }
-                setReturnToProfileAfterFavorites(false);
-                setReturnToProfileAfterAppointments(false);
+                resetProfileSubScreens();
                 setIsProfileOpen(true);
-                setIsFavoritesOpen(false);
-                setIsChatOpen(false);
                 return;
               }
               if (tab === 'chat') {
@@ -719,19 +729,12 @@ function AppContent() {
                   setShowAuthPrompt(true);
                   return;
                 }
-                setReturnToProfileAfterFavorites(false);
-                setReturnToProfileAfterAppointments(false);
+                resetProfileSubScreens();
                 setIsChatOpen(true);
-                setIsFavoritesOpen(false);
-                setIsProfileOpen(false);
                 return;
               }
               if (tab === 'home') {
-                setReturnToProfileAfterFavorites(false);
-                setReturnToProfileAfterAppointments(false);
-                setIsFavoritesOpen(false);
-                setIsProfileOpen(false);
-                setIsChatOpen(false);
+                resetProfileSubScreens();
               }
             }}
           />
