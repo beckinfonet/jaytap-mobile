@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
 import { AuthService } from '../services/AuthService';
@@ -91,102 +92,107 @@ export const ResetPasswordScreen = ({
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {onClose ? <AuthModalCloseButton onPress={onClose} /> : null}
+      <KeyboardAwareScrollView
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={20}
+      >
+        <View style={styles.header}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('auth.setNewPasswordTitle')}</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{t('auth.setNewPasswordDesc')}</Text>
+        </View>
 
-      <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('auth.setNewPasswordTitle')}</Text>
-        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{t('auth.setNewPasswordDesc')}</Text>
-      </View>
-
-      <View style={styles.content}>
-        <View style={styles.keyIconWrap}>
-          <View style={[styles.iconCircle, { backgroundColor: `${colors.primary}22` }]}>
-            <KeyRound size={30} color={colors.primary} />
+        <View style={styles.content}>
+          <View style={styles.keyIconWrap}>
+            <View style={[styles.iconCircle, { backgroundColor: `${colors.primary}22` }]}>
+              <KeyRound size={30} color={colors.primary} />
+            </View>
           </View>
-        </View>
 
-        {errorMessage ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{errorMessage}</Text>
+          {errorMessage ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            </View>
+          ) : null}
+
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={[
+                styles.input,
+                styles.linkInput,
+                {
+                  backgroundColor: colors.inputBackground,
+                  color: colors.text,
+                  borderColor: colors.border,
+                },
+              ]}
+              placeholder={t('auth.resetLinkOrCodePlaceholder')}
+              placeholderTextColor={colors.textSecondary}
+              autoCapitalize="none"
+              autoCorrect={false}
+              multiline
+              value={linkOrCode}
+              onChangeText={setLinkOrCode}
+              editable={!loading}
+            />
           </View>
-        ) : null}
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={[
-              styles.input,
-              styles.linkInput,
-              {
-                backgroundColor: colors.inputBackground,
-                color: colors.text,
-                borderColor: colors.border,
-              },
-            ]}
-            placeholder={t('auth.resetLinkOrCodePlaceholder')}
-            placeholderTextColor={colors.textSecondary}
-            autoCapitalize="none"
-            autoCorrect={false}
-            multiline
-            value={linkOrCode}
-            onChangeText={setLinkOrCode}
-            editable={!loading}
-          />
+          <View style={styles.inputContainer}>
+            <PasswordTextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.inputBackground,
+                  color: colors.text,
+                  borderColor:
+                    password.length > 0 && !passwordMeetsPolicy(password) ? colors.accent : colors.border,
+                },
+              ]}
+              placeholder={t('auth.newPassword')}
+              placeholderTextColor={colors.textSecondary}
+              value={password}
+              onChangeText={setPassword}
+              editable={!loading}
+            />
+          </View>
+
+          <PasswordRequirements password={password} />
+
+          <View style={styles.inputContainer}>
+            <PasswordTextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.inputBackground,
+                  color: colors.text,
+                  borderColor: colors.border,
+                },
+              ]}
+              placeholder={t('auth.confirmPassword')}
+              placeholderTextColor={colors.textSecondary}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              editable={!loading}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: colors.primary }, loading && styles.buttonDisabled]}
+            onPress={handleSave}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={isDark ? '#000' : '#FFF'} />
+            ) : (
+              <Text style={[styles.buttonText, { color: isDark ? '#000' : '#FFF' }]}>{t('auth.saveNewPassword')}</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.linkButton} onPress={onBackToLogin}>
+            <Text style={{ color: colors.accent, fontSize: 15, fontWeight: '600' }}>{t('auth.backToSignIn')}</Text>
+          </TouchableOpacity>
         </View>
-
-        <View style={styles.inputContainer}>
-          <PasswordTextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.inputBackground,
-                color: colors.text,
-                borderColor:
-                  password.length > 0 && !passwordMeetsPolicy(password) ? colors.accent : colors.border,
-              },
-            ]}
-            placeholder={t('auth.newPassword')}
-            placeholderTextColor={colors.textSecondary}
-            value={password}
-            onChangeText={setPassword}
-            editable={!loading}
-          />
-        </View>
-
-        <PasswordRequirements password={password} />
-
-        <View style={styles.inputContainer}>
-          <PasswordTextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: colors.inputBackground,
-                color: colors.text,
-                borderColor: colors.border,
-              },
-            ]}
-            placeholder={t('auth.confirmPassword')}
-            placeholderTextColor={colors.textSecondary}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            editable={!loading}
-          />
-        </View>
-
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: colors.primary }, loading && styles.buttonDisabled]}
-          onPress={handleSave}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color={isDark ? '#000' : '#FFF'} />
-          ) : (
-            <Text style={[styles.buttonText, { color: isDark ? '#000' : '#FFF' }]}>{t('auth.saveNewPassword')}</Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.linkButton} onPress={onBackToLogin}>
-          <Text style={{ color: colors.accent, fontSize: 15, fontWeight: '600' }}>{t('auth.backToSignIn')}</Text>
-        </TouchableOpacity>
-      </View>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };
