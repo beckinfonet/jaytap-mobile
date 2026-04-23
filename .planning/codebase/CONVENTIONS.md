@@ -255,6 +255,31 @@ See `src/components/BottomNavigator.tsx:100–110`, `src/components/PropertyCard
 
 **Fonts:** Platform-specific serif stack for branded typography — `fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' })` (`src/components/PropertyCard.tsx:326, 347`).
 
+## Keep-alive and overlay screens
+
+Keep-alive (tab) screens and full-screen overlays in `App.tsx` MUST use BOTH `display`
+and `pointerEvents` to gate visibility, not either one alone.
+
+**Keep-alive tab pattern:**
+```typescript
+const mainStackScreenStyle = (visible: boolean) =>
+  ({ flex: 1, display: visible ? 'flex' : 'none', pointerEvents: visible ? 'auto' : 'none' }) as const;
+```
+
+**Full-screen overlay pattern:**
+```typescript
+<View style={[fullScreenOverlayWrap, { pointerEvents: isOpen ? 'auto' : 'none' }]}>
+```
+
+**Why:** `display: 'none'` removes the view from the layout tree, but on RN's responder system
+(both old and Fabric) an absolute-positioned wrapper or descendant can still capture touches
+meant for the bottom nav. See `.planning/phases/01-nav-reliability/01-RESEARCH.md` §4 and
+[RNav #12824](https://github.com/react-navigation/react-navigation/issues/12824). Use style-based
+`pointerEvents` (not the deprecated prop form).
+
+**On adding a new full-screen overlay:** add the overlay's visibility flag to the `OVERLAY_FLAGS`
+array in `App.tsx` so `hideMainStackUnderOverlay` keeps working. Review checklist item.
+
 ---
 
 *Convention analysis: 2026-04-22*
