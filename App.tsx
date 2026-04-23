@@ -75,6 +75,21 @@ function AppContent() {
     chat: false,
   });
 
+  // Single source of truth for "is the main stack currently eclipsed by a full-screen overlay?"
+  // Adding a new overlay = add its flag here. Code-review checklist: if you added a new
+  // full-screen overlay state, did you add it to OVERLAY_FLAGS?
+  // activeTourUrl / activePhotosUrl currently drive Tour3D via early-return (App.tsx:461-478),
+  // so they don't strictly need to be here today — included for future-proofing per
+  // CONTEXT D-10 (amended 2026-04-22) so a future refactor to a zIndex overlay Just Works.
+  const OVERLAY_FLAGS = [
+    !!selectedProperty,
+    isRenterListingsOpen,
+    !!user && isCreateListingOpen,
+    !!activeTourUrl,
+    !!activePhotosUrl,
+  ];
+  const hideMainStackUnderOverlay = OVERLAY_FLAGS.some(Boolean);
+
   // Handle deep linking for shared property links
   useEffect(() => {
     const handleDeepLink = async (url: string) => {
@@ -505,9 +520,6 @@ function AppContent() {
       display: visible ? 'flex' : 'none',
       pointerEvents: visible ? 'auto' : 'none',
     }) as const;
-
-  const hideMainStackUnderOverlay =
-    !!selectedProperty || isRenterListingsOpen || (!!user && isCreateListingOpen);
 
   const fullScreenOverlayWrap = {
     position: 'absolute' as const,
