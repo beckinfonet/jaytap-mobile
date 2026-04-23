@@ -1,6 +1,6 @@
 # STATE: JayTap
 
-**Last updated:** 2026-04-22 (Phase 2 planned — 6 plans across 4 waves; Wave 0 install precondition is `[BLOCKING]` and `autonomous: false`; v4 plugin name correction `'react-native-worklets/plugin'` encoded in 02-01 to prevent silent no-op. Next: /gsd-execute-phase 2.)
+**Last updated:** 2026-04-23 (Phase 2 COMPLETE — 6 plans executed across 4 waves; 22/22 physical-device matrix cells PASS on iPhone 15 Pro Max / iOS 26.4 + Moto G XT2513V / Android 16; verifier PASSED 34/34 must-haves. One gap-closure landed mid-walk: library `KeyboardAvoidingView` requires explicit `behavior="padding"` — disproved RESEARCH §9 A8. Next: /gsd-plan-phase 3 — Role Gating Precursor.)
 
 ## Project Reference
 
@@ -11,16 +11,16 @@
 
 ## Current Position
 
-**Phase:** Phase 2 — Universal Keyboard Handling (Ready to execute)
-**Plan:** 0/6 Phase 2 plans executed. Plan structure: Wave 0 (02-01 install — `autonomous: false` BLOCKING) → Wave 1 (02-02 KeyboardProvider wiring — `autonomous: false` boot smoke) → Wave 2 parallel [02-03 auth ×4, 02-04 settings + listing ×3, 02-05 chat ×2] → Wave 3 (02-06 matrix verify + sign-off — `autonomous: false`). All 4 KBD requirements covered; plan-checker returned VERIFICATION PASSED on 12/12 phase-specific anchors and all standard dimensions.
-**Status:** Phase 2 planned 2026-04-22. RESEARCH surfaced load-bearing v4 correction (reanimated 4.x ships separately from `react-native-worklets@^0.8`; Babel plugin name is `'react-native-worklets/plugin'` NOT `'react-native-reanimated/plugin'`). Encoded in every plan that touches Babel. Phase 1 remains closed — bottom-nav reliable across Profile sub-screen surface on iPhone 15 Pro Max / iOS 26.4 + Moto G XT2513V / Android 16 (see `01-CONTEXT.md` D-11..D-15).
-**Progress:** [█░░░░░░░] 1/8 phases complete (1 executed + 1 planned)
+**Phase:** Phase 3 — Role Gating Precursor (Ready to plan)
+**Plan:** Phase 2 complete at HEAD (18 commits since `2c10056`). Verifier PASSED 34/34 must-haves. All 4 KBD requirements delivered on physical devices.
+**Status:** Phase 2 closed 2026-04-23. Shipped: reanimated@4.3.0 + worklets@0.8.1 + keyboard-controller@1.21.6 installed with v4 Babel plugin name; `<KeyboardProvider>` at App.tsx root between SafeAreaProvider and ThemeProvider; KASV wraps 4 auth screens + AccountSettings + CreateListing (both branches); library KAV drop-in on ChatThread + ChatCompose with `behavior="padding"`; HomeScreen workaround comment removed. RESEARCH §9 A8 disproven (library `KeyboardAvoidingView` has no default `behavior`; fix committed as `47a52b7`). Phase 1 still closed.
+**Progress:** [██░░░░░░] 2/8 phases complete
 
 ### Phase pipeline
 
 1. Nav Reliability — Complete (6/6 plans resolved; Plan 05 SKIPPED per D-15) — 2026-04-22
-2. Universal Keyboard Handling — Planned (6 plans, 4 waves; ready to execute; reanimated NOT in package.json today — Wave 0 installs reanimated v4 + worklets + keyboard-controller per 02-01)
-3. Role Gating Precursor — Not started
+2. Universal Keyboard Handling — Complete (6/6 plans executed; gap-closure `47a52b7` added `behavior="padding"` after matrix walk disproved RESEARCH §9 A8; 22/22 matrix cells PASS on both devices; verifier PASSED 34/34) — 2026-04-23
+3. Role Gating Precursor — Not started (next — `/gsd-plan-phase 3`; parallelizable with Phase 4+; backend enforcement is the real security boundary per Phase 3 research flag)
 4. Listing Form Taxonomy & Decomposition — Not started
 5. Listing Form Validation & Edit Flow — Not started
 6. Hospitality Rendering — Not started
@@ -33,10 +33,10 @@
 |--------|-------|
 | v1 requirements defined | 35 |
 | v1 requirements mapped to phases | 35 |
-| Phases planned | 2/8 |
-| Plans completed | 6 (5 implemented + 1 skipped per D-15) |
-| Phase 2 plans created | 6 (0 executed) |
-| Code review passes | 0 |
+| Phases complete | 2/8 |
+| Plans completed | 12 (5 Phase-1 implemented + 1 Phase-1 skipped per D-15 + 6 Phase-2 executed) |
+| Phase 2 gap closures | 1 (`47a52b7` — chat KAV `behavior="padding"` after A8 disproven) |
+| Code review passes | 0 (M1 testing bar is manual physical-device QA per CLAUDE.md) |
 
 ## Accumulated Context
 
@@ -77,8 +77,9 @@
 
 - [ ] User to provide screenshots that concretize Phase 7 alignment fixes
 - [ ] Coordinate with Railway backend team in Phase 3 to confirm admin-endpoint enforcement
-- [x] Verify `react-native-reanimated` presence in `package.json` before Phase 2 planning begins (confirmed ABSENT 2026-04-22 — Wave 0 of Phase 2 / Plan 02-01 installs reanimated v4 + worklets)
+- [x] Verify `react-native-reanimated` presence in `package.json` before Phase 2 planning begins (confirmed ABSENT 2026-04-22; installed 2026-04-23 via Wave 0 / Plan 02-01 as reanimated@4.3.0 + worklets@0.8.1)
 - [ ] Verify Xcode 26 / iOS 26 SDK on build machine before Phase 8 begins
+- [ ] Decide: commit or revert `android/app/build.gradle` versionCode 25→26 / versionName 1.0.24→1.0.25 (unstaged from Phase 2 walk; belongs to Phase 8 release-prep scope)
 
 ### Blockers
 
@@ -86,25 +87,19 @@
 
 ## Session Continuity
 
-**Last session:** Phase 2 plan — produced `02-RESEARCH.md` (§2 install-precondition deep-dive with v4-name correction, §3 per-screen mechanics for 9 input-bearing screens, §4 wave structure, §6 SC→evidence, §7 Validation Architecture, §8 RN 0.84/Fabric landmines, §9 assumptions log; commit `8870122`), `02-VALIDATION.md` (manual physical-device QA + grep-based mechanical gates per project M1 testing bar; commit `71b044a`), `02-PATTERNS.md` (verbatim BEFORE-state excerpts for App.tsx provider tree, 4 auth screens, AccountSettings, both CreateListing branches, both Chat KAV sites, HomeScreen workaround, and PasswordTextInput unchanged-claim), and 6 plans `02-01..02-06-PLAN.md` in 4 waves (commit `1eac961`). Research surfaced a load-bearing correction: reanimated v4 ships in TWO packages (`react-native-reanimated` + `react-native-worklets@^0.8`) and the Babel plugin name moved to `'react-native-worklets/plugin'`. v3 plugin name `'react-native-reanimated/plugin'` would silently no-op on v4 — encoded as a hard "must NOT appear" gate in 02-01 acceptance criteria. Plan checker returned VERIFICATION PASSED on 12/12 phase-specific anchors and all standard dimensions (KBD-01..04 covered, D-01..D-14 honored, install order fidelity confirmed, KeyboardProvider slot exact between SafeAreaProvider and ThemeProvider, chat KAV swap completeness, CreateListing both branches, mechanical exit gate, autonomous discipline, DAG, Wave-2 file disjointness, out-of-scope discipline, threat models present, read_first/acceptance_criteria density).
+**Last session:** Phase 2 execution (18 commits `2c10056` → `a3cc03b`). Wave 0 install precondition landed atomically (`8ea02cf` reanimated+worklets+Babel; `0fa3d20` keyboard-controller+pod+gradle; `f46773a` SUMMARY). Wave 1 KeyboardProvider wiring (`935697a` App.tsx; `33d52f4` SUMMARY). Wave 2 parallel screen wrappers across 3 plans: 02-03 auth×4 (5 commits `857bd05`..`b5b904e`), 02-04 settings + listing×3 sites (3 commits `092caf7`..`8af9e3b`), 02-05 chat×2 (3 commits `f728b3b`..`0b81112`). Wave 3 matrix scaffold `0c271ca` → device walk surfaced chat KAV failure → gap-closure `47a52b7` added `behavior="padding"` (disproves RESEARCH §9 A8, annotated in RESEARCH) → re-walk 22/22 PASS → HomeScreen workaround comment removed + 02-VALIDATION.md flipped + 02-06-SUMMARY.md written (`a3cc03b`). Verifier returned `status: passed, 34/34 must-haves verified`. Phase-wide grep gate `grep -rn "keyboardVerticalOffset" src/` returns 0.
 
-**Resume with:** `/gsd-execute-phase 2` — orchestrator will run Plan 02-01 (Wave 0 install) first; 02-01 Task 4 is human-gated (physical-device build verify on iPhone 15 Pro Max + Moto G XT2513V — both must pass before Wave 1 unblocks). Plan 02-02 wires `<KeyboardProvider>` into `App.tsx` between `SafeAreaProvider` and `ThemeProvider` with another human boot smoke check before Wave 2 unblocks. Plans 02-03/04/05 are parallelizable (disjoint file sets — auth / settings+listing / chat). Plan 02-06 is the manual matrix walk + phase sign-off.
+**Resume with:** `/gsd-plan-phase 3` — Role Gating Precursor (GATE-01..GATE-05). Research flag from Phase 3: backend enforcement is the real security boundary — client-side gating is UX only. Railway backend must independently reject non-admin PATCH requests to `/properties/:id/verifications` and `/tours`. Parallelizable with Phase 4+ if desired.
 
-**Resume file:** `.planning/phases/02-universal-keyboard-handling/02-01-PLAN.md`
+**Phase 2 artifacts preserved:**
+- `02-VERIFICATION.md` — verifier's 34/34 PASS report + accepted-override record for `47a52b7`
+- `02-KEYBOARD-MATRIX.md` — 22-cell walk record + session metadata + all 12 grep gates filled
+- `02-06-SUMMARY.md` — phase sign-off with decision log (REMOVE HomeScreen comment)
+- `02-RESEARCH.md` — §9 A8 annotated DISPROVEN with resolution recipe for future maintainers
 
-**Key files to load first on resume:**
-- `.planning/phases/02-universal-keyboard-handling/02-CONTEXT.md` (USER DECISIONS D-01..D-14)
-- `.planning/phases/02-universal-keyboard-handling/02-RESEARCH.md` (§2 install w/ v4 name correction; §3 per-screen mechanics; §6 SC→evidence; §7 Validation Architecture; §8 landmines)
-- `.planning/phases/02-universal-keyboard-handling/02-PATTERNS.md` (verbatim BEFORE-state excerpts inlined into every plan's `<interfaces>` block)
-- `.planning/phases/02-universal-keyboard-handling/02-VALIDATION.md` (per-task verification map + manual matrix contract)
-- `.planning/phases/02-universal-keyboard-handling/02-0{1,2,3,4,5,6}-PLAN.md` (6 plans, 4 waves, DAG verified acyclic)
-
-**Pre-execute check (raised by research):**
-- Confirm access to both physical iOS (iPhone 15 Pro Max / iOS 26.4) and physical Android (Moto G XT2513V / Android 16) per D-13. Same devices used in Phase 1 — already validated.
-- Confirm `newArchEnabled=true` in `android/gradle.properties` (Reanimated v4 is Fabric-only — Wave 0 install will fail under Paper renderer).
-- Confirm 1–2h budget for Wave 0 install precondition per RESEARCH §2 (reanimated install + Babel plugin + iOS pod install + clean Android rebuild + both-platform device verify).
+**Known unstaged drift:** `android/app/build.gradle` has versionCode 25→26 / versionName 1.0.24→1.0.25 from device-testing session. Out of Phase 2 scope; belongs to Phase 8 release-prep or a dedicated bump commit. Decision captured in todos above.
 
 ---
 
 *State initialized: 2026-04-22 after roadmap creation*
-*Last updated: 2026-04-22 after Phase 2 plan session*
+*Last updated: 2026-04-23 after Phase 2 execution + verifier PASS*

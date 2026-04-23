@@ -36,9 +36,9 @@ Prospective renters and buyers can reliably browse, filter, and inquire about Bi
 <!-- Milestone 1 — v1.0.4 "Polish + Hospitality". Ship ASAP to stores. -->
 
 **Bug-fix workstream:**
-- [ ] Keyboard no longer covers inputs on any screen (iOS + Android, universal solution)
-- [ ] Bottom nav responds from any screen (Chat, Profile, Favorites, etc.) — reproduce → root-cause → fix
-- [ ] Alignment issues addressed across app (specific screens to be provided via screenshots)
+- [x] Keyboard no longer covers inputs on any screen (iOS + Android, universal solution) — Validated in Phase 2 (2026-04-23): `react-native-keyboard-controller@1.21.6` + reanimated v4 + worklets; `<KeyboardProvider>` at App.tsx root; KASV on 7 screens; library KAV with `behavior="padding"` on 2 chat screens; 22/22 physical-device matrix cells PASS
+- [x] Bottom nav responds from any screen (Chat, Profile, Favorites, etc.) — Validated in Phase 1 (2026-04-22): `pointerEvents` belt-and-suspenders + overlay-flag derivation; reproduction matrix captured
+- [ ] Alignment issues addressed across app (specific screens to be provided via screenshots) — Phase 7
 
 **Listing form overhaul:**
 - [ ] `Land` property type removed everywhere (chips, filters, i18n keys, type definitions)
@@ -117,8 +117,8 @@ Prospective renters and buyers can reliably browse, filter, and inquire about Bi
 | Hospitality listings appear under both Rent and Sell (no price in either) | An owner renting out hostel rooms vs. selling the whole hostel are both valid listing intents | — Pending |
 | Hospitality rendered in a separate section on list screens | Different information density (tours-first, no price) warrants visual separation | — Pending |
 | Required-field sets branch by category, not individual type | 9 chips → 3 categories is easier to maintain and explain than per-chip conditionals | — Pending |
-| Universal keyboard solution, library choice deferred to planner | User wants robustness over any specific library; research phase will pick (likely `react-native-keyboard-controller`, `KeyboardAvoidingView`, or similar) | — Pending |
-| Bottom-nav fix starts with reproduction + root-cause, not a guess | Bug location is "unknown — need to investigate"; suspected in `App.tsx` boolean state machine | — Pending |
+| Universal keyboard solution, library choice deferred to planner | User wants robustness over any specific library; research phase will pick (likely `react-native-keyboard-controller`, `KeyboardAvoidingView`, or similar) | — Validated 2026-04-23 in Phase 2: chose `react-native-keyboard-controller@1.21.6` + reanimated@4.3.0 + worklets@0.8.1 under Fabric. Key load-bearing findings — (a) v4 Babel plugin is `'react-native-worklets/plugin'`, NOT the legacy `'react-native-reanimated/plugin'` which silently no-ops; (b) library `KeyboardAvoidingView` requires explicit `behavior` prop (has no default — disproves RESEARCH §9 A8); (c) `KeyboardProvider` slots between `SafeAreaProvider` and `ThemeProvider` as the single root-level solution — zero `keyboardVerticalOffset` remains in `src/` |
+| Bottom-nav fix starts with reproduction + root-cause, not a guess | Bug location is "unknown — need to investigate"; suspected in `App.tsx` boolean state machine | — Validated 2026-04-22 in Phase 1: root-caused to stale `hideMainStackUnderOverlay` flag + keep-alive screens retaining touch responders; derived overlay state from current overlay rather than storing flag; applied `pointerEvents` belt-and-suspenders |
 | 2GIS native map bridge excluded from this milestone | Separate multi-week effort; plan already drafted in `2GIS_BRIDGE_PLAN.md` | — Pending |
 | Phase 1 pre-fix device-matrix baseline deferred (accepted risk, 2026-04-22) | User time-constrained; full 45-cell × 2-platform device matrix not feasible before Plan 03 code fix lands. Routes through RESEARCH §9 A6 / §10 Q2 zero-FAIL branch upfront. Plan 04 gate semantics change from "FAILs→0" to "no regression + primary trap sequence visibly fixed"; D-04 pause-and-reassess trigger likelihood is higher. | — Accepted |
 
@@ -140,4 +140,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-22 after initialization*
+*Last updated: 2026-04-23 after Phase 2 completion*

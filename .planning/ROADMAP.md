@@ -22,7 +22,7 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
 ## Phases
 
 - [x] **Phase 1: Nav Reliability** (2026-04-22) — Reproduce, root-cause, and fix the bottom-nav unresponsiveness bug in `App.tsx`; apply `pointerEvents` belt-and-suspenders to all keep-alive screens
-- [ ] **Phase 2: Universal Keyboard Handling** — Install Reanimated (if missing) + `react-native-keyboard-controller`; `KeyboardProvider` at root; adopt `KeyboardAwareScrollView` on every input-bearing screen
+- [x] **Phase 2: Universal Keyboard Handling** (2026-04-23) — Installed reanimated@4.3.0 + worklets@0.8.1 + keyboard-controller@1.21.6 (v4 Babel plugin `'react-native-worklets/plugin'` LAST); `<KeyboardProvider>` at App.tsx root; KASV wraps 4 auth + AccountSettings + CreateListing both branches; library KAV drop-in on 2 chat screens with `behavior="padding"` (gap-closure disproving RESEARCH §9 A8). 22/22 matrix cells PASS on iPhone 15 Pro Max / iOS 26.4 + Moto G XT2513V / Android 16 under Fabric.
 - [ ] **Phase 3: Role Gating Precursor** — Ship `useRole()` + `can(action)` + `<Gated>` over a hardcoded email allowlist, migrate existing admin checks, and confirm backend enforcement
 - [ ] **Phase 4: Listing Form Taxonomy & Decomposition** — Remove `Land` atomically; add Hostel/Hotel under Hospitality; decompose `CreateListingScreen` into `CreateListingForm/` sub-components; EN+RU parity
 - [ ] **Phase 5: Listing Form Validation & Edit Flow** — Single-source `validateByCategory()`; category-branched required fields; no category-change data loss; correct initialization on edit
@@ -62,12 +62,12 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   3. On every input-bearing screen (Login, Signup, ForgotPassword, ResetPassword, ChatCompose, ChatThread, CreateListing, ScheduleViewing, AccountSettings), tapping any `TextInput` scrolls the field above the keyboard on both physical iOS and physical Android — no per-screen `keyboardVerticalOffset` magic numbers are used
   4. Keyboard behavior is verified on Fabric (New Architecture) builds on both platforms before the phase closes — simulator passes alone do not satisfy exit criteria
 **Plans**: 6 plans
-  - [ ] 02-01-PLAN.md — Wave 0: install precondition (reanimated v4 + worklets + Babel plugin LAST + pod install + gradle clean + physical-device build verify) — BLOCKING gate before any other phase work
-  - [ ] 02-02-PLAN.md — Wave 1: KeyboardProvider wiring in App.tsx between SafeAreaProvider and ThemeProvider (D-03) + boot smoke check on both physical devices
-  - [ ] 02-03-PLAN.md — Wave 2A: KeyboardAwareScrollView wrap of all 4 auth screens (Login + Signup + ForgotPassword + ResetPassword)
-  - [ ] 02-04-PLAN.md — Wave 2B: KASV swap of AccountSettingsScreen + CreateListingScreen both top-level branches (admin-verify + main form per D-07)
-  - [ ] 02-05-PLAN.md — Wave 2C: Drop-in swap of RN built-in KeyboardAvoidingView with library KAV in ChatThreadScreen + ChatComposeScreen; remove magic-number keyboardVerticalOffset (D-09)
-  - [ ] 02-06-PLAN.md — Wave 3: Verification matrix walk on both physical devices (Tier 1 8 screens + Tier 2 2 screens + L10 multiline + Android back-button) + HomeScreen workaround comment removal decision + phase sign-off
+  - [x] 02-01-PLAN.md — Wave 0: install precondition (reanimated v4 + worklets + Babel plugin LAST + pod install + gradle clean + physical-device build verify) — 2026-04-23
+  - [x] 02-02-PLAN.md — Wave 1: KeyboardProvider wiring in App.tsx between SafeAreaProvider and ThemeProvider (D-03) + boot smoke check — 2026-04-23
+  - [x] 02-03-PLAN.md — Wave 2A: KeyboardAwareScrollView wrap of all 4 auth screens — 2026-04-23
+  - [x] 02-04-PLAN.md — Wave 2B: KASV swap of AccountSettingsScreen + CreateListingScreen (both branches per D-07) — 2026-04-23
+  - [x] 02-05-PLAN.md — Wave 2C: Library KAV drop-in on ChatThread + ChatCompose; `keyboardVerticalOffset` removed (D-09) — 2026-04-23 (gap-closure `47a52b7` added `behavior="padding"` after Matrix walk disproved RESEARCH §9 A8)
+  - [x] 02-06-PLAN.md — Wave 3: 22-cell matrix walk both devices PASS + HomeScreen workaround comment REMOVED + phase sign-off — 2026-04-23
 **UI hint**: yes
 
 ### Phase 3: Role Gating Precursor
