@@ -6,13 +6,13 @@ import {
     TouchableOpacity,
     Alert,
     TextInput,
-    ScrollView,
     Switch,
     ActivityIndicator,
     Animated,
     LayoutChangeEvent,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
@@ -147,7 +147,12 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                 <View style={{ width: 40 }} />
             </View>
 
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <KeyboardAwareScrollView
+                contentContainerStyle={styles.scrollContent}
+                keyboardShouldPersistTaps="handled"
+                bottomOffset={20}
+                showsVerticalScrollIndicator={false}
+            >
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                         <Text style={[styles.sectionTitle, { color: themeStyles.accent }]}>{t('accountSettings.mainInformation')}</Text>
@@ -302,7 +307,7 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                 >
                     <Text style={[styles.deleteLinkText, { color: themeStyles.danger }]}>{t('accountSettings.deleteAccount')}</Text>
                 </TouchableOpacity>
-            </ScrollView>
+            </KeyboardAwareScrollView>
 
             <DeleteAccountModal
                 visible={showDeleteModal}
