@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, ActivityIndicator, Linking, Alert, BackHandler, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { PropertyDetailsScreen } from './src/screens/PropertyDetailsScreen';
 import { Tour3DScreen } from './src/screens/Tour3DScreen';
@@ -948,13 +949,15 @@ function AppContent() {
 function App() {
   return (
     <SafeAreaProvider>
-      <ThemeProvider>
-        <LanguageProvider>
-          <AuthProvider>
-            <AppContent />
-          </AuthProvider>
-        </LanguageProvider>
-      </ThemeProvider>
+      <KeyboardProvider>
+        <ThemeProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              <AppContent />
+            </AuthProvider>
+          </LanguageProvider>
+        </ThemeProvider>
+      </KeyboardProvider>
     </SafeAreaProvider>
   );
 }
