@@ -1,7 +1,8 @@
 # Phase 1: Nav Reliability - Context
 
 **Gathered:** 2026-04-22
-**Status:** Ready for planning
+**Last amended:** 2026-04-22 (D-04 reassessment after Post-Wave-1 partial device run — see D-11..D-15)
+**Status:** Mid-execute — root-cause model revised; fix scoped, device re-verify pending
 
 <domain>
 ## Phase Boundary
@@ -46,6 +47,18 @@ Requirements: NAV-01, NAV-02, NAV-03.
   const hideMainStackUnderOverlay = OVERLAY_FLAGS.some(Boolean);
   ```
   Greppable, review-friendly, and new overlays (including any future refactor that replaces Tour3D's early-return with a zIndex overlay) get added to the array alongside their state declaration — guards against future omissions. Planner MUST still include a short code-read sub-task in Wave 1 to reconfirm this list against the current `App.tsx` state variables before the `hideMainStackUnderOverlay` edit lands; if new overlay flags have been added since 2026-04-22, add them to the array too.
+
+### D-04 reassessment (amended 2026-04-22 after Post-Wave-1 partial device run)
+
+- **D-11 (new, D-04-triggered):** Post-Wave-1 device runs on iOS + Android of the S1–S5 × T1–T5 tab-to-tab transitions surfaced a tight, localized FAIL pattern (S6–S9 overlay rows are structurally `— N/A`, not untested — full-screen overlays eclipse the `BottomNavigator` rendered inside the main-stack wrapper at `App.tsx:673`, so no user-reachable tab-tap path exists from overlay states):
+  - S1 Home, S2 Favorites, S3 Chat, S4 Profile → any tab: all PASS on both platforms.
+  - **S5 Appointments → Home / Chat / Profile: FAIL on both iOS + Android.**
+  - S5 Appointments → Favorites: PASS on both platforms.
+  - S5 Appointments → Add: PASS (opens CreateListing overlay which eclipses the main stack).
+- **D-12 (new, C1 RULED OUT):** C1's predicted failure mode was a uniform "tap-ignored-after-overlay-dismiss" across non-overlay starting states. The actual signal is uniform PASS from S1–S4 and FAIL localized to S5 (a Profile sub-screen), with S5 → Favorites PASSing via a different render path. This pattern is not consistent with a stale `hideMainStackUnderOverlay` flag. Plan 03's `pointerEvents` + `OVERLAY_FLAGS` work remains correct as prophylactic hardening but was not the actual bug driver.
+- **D-13 (new, actual root cause):** The tab-change handler at `App.tsx:678–735` omits `setIsAppointmentsOpen(false)` and `setIsAccountSettingsOpen(false)` in every branch. The `show*` priority ladder at `App.tsx:360–389` gates `showHome`, `showChat`, `showProfile` on `!isAppointmentsOpen && !isAccountSettingsOpen`. So a tab tap from S5 Appointments updates the target tab's flag, but the Appointments screen keeps rendering because `isAppointmentsOpen` is never cleared — user perceives "tap ignored". `showFavorites` has no `!isAppointmentsOpen` guard (higher priority in the ladder), which is exactly why S5 → Favorites PASSes. The model fits every cell in the matrix.
+- **D-14 (new, fix spec):** User's spec, verbatim: "anytime user sees the bottom nav and clicks on it, that click should take precedence and take the user to that clicked section." Implementation: a `resetProfileSubScreens()` helper, declared adjacent to `OVERLAY_FLAGS` (same convention as D-09/D-10 — greppable, inline with state declarations), that clears `isFavoritesOpen`, `isAppointmentsOpen`, `isAccountSettingsOpen`, `isProfileOpen`, `isChatOpen`, `isScheduleViewingOpen`, `propertyToSchedule`, and both `returnToProfileAfter*` flags. Every `onTabChange` branch (`home`, `favorites`, `profile`, `chat`, `add`) calls it first, then sets its single target flag. Scope stays inside `App.tsx` — no other files touched.
+- **D-15 (routing consequence):** Plan 05 (C2/C3/C4 escalation sequence) is SKIPPED entirely. D-04 fired as designed — root-cause model was wrong, we paused, reassessed, and the new model is well-specified and bounded (single function, one atomic commit). Plan 04's full-matrix device protocol is collapsed to a focused re-verify: on both devices, test Profile → Appointments → tap Home/Chat/Profile (all should succeed) and Profile → Account Settings → tap Home/Chat/Profile (same). Video capture is dropped — the bug is now a deterministic code defect with a readable fix, not a timing-sensitive touch-capture symptom; D-03's physical-device QA bar is retained but evidence form is reduced to "human confirms behavior matches spec on both platforms". Plan 06 (strip [NAV]/[BACK]/[C3]/[C4] diagnostics + finalize) runs after device verify.
 
 ### Claude's Discretion
 - Exact variable names / file location for the `OVERLAY_FLAGS` array (inline in `App.tsx` vs extracted to a helper).
