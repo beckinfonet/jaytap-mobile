@@ -27,23 +27,25 @@ Requirements: NAV-01, NAV-02, NAV-03.
 - **D-07:** Document the convention in `.planning/codebase/CONVENTIONS.md`: new keep-alive or full-screen overlay screens MUST wrap in a `<View pointerEvents={visible ? 'auto' : 'none'}>`. No reusable `<KeepAliveScreen>` component abstraction in this phase — comment/doc convention only; enforcement via code review.
 
 ### Tour3D & overlay inventory
-- **D-08:** `isTour3DOpen`'s omission from the `hideMainStackUnderOverlay` derivation at `App.tsx:508-509` is treated as a bug. Tour3DScreen is a full-screen overlay (zIndex:3) and must gate the main stack like the other three. This may itself BE the root cause if the bug reproduces from a Tour3D-open state; confirm during C1 instrumentation.
-- **D-09:** Canonical overlay inventory — the complete set of overlay-flag conditions that must hide the main stack:
+- **D-08 (amended 2026-04-22 after phase research, commit d0db26d):** Research surfaced that no `isTour3DOpen` state variable exists in `App.tsx`. Tour3D is driven by `activeTourUrl` / `activePhotosUrl` (URL strings, declared at `App.tsx:37-38`) and renders via **early return** at `App.tsx:461-478`, which replaces the entire render tree — so while Tour3D is active the main stack is already unmounted and cannot trap touches via the `display:none` keep-alive mechanism. D-08's original "Tour3D overlay is missing from hideMainStackUnderOverlay" premise was therefore empirically incorrect, but the future-proofing concern it articulated remains valid.
+- **D-09 (amended):** Canonical overlay inventory — the complete set of overlay-flag conditions that belong in `OVERLAY_FLAGS`:
   - `!!selectedProperty` (PropertyDetails)
   - `!!user && isCreateListingOpen` (CreateListing — only when authenticated; matches current code)
   - `isRenterListingsOpen` (RenterListings)
-  - `isTour3DOpen` (Tour3D — NEW; currently missing)
-- **D-10:** Refactor the derivation to a single source of truth: an `OVERLAY_FLAGS` array combined via `.some(Boolean)`, e.g.:
+  - `!!activeTourUrl` (Tour3D via Matterport URL — currently uses early-return, included for future-proofing)
+  - `!!activePhotosUrl` (Tour3D via panoramic photos URL — currently uses early-return, included for future-proofing)
+- **D-10 (amended):** Refactor the derivation to a single source of truth: an `OVERLAY_FLAGS` array combined via `.some(Boolean)`, e.g.:
   ```typescript
   const OVERLAY_FLAGS = [
     !!selectedProperty,
     isRenterListingsOpen,
     !!user && isCreateListingOpen,
-    isTour3DOpen,
+    !!activeTourUrl,
+    !!activePhotosUrl,
   ];
   const hideMainStackUnderOverlay = OVERLAY_FLAGS.some(Boolean);
   ```
-  Greppable, review-friendly, and new overlays get added to the array alongside their state declaration — guards against future omissions.
+  Greppable, review-friendly, and new overlays (including any future refactor that replaces Tour3D's early-return with a zIndex overlay) get added to the array alongside their state declaration — guards against future omissions. Planner MUST still include a short code-read sub-task in Wave 1 to reconfirm this list against the current `App.tsx` state variables before the `hideMainStackUnderOverlay` edit lands; if new overlay flags have been added since 2026-04-22, add them to the array too.
 
 ### Claude's Discretion
 - Exact variable names / file location for the `OVERLAY_FLAGS` array (inline in `App.tsx` vs extracted to a helper).
