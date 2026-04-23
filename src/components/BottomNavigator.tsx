@@ -52,7 +52,10 @@ export const BottomNavigator: React.FC<BottomNavigatorProps> = ({ activeTab, onT
             <TouchableOpacity
               key={id}
               activeOpacity={0.8}
-              onPress={() => onTabChange('add')}
+              onPress={() => {
+                console.log('[NAV] tab tap received', { tab: 'add', ts: Date.now() });
+                onTabChange('add');
+              }}
               style={styles.addButtonWrapper}
             >
               <View style={[styles.addButton, { backgroundColor: addButtonBg }]}>
@@ -69,7 +72,10 @@ export const BottomNavigator: React.FC<BottomNavigatorProps> = ({ activeTab, onT
           <TouchableOpacity
             key={id}
             activeOpacity={0.7}
-            onPress={() => onTabChange(id)}
+            onPress={() => {
+              console.log('[NAV] tab tap received', { tab: id, ts: Date.now() });
+              onTabChange(id);
+            }}
             style={styles.tab}
           >
             <View>

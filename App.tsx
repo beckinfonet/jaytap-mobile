@@ -89,6 +89,14 @@ function AppContent() {
     !!activePhotosUrl,
   ];
   const hideMainStackUnderOverlay = OVERLAY_FLAGS.some(Boolean);
+  console.log('[NAV] overlay-flags', {
+    selectedProperty: !!selectedProperty,
+    isRenterListingsOpen,
+    isCreateListingOpen,
+    activeTourUrl: !!activeTourUrl,
+    activePhotosUrl: !!activePhotosUrl,
+    hide: hideMainStackUnderOverlay,
+  });
 
   // Handle deep linking for shared property links
   useEffect(() => {
@@ -531,6 +539,8 @@ function AppContent() {
     elevation: 5,
   };
 
+  console.log('[NAV] mainStack render, hide=', hideMainStackUnderOverlay);
+
   return (
     <>
       <View style={{ flex: 1 }}>
@@ -666,6 +676,7 @@ function AppContent() {
             }
             chatUnreadCount={chatUnreadCount}
             onTabChange={(tab: TabId) => {
+              console.log('[NAV] tab handler entered', tab);
               if (tab === 'add') {
                 if (!user) {
                   setAuthPromptMessage(t('auth.pleaseSignInToCreateListing'));
