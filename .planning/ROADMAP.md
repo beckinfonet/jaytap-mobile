@@ -44,7 +44,7 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   4. New screens added later inherit the fix: keep-alive screens apply `pointerEvents={isVisible ? 'auto' : 'none'}` (belt-and-suspenders) so the class of bug cannot recur on M2 additions
   5. Android hardware back button still pops overlays in the correct order (no regression introduced by back-handler refactor to ref-based pattern)
 **Plans**: 6 plans
-  - [ ] 01-01-PLAN.md — Wave 0: validation scaffolding (REPRO-MATRIX skeleton + videos/ + device agreement)
+  - [x] 01-01-PLAN.md — Wave 0: validation scaffolding (REPRO-MATRIX skeleton + videos/ + device agreement) — 2026-04-22
   - [ ] 01-02-PLAN.md — Wave 0.5: human baseline matrix run (iOS + Android) committed BEFORE any App.tsx edit (NAV-03)
   - [ ] 01-03-PLAN.md — Wave 1: pointerEvents belt-and-suspenders + OVERLAY_FLAGS refactor + [NAV] diagnostics + CONVENTIONS.md entry
   - [ ] 01-04-PLAN.md — Wave 2: human Post-Wave-1 device re-run + D-04 go/no-go gate (PROCEED / ESCALATE / PAUSE / ZERO-BASELINE)

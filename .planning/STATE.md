@@ -1,6 +1,6 @@
 # STATE: JayTap
 
-**Last updated:** 2026-04-22 (post Phase 1 planning)
+**Last updated:** 2026-04-22 (Phase 1 Plan 01 complete; Plan 02 next — human-gated baseline matrix run)
 
 ## Project Reference
 
@@ -11,14 +11,14 @@
 
 ## Current Position
 
-**Phase:** Phase 1 — Nav Reliability (planned, ready to execute)
-**Plan:** 6 plans in 5 waves (Wave 0 → 0.5 → 1 → 2 → [3 conditional] → 4)
-**Status:** Ready to execute
+**Phase:** Phase 1 — Nav Reliability (in progress)
+**Plan:** 1/6 complete — Plan 02 next (Wave 0.5: human baseline matrix run, iOS + Android, pre-fix HEAD)
+**Status:** Wave 0 complete; Wave 0.5 awaiting human device QA
 **Progress:** [░░░░░░░░] 0/8 phases complete
 
 ### Phase pipeline
 
-1. Nav Reliability — Planned, ready to execute (6 plans)
+1. Nav Reliability — In progress (1/6 plans complete; Plan 02 next = human baseline matrix)
 2. Universal Keyboard Handling — Not started
 3. Role Gating Precursor — Not started
 4. Listing Form Taxonomy & Decomposition — Not started
@@ -34,7 +34,7 @@
 | v1 requirements defined | 35 |
 | v1 requirements mapped to phases | 35 |
 | Phases planned | 1/8 |
-| Plans completed | 0 |
+| Plans completed | 1 |
 | Code review passes | 0 |
 
 ## Accumulated Context
