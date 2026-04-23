@@ -1,9 +1,9 @@
 ---
 phase: 2
 slug: universal-keyboard-handling
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-22
 ---
 
@@ -96,4 +96,4 @@ created: 2026-04-22
 - [ ] `02-KEYBOARD-MATRIX.md` populated with all-Pass cells before `/gsd-verify-work` runs
 - [ ] `nyquist_compliant: true` set in this file's frontmatter once planner confirms every task in `02-*-PLAN.md` files maps cleanly to a row in the verification map above
 
-**Approval:** pending
+**Approval:** GRANTED 2026-04-23 — Plan 02-06 matrix walk complete. Tier 1 16/16 Pass, Tier 2 4/4 Pass, L10 6/6 Pass, Android back-button 2/2 Pass. All 12 mechanical grep gates `Actual` match `Expected`. HomeScreen workaround comment removed per D-Discretion. Disproved assumption A8 (library KAV requires explicit `behavior` prop) and committed the fix as `47a52b7`.

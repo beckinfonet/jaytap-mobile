@@ -462,7 +462,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         </View>
       ) : (
         <View style={styles.contentContainer}>
-          {/* Header outside FlatList to prevent TextInput focus issues */}
           {renderHeaderContent()}
           <FlatList
             data={filteredProperties}
