@@ -1,8 +1,19 @@
 # Phase 1: Bottom-Nav Reproduction Matrix
 
-**Baseline captured:** TBD (fill at Wave 0.5 commit time), commit TBD (SHA of Wave 0.5 baseline commit)
+**Baseline status:** ⊘ DEFERRED — not captured (accepted risk, user decision 2026-04-22)
+**Reference pre-fix HEAD:** `0c04227` (commit that marks Plan 01-01 complete; any subsequent Wave-1 code commits are "post-fix" relative to this SHA)
 **Platforms:** iOS iPhone 15 Pro Max, iOS 26.4 — Android Moto G (XT2513V), Android 16
 **Test listing with ≥1 Matterport tour:** MongoDB `_id` `6987ab8b698816d4875ec37a` (confirmed by human)
+
+> **⊘ Baseline deferred — branch taken: RESEARCH §9 A6 / §10 Q2 (zero-FAIL branch) upfront.**
+>
+> Per user decision 2026-04-22, the full 45-cell × 2-platform device matrix was not executed due to time constraints. Plan 03 still lands the pointerEvents + OVERLAY_FLAGS prophylactic code fix. Plan 04's gate semantics change from "FAILs reduced to 0" to "no regression introduced + primary trap sequence visibly fixed on both devices" — the canonical trap from RESEARCH §2.1 (Home → PropertyDetails → back → tap Profile) becomes the minimum evidence bar.
+>
+> **NAV-03 ordering preserved:** the baseline commit SHA (this document at `0c04227` reference HEAD) still predates any App.tsx touch-handling edit from Plan 03. The NAV-03 satisfying-artifact is now "documented baseline decision + reference SHA" rather than "filled 45-cell matrix."
+>
+> **D-04 trigger likelihood:** higher than with a full baseline. Because we lack measurable FAIL counts, any post-fix ambiguity (e.g., intermittent trap, unclear whether "fixed" or "never reproduced on these devices") routes to D-04 pause-and-reassess with the user.
+>
+> **Recourse:** if Plan 04 device re-run reveals the trap does reproduce on these specific devices, the zero-FAIL branch is exited and a focused Post-Wave-1 FAIL→PASS table replaces the missing baseline as evidence.
 
 ## Starting states (rows)
 
@@ -24,9 +35,11 @@
 
 ## Cell markers
 
-✅ PASS · ❌ FAIL · — N/A · ? FLAKY · ⬜ pending (not yet run)
+✅ PASS · ❌ FAIL · — N/A · ? FLAKY · ⬜ pending (not yet run) · ⊘ DEFERRED (intentionally not captured this phase — see header note)
 
 ## Baseline (pre-fix)
+
+> All `⬜` cells in the iOS and Android tables below are interpreted as `⊘ DEFERRED` for this phase per the baseline-deferred decision recorded at the top of this document. They may be retroactively filled if Plan 04's device re-run triggers D-04 "pause and reassess." The tables are left structurally intact so a later run can slot measurements directly into the existing grid.
 
 ### iOS
 
