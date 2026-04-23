@@ -1,6 +1,6 @@
 # STATE: JayTap
 
-**Last updated:** 2026-04-22 (Phase 1 Plans 01-01 + 01-02 resolved; Plan 02 baseline deferred, zero-FAIL branch taken; Plan 03 code fix next)
+**Last updated:** 2026-04-22 (Phase 1 Plan 03 code fix shipped — pointerEvents + OVERLAY_FLAGS derivation + [NAV] diagnostics landed. Plan 04 device re-run next, human-gated)
 
 ## Project Reference
 
@@ -12,13 +12,13 @@
 ## Current Position
 
 **Phase:** Phase 1 — Nav Reliability (in progress)
-**Plan:** 2/6 resolved — Plan 03 next (Wave 1: autonomous pointerEvents + OVERLAY_FLAGS refactor + [NAV] diagnostics in App.tsx)
-**Status:** Wave 0 + Wave 0.5 both committed; Wave 0.5 took deferred-baseline branch (accepted risk). Wave 1 is the only fully-autonomous plan in the phase — ready to spawn executor.
+**Plan:** 3/6 resolved — Plan 04 next (Wave 2: human post-Wave-1 device re-run + D-04 go/no-go gate). Plan 04 is the minimum verification the Plan 02 deferred-baseline branch committed to: canonical trap visibly fixed on both devices + no regression.
+**Status:** Code fix landed (Plan 03 @ commit cd2a52d). Phase is now gated on human device testing on iPhone 15 Pro Max / iOS 26.4 + Moto G XT2513V / Android 16. Dev build must be installed on both devices before Plan 04 can start.
 **Progress:** [░░░░░░░░] 0/8 phases complete
 
 ### Phase pipeline
 
-1. Nav Reliability — In progress (2/6 plans resolved; Plan 03 next = autonomous App.tsx code fix)
+1. Nav Reliability — In progress (3/6 plans resolved; Plan 04 next = human device re-run, gated on dev build install)
 2. Universal Keyboard Handling — Not started
 3. Role Gating Precursor — Not started
 4. Listing Form Taxonomy & Decomposition — Not started
@@ -34,7 +34,7 @@
 | v1 requirements defined | 35 |
 | v1 requirements mapped to phases | 35 |
 | Phases planned | 1/8 |
-| Plans completed | 2 |
+| Plans completed | 3 |
 | Code review passes | 0 |
 
 ## Accumulated Context

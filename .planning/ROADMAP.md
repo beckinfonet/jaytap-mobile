@@ -46,7 +46,7 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
 **Plans**: 6 plans
   - [x] 01-01-PLAN.md — Wave 0: validation scaffolding (REPRO-MATRIX skeleton + videos/ + device agreement) — 2026-04-22
   - [x] 01-02-PLAN.md — Wave 0.5: baseline DEFERRED (accepted risk, 2026-04-22 — zero-FAIL branch §9 A6 taken upfront; NAV-03 anchored on reference HEAD `0c04227`)
-  - [ ] 01-03-PLAN.md — Wave 1: pointerEvents belt-and-suspenders + OVERLAY_FLAGS refactor + [NAV] diagnostics + CONVENTIONS.md entry
+  - [x] 01-03-PLAN.md — Wave 1: pointerEvents belt-and-suspenders + OVERLAY_FLAGS refactor + [NAV] diagnostics + CONVENTIONS.md entry — 2026-04-22
   - [ ] 01-04-PLAN.md — Wave 2: human Post-Wave-1 device re-run + D-04 go/no-go gate (PROCEED / ESCALATE / PAUSE / ZERO-BASELINE)
   - [ ] 01-05-PLAN.md — Wave 3: C2 / C3 / C4 escalation skeleton (autonomous: false, runs only on Plan 04 Decision B)
   - [ ] 01-06-PLAN.md — Wave 4: strip diagnostics + final 45×2 matrix + Phase 1 sign-off block mapping SC1-SC5
