@@ -503,6 +503,7 @@ function AppContent() {
     ({
       flex: 1,
       display: visible ? 'flex' : 'none',
+      pointerEvents: visible ? 'auto' : 'none',
     }) as const;
 
   const hideMainStackUnderOverlay =
@@ -722,6 +723,7 @@ function AppContent() {
               bottom: 0,
               zIndex: 2,
               elevation: 4,
+              pointerEvents: 'auto',
             }}
           >
             <PropertyDetailsScreen
@@ -777,7 +779,11 @@ function AppContent() {
           </View>
         )}
         {(renterListingsEverMounted || isRenterListingsOpen) && (
-          <View style={[fullScreenOverlayWrap, { display: isRenterListingsOpen ? 'flex' : 'none' }]}>
+          <View style={[
+            fullScreenOverlayWrap,
+            { display: isRenterListingsOpen ? 'flex' : 'none' },
+            { pointerEvents: isRenterListingsOpen ? 'auto' : 'none' },
+          ]}>
             <RenterListingsScreen
               onBack={() => setIsRenterListingsOpen(false)}
               onSelectProperty={(property) => {
@@ -795,7 +801,7 @@ function AppContent() {
           </View>
         )}
         {!!user && isCreateListingOpen && (
-          <View style={fullScreenOverlayWrap}>
+          <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
             <CreateListingScreen
               onBack={() => {
                 setIsCreateListingOpen(false);
