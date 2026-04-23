@@ -137,6 +137,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       <FlatList
+        style={styles.list}
         data={properties}
         keyExtractor={(item) => item.id || Math.random().toString()}
         renderItem={renderPropertyItem}
@@ -152,7 +153,10 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
             </Text>
           </View>
         }
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          properties.length === 0 && styles.listContentWhenEmpty,
+        ]}
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
@@ -188,26 +192,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  list: {
+    flex: 1,
+  },
   listContent: {
+    flexGrow: 1,
     paddingBottom: 20,
+  },
+  listContentWhenEmpty: {
+    flex: 1,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingHorizontal: 24,
   },
   emptyIcon: {
     fontSize: 64,
     marginBottom: 16,
+    textAlign: 'center',
   },
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 8,
+    textAlign: 'center',
   },
   emptySubtext: {
     fontSize: 14,
+    textAlign: 'center',
   },
 });
 
