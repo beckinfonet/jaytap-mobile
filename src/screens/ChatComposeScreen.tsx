@@ -110,7 +110,7 @@ export const ChatComposeScreen: React.FC<ChatComposeScreenProps> = ({
             </Text>
           </View>
         </View>
-        <KeyboardAvoidingView style={styles.keyboardView}>
+        <KeyboardAvoidingView behavior="padding" style={styles.keyboardView}>
           <View style={[styles.inputRow, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
             <TextInput
               style={[styles.input, { color: colors.text, backgroundColor: colors.inputBackground }]}

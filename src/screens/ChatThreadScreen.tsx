@@ -179,7 +179,7 @@ export const ChatThreadScreen: React.FC<ChatThreadScreenProps> = ({
           <ActivityIndicator size="large" color={colors.accent} />
         </View>
       ) : (
-        <KeyboardAvoidingView style={styles.keyboardView}>
+        <KeyboardAvoidingView behavior="padding" style={styles.keyboardView}>
           <FlatList
             ref={flatListRef}
             data={messages}
