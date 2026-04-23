@@ -1424,6 +1424,51 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - react-native-keyboard-controller (1.21.6):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - react-native-keyboard-controller/common (= 1.21.6)
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
+  - react-native-keyboard-controller/common (1.21.6):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - react-native-maps (1.27.1):
     - react-native-maps/Maps (= 1.27.1)
   - react-native-maps/Generated (1.27.1):
@@ -1991,6 +2036,80 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - RNReanimated (4.3.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - RNReanimated/apple (= 4.3.0)
+    - RNReanimated/common (= 4.3.0)
+    - RNWorklets
+    - Yoga
+  - RNReanimated/apple (4.3.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - RNWorklets
+    - Yoga
+  - RNReanimated/common (4.3.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - RNWorklets
+    - Yoga
   - RNSVG (15.15.3):
     - hermes-engine
     - RCTRequired
@@ -2024,6 +2143,77 @@ PODS:
     - React-Fabric
     - React-featureflags
     - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
+  - RNWorklets (0.8.1):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - RNWorklets/apple (= 0.8.1)
+    - RNWorklets/common (= 0.8.1)
+    - Yoga
+  - RNWorklets/apple (0.8.1):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
+  - RNWorklets/common (0.8.1):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
     - React-ImageManager
     - React-jsi
     - React-NativeModulesApple
@@ -2080,6 +2270,7 @@ DEPENDENCIES:
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
+  - react-native-keyboard-controller (from `../node_modules/react-native-keyboard-controller`)
   - react-native-maps (from `../node_modules/react-native-maps`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-webview (from `../node_modules/react-native-webview`)
@@ -2119,7 +2310,9 @@ DEPENDENCIES:
   - ReactNativeDependencies (from `../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
+  - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNSVG (from `../node_modules/react-native-svg`)
+  - RNWorklets (from `../node_modules/react-native-worklets`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 EXTERNAL SOURCES:
@@ -2204,6 +2397,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
+  react-native-keyboard-controller:
+    :path: "../node_modules/react-native-keyboard-controller"
   react-native-maps:
     :path: "../node_modules/react-native-maps"
   react-native-safe-area-context:
@@ -2282,8 +2477,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNDateTimePicker:
     :path: "../node_modules/@react-native-community/datetimepicker"
+  RNReanimated:
+    :path: "../node_modules/react-native-reanimated"
   RNSVG:
     :path: "../node_modules/react-native-svg"
+  RNWorklets:
+    :path: "../node_modules/react-native-worklets"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -2328,6 +2527,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 53f28c81b84767a0b2fb4c0109dd7e4571226f76
   React-microtasksnativemodule: ddaf25a8d69f694bc880fb6055e34d79f1d50138
   react-native-image-picker: 7793e84ad7b802351cf687c18bb42ad30150b29b
+  react-native-keyboard-controller: 9650e4d95be2bd242a94ac11c3148a381315595b
   react-native-maps: 9a2b2d92412c3ef6c6d12af370dfa912fd027b44
   react-native-safe-area-context: 53f796cb6c814661bbe99fbdfd0585d07b996cdd
   react-native-webview: a0107c12442bf2ac454d509f615daef00f34df47
@@ -2367,7 +2567,9 @@ SPEC CHECKSUMS:
   ReactNativeDependencies: 14db9bfa80fbfe21196708436bb4e6ddabb8b256
   RNCAsyncStorage: e85a99325df9eb0191a6ee2b2a842644c7eb29f4
   RNDateTimePicker: 5e0666de98f1edfac67ee7dde6be8a5415e487a0
+  RNReanimated: d570323905a3ee01616fc504a9327e7d7c48b1a5
   RNSVG: 13970bfde0ea9c9e10e01ab0d7b4a6cde11fca1b
+  RNWorklets: 0d4c7664dfbb168bb4edf5906a0b7c11701677b8
   Yoga: 772166513f9cd2d61a6251d0dacbbfaa5b537479
 
 PODFILE CHECKSUM: eddbfa67c6219ea7f5fb0071157867e8fac31342
