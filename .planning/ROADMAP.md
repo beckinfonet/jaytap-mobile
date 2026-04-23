@@ -61,7 +61,13 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   2. `react-native-keyboard-controller@1.21+` is installed, `KeyboardProvider` wraps the root of `App.tsx` (inside `SafeAreaProvider`, outside domain providers), and `pod install` + clean builds succeed on both platforms
   3. On every input-bearing screen (Login, Signup, ForgotPassword, ResetPassword, ChatCompose, ChatThread, CreateListing, ScheduleViewing, AccountSettings), tapping any `TextInput` scrolls the field above the keyboard on both physical iOS and physical Android — no per-screen `keyboardVerticalOffset` magic numbers are used
   4. Keyboard behavior is verified on Fabric (New Architecture) builds on both platforms before the phase closes — simulator passes alone do not satisfy exit criteria
-**Plans**: TBD
+**Plans**: 6 plans
+  - [ ] 02-01-PLAN.md — Wave 0: install precondition (reanimated v4 + worklets + Babel plugin LAST + pod install + gradle clean + physical-device build verify) — BLOCKING gate before any other phase work
+  - [ ] 02-02-PLAN.md — Wave 1: KeyboardProvider wiring in App.tsx between SafeAreaProvider and ThemeProvider (D-03) + boot smoke check on both physical devices
+  - [ ] 02-03-PLAN.md — Wave 2A: KeyboardAwareScrollView wrap of all 4 auth screens (Login + Signup + ForgotPassword + ResetPassword)
+  - [ ] 02-04-PLAN.md — Wave 2B: KASV swap of AccountSettingsScreen + CreateListingScreen both top-level branches (admin-verify + main form per D-07)
+  - [ ] 02-05-PLAN.md — Wave 2C: Drop-in swap of RN built-in KeyboardAvoidingView with library KAV in ChatThreadScreen + ChatComposeScreen; remove magic-number keyboardVerticalOffset (D-09)
+  - [ ] 02-06-PLAN.md — Wave 3: Verification matrix walk on both physical devices (Tier 1 8 screens + Tier 2 2 screens + L10 multiline + Android back-button) + HomeScreen workaround comment removal decision + phase sign-off
 **UI hint**: yes
 
 ### Phase 3: Role Gating Precursor
@@ -163,7 +169,7 @@ M2 requirements (ROLE-01…04, MOD-01…06, ADMIN-01…04) are tracked in REQUIR
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Nav Reliability | 6/6 | Complete | 2026-04-22 |
-| 2. Universal Keyboard Handling | 0/? | Not started | - |
+| 2. Universal Keyboard Handling | 0/6 | Planned | - |
 | 3. Role Gating Precursor | 0/? | Not started | - |
 | 4. Listing Form Taxonomy & Decomposition | 0/? | Not started | - |
 | 5. Listing Form Validation & Edit Flow | 0/? | Not started | - |
