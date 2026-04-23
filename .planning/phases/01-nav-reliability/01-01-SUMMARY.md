@@ -39,7 +39,7 @@ patterns-established:
   - "Reproduction matrix structure: Baseline / Post-Wave-1 / Post-Wave-N sections, 9×5 per-platform tables, HR transitions with video paths"
   - "Evidence path convention: videos/{platform}-{Sn}-{Tm}.mp4 (extended: videos/{platform}-S9-back-T{n}.mp4 for HR-4, videos/{platform}-HR{n}-T{n}.mp4 for HR-5/HR-6)"
 
-requirements-completed: []  # NAV-03 is only PARTIALLY satisfied — skeleton exists but the Baseline section is still ⬜ pending and device IDs are TBD. Plan 02 + the Task 3 human checkpoint complete NAV-03.
+requirements-completed: []  # NAV-03 is still only PARTIALLY satisfied after Task 3 — device IDs + tour listing ID are now recorded in the matrix header, but the Baseline section (90 cells) is still ⬜ pending. Plan 02 completes the remaining half of NAV-03.
 
 # Metrics
 duration: 1m 19s
@@ -55,7 +55,7 @@ completed: 2026-04-22
 - **Duration:** 1m 19s
 - **Started:** 2026-04-23T01:18:50Z
 - **Completed:** 2026-04-23T01:20:09Z
-- **Tasks:** 2 of 3 complete (Task 3 paused at `checkpoint:human-action` — see below)
+- **Tasks:** 3 of 3 complete (Task 3 resumed 2026-04-22 after human provided device + tour-listing values)
 - **Files created:** 2
 
 ## Accomplishments
@@ -71,7 +71,7 @@ Each task was committed atomically with `--no-verify` (per parallel-execution co
 
 1. **Task 1: Create videos/ directory with .gitkeep anchor** — `86f62a3` (chore)
 2. **Task 2: Create 01-REPRO-MATRIX.md skeleton with all 90 cells stubbed** — `0472367` (docs)
-3. **Task 3: Device agreement + Railway tour-listing check** — **NOT COMPLETE** (checkpoint:human-action — requires human input; see "Checkpoint / Awaited Human Input" below)
+3. **Task 3: Device agreement + Railway tour-listing check** — matrix header lines updated with: `iOS iPhone 15 Pro Max, iOS 26.4 — Android Moto G (XT2513V), Android 16` and `MongoDB _id 6987ab8b698816d4875ec37a` (committed inline by orchestrator after human response; no separate task commit because the edit is the minimum viable satisfaction of the checkpoint)
 
 ## Files Created/Modified
 
@@ -170,5 +170,5 @@ None. Tasks 1 and 2 executed cleanly on the first try. All `<verify>` automated 
 ---
 *Phase: 01-nav-reliability*
 *Plan: 01*
-*Status: 2/3 tasks complete — paused at Task 3 checkpoint:human-action*
-*Completed (autonomous portion): 2026-04-22*
+*Status: 3/3 tasks complete*
+*Completed: 2026-04-22*

@@ -1,8 +1,8 @@
 # Phase 1: Bottom-Nav Reproduction Matrix
 
 **Baseline captured:** TBD (fill at Wave 0.5 commit time), commit TBD (SHA of Wave 0.5 baseline commit)
-**Platforms:** iOS TBD (device/OS — fill from device agreement), Android TBD (device/OS — fill from device agreement)
-**Test listing with ≥1 Matterport tour:** TBD (listing ID / title — confirm with human)
+**Platforms:** iOS iPhone 15 Pro Max, iOS 26.4 — Android Moto G (XT2513V), Android 16
+**Test listing with ≥1 Matterport tour:** MongoDB `_id` `6987ab8b698816d4875ec37a` (confirmed by human)
 
 ## Starting states (rows)
 
