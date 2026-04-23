@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
 import { AuthService } from '../services/AuthService';
@@ -64,86 +65,91 @@ export const ForgotPasswordScreen = ({
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {onClose ? <AuthModalCloseButton onPress={onClose} /> : null}
+      <KeyboardAwareScrollView
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={20}
+      >
+        <View style={styles.header}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('auth.resetPasswordTitle')}</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+            {sent ? t('auth.resetEmailSent') : t('auth.resetPasswordDesc')}
+          </Text>
+        </View>
 
-      <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('auth.resetPasswordTitle')}</Text>
-        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-          {sent ? t('auth.resetEmailSent') : t('auth.resetPasswordDesc')}
-        </Text>
-      </View>
-
-      <View style={styles.content}>
-        {sent ? (
-          <>
-            <View style={styles.successIconWrap}>
-              <View style={[styles.iconCircle, { backgroundColor: `${colors.primary}22` }]}>
-                <CheckCircle size={40} color="#10B981" />
+        <View style={styles.content}>
+          {sent ? (
+            <>
+              <View style={styles.successIconWrap}>
+                <View style={[styles.iconCircle, { backgroundColor: `${colors.primary}22` }]}>
+                  <CheckCircle size={40} color="#10B981" />
+                </View>
               </View>
-            </View>
-            <Text style={[styles.successBody, { color: colors.textSecondary }]}>{t('auth.resetEmailSentDesc')}</Text>
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: colors.primary }]}
-              onPress={onOpenSetNewPassword}
-            >
-              <Text style={[styles.buttonText, { color: isDark ? '#000' : '#FFF' }]}>{t('auth.setNewPasswordAction')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.linkButton} onPress={onBackToLogin}>
-              <Text style={{ color: colors.accent, fontSize: 15, fontWeight: '600' }}>{t('auth.backToSignIn')}</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <>
-            <View style={styles.mailIconWrap}>
-              <View style={[styles.iconCircle, { backgroundColor: `${colors.primary}22` }]}>
-                <Mail size={32} color={colors.primary} />
+              <Text style={[styles.successBody, { color: colors.textSecondary }]}>{t('auth.resetEmailSentDesc')}</Text>
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: colors.primary }]}
+                onPress={onOpenSetNewPassword}
+              >
+                <Text style={[styles.buttonText, { color: isDark ? '#000' : '#FFF' }]}>{t('auth.setNewPasswordAction')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.linkButton} onPress={onBackToLogin}>
+                <Text style={{ color: colors.accent, fontSize: 15, fontWeight: '600' }}>{t('auth.backToSignIn')}</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <View style={styles.mailIconWrap}>
+                <View style={[styles.iconCircle, { backgroundColor: `${colors.primary}22` }]}>
+                  <Mail size={32} color={colors.primary} />
+                </View>
               </View>
-            </View>
 
-            {errorMessage ? (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{errorMessage}</Text>
+              {errorMessage ? (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{errorMessage}</Text>
+                </View>
+              ) : null}
+
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: colors.inputBackground,
+                      color: colors.text,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                  placeholder={t('auth.email')}
+                  placeholderTextColor={colors.textSecondary}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoFocus
+                  value={email}
+                  onChangeText={setEmail}
+                  editable={!loading}
+                />
               </View>
-            ) : null}
 
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: colors.inputBackground,
-                    color: colors.text,
-                    borderColor: colors.border,
-                  },
-                ]}
-                placeholder={t('auth.email')}
-                placeholderTextColor={colors.textSecondary}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoFocus
-                value={email}
-                onChangeText={setEmail}
-                editable={!loading}
-              />
-            </View>
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: colors.primary }, loading && styles.buttonDisabled]}
+                onPress={handleReset}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color={isDark ? '#000' : '#FFF'} />
+                ) : (
+                  <Text style={[styles.buttonText, { color: isDark ? '#000' : '#FFF' }]}>{t('auth.sendResetLink')}</Text>
+                )}
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: colors.primary }, loading && styles.buttonDisabled]}
-              onPress={handleReset}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color={isDark ? '#000' : '#FFF'} />
-              ) : (
-                <Text style={[styles.buttonText, { color: isDark ? '#000' : '#FFF' }]}>{t('auth.sendResetLink')}</Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.linkButton} onPress={onBackToLogin}>
-              <Text style={{ color: colors.accent, fontSize: 15, fontWeight: '600' }}>{t('auth.backToSignIn')}</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
+              <TouchableOpacity style={styles.linkButton} onPress={onBackToLogin}>
+                <Text style={{ color: colors.accent, fontSize: 15, fontWeight: '600' }}>{t('auth.backToSignIn')}</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };
