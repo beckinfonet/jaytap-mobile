@@ -7,10 +7,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Image,
 } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Send, Calendar } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
@@ -111,11 +110,7 @@ export const ChatComposeScreen: React.FC<ChatComposeScreenProps> = ({
             </Text>
           </View>
         </View>
-        <KeyboardAvoidingView
-          style={styles.keyboardView}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-        >
+        <KeyboardAvoidingView style={styles.keyboardView}>
           <View style={[styles.inputRow, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
             <TextInput
               style={[styles.input, { color: colors.text, backgroundColor: colors.inputBackground }]}
