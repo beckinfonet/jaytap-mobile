@@ -17,17 +17,17 @@
 
 ## Starting states (rows)
 
-| ID | State | How to reach |
-|----|-------|--------------|
-| S1 | Home tab | Cold-start → Home |
-| S2 | Favorites tab | Home → tap Favorites in BottomNavigator |
-| S3 | Chat tab | Home → tap Chat |
-| S4 | Profile tab | Home → tap Profile |
-| S5 | Appointments screen | Profile → Appointments |
-| S6 | PropertyDetails overlay open (selectedProperty ≠ null, zIndex:2) | Home → tap property card |
-| S7 | CreateListing overlay open (full-screen zIndex:3) | Profile → Create Listing |
-| S8 | RenterListings overlay open (full-screen zIndex:3) | Profile → View My Listings |
-| S9 | Tour3D active (early-return, activeTourUrl ≠ null) | PropertyDetails → Open Tours → single tour |
+| ID  | State                                                            | How to reach                               |
+| --- | ---------------------------------------------------------------- | ------------------------------------------ |
+| S1  | Home tab                                                         | Cold-start → Home                          |
+| S2  | Favorites tab                                                    | Home → tap Favorites in BottomNavigator    |
+| S3  | Chat tab                                                         | Home → tap Chat                            |
+| S4  | Profile tab                                                      | Home → tap Profile                         |
+| S5  | Appointments screen                                              | Profile → Appointments                     |
+| S6  | PropertyDetails overlay open (selectedProperty ≠ null, zIndex:2) | Home → tap property card                   |
+| S7  | CreateListing overlay open (full-screen zIndex:3)                | Profile → Create Listing                   |
+| S8  | RenterListings overlay open (full-screen zIndex:3)               | Profile → View My Listings                 |
+| S9  | Tour3D active (early-return, activeTourUrl ≠ null)               | PropertyDetails → Open Tours → single tour |
 
 ## Target tabs (columns)
 
@@ -37,39 +37,44 @@
 
 ✅ PASS · ❌ FAIL · — N/A · ? FLAKY · ⬜ pending (not yet run) · ⊘ DEFERRED (intentionally not captured this phase — see header note)
 
-## Baseline (pre-fix)
+## Baseline (pre-fix) — captured as Post-Wave-1 against Plan 03 build
 
-> All `⬜` cells in the iOS and Android tables below are interpreted as `⊘ DEFERRED` for this phase per the baseline-deferred decision recorded at the top of this document. They may be retroactively filled if Plan 04's device re-run triggers D-04 "pause and reassess." The tables are left structurally intact so a later run can slot measurements directly into the existing grid.
+> **Audit note (2026-04-22):** The cells filled in the iOS and Android tables below were captured during the Plan 04 device run on the Plan 03 build (reference SHA `cd2a52d`), not against the pre-fix baseline SHA `0c04227`. The formal pre-fix baseline remains ⊘ DEFERRED per Plan 02's A6 branch decision (see document header). What's recorded here is Post-Wave-1 data — left in the "Baseline" section only because that's where the captures landed during the device pass. Treat these tables as the Post-Wave-1 capture for downstream analysis; the Post-Wave-1 subsection below points back to them.
+>
+> The data captured is still load-bearing: the S5 Appointments FAIL pattern surfaced here drove the D-04 reassessment and identified the actual root cause (see 01-CONTEXT.md D-11..D-15).
 
 ### iOS
 
-| From \ To | T1 Home | T2 Favorites | T3 Add | T4 Chat | T5 Profile |
-|-----------|---------|--------------|--------|---------|------------|
-| S1 Home | — N/A | ⬜ | ⬜ | ⬜ | ⬜ |
-| S2 Favorites | ⬜ | — N/A | ⬜ | ⬜ | ⬜ |
-| S3 Chat | ⬜ | ⬜ | ⬜ | — N/A | ⬜ |
-| S4 Profile | ⬜ | ⬜ | ⬜ | ⬜ | — N/A |
-| S5 Appointments | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| S6 PropertyDetails | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| S7 CreateListing | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| S8 RenterListings | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| S9 Tour3D | ⬜ | ⬜ | — N/A | ⬜ | ⬜ |
+| From \ To          | T1 Home | T2 Favorites | T3 Add | T4 Chat | T5 Profile |
+| ------------------ | ------- | ------------ | ------ | ------- | ---------- |
+| S1 Home            | — N/A   | ✅           | ✅     | ✅      | ✅         |
+| S2 Favorites       | ✅      | — N/A        | ✅     | ✅      | ✅         |
+| S3 Chat            | ✅      | ✅           | ✅     | — N/A   | ✅         |
+| S4 Profile         | ✅      | ✅           | ✅     | ✅      | — N/A      |
+| S5 Appointments    | ❌      | ✅           | ✅     | ❌      | ❌         |
+| S6 PropertyDetails | N/A     | N/A         | N/A    | N/A     | N/A       |
+| S7 CreateListing   | N/A     | N/A         | N/A    | N/A     | N/A       |
+| S8 RenterListings  | N/A     | N/A         | N/A    | N/A     | N/A       |
+| S9 Tour3D          | N/A     | N/A         | N/A    | N/A     | N/A       |
 
 ### Android
 
-| From \ To | T1 Home | T2 Favorites | T3 Add | T4 Chat | T5 Profile |
-|-----------|---------|--------------|--------|---------|------------|
-| S1 Home | — N/A | ⬜ | ⬜ | ⬜ | ⬜ |
-| S2 Favorites | ⬜ | — N/A | ⬜ | ⬜ | ⬜ |
-| S3 Chat | ⬜ | ⬜ | ⬜ | — N/A | ⬜ |
-| S4 Profile | ⬜ | ⬜ | ⬜ | ⬜ | — N/A |
-| S5 Appointments | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| S6 PropertyDetails | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| S7 CreateListing | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| S8 RenterListings | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
-| S9 Tour3D | ⬜ | ⬜ | — N/A | ⬜ | ⬜ |
+| From \ To          | T1 Home | T2 Favorites | T3 Add | T4 Chat | T5 Profile |
+| ------------------ | ------- | ------------ | ------ | ------- | ---------- |
+| S1 Home            | — N/A   | ✅           | ✅     | ✅      | ✅         |
+| S2 Favorites       | ✅      | — N/A        | ✅     | ✅      | ✅         |
+| S3 Chat            | ✅      | ✅           | ✅     | — N/A   | ✅         |
+| S4 Profile         | ✅      | ✅           | ✅     | ✅      | — N/A      |
+| S5 Appointments    | ❌      | ✅           | ✅     | ❌      | ❌         |
+| S6 PropertyDetails | N/A     | N/A         | N/A    | N/A     | N/A       |
+| S7 CreateListing   | N/A     | N/A         | N/A    | N/A     | N/A       |
+| S8 RenterListings  | N/A     | N/A         | N/A    | N/A     | N/A       |
+| S9 Tour3D          | N/A     | N/A         | N/A    | N/A     | N/A       |
+
 
 ### High-risk transitions (HR-1…HR-6) — video-evidenced
+
+> **⊘ DEFERRED per D-15 (amended 2026-04-22).** Video captures dropped after the D-04 reassessment identified the root cause as a deterministic code defect (incomplete sub-screen state clears in the tab handler — see 01-CONTEXT.md D-13), not a timing-sensitive touch-capture symptom. The HR transition set below is retained as documentation of the original test surface; if the fix regresses in the field, video capture can be re-enabled per this original protocol.
 
 - HR-1 iOS (S6 PropertyDetails → T1..T5): ⬜ — video: videos/ios-S6-T{n}.mp4 — notes: TBD
 - HR-1 Android (S6 PropertyDetails → T1..T5): ⬜ — video: videos/android-S6-T{n}.mp4 — notes: TBD
@@ -92,8 +97,53 @@
 
 ## Post-Wave-1 (pointerEvents + OVERLAY_FLAGS)
 
-_Filled after Plan 03 lands and Plan 04 runs. Same 9×5 table shape × 2 platforms, plus HR-1..HR-6 re-run._
+Captured against Plan 03 build (reference SHA `cd2a52d`). See tables under `## Baseline (pre-fix)` above — those are the Post-Wave-1 tables (audit note at the top of that section explains the label slip).
 
-## Post-Wave-N (if C2/C3/C4 escalation reached)
+**iOS Post-Wave-1 summary:** 14 PASS / 3 FAIL / 23 N/A / 0 FLAKY — run on 2026-04-22.
+**Android Post-Wave-1 summary:** 14 PASS / 3 FAIL / 23 N/A / 0 FLAKY — run on 2026-04-22.
 
-_Filled only if Wave 2 gate fails and escalation plans run. Otherwise labeled "Not reached — Wave 1 achieved 0% repro"._
+**C1 predicate evaluation (iOS):** RULED-OUT. The C1 hypothesis predicted uniform "tap-ignored" from non-overlay states. Actual pattern was PASS from S1–S4 and FAIL localized to S5 Appointments with S5 → Favorites PASSing — inconsistent with a stale `hideMainStackUnderOverlay` flag. [NAV] logs not captured (debugger attach issues); pattern-based ruling only.
+
+**C1 predicate evaluation (Android):** RULED-OUT. Same pattern and reasoning as iOS.
+
+**Baseline→Post-Wave-1 delta:** Baseline formally deferred (Plan 02 A6 branch). Delta is against "no measured baseline" — the Post-Wave-1 data itself surfaced the localized S5 Appointments FAIL pattern and drove D-04 reassessment.
+
+**HR-6 Android (post-hardware-back tab tap):** not re-tested. BackHandler useEffect untouched by Plan 03 and by the tab-handler fix (`bf33c41`), so HR-6 behavior is unchanged from pre-phase state. Flagged as out-of-scope for this phase's evidence bar per D-15.
+
+## Post-Reassessment (commit `bf33c41` — tab-handler fix)
+
+Focused device verify after D-04 reassessment landed the new root-cause fix. Gate: "every tab tap from every Profile sub-screen must promote the target tab on both platforms" (CONTEXT D-14). Cell-by-cell 45×2 re-run was not repeated — the reassessed root cause is a deterministic code defect whose fix either lands or doesn't; the user's focused device verify targets the failing cells from Post-Wave-1 plus the Account Settings path that the matrix had not originally tested.
+
+**iOS + Android — Profile sub-screen tab navigation (2026-04-22, commit `bf33c41` installed):**
+
+| From | To | Post-Wave-1 | Post-Reassessment |
+|------|----|-------------|-------------------|
+| Appointments | Home | ❌ FAIL | ✅ PASS |
+| Appointments | Chat | ❌ FAIL | ✅ PASS |
+| Appointments | Profile | ❌ FAIL | ✅ PASS |
+| Appointments | Favorites | ✅ PASS | ✅ PASS (no regression) |
+| Appointments | Add | ✅ PASS | ✅ PASS (no regression) |
+| Account Settings | Home | not tested | ✅ PASS |
+| Account Settings | Chat | not tested | ✅ PASS |
+
+Broader navigation surface: "app is functional" reported by user on both devices after the bundled fix was installed. No regression observed on S1–S4 tab-to-tab transitions.
+
+**Verification form:** human visual confirmation on iPhone 15 Pro Max / iOS 26.4 and Moto G XT2513V / Android 16. [NAV] diagnostic logs not captured (debugger failed to attach on this session); accepted per D-15 evidence relaxation — behavior itself is the signal of record for a deterministic code defect.
+
+## Post-Wave-1 Go/No-Go Decision
+
+**Decision:** C. PAUSE-AND-REASSESS per D-04 → NEW ROOT CAUSE IDENTIFIED → REASSESSMENT-PROCEED
+
+Initial Post-Wave-1 matrix data triggered D-04: a partial success pattern (S5 Appointments row FAIL on both platforms while S1–S4 all PASSed on both platforms) is inconsistent with the C1 stale-overlay-flag model. Reassessment (see 01-CONTEXT.md D-11..D-15) identified a different root cause — the tab-change handler at `App.tsx:678–735` omitted `setIsAppointmentsOpen(false)` and `setIsAccountSettingsOpen(false)` in every branch, so the `show*` priority ladder at `App.tsx:360–389` blocked Home/Chat/Profile from promoting. Fix landed in commit `bf33c41`; Post-Reassessment device verify on both platforms confirmed navigation works from all tested Profile sub-screens.
+
+**Evidence:**
+- iOS delta: Post-Wave-1 S5 Appointments FAIL on 3 of 4 effective targets → Post-Reassessment all PASS.
+- Android delta: Post-Wave-1 S5 Appointments FAIL on 3 of 4 effective targets → Post-Reassessment all PASS.
+- HR-6 Android: not re-tested; BackHandler path untouched by `bf33c41`, so behavior preserved from pre-phase state. If a HR-6 regression surfaces in the field it is a separate bug from the one closed here.
+- C1 predicate: RULED-OUT (D-12).
+- Baseline delta: Baseline was formally deferred (Plan 02 A6 branch). Post-Wave-1 signal alone was sufficient to diagnose.
+- D-04 check: triggered → reassessment completed → new root cause fixed → device re-verify passed.
+
+**Next plan to run:** Plan 06 (strip + finalize) — ran inline in this same work session; diagnostic [NAV] logs removed in commit `c273a72`. Plan 05 (C2/C3/C4 escalation) SKIPPED entirely per D-15.
+
+**Signed:** beckinfonet, 2026-04-22

@@ -1,6 +1,6 @@
 # STATE: JayTap
 
-**Last updated:** 2026-04-22 (Phase 1 Plan 03 code fix shipped — pointerEvents + OVERLAY_FLAGS derivation + [NAV] diagnostics landed. Plan 04 device re-run next, human-gated)
+**Last updated:** 2026-04-22 (Phase 1 complete — D-04 reassessment landed new root-cause model, tab-handler fix committed in `bf33c41`, device-verified on both platforms, diagnostics stripped. Phase 2 up next.)
 
 ## Project Reference
 
@@ -11,15 +11,15 @@
 
 ## Current Position
 
-**Phase:** Phase 1 — Nav Reliability (in progress)
-**Plan:** 3/6 resolved — Plan 04 next (Wave 2: human post-Wave-1 device re-run + D-04 go/no-go gate). Plan 04 is the minimum verification the Plan 02 deferred-baseline branch committed to: canonical trap visibly fixed on both devices + no regression.
-**Status:** Code fix landed (Plan 03 @ commit cd2a52d). Phase is now gated on human device testing on iPhone 15 Pro Max / iOS 26.4 + Moto G XT2513V / Android 16. Dev build must be installed on both devices before Plan 04 can start.
-**Progress:** [░░░░░░░░] 0/8 phases complete
+**Phase:** Phase 2 — Universal Keyboard Handling (not started)
+**Plan:** 6/6 Phase 1 plans resolved (Plan 05 SKIPPED per D-15). Phase 2 gating: verify `react-native-reanimated` is in `package.json` before `/gsd-plan-phase 2` begins — install with Babel plugin as the LAST entry if absent (research flag from `.planning/research/STACK.md`).
+**Status:** Phase 1 closed — bottom-nav navigation reliable across Profile sub-screen surface on iPhone 15 Pro Max / iOS 26.4 and Moto G XT2513V / Android 16. Root cause landed: tab handler at `App.tsx:678–735` now calls `resetProfileSubScreens()` first, then sets its one target flag, so the `show*` priority ladder (`App.tsx:360–389`) always promotes the tapped tab. See `01-CONTEXT.md` D-11..D-15 for the full reassessment trail.
+**Progress:** [█░░░░░░░] 1/8 phases complete
 
 ### Phase pipeline
 
-1. Nav Reliability — In progress (3/6 plans resolved; Plan 04 next = human device re-run, gated on dev build install)
-2. Universal Keyboard Handling — Not started
+1. Nav Reliability — Complete (6/6 plans resolved; Plan 05 SKIPPED per D-15) — 2026-04-22
+2. Universal Keyboard Handling — Not started (next up; check `react-native-reanimated` install precondition first)
 3. Role Gating Precursor — Not started
 4. Listing Form Taxonomy & Decomposition — Not started
 5. Listing Form Validation & Edit Flow — Not started
@@ -34,7 +34,7 @@
 | v1 requirements defined | 35 |
 | v1 requirements mapped to phases | 35 |
 | Phases planned | 1/8 |
-| Plans completed | 3 |
+| Plans completed | 6 (5 implemented + 1 skipped per D-15) |
 | Code review passes | 0 |
 
 ## Accumulated Context

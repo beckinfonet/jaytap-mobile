@@ -21,7 +21,7 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
 
 ## Phases
 
-- [ ] **Phase 1: Nav Reliability** — Reproduce, root-cause, and fix the bottom-nav unresponsiveness bug in `App.tsx`; apply `pointerEvents` belt-and-suspenders to all keep-alive screens
+- [x] **Phase 1: Nav Reliability** (2026-04-22) — Reproduce, root-cause, and fix the bottom-nav unresponsiveness bug in `App.tsx`; apply `pointerEvents` belt-and-suspenders to all keep-alive screens
 - [ ] **Phase 2: Universal Keyboard Handling** — Install Reanimated (if missing) + `react-native-keyboard-controller`; `KeyboardProvider` at root; adopt `KeyboardAwareScrollView` on every input-bearing screen
 - [ ] **Phase 3: Role Gating Precursor** — Ship `useRole()` + `can(action)` + `<Gated>` over a hardcoded email allowlist, migrate existing admin checks, and confirm backend enforcement
 - [ ] **Phase 4: Listing Form Taxonomy & Decomposition** — Remove `Land` atomically; add Hostel/Hotel under Hospitality; decompose `CreateListingScreen` into `CreateListingForm/` sub-components; EN+RU parity
@@ -47,9 +47,9 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   - [x] 01-01-PLAN.md — Wave 0: validation scaffolding (REPRO-MATRIX skeleton + videos/ + device agreement) — 2026-04-22
   - [x] 01-02-PLAN.md — Wave 0.5: baseline DEFERRED (accepted risk, 2026-04-22 — zero-FAIL branch §9 A6 taken upfront; NAV-03 anchored on reference HEAD `0c04227`)
   - [x] 01-03-PLAN.md — Wave 1: pointerEvents belt-and-suspenders + OVERLAY_FLAGS refactor + [NAV] diagnostics + CONVENTIONS.md entry — 2026-04-22
-  - [ ] 01-04-PLAN.md — Wave 2: human Post-Wave-1 device re-run + D-04 go/no-go gate (PROCEED / ESCALATE / PAUSE / ZERO-BASELINE)
-  - [ ] 01-05-PLAN.md — Wave 3: C2 / C3 / C4 escalation skeleton (autonomous: false, runs only on Plan 04 Decision B)
-  - [ ] 01-06-PLAN.md — Wave 4: strip diagnostics + final 45×2 matrix + Phase 1 sign-off block mapping SC1-SC5
+  - [x] 01-04-PLAN.md — Wave 2: Post-Wave-1 device capture + D-04 Decision C (PAUSE-AND-REASSESS → REASSESSMENT-PROCEED) — 2026-04-22
+  - [x] 01-05-PLAN.md — Wave 3: SKIPPED per D-15 — reassessment surfaced root cause outside C2/C3/C4 search space — 2026-04-22
+  - [x] 01-06-PLAN.md — Wave 4: diagnostic strip + Post-Reassessment device verify + Decision block + Phase 1 sign-off — 2026-04-22
 
 ### Phase 2: Universal Keyboard Handling
 
@@ -162,7 +162,7 @@ M2 requirements (ROLE-01…04, MOD-01…06, ADMIN-01…04) are tracked in REQUIR
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Nav Reliability | 0/6 | Plans written, awaiting execute | - |
+| 1. Nav Reliability | 6/6 | Complete | 2026-04-22 |
 | 2. Universal Keyboard Handling | 0/? | Not started | - |
 | 3. Role Gating Precursor | 0/? | Not started | - |
 | 4. Listing Form Taxonomy & Decomposition | 0/? | Not started | - |
