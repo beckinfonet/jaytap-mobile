@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
@@ -53,85 +54,91 @@ export const SignupScreen = ({ onNavigateToLogin, onClose }: { onNavigateToLogin
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {onClose ? <AuthModalCloseButton onPress={onClose} /> : null}
-      <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('auth.createAccountTitle')}</Text>
-        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{t('auth.signUpToGetStarted')}</Text>
-      </View>
-
-      <View style={styles.content}>
-        {errorMessage ? (
-            <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{errorMessage}</Text>
-            </View>
-        ) : null}
-
-        <View style={styles.inputContainer}>
-            <TextInput
-            style={[styles.input, { 
-                backgroundColor: colors.inputBackground, 
-                color: colors.text,
-                borderColor: colors.border
-            }]}
-            placeholder={t('auth.email')}
-            placeholderTextColor={colors.textSecondary}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-            />
-        </View>
-        
-        <View style={styles.inputContainer}>
-            <PasswordTextInput
-            style={[styles.input, { 
-                backgroundColor: colors.inputBackground, 
-                color: colors.text,
-                borderColor:
-                  password.length > 0 && !passwordMeetsPolicy(password)
-                    ? colors.accent
-                    : colors.border,
-            }]}
-            placeholder={t('auth.password')}
-            placeholderTextColor={colors.textSecondary}
-            value={password}
-            onChangeText={setPassword}
-            />
+      <KeyboardAwareScrollView
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={20}
+      >
+        <View style={styles.header}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('auth.createAccountTitle')}</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{t('auth.signUpToGetStarted')}</Text>
         </View>
 
-        <PasswordRequirements password={password} />
+        <View style={styles.content}>
+          {errorMessage ? (
+              <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+          ) : null}
 
-        <View style={styles.inputContainer}>
-            <PasswordTextInput
-            style={[styles.input, { 
-                backgroundColor: colors.inputBackground, 
-                color: colors.text,
-                borderColor: colors.border
-            }]}
-            placeholder={t('auth.confirmPassword')}
-            placeholderTextColor={colors.textSecondary}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            />
+          <View style={styles.inputContainer}>
+              <TextInput
+              style={[styles.input, {
+                  backgroundColor: colors.inputBackground,
+                  color: colors.text,
+                  borderColor: colors.border
+              }]}
+              placeholder={t('auth.email')}
+              placeholderTextColor={colors.textSecondary}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+              />
+          </View>
+
+          <View style={styles.inputContainer}>
+              <PasswordTextInput
+              style={[styles.input, {
+                  backgroundColor: colors.inputBackground,
+                  color: colors.text,
+                  borderColor:
+                    password.length > 0 && !passwordMeetsPolicy(password)
+                      ? colors.accent
+                      : colors.border,
+              }]}
+              placeholder={t('auth.password')}
+              placeholderTextColor={colors.textSecondary}
+              value={password}
+              onChangeText={setPassword}
+              />
+          </View>
+
+          <PasswordRequirements password={password} />
+
+          <View style={styles.inputContainer}>
+              <PasswordTextInput
+              style={[styles.input, {
+                  backgroundColor: colors.inputBackground,
+                  color: colors.text,
+                  borderColor: colors.border
+              }]}
+              placeholder={t('auth.confirmPassword')}
+              placeholderTextColor={colors.textSecondary}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              />
+          </View>
+
+          <TouchableOpacity
+              style={[styles.button, { backgroundColor: colors.primary }]}
+              onPress={handleSignup}
+              disabled={loading}
+          >
+            {loading ? (
+                <ActivityIndicator color={isDark ? '#000' : '#FFF'} />
+            ) : (
+                <Text style={[styles.buttonText, { color: isDark ? '#000' : '#FFF' }]}>{t('auth.signUp')}</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.linkButton} onPress={onNavigateToLogin}>
+            <Text style={[styles.linkText, { color: colors.textSecondary }]}>
+                {t('auth.alreadyHaveAccount')} <Text style={{ color: colors.accent, fontWeight: 'bold' }}>{t('auth.signIn')}</Text>
+            </Text>
+          </TouchableOpacity>
         </View>
-
-        <TouchableOpacity 
-            style={[styles.button, { backgroundColor: colors.primary }]} 
-            onPress={handleSignup} 
-            disabled={loading}
-        >
-          {loading ? (
-              <ActivityIndicator color={isDark ? '#000' : '#FFF'} />
-          ) : (
-              <Text style={[styles.buttonText, { color: isDark ? '#000' : '#FFF' }]}>{t('auth.signUp')}</Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.linkButton} onPress={onNavigateToLogin}>
-          <Text style={[styles.linkText, { color: colors.textSecondary }]}>
-              {t('auth.alreadyHaveAccount')} <Text style={{ color: colors.accent, fontWeight: 'bold' }}>{t('auth.signIn')}</Text>
-          </Text>
-        </TouchableOpacity>
-      </View>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 };
