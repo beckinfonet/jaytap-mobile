@@ -43,7 +43,13 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   3. Returning from any overlay (PropertyDetails, CreateListing, RenterListings, Tour3D) re-enables the main stack's touch responders — no "taps go nowhere" state is reachable
   4. New screens added later inherit the fix: keep-alive screens apply `pointerEvents={isVisible ? 'auto' : 'none'}` (belt-and-suspenders) so the class of bug cannot recur on M2 additions
   5. Android hardware back button still pops overlays in the correct order (no regression introduced by back-handler refactor to ref-based pattern)
-**Plans**: TBD
+**Plans**: 6 plans
+  - [ ] 01-01-PLAN.md — Wave 0: validation scaffolding (REPRO-MATRIX skeleton + videos/ + device agreement)
+  - [ ] 01-02-PLAN.md — Wave 0.5: human baseline matrix run (iOS + Android) committed BEFORE any App.tsx edit (NAV-03)
+  - [ ] 01-03-PLAN.md — Wave 1: pointerEvents belt-and-suspenders + OVERLAY_FLAGS refactor + [NAV] diagnostics + CONVENTIONS.md entry
+  - [ ] 01-04-PLAN.md — Wave 2: human Post-Wave-1 device re-run + D-04 go/no-go gate (PROCEED / ESCALATE / PAUSE / ZERO-BASELINE)
+  - [ ] 01-05-PLAN.md — Wave 3: C2 / C3 / C4 escalation skeleton (autonomous: false, runs only on Plan 04 Decision B)
+  - [ ] 01-06-PLAN.md — Wave 4: strip diagnostics + final 45×2 matrix + Phase 1 sign-off block mapping SC1-SC5
 
 ### Phase 2: Universal Keyboard Handling
 
@@ -156,7 +162,7 @@ M2 requirements (ROLE-01…04, MOD-01…06, ADMIN-01…04) are tracked in REQUIR
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Nav Reliability | 0/? | Not started | - |
+| 1. Nav Reliability | 0/6 | Plans written, awaiting execute | - |
 | 2. Universal Keyboard Handling | 0/? | Not started | - |
 | 3. Role Gating Precursor | 0/? | Not started | - |
 | 4. Listing Form Taxonomy & Decomposition | 0/? | Not started | - |
@@ -169,3 +175,4 @@ M2 requirements (ROLE-01…04, MOD-01…06, ADMIN-01…04) are tracked in REQUIR
 
 *Roadmap created: 2026-04-22*
 *Derived from REQUIREMENTS.md (35 v1 REQ-IDs) and research/ synthesis*
+*Phase 1 planned: 2026-04-22 (6 plans, 5 waves — Wave 0 / Wave 0.5 / Wave 1 / Wave 2 / [Wave 3 conditional] / Wave 4)*

@@ -1,6 +1,6 @@
 # STATE: JayTap
 
-**Last updated:** 2026-04-22 (post Phase 1 context)
+**Last updated:** 2026-04-22 (post Phase 1 planning)
 
 ## Project Reference
 
@@ -11,14 +11,14 @@
 
 ## Current Position
 
-**Phase:** Phase 1 — Nav Reliability (context gathered, awaiting `/gsd-plan-phase 1`)
-**Plan:** —
-**Status:** Context captured
+**Phase:** Phase 1 — Nav Reliability (planned, ready to execute)
+**Plan:** 6 plans in 5 waves (Wave 0 → 0.5 → 1 → 2 → [3 conditional] → 4)
+**Status:** Ready to execute
 **Progress:** [░░░░░░░░] 0/8 phases complete
 
 ### Phase pipeline
 
-1. Nav Reliability — Not started
+1. Nav Reliability — Planned, ready to execute (6 plans)
 2. Universal Keyboard Handling — Not started
 3. Role Gating Precursor — Not started
 4. Listing Form Taxonomy & Decomposition — Not started
@@ -33,7 +33,7 @@
 |--------|-------|
 | v1 requirements defined | 35 |
 | v1 requirements mapped to phases | 35 |
-| Phases planned | 0/8 |
+| Phases planned | 1/8 |
 | Plans completed | 0 |
 | Code review passes | 0 |
 
@@ -85,21 +85,24 @@
 
 ## Session Continuity
 
-**Last session:** Phase 1 discuss — captured `01-CONTEXT.md` with 10 implementation decisions across diagnostic depth (D-01…D-04), `pointerEvents` belt-and-suspenders scope (D-05…D-07), and overlay inventory / `hideMainStackUnderOverlay` refactor (D-08…D-10). Also wrote `01-DISCUSSION-LOG.md` audit trail. Two decisions locked that diverge from initial research: (a) `hideMainStackUnderOverlay` is already derived, so C1's "derive-not-store" fix is already partially done — remaining gap is the missing `isTour3DOpen`; (b) belt-and-suspenders applies up front, not after root-cause fix.
+**Last session:** Phase 1 plan — produced `01-RESEARCH.md` (C1→C4 diagnostic protocol, reproduction-matrix spec, RN 0.84/Fabric landmines, Validation Architecture), `01-PATTERNS.md` (analog code excerpts for every App.tsx edit site), `01-VALIDATION.md` (manual-device-QA only), and 6 plans `01-01..01-06-PLAN.md` in 5 waves. Research surfaced a load-bearing correction to CONTEXT D-08/D-09/D-10: no `isTour3DOpen` state exists in App.tsx — Tour3D renders via early-return at lines 461-478 using `activeTourUrl`/`activePhotosUrl` URL strings. CONTEXT.md amended (commit a8f45a3) and user resolved as "future-proof": OVERLAY_FLAGS now lists 5 entries including `!!activeTourUrl` and `!!activePhotosUrl`. Plan checker returned VERIFICATION PASSED on all 10 phase-specific checks — NAV-01/02/03 covered, D-04 gate encoded mechanically, diagnostic-log cleanup pairing correct, pointerEvents uses style form (not deprecated prop form), Plan 05 escalation `autonomous: false`.
 
-**Resume with:** `/gsd-plan-phase 1` — planner should read `01-CONTEXT.md` + research ARCHITECTURE §2 + PITFALLS §1/§3 before task breakdown.
+**Resume with:** `/gsd-execute-phase 1` — orchestrator will run Plan 01 (Wave 0 scaffolding) first; Plan 02 is human-gated (baseline matrix run); Plan 03 lands the code changes; Plan 04's decision gate (A PROCEED / B ESCALATE / C PAUSE / D ZERO-BASELINE) drives whether Plan 05 or Plan 06 runs next.
 
-**Resume file:** `.planning/phases/01-nav-reliability/01-CONTEXT.md`
+**Resume file:** `.planning/phases/01-nav-reliability/01-01-PLAN.md`
 
 **Key files to load first on resume:**
-- `.planning/ROADMAP.md` (phase definitions + success criteria)
-- `.planning/REQUIREMENTS.md` (REQ-ID traceability)
-- `.planning/research/SUMMARY.md` (synthesized build-order rationale)
-- `.planning/research/ARCHITECTURE.md` §2 (bottom-nav C1–C4 diagnostic sequence)
-- `.planning/research/PITFALLS.md` Pitfall 1 + Pitfall 3 (nav failure modes)
-- `.planning/codebase/CONCERNS.md` (`App.tsx` god-file, 23-dep back-handler effect, `hideMainStackUnderOverlay` toggle)
+- `.planning/phases/01-nav-reliability/01-CONTEXT.md` (USER DECISIONS — D-08/D-09/D-10 amended)
+- `.planning/phases/01-nav-reliability/01-RESEARCH.md` (§2 C1-C4 protocol; §3 matrix; §6 SC→evidence; §8 validation; §9 assumptions log)
+- `.planning/phases/01-nav-reliability/01-PATTERNS.md` (verbatim current-code snippets for App.tsx:502-519 edit sites; all 6 `mainStackScreenStyle` callers enumerated)
+- `.planning/phases/01-nav-reliability/01-VALIDATION.md` (manual-device-QA contract; Wave 0 infrastructure checklist)
+- `.planning/phases/01-nav-reliability/01-0{1,2,3,4,5,6}-PLAN.md` (6 plans, 5 waves, dependency graph verified acyclic)
+
+**Pre-execute check (raised by research):**
+- Confirm access to both physical iOS and physical Android device (release-blocking per RESEARCH §11; Plan 01 Task 3 captures device IDs).
+- Confirm at least one Railway test listing has ≥1 Matterport tour URL (required for S9 / HR-4 / HR-5 matrix cells; seed if absent).
 
 ---
 
 *State initialized: 2026-04-22 after roadmap creation*
-*Last updated: 2026-04-22 after Phase 1 discuss session*
+*Last updated: 2026-04-22 after Phase 1 plan session*
