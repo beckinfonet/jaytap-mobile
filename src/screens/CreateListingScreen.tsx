@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import type { KeyboardAwareScrollViewRef } from 'react-native-keyboard-controller';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useRole } from '../hooks/useRole';
@@ -31,9 +32,15 @@ import {
   MediaSection,
   PriceSection,
   VerificationSection,
+  validateByCategory,
+  buildPayloadByCategory,
+  FIELD_ORDER_BY_CATEGORY,
   type FormBag,
+  type FormErrorBag,
   type SectionProps,
+  type Currency,
 } from '../components/CreateListingForm';
+import type { TranslationKeys } from '../locales';
 
 interface CreateListingScreenProps {
   onBack: () => void;
@@ -41,6 +48,8 @@ interface CreateListingScreenProps {
   propertyToEdit?: Property; // Optional property to edit
   /** Admin-only: minimal screen to PATCH verification flags (e.g. from property details) */
   verificationOnly?: boolean;
+  /** D-11: navigate to AccountSettings (Hospitality contact recovery) — optional with no-op fallback. */
+  onNavigateToAccountSettings?: () => void;
 }
 
 /**
@@ -73,6 +82,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
   onSuccess,
   propertyToEdit,
   verificationOnly = false,
+  onNavigateToAccountSettings,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -89,7 +99,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
   const [city, setCity] = useState('Bishkek');
   const [district, setDistrict] = useState('');
   const [price, setPrice] = useState('');
-  const [currency, setCurrency] = useState<string>(''); // User must select USD or сом
+  const [currency, setCurrency] = useState<Currency | ''>(''); // D-18: canonical Currency type ('$' | 'сом' | '')
   const [type, setType] = useState<'rent' | 'sale'>('rent');
   const [propertyType, setPropertyType] = useState('Apartment');
   const [bedrooms, setBedrooms] = useState('');
@@ -130,6 +140,11 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
   const isEditMode = !!propertyToEdit;
   const { can } = useRole();
 
+  // Phase 5 — FORM-06 error state + D-04 scroll-to-first-error refs
+  const [errors, setErrors] = useState<FormErrorBag>({});
+  const scrollRef = useRef<KeyboardAwareScrollViewRef>(null);
+  const fieldLayouts = useRef<Partial<Record<keyof FormBag, number>>>({});
+
   // ---------------------------------------------------------------------------
   // Single onChange dispatcher — memoized so sub-component React.memo (if added
   // later) survives. Accepts any FormBag key and routes to the matching setter.
@@ -137,6 +152,15 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
   // runtime switch is the pragmatic M1 choice vs. a setter-map ref.
   // ---------------------------------------------------------------------------
   const onChange = useCallback<SectionProps['onChange']>((field, value) => {
+    // D-02: clear field's error on next keystroke — user isn't nagged while typing
+    setErrors((prev) => {
+      if (prev[field]) {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      }
+      return prev;
+    });
     switch (field) {
       case 'title': setTitle(value as string); break;
       case 'description': setDescription(value as string); break;
@@ -144,7 +168,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
       case 'city': setCity(value as string); break;
       case 'district': setDistrict(value as string); break;
       case 'price': setPrice(value as string); break;
-      case 'currency': setCurrency(value as string); break;
+      case 'currency': setCurrency(value as Currency | ''); break;
       case 'type': setType(value as 'rent' | 'sale'); break;
       case 'propertyType': setPropertyType(value as string); break;
       case 'bedrooms': setBedrooms(value as string); break;
@@ -527,11 +551,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
     bathrooms,
     areaSqm,
     price,
-    // Plan 01 scope-minimal cast: useState declaration stays at `string` (Plan
-    // 04's scope per PATTERNS.md §12 Edit A). Orchestrator already feeds only
-    // canonical `'$' | 'сом' | ''` values via the rehydrate normalizer + chip
-    // `onChange('currency', option.value)` — runtime is safe.
-    currency: currency as import('../components/CreateListingForm').Currency | '',
+    currency,
     rooms,
     maxGuests,
     amenities,
