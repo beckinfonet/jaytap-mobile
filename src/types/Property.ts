@@ -60,4 +60,6 @@ export interface Property {
   platformVerifications?: PlatformVerifications;
   verificationUpdatedAt?: string;
   verificationUpdatedByUid?: string;
+  /** Listing publication state. 'draft' is the author's staging area; 'live' is user-visible. Added Phase 5 D-16 — FORM-08 edit-mode Draft/Publish rule. */
+  status?: 'draft' | 'live';
 }

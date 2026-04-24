@@ -836,6 +836,13 @@ function AppContent() {
               }}
               propertyToEdit={propertyToEdit || undefined}
               verificationOnly={isAdminVerificationMode}
+              // Phase 5 D-11: Hospitality contact recovery — close CreateListing, open AccountSettings
+              onNavigateToAccountSettings={() => {
+                setIsCreateListingOpen(false);
+                setPropertyToEdit(null);
+                setIsAdminVerificationMode(false);
+                setIsAccountSettingsOpen(true);
+              }}
             />
           </View>
         )}

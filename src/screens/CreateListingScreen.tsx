@@ -748,7 +748,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
         </View>
 
         {/* D-16: Status toggle visible on create OR editing a draft; hidden only when editing a live listing */}
-        {(!isEditMode || (propertyToEdit as any)?.status === 'draft') && (
+        {(!isEditMode || propertyToEdit?.status === 'draft') && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.status')}</Text>
             <View style={[styles.segmentedControl, { backgroundColor: isDark ? '#2C2C2E' : '#E5E5EA' }]}>
@@ -804,7 +804,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
           ) : (
             <Text style={[styles.submitButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>
               {isEditMode
-                ? ((propertyToEdit as any)?.status === 'draft'
+                ? (propertyToEdit?.status === 'draft'
                     ? (status === 'draft'
                         ? t('createListing.saveAsDraft')
                         : t('createListing.publishListing'))
