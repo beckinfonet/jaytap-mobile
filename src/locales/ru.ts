@@ -399,4 +399,5 @@ export const ru: Record<TranslationKeys, string> = {
   'error.noPhone': 'У этого владельца нет телефона.',
   'error.cannotOpenEmail': 'Не удалось открыть почтовый клиент.',
   'error.cannotOpenPhone': 'Не удалось открыть звонилку.',
+  'errors.permissionDenied': 'У вас нет прав для выполнения этого действия.',
 };
