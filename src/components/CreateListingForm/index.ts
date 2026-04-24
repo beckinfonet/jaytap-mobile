@@ -14,10 +14,7 @@
  * the repo — a documented exception per PATTERNS.md §3 row 139–161.
  */
 
-// Task 2 of Plan 04-03 activates this re-export once BasicInfoSection.tsx
-// lands. Keeping it commented here in Task 1 keeps `npx tsc --noEmit` clean
-// for the scaffolding-only commit. (Deviation: Rule 3 — see 04-03-SUMMARY.)
-// export { BasicInfoSection } from './BasicInfoSection';
+export { BasicInfoSection } from './BasicInfoSection';
 
 // Plans 04-04 + 04-05 will add the remaining 6 re-exports:
 // export { ResidentialSection } from './ResidentialSection';
