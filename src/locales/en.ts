@@ -396,6 +396,7 @@ export const en = {
   'error.noPhone': 'This owner has not provided a phone number.',
   'error.cannotOpenEmail': 'Could not open email client.',
   'error.cannotOpenPhone': 'Could not open phone dialer.',
+  'errors.permissionDenied': "You don't have permission to perform this action.",
 } as const;
 
 export type TranslationKeys = keyof typeof en;
