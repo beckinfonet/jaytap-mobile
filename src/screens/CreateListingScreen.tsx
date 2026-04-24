@@ -527,7 +527,11 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
     bathrooms,
     areaSqm,
     price,
-    currency,
+    // Plan 01 scope-minimal cast: useState declaration stays at `string` (Plan
+    // 04's scope per PATTERNS.md §12 Edit A). Orchestrator already feeds only
+    // canonical `'$' | 'сом' | ''` values via the rehydrate normalizer + chip
+    // `onChange('currency', option.value)` — runtime is safe.
+    currency: currency as import('../components/CreateListingForm').Currency | '',
     rooms,
     maxGuests,
     amenities,

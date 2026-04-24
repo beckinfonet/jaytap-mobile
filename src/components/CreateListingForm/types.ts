@@ -11,6 +11,8 @@
  * (named exports, no default; all related interfaces in one file).
  */
 
+import type { Currency } from './validators';
+
 export interface FormBag {
   // Always-present (shared across categories)
   title: string;
@@ -31,7 +33,7 @@ export interface FormBag {
   bathrooms: string;
   areaSqm: string;
   price: string;
-  currency: string;
+  currency: Currency | ''; // D-18: '$' | 'сом' | '' — empty = unset
 
   // Hospitality (seeded empty in Phase 4; Plan 04-04 HospitalitySection renders the inputs)
   rooms: string;
@@ -65,3 +67,5 @@ export interface SectionProps {
   onChange: <K extends keyof FormBag>(field: K, value: FormBag[K]) => void;
   errors: FormErrorBag; // Phase 4: always passed as {} — Phase 5 fills
 }
+
+export type { Currency } from './validators';

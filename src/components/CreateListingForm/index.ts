@@ -24,3 +24,12 @@ export { VerificationSection } from './VerificationSection';
 
 export type { FormBag, FormErrorBag, SectionProps } from './types';
 export type { MediaSectionProps } from './MediaSection';
+
+// Phase 5 — validators module (FORM-04 / FORM-06)
+export {
+  validateByCategory,
+  buildPayloadByCategory,
+  CURRENCY_OPTIONS,
+  FIELD_ORDER_BY_CATEGORY,
+} from './validators';
+export type { Currency, ValidateResult } from './validators';
