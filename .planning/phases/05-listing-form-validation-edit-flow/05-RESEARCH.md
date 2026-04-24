@@ -745,19 +745,23 @@ Decision matrix for the 5 open Claude's-Discretion items from 05-CONTEXT.md:
 
 Use a single `contactPhone` error key to represent the whole hybrid-rule failure (rather than 3 separate keys on phone/wa/tg). First-error scroll uses `contactPhone` as the anchor.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Order of fields for first-error scroll** — CONTEXT D-04 specifies "first field in active category's section order (BasicInfo → category section → Price if applicable → Media → VerificationSection if rendered)". BasicInfo internal order: title → description → address → district → city → propertyType → availableDate. Within a section, is the order TOP-to-BOTTOM of JSX (my assumption) or user-flow-weighted (some other order)?
    - **What we know:** JSX render order matches top-to-bottom visual order in every sub-component.
    - **Recommendation:** Planner locks "JSX render order = error-priority order". Document the per-section ordered field array inside `validators.ts` as an exported constant `FIELD_ORDER_BY_CATEGORY: Record<PropertyCategory, (keyof FormBag)[]>`.
+   - **RESOLVED:** Export `FIELD_ORDER_BY_CATEGORY` from validators.ts; JSX render order matches scroll order (Plan 01 Task 1).
 
 2. **Should `Property` type get a `status?: 'draft' | 'live'` field?** — `propertyToEdit.status` at `CreateListingScreen.tsx:263` is accessed as `(propertyToEdit as any).status`. Phase 5 increases the reliance on this field (D-16 visibility rule reads it at :701).
    - **What we know:** backend returns `status` (PropertyService handles it); Property type doesn't declare it.
    - **Recommendation:** Planner adds `status?: 'draft' | 'live'` to Property type during the D-16 task. One-line change; removes 2 `as any` sites.
+   - **RESOLVED:** Yes, added in Plan 05 Task 1 Edit B (removes 2 `as any` casts introduced in Plan 04).
 
 3. **Should `buildPayloadByCategory` include `status` in the shared block or let handleSubmit merge it?** — status is a SHARED field in FormBag but is also a user-intent field (draft vs live). The D-09 pattern puts it in shared. Either works; planner decides whether it's cleaner in shared or in the call-site merge (consistent with `address: fullAddress` which stays in orchestrator for the city-fallback side-effect).
+   - **RESOLVED:** Call-site merge — Plan 04 Task 2 Edit E keeps status handling at handleSubmit scope; buildPayloadByCategory stays role- and status-agnostic.
 
 4. **Phase-4 WR-02 regex fix** — include as Wave 0 housekeeping in Phase 5 (broaden `'[a-zA-Z.]+':` to `'[a-zA-Z0-9.]+':`) or defer to Phase 8 release-prep? **Recommend Wave 0** — minimal cost, removes a known silent-skip hazard before Phase 5 adds ~12 keys.
+   - **RESOLVED:** Deferred. All 14 new keys in Plan 03 are `[a-zA-Z.]`-only (no digits); current regex still catches them. Parity gate works without fix. Carry-forward to Phase 7 alignment pass.
 
 ## Assumptions Log
 

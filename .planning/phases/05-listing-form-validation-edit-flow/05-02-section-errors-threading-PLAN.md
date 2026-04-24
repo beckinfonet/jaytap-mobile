@@ -245,7 +245,7 @@ import type { TranslationKeys } from '../../locales';
     // carry the flag emoji from the source (visible to user).
     const CURRENCY_OPTIONS = [
       { value: '$', label: '🇺🇸 USD' },
-      { value: 'сом', label: '🇰🇏 сом' },
+      { value: 'сом', label: '🇰🇬 сом' },
     ] as const;
     ```
 

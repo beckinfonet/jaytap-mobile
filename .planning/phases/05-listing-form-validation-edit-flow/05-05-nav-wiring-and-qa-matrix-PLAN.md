@@ -153,9 +153,9 @@ Property type exists but does NOT declare `status` — RESEARCH Open Question #2
     - Touch the ProfileScreen render site or its `onProfileViewAccountSettings` callback — Phase 5 adds a parallel sibling callback, doesn't modify existing.
     - Wire `onNavigateToAccountSettings` on the `verificationOnly` branch if it has a separate render path — the admin-minimal verificationOnly branch in CreateListingScreen never triggers Hospitality submit, so the callback is unreachable there and would be dead code.
 
-    **Edit B — src/types/Property.ts — add optional status field:**
+    **Edit B — src/types/Property.ts — add optional status field + clean up the `as any` casts Plan 04 introduced (PRESCRIPTIVE, not discretionary):**
 
-    Inspect Property.ts for the existing interface. Add `status?: 'draft' | 'live';` to the Property interface. Place it with the other top-level optional fields (after `description?: string;` or similar — executor picks the semantic position; the exact placement doesn't matter as long as it's inside the interface body).
+    **Step 1 — Add the field.** Inspect Property.ts for the existing interface. Add `status?: 'draft' | 'live';` to the Property interface. Place it with the other top-level optional fields (after `description?: string;` or similar — executor picks the semantic position; the exact placement doesn't matter as long as it's inside the interface body).
 
     Add an inline comment per CONVENTIONS.md §Comments:
     ```typescript
@@ -163,7 +163,15 @@ Property type exists but does NOT declare `status` — RESEARCH Open Question #2
     status?: 'draft' | 'live';
     ```
 
-    After this addition, the Plan 04 `(propertyToEdit as any).status` / `(propertyToEdit as any)?.status` casts MAY be cleanable to plain `propertyToEdit?.status` — executor's discretion whether to clean them in this task or leave as-is for a future pass. Either way, tsc baseline must not regress.
+    **Step 2 — Remove BOTH `(propertyToEdit as any)?.status` occurrences in src/screens/CreateListingScreen.tsx** that Plan 04 Task 2 Edits F + G introduced as a tsc workaround:
+    - Line ~412 — status toggle visibility guard (Plan 04 Edit F): `(propertyToEdit as any)?.status === 'draft'` → `propertyToEdit?.status === 'draft'`
+    - Line ~459 — submit label ternary (Plan 04 Edit G): `(propertyToEdit as any)?.status === 'draft'` → `propertyToEdit?.status === 'draft'`
+
+    With `status?: 'draft' | 'live'` now on the Property type, both casts are unnecessary — TypeScript narrows the optional-chain access correctly. This is a REQUIRED cleanup for this task, not optional.
+
+    **Step 3 — Verify tsc count drops.** Plan 04 Task 2 was allowed a 1-line tsc tolerance (baseline 16 → tolerance 17) specifically because of this cast. After Edit B's cleanup, that extra error must be gone and the count must return to the pre-Plan-04 baseline:
+    - Run `npx tsc --noEmit 2>&1 | grep -c "error TS"`. The count MUST be ≤ the Plan 04 pre-workaround baseline (16). If `npx tsc --noEmit 2>&1 | wc -l` also ≤ 16, the cleanup succeeded.
+    - If the count does NOT drop below the Plan 04 post-workaround count (17), the task is NOT complete. STOP and surface the residual error (paste the tsc output so we can triage whether Property.status or another hidden cast is responsible) — do not paper over with another `as any`.
 
     **After both edits, verify:**
     - `npx tsc --noEmit 2>&1 | wc -l` ≤ 17 (Plan 04 baseline; should drop back to 16 if the status cast cleanup is applied)
@@ -181,14 +189,16 @@ Property type exists but does NOT declare `status` — RESEARCH Open Question #2
     - The new `onNavigateToAccountSettings={() => { ... }}` callback calls `setIsAccountSettingsOpen(true)` — verify via: `grep -A5 "onNavigateToAccountSettings={" App.tsx | grep -c "setIsAccountSettingsOpen(true)"` returns at least `1`
     - `grep -c "onViewAccountSettings={onProfileViewAccountSettings}" App.tsx` returns exactly `1` (ProfileScreen precedent untouched)
     - `grep -c "status?: 'draft' | 'live'" src/types/Property.ts` returns exactly `1`
-    - `npx tsc --noEmit 2>&1 | wc -l` ≤ 17 (tolerant of 1-line carry from Plan 04)
+    - **`as any` cast cleanup (Edit B Step 2):** `grep -c "(propertyToEdit as any)?.status" src/screens/CreateListingScreen.tsx` returns exactly `0` (both Plan 04 casts removed)
+    - **tsc count drops to pre-Plan-04 baseline (Edit B Step 3):** `npx tsc --noEmit 2>&1 | grep -c "error TS"` returns a count ≤ the Plan 04 pre-workaround baseline (16). If the count is still 17, Edit B Step 2 is incomplete — do not commit.
+    - `npx tsc --noEmit 2>&1 | wc -l` ≤ 16 (Plan 05 closes the 1-line Plan 04 tolerance; returns to pre-Plan-04 baseline)
     - `./scripts/check-role-grep.sh` exits 0
     - `./scripts/check-i18n-parity.sh` exits 0
     - `./scripts/check-land-removed.sh` exits 0
     - `npm test` exits 0
   </acceptance_criteria>
   <done>
-    App.tsx CreateListingScreen render site wires `onNavigateToAccountSettings` to a callback that closes CreateListing and opens AccountSettings. Property type declares `status?: 'draft' | 'live'`. All 3 phase-gate scripts exit 0. tsc ≤ 17. Jest suite green.
+    App.tsx CreateListingScreen render site wires `onNavigateToAccountSettings` to a callback that closes CreateListing and opens AccountSettings. Property type declares `status?: 'draft' | 'live'`. Both `(propertyToEdit as any)?.status` casts in CreateListingScreen.tsx (Plan 04 Edits F + G workaround) are removed — `grep` returns 0 matches. All 3 phase-gate scripts exit 0. tsc error count ≤ 16 (pre-Plan-04 baseline restored). Jest suite green.
   </done>
 </task>
 

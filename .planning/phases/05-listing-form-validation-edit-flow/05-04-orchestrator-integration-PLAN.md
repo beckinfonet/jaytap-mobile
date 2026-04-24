@@ -661,6 +661,7 @@ Current sub-component render calls at lines 641-665 — each has `errors={{}}` t
     - `./scripts/check-land-removed.sh` exits 0 (Phase 4 FORM-01)
     - `npm test` exits 0 (full suite green — ≥44 tests)
     - `grep -c "onLayout=" src/screens/CreateListingScreen.tsx` returns at least `6` (one per mounted section wrapper)
+    - **FORM-07 invariant: no form-clearing on propertyType change (D-05)** — `grep -nE "setTitle\(''\)|setDescription\(''\)|setBedrooms\(''\)|setBathrooms\(''\)|setRooms\(''\)|setMaxGuests\(''\)|setAreaSqm\(''\)|setPrice\(''\)" src/screens/CreateListingScreen.tsx | grep -v "initial\|useState\|rehydrate" | wc -l` returns `0`. The grep finds any state-clear `setX('')` calls; the `grep -v` allow-list excludes useState initialization and the propertyToEdit rehydrate path (both of which legitimately set fields from propertyToEdit). Zero hits proves no propertyType-change handler clears form state — FORM-07 / D-05 preserved.
   </acceptance_criteria>
   <done>
     All 6 sub-component renders receive `errors={errors}`; KeyboardAwareScrollView has `ref={scrollRef}`; each mounted section is wrapped with an onLayout capture that writes to `fieldLayouts.current`; Contact Info block has an inline red error row above its read-only inputs; VerificationSection render unchanged (still uses Pick without errors); `<Gated action="editVerifications">` wrap preserved. tsc ≤ 17. All 3 phase-gate scripts exit 0. Full jest suite green.
