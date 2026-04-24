@@ -25,10 +25,11 @@ import React from 'react';
 import { View, TextInput, Text } from 'react-native';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../theme/ThemeContext';
+import type { TranslationKeys } from '../../locales';
 import type { SectionProps } from './types';
 import { commonStyles } from './styles';
 
-export function HospitalitySection({ values, onChange, errors: _errors }: SectionProps) {
+export function HospitalitySection({ values, onChange, errors }: SectionProps) {
   const { t } = useLanguage();
   const { colors } = useTheme();
 
@@ -53,6 +54,11 @@ export function HospitalitySection({ values, onChange, errors: _errors }: Sectio
             onChangeText={(v) => onChange('rooms', v)}
             keyboardType="numeric"
           />
+          {errors.rooms && (
+            <Text style={[commonStyles.hint, { color: colors.error }]}>
+              {t(errors.rooms as TranslationKeys)}
+            </Text>
+          )}
         </View>
         <View style={commonStyles.thirdInput}>
           <TextInput
@@ -66,6 +72,11 @@ export function HospitalitySection({ values, onChange, errors: _errors }: Sectio
             onChangeText={(v) => onChange('maxGuests', v)}
             keyboardType="numeric"
           />
+          {errors.maxGuests && (
+            <Text style={[commonStyles.hint, { color: colors.error }]}>
+              {t(errors.maxGuests as TranslationKeys)}
+            </Text>
+          )}
         </View>
         <View style={commonStyles.thirdInput}>
           <TextInput
@@ -79,6 +90,11 @@ export function HospitalitySection({ values, onChange, errors: _errors }: Sectio
             onChangeText={(v) => onChange('bathrooms', v)}
             keyboardType="numeric"
           />
+          {errors.bathrooms && (
+            <Text style={[commonStyles.hint, { color: colors.error }]}>
+              {t(errors.bathrooms as TranslationKeys)}
+            </Text>
+          )}
         </View>
       </View>
       <Text style={[commonStyles.hint, { color: colors.textSecondary }]}>

@@ -42,8 +42,9 @@ import { commonStyles } from './styles';
  * Analog: src/components/PasswordRequirements.tsx (plain function component
  * shape, useLanguage + useTheme, typed TranslationKeys label lists).
  */
-export function BasicInfoSection({ values, onChange, errors: _errors }: SectionProps) {
-  // errors prop reserved for Phase 5 — renamed to _errors to silence unused warning
+export function BasicInfoSection({ values, onChange, errors }: SectionProps) {
+  // Phase 5 (FORM-04/06): errors bag is populated by validateByCategory on
+  // submit failure; sub-component renders inline red hint rows per D-01.
   const { t, language } = useLanguage();
   const { colors, isDark } = useTheme();
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -176,6 +177,11 @@ export function BasicInfoSection({ values, onChange, errors: _errors }: SectionP
           value={values.title}
           onChangeText={(v) => onChange('title', v)}
         />
+        {errors.title && (
+          <Text style={[commonStyles.hint, { color: colors.error }]}>
+            {t(errors.title as TranslationKeys)}
+          </Text>
+        )}
         <TextInput
           style={[
             commonStyles.textArea,
@@ -192,6 +198,11 @@ export function BasicInfoSection({ values, onChange, errors: _errors }: SectionP
           multiline
           numberOfLines={4}
         />
+        {errors.description && (
+          <Text style={[commonStyles.hint, { color: colors.error }]}>
+            {t(errors.description as TranslationKeys)}
+          </Text>
+        )}
       </View>
 
       {/* Location */}
@@ -216,6 +227,11 @@ export function BasicInfoSection({ values, onChange, errors: _errors }: SectionP
           value={values.address}
           onChangeText={(v) => onChange('address', v)}
         />
+        {errors.address && (
+          <Text style={[commonStyles.hint, { color: colors.error }]}>
+            {t(errors.address as TranslationKeys)}
+          </Text>
+        )}
         <TextInput
           style={[
             commonStyles.input,
@@ -230,6 +246,11 @@ export function BasicInfoSection({ values, onChange, errors: _errors }: SectionP
           value={values.district}
           onChangeText={(v) => onChange('district', v)}
         />
+        {errors.district && (
+          <Text style={[commonStyles.hint, { color: colors.error }]}>
+            {t(errors.district as TranslationKeys)}
+          </Text>
+        )}
         <TextInput
           style={[
             commonStyles.input,
@@ -244,6 +265,11 @@ export function BasicInfoSection({ values, onChange, errors: _errors }: SectionP
           value={values.city}
           onChangeText={(v) => onChange('city', v)}
         />
+        {errors.city && (
+          <Text style={[commonStyles.hint, { color: colors.error }]}>
+            {t(errors.city as TranslationKeys)}
+          </Text>
+        )}
       </View>
 
       {/* Property Type — three stacked chipRows */}
@@ -394,6 +420,11 @@ export function BasicInfoSection({ values, onChange, errors: _errors }: SectionP
             );
           })}
         </View>
+        {errors.propertyType && (
+          <Text style={[commonStyles.hint, { color: colors.error }]}>
+            {t(errors.propertyType as TranslationKeys)}
+          </Text>
+        )}
 
         {/* Available Date */}
         <Text
@@ -487,6 +518,11 @@ export function BasicInfoSection({ values, onChange, errors: _errors }: SectionP
               {t('common.done')}
             </Text>
           </TouchableOpacity>
+        )}
+        {errors.availableDate && (
+          <Text style={[commonStyles.hint, { color: colors.error }]}>
+            {t(errors.availableDate as TranslationKeys)}
+          </Text>
         )}
         <Text
           style={[commonStyles.hint, { color: colors.textSecondary }]}

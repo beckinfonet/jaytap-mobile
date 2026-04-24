@@ -15,10 +15,11 @@ import React from 'react';
 import { View, TextInput, Text } from 'react-native';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../theme/ThemeContext';
+import type { TranslationKeys } from '../../locales';
 import type { SectionProps } from './types';
 import { commonStyles } from './styles';
 
-export function ResidentialSection({ values, onChange, errors: _errors }: SectionProps) {
+export function ResidentialSection({ values, onChange, errors }: SectionProps) {
   const { t } = useLanguage();
   const { colors } = useTheme();
 
@@ -43,6 +44,11 @@ export function ResidentialSection({ values, onChange, errors: _errors }: Sectio
             onChangeText={(v) => onChange('bedrooms', v)}
             keyboardType="numeric"
           />
+          {errors.bedrooms && (
+            <Text style={[commonStyles.hint, { color: colors.error }]}>
+              {t(errors.bedrooms as TranslationKeys)}
+            </Text>
+          )}
         </View>
         <View style={commonStyles.thirdInput}>
           <TextInput
@@ -56,6 +62,11 @@ export function ResidentialSection({ values, onChange, errors: _errors }: Sectio
             onChangeText={(v) => onChange('bathrooms', v)}
             keyboardType="numeric"
           />
+          {errors.bathrooms && (
+            <Text style={[commonStyles.hint, { color: colors.error }]}>
+              {t(errors.bathrooms as TranslationKeys)}
+            </Text>
+          )}
         </View>
         <View style={commonStyles.thirdInput}>
           <TextInput
@@ -69,6 +80,11 @@ export function ResidentialSection({ values, onChange, errors: _errors }: Sectio
             onChangeText={(v) => onChange('areaSqm', v)}
             keyboardType="numeric"
           />
+          {errors.areaSqm && (
+            <Text style={[commonStyles.hint, { color: colors.error }]}>
+              {t(errors.areaSqm as TranslationKeys)}
+            </Text>
+          )}
         </View>
       </View>
     </View>
