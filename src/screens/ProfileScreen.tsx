@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIn
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Heart, Calendar, ClipboardList, Plus, ChevronRight, LogOut } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import { useRole } from '../hooks/useRole';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
 import { AuthService } from '../services/AuthService';
@@ -21,6 +22,7 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
     const { user, logout } = useAuth();
     const { t } = useLanguage();
     const { isDark } = useTheme();
+    const { can } = useRole();
 
     const [isRenterApplicant, setIsRenterApplicant] = useState(false);
     const [userType, setUserType] = useState<string>('');
@@ -29,8 +31,8 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
     const [blockSize, setBlockSize] = useState<'30min' | '60min'>('30min');
     const profileDataLoadedRef = useRef(false);
 
-    /** Same listing tools as renters; admins keep access after userType change */
-    const canManageListings = userType === 'renter' || userType === 'admin';
+    /** Same listing tools as renters; admins keep access. Encapsulated in can('manageListings') per D-12. */
+    const canManageListings = can('manageListings');
 
     const themeStyles = useMemo(
         () => ({
