@@ -27,24 +27,16 @@ import { AuthService } from '../services/AuthService';
 import { Property } from '../types/Property';
 import type { TranslationKeys } from '../locales';
 import * as ImagePicker from 'react-native-image-picker';
+import {
+  RESIDENTIAL_TYPES,
+  COMMERCIAL_TYPES,
+  HOSPITALITY_TYPES,
+} from '../utils/propertyCategory';
 
 const CURRENCY_OPTIONS = [
   { value: '$', label: '🇺🇸 USD' },
   { value: 'сом', label: '🇰🇬 сом' },
 ] as const;
-
-/** Stored values stay English for API compatibility; labels are localized. */
-const PROPERTY_TYPES: { value: string; labelKey: TranslationKeys }[] = [
-  { value: 'Apartment', labelKey: 'propertyType.apartment' },
-  { value: 'House', labelKey: 'propertyType.house' },
-  { value: 'Townhome', labelKey: 'propertyType.townhome' },
-  { value: 'Condo', labelKey: 'propertyType.condo' },
-  { value: 'Office', labelKey: 'propertyType.office' },
-  { value: 'Retail', labelKey: 'propertyType.retail' },
-  { value: 'Warehouse', labelKey: 'propertyType.warehouse' },
-  { value: 'Land', labelKey: 'propertyType.land' },
-  { value: 'Industrial', labelKey: 'propertyType.industrial' },
-];
 
 interface CreateListingScreenProps {
   onBack: () => void;
@@ -619,24 +611,122 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
           <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('createListing.selectCurrencyHint')}</Text>
 
           <Text style={[styles.label, { color: colors.textSecondary }]}>{t('createListing.propertyType')}</Text>
+
+          {/* Residential group */}
+          <Text
+            style={[styles.label, { color: colors.textSecondary, marginBottom: 8 }]}
+            accessibilityRole="header"
+          >
+            {t('category.residential')}
+          </Text>
           <View style={styles.chipRow}>
-            {PROPERTY_TYPES.map(({ value, labelKey }) => (
-              <TouchableOpacity
-                key={value}
-                style={[
-                  styles.chip,
-                  {
-                    backgroundColor: propertyType === value ? colors.accent : colors.inputBackground,
-                    borderColor: colors.border,
-                  },
-                ]}
-                onPress={() => setPropertyType(value)}
-              >
-                <Text style={[styles.chipText, { color: propertyType === value ? '#FFF' : colors.text }]}>
-                  {t(labelKey)}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {RESIDENTIAL_TYPES.map((value) => {
+              const labelKey = `propertyType.${value.toLowerCase()}` as TranslationKeys;
+              const selected = propertyType === value;
+              return (
+                <TouchableOpacity
+                  key={value}
+                  style={[
+                    styles.chip,
+                    {
+                      backgroundColor: selected ? colors.accent : colors.inputBackground,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                  onPress={() => setPropertyType(value)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  accessibilityLabel={t(labelKey)}
+                  hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                >
+                  <Text
+                    style={[styles.chipText, { color: selected ? '#FFF' : colors.text }]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {t(labelKey)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Commercial group */}
+          <Text
+            style={[styles.label, { color: colors.textSecondary, marginTop: 12, marginBottom: 8 }]}
+            accessibilityRole="header"
+          >
+            {t('category.commercial')}
+          </Text>
+          <View style={styles.chipRow}>
+            {COMMERCIAL_TYPES.map((value) => {
+              const labelKey = `propertyType.${value.toLowerCase()}` as TranslationKeys;
+              const selected = propertyType === value;
+              return (
+                <TouchableOpacity
+                  key={value}
+                  style={[
+                    styles.chip,
+                    {
+                      backgroundColor: selected ? colors.accent : colors.inputBackground,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                  onPress={() => setPropertyType(value)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  accessibilityLabel={t(labelKey)}
+                  hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                >
+                  <Text
+                    style={[styles.chipText, { color: selected ? '#FFF' : colors.text }]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {t(labelKey)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Hospitality group */}
+          <Text
+            style={[styles.label, { color: colors.textSecondary, marginTop: 12, marginBottom: 8 }]}
+            accessibilityRole="header"
+          >
+            {t('category.hospitality')}
+          </Text>
+          <View style={styles.chipRow}>
+            {HOSPITALITY_TYPES.map((value) => {
+              const labelKey = `propertyType.${value.toLowerCase()}` as TranslationKeys;
+              const selected = propertyType === value;
+              return (
+                <TouchableOpacity
+                  key={value}
+                  style={[
+                    styles.chip,
+                    {
+                      backgroundColor: selected ? colors.accent : colors.inputBackground,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                  onPress={() => setPropertyType(value)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  accessibilityLabel={t(labelKey)}
+                  hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                >
+                  <Text
+                    style={[styles.chipText, { color: selected ? '#FFF' : colors.text }]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {t(labelKey)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
           <View style={styles.row}>

@@ -46,7 +46,7 @@ interface HomeScreenProps {
 }
 
 const RESIDENTIAL_TYPES = ['Apartment', 'House', 'Townhome', 'Condo'];
-const COMMERCIAL_TYPES = ['Office', 'Retail', 'Warehouse', 'Land', 'Industrial'];
+const COMMERCIAL_TYPES = ['Office', 'Retail', 'Warehouse', 'Industrial'];
 
 const BISHKEK_DISTRICTS = [
   'Bishkek (All)',

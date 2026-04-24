@@ -256,8 +256,22 @@ export const en = {
   'propertyType.office': 'Office',
   'propertyType.retail': 'Retail',
   'propertyType.warehouse': 'Warehouse',
-  'propertyType.land': 'Land',
   'propertyType.industrial': 'Industrial',
+  'propertyType.hostel': 'Hostel',
+  'propertyType.hotel': 'Hotel',
+
+  // Property categories (Phase 4 taxonomy: Residential / Commercial / Hospitality)
+  'category.residential': 'Residential',
+  'category.commercial': 'Commercial',
+  'category.hospitality': 'Hospitality',
+
+  // Hospitality details section (Phase 4 seed; Phase 6 lands full amenities multi-select)
+  'hospitality.sectionTitle': 'Hospitality Details',
+  'hospitality.rooms': 'Rooms',
+  'hospitality.maxGuests': 'Max Guests',
+  'hospitality.bathrooms': 'Bathrooms',
+  'hospitality.amenities': 'Amenities',
+  'hospitality.amenitiesPhase6Placeholder': 'Amenities list — coming in a future update',
 
   // Favorites
   'favorites.title': 'Favorites',

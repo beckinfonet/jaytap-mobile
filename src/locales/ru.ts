@@ -259,8 +259,22 @@ export const ru: Record<TranslationKeys, string> = {
   'propertyType.office': 'Офис',
   'propertyType.retail': 'Торговля',
   'propertyType.warehouse': 'Склад',
-  'propertyType.land': 'Земля',
   'propertyType.industrial': 'Промышленный',
+  'propertyType.hostel': 'Хостел',
+  'propertyType.hotel': 'Отель',
+
+  // Property categories (Phase 4 taxonomy: Residential / Commercial / Hospitality)
+  'category.residential': 'Жилая',
+  'category.commercial': 'Коммерческая',
+  'category.hospitality': 'Гостеприимство',
+
+  // Hospitality details section (Phase 4 seed; Phase 6 lands full amenities multi-select)
+  'hospitality.sectionTitle': 'Детали размещения',
+  'hospitality.rooms': 'Комнаты',
+  'hospitality.maxGuests': 'Макс. гостей',
+  'hospitality.bathrooms': 'Ванные',
+  'hospitality.amenities': 'Удобства',
+  'hospitality.amenitiesPhase6Placeholder': 'Список удобств — скоро',
 
   // Favorites
   'favorites.title': 'Избранное',
