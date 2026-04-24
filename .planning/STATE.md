@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0.4
 milestone_name: milestone
 status: executing
-last_updated: "2026-04-24T02:41:10.066Z"
+last_updated: "2026-04-24T03:03:04Z"
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 19
-  completed_plans: 13
-  percent: 68
+  completed_plans: 16
+  percent: 74
 ---
 
 # STATE: JayTap
 
-**Last updated:** 2026-04-23 (Phase 3 Plan 03-01 EXECUTED — Wave 0 test scaffolds `3e3abd6`/`96416b8`/`781b612`. RED state confirmed on 3 new suites. CONVENTIONS.md hook-dir note landed. Next: Plan 03-02 Wave 1 hook+allowlist+Gated surface.)
+**Last updated:** 2026-04-24 (Phase 3 Plan 03-04 EXECUTED — service-layer guard `0632da9` + `ed037ef`. All 4 test suites / 15 tests GREEN including previously-broken App.test.tsx. Next: Plans 03-05 + 03-06 in parallel Wave 3.)
 
 ## Project Reference
 
@@ -26,17 +26,17 @@ progress:
 ## Current Position
 
 Phase: 03 (role-gating-precursor) — EXECUTING
-Plan: 2 of 7 (03-01 complete → `3e3abd6` + `96416b8` + `781b612`; next Wave 1 Plan 03-02)
-**Phase:** Phase 3 — Role Gating Precursor (PLANNED — ready for `/gsd-execute-phase 3`)
-**Plan:** 7 plans in 4 waves committed `d884413`. Research `5fc2409` (1135 lines, §7 Validation Architecture, §10 RESOLVED). Validation seed `90fa29f` (Nyquist Dim 8, nyquist_compliant: true). Pattern map + 4 revised plans in same commit. 03-CONTEXT.md + 03-DISCUSSION-LOG.md from `c1518cf`.
+Plan: 5 of 7 (03-01/02/03/04 complete; next Wave 3 Plans 03-05 + 03-06 in parallel)
+**Phase:** Phase 3 — Role Gating Precursor (EXECUTING — Wave 0 + Wave 1 + Wave 2 complete)
+**Plan:** Plan 03-04 complete 2026-04-24 — `0632da9` imports canFromUser + PermissionDeniedError; `ed037ef` inserts guard in patchPlatformVerifications + extends jest.setup.js (native-module stubs closing Phase 2 App.test.tsx residual). Full Jest suite 15/15 GREEN across 4 suites. Guard scope per D-15: only patchPlatformVerifications (`grep -c "canFromUser" src/services/PropertyService.ts` = 2 — import + one call). React-free invariant preserved.
 **Status:** Executing Phase 03
-**Progress:** [██░░░░░░] 2/8 phases complete
+**Progress:** [██░░░░░░] 2/8 phases complete (Phase 3 at 4/7 plans)
 
 ### Phase pipeline
 
 1. Nav Reliability — Complete (6/6 plans resolved; Plan 05 SKIPPED per D-15) — 2026-04-22
 2. Universal Keyboard Handling — Complete (6/6 plans executed; gap-closure `47a52b7` added `behavior="padding"` after matrix walk disproved RESEARCH §9 A8; 22/22 matrix cells PASS on both devices; verifier PASSED 34/34) — 2026-04-23
-3. Role Gating Precursor — EXECUTING (1/7 plans done — Plan 03-01 Wave 0 test scaffolds `3e3abd6`+`96416b8`+`781b612` 2026-04-23; next Plan 03-02 Wave 1); parallelizable with Phase 4+; backend enforcement coordination runs parallel per D-21/D-22 (handled in Plan 03-07 Task 3)
+3. Role Gating Precursor — EXECUTING (4/7 plans done — 03-01 Wave 0 test scaffolds + 03-02 hook/allowlist/Gated + 03-03 i18n key + 03-04 service-layer guard `0632da9`+`ed037ef` 2026-04-24; next Wave 3 Plans 03-05 CreateListingScreen + 03-06 PropertyDetails/Profile in parallel); backend enforcement coordination runs parallel per D-21/D-22 (handled in Plan 03-07)
 4. Listing Form Taxonomy & Decomposition — Not started
 5. Listing Form Validation & Edit Flow — Not started
 6. Hospitality Rendering — Not started
@@ -50,7 +50,8 @@ Plan: 2 of 7 (03-01 complete → `3e3abd6` + `96416b8` + `781b612`; next Wave 1 
 | v1 requirements defined | 35 |
 | v1 requirements mapped to phases | 35 |
 | Phases complete | 2/8 |
-| Plans completed | 13 (5 Phase-1 implemented + 1 Phase-1 skipped per D-15 + 6 Phase-2 executed + 1 Phase-3 executed) |
+| Plans completed | 16 (5 Phase-1 implemented + 1 Phase-1 skipped per D-15 + 6 Phase-2 executed + 4 Phase-3 executed: 03-01/02/03/04) |
+| Phase 3 test baseline | 4 suites / 15 tests GREEN after Plan 03-04 (`0632da9` + `ed037ef`) — App.test.tsx residual from Phase 2 cleared via jest.setup.js native-module stubs |
 | Phase 2 gap closures | 1 (`47a52b7` — chat KAV `behavior="padding"` after A8 disproven) |
 | Code review passes | 0 (M1 testing bar is manual physical-device QA per CLAUDE.md) |
 
@@ -103,9 +104,9 @@ Plan: 2 of 7 (03-01 complete → `3e3abd6` + `96416b8` + `781b612`; next Wave 1 
 
 ## Session Continuity
 
-**Last session:** Phase 3 execute-plan 03-01 — Wave 0 test scaffolds landed in 3 atomic commits (`3e3abd6` useRole stub, `96416b8` PropertyService + Gated stubs, `781b612` CONVENTIONS.md hook-dir note). RED state confirmed on all 3 new suites via the `(! ... | grep -q "^PASS ")` assertion + `grep -qE "Cannot find module|Tests:.*failed"` marker. GATE-01 + GATE-04 requirements marked complete. Roadmap plan-progress updated. Observation logged: pre-existing `__tests__/App.test.tsx` fails on `react-native-keyboard-controller` native binding (Phase 2 residual, introduced `935697a`); Plan 04 will need a Jest setup shim for AsyncStorage anyway and can fold in a `react-native-keyboard-controller` mock.
+**Last session:** Phase 3 execute-plan 03-04 (sequential executor on main) — service-layer guard landed in 2 atomic commits. `0632da9` adds `canFromUser` + `PermissionDeniedError` imports to `PropertyService.ts`; `ed037ef` inserts the 4-line `if (!canFromUser(userData, 'editVerifications'))` guard in `patchPlatformVerifications` AND extends `jest.setup.js` with native-module stubs for `react-native-keyboard-controller` + `react-native-maps` + `react-native-webview` + `react-native-svg` + `react-native-image-picker` (closes 03-01-SUMMARY Observation #1). Full Jest suite now 4 suites / 15 tests GREEN (was 14/15 with App.test.tsx failing at Plan 02 end). PermissionDeniedError message token `E_PERMISSION_DENIED` confirmed flowing through via the Jest `rejects.toThrow` assertion. D-15 scope invariant holds: `grep -n canFromUser src/services/PropertyService.ts` returns exactly 2 lines (import + single guard call). 2 deviations auto-fixed (Rule 3 — blocking jest env gap extended per plan runtime_notes; Rule 1 — rolled back premature GATE-05 mark-complete, same class as Plan 03-01's GATE-01/04 rollback).
 
-**Resume with:** `/gsd-execute-phase 3` — continues with Plan 03-02 Wave 1 (useRole hook + allowlist + Gated component). Key downstream-consumer notes for executor:
+**Resume with:** `/gsd-execute-phase 3` — continues with Wave 3 (parallel Plans 03-05 CreateListingScreen UI migration + 03-06 PropertyDetailsScreen + ProfileScreen migration). Key downstream-consumer notes for executor:
 
 - **Jest is already configured** (`jest.config.js`, `jest@^29.6.3`) — no framework install in Wave 0.
 - **D-10 resolution (load-bearing):** CreateListingScreen:396 uses `can('editVerifications')` — NOT `can('editMatterportUrl')`. Plan 03-05 Task 1 has Q1 anti-pattern grep gate.
@@ -128,4 +129,4 @@ Plan: 2 of 7 (03-01 complete → `3e3abd6` + `96416b8` + `781b612`; next Wave 1 
 ---
 
 *State initialized: 2026-04-22 after roadmap creation*
-*Last updated: 2026-04-23 after Phase 3 Plan 03-01 execution (`3e3abd6`/`96416b8`/`781b612`, RED state preserved per Nyquist Dim 8)*
+*Last updated: 2026-04-24 after Phase 3 Plan 03-04 execution (`0632da9` + `ed037ef`; 15/15 tests GREEN incl. App.test.tsx; Phase 3 at 4/7 plans)*
