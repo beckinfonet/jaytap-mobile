@@ -104,7 +104,7 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
 **Plans**: 6 plans
   - [x] 04-01-PLAN.md — Wave 0: validation scaffolding (propertyCategory.test.ts RED + check-land-removed.sh FAIL-by-design + check-i18n-parity.sh PASS) — 2026-04-23 (`2583c7a` + `5ba60e2` + `8453984`)
   - [x] 04-02-PLAN.md — Wave 1: taxonomy foundation (propertyCategory.ts + atomic Land removal + Hostel/Hotel + 11 new i18n keys EN+RU + chip UX rework) — 2026-04-24 (`a1539cb` + `3b24097` + `633637c`)
-  - [ ] 04-03-PLAN.md — Wave 2: sub-component scaffolding (types.ts + styles.ts + barrel + BasicInfoSection.tsx)
+  - [x] 04-03-PLAN.md — Wave 2: sub-component scaffolding (types.ts + styles.ts + barrel + BasicInfoSection.tsx) — 2026-04-24 (`4207cf3` + `1003ac1`)
   - [ ] 04-04-PLAN.md — Wave 2: category sub-components (ResidentialSection + CommercialSection + HospitalitySection + barrel update)
   - [ ] 04-05-PLAN.md — Wave 2: MediaSection (2x Gated wraps preserved) + PriceSection + VerificationSection + barrel completion
   - [ ] 04-06-PLAN.md — Wave 3: orchestrator reduction + D-09 anchor preservation + 18-cell manual QA + phase-exit regression bundle
@@ -184,7 +184,7 @@ M2 requirements (ROLE-01…04, MOD-01…06, ADMIN-01…04) are tracked in REQUIR
 | 1. Nav Reliability | 6/6 | Complete | 2026-04-22 |
 | 2. Universal Keyboard Handling | 6/6 | Complete | 2026-04-23 |
 | 3. Role Gating Precursor | 7/7 | Complete | 2026-04-23 |
-| 4. Listing Form Taxonomy & Decomposition | 2/6 | Executing | - |
+| 4. Listing Form Taxonomy & Decomposition | 3/6 | Executing | - |
 | 5. Listing Form Validation & Edit Flow | 0/? | Not started | - |
 | 6. Hospitality Rendering | 0/? | Not started | - |
 | 7. Alignment Pass | 0/? | Not started | - |
