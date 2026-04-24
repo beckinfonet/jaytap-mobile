@@ -1,6 +1,6 @@
 # STATE: JayTap
 
-**Last updated:** 2026-04-23 (Phase 3 CONTEXT captured — 25 decisions across 7 categories: scope-locked (D-01..07), Matterport/panoramic gating (D-08..10 — HIDE non-admin URL inputs entirely, preserve existing URLs on save), call-site migration (D-11..14 — all 4 CreateListingScreen isAdmin sites + PropertyDetailsScreen:178 + ProfileScreen:33 via new `manageListings` action; grep invariant as exit bar), service-layer defense (D-15..20 — `canFromUser` pure helper guards `patchPlatformVerifications` only, unit test raises M1 bar), backend coordination (D-21..23 — parallel task, accept as known risk if unconfirmed at ship), allowlist (D-24..25 — `beckprograms@gmail.com` only). Next: /gsd-plan-phase 3.)
+**Last updated:** 2026-04-23 (Phase 3 PLANNED — 7 plans in 4 waves. Research `5fc2409` + Validation seed `90fa29f` + revision `d884413`. Plan checker PASSED on iteration 2. All 25 CONTEXT decisions mapped; all 5 GATEs covered. Next: /gsd-execute-phase 3.)
 
 ## Project Reference
 
@@ -11,16 +11,16 @@
 
 ## Current Position
 
-**Phase:** Phase 3 — Role Gating Precursor (CONTEXT captured — ready for `/gsd-plan-phase 3`)
-**Plan:** Phase 3 CONTEXT.md + DISCUSSION-LOG.md committed `c1518cf`. 25 decisions locked across 7 categories. No research/plan artifacts yet.
-**Status:** Phase 3 discuss complete 2026-04-23. Key decisions: HIDE Matterport + panoramic URL sections from non-admins (behavior change, preserve existing URLs on save); migrate all 4 CreateListingScreen `isAdmin` sites + PropertyDetailsScreen:178 + ProfileScreen:33 (via new `manageListings` action) to `useRole()`; grep invariant + `useRole()` unit test is the exit bar; service-layer gate scoped to `patchPlatformVerifications` only (pure `canFromUser(user, action)` helper, throws `E_PERMISSION_DENIED`, unit-tested); backend-enforcement coordination runs parallel — accept as documented risk in PROJECT.md Key Decisions if unconfirmed at M1 ship (D-22). Allowlist seeds with `beckprograms@gmail.com` only. Phase 1 + 2 still closed.
+**Phase:** Phase 3 — Role Gating Precursor (PLANNED — ready for `/gsd-execute-phase 3`)
+**Plan:** 7 plans in 4 waves committed `d884413`. Research `5fc2409` (1135 lines, §7 Validation Architecture, §10 RESOLVED). Validation seed `90fa29f` (Nyquist Dim 8, nyquist_compliant: true). Pattern map + 4 revised plans in same commit. 03-CONTEXT.md + 03-DISCUSSION-LOG.md from `c1518cf`.
+**Status:** Phase 3 planning complete 2026-04-23. Plan checker PASSED on iteration 2 (1 BLOCKER + 7 WARNINGS from iteration 1 all resolved). Wave structure: Wave 0 (03-01 test scaffolds + CONVENTIONS hook-dir note) → Wave 1 (03-02 allowlist+useRole+Gated core surface, 03-03 i18n key errors.permissionDenied) → Wave 2 (03-04 PropertyService.patchPlatformVerifications guard) → Wave 3 (03-05 CreateListingScreen 4-site migration + 3 Gated wraps, 03-06 PropertyDetailsScreen + ProfileScreen migration) → Wave 4 (03-07 D-14 grep invariant CI gate + backend coord + GATE-05 exit). ASVS L1 threat model on every plan. 18/18 tasks have `<automated>` verify. D-10 Q1 resolved: CreateListingScreen:396 uses `can('editVerifications')`. Panoramic wrap scoped to TextInput only. Phase 1 + 2 still closed.
 **Progress:** [██░░░░░░] 2/8 phases complete
 
 ### Phase pipeline
 
 1. Nav Reliability — Complete (6/6 plans resolved; Plan 05 SKIPPED per D-15) — 2026-04-22
 2. Universal Keyboard Handling — Complete (6/6 plans executed; gap-closure `47a52b7` added `behavior="padding"` after matrix walk disproved RESEARCH §9 A8; 22/22 matrix cells PASS on both devices; verifier PASSED 34/34) — 2026-04-23
-3. Role Gating Precursor — CONTEXT captured 2026-04-23 (`c1518cf`) — next `/gsd-plan-phase 3`; parallelizable with Phase 4+; backend enforcement coordination runs parallel with implementation per D-21/D-22
+3. Role Gating Precursor — PLANNED 2026-04-23 (7 plans, 4 waves; research `5fc2409` + plans/revision `d884413`) — next `/gsd-execute-phase 3`; parallelizable with Phase 4+; backend enforcement coordination runs parallel per D-21/D-22 (handled in Plan 03-07 Task 3)
 4. Listing Form Taxonomy & Decomposition — Not started
 5. Listing Form Validation & Edit Flow — Not started
 6. Hospitality Rendering — Not started
@@ -87,13 +87,17 @@
 
 ## Session Continuity
 
-**Last session:** Phase 3 discuss-phase — 1 commit `c1518cf` capturing `03-CONTEXT.md` + `03-DISCUSSION-LOG.md` (429 insertions). User selected 3 of 4 gray areas to discuss interactively (Matterport/panoramic semantics, call-site migration scope, service-layer defense-in-depth) + confirmed backend-enforcement default + allowlist contents as follow-up questions. 25 decisions locked (D-01 through D-25). No code changes this session.
+**Last session:** Phase 3 plan-phase — research `5fc2409` (1135 lines) + validation seed `90fa29f` + plans/revision `d884413` (7 PLAN.md + PATTERNS.md + ROADMAP update + targeted revisions; 3619 insertions / 18 deletions). Plan checker PASSED iteration 2 after revision cleared 1 BLOCKER + 7 WARNINGS. No application code changes this session — only planning artifacts.
 
-**Resume with:** `/gsd-plan-phase 3` — Role Gating Precursor (GATE-01..GATE-05). CONTEXT.md captures all implementation decisions; planner should focus on wave structure + task decomposition, NOT re-asking decided questions. Key downstream consumer notes:
-- Six call-site migrations across three screens + one service method + four new files (`src/hooks/useRole.ts`, `src/components/Gated.tsx`, `src/constants/adminAllowlist.ts`, `src/hooks/__tests__/useRole.test.ts`)
-- Exit bar: 4-part grep invariant (D-14) + `useRole()` priority-ladder unit test + service-guard unit test (D-19, D-20 — planner must check Jest config during Wave 0)
-- Backend coordination runs in parallel — NOT a serial dependency (D-23); failure-to-confirm fallback is a PROJECT.md Key Decisions row (D-22)
-- Behavior change callout: non-admin listers lose Matterport + panoramic URL inputs (D-08 — by design; existing URLs preserved on save per D-09)
+**Resume with:** `/gsd-execute-phase 3` — executes the 7 plans in wave order. Key downstream-consumer notes for executor:
+- **Jest is already configured** (`jest.config.js`, `jest@^29.6.3`) — no framework install in Wave 0.
+- **D-10 resolution (load-bearing):** CreateListingScreen:396 uses `can('editVerifications')` — NOT `can('editMatterportUrl')`. Plan 03-05 Task 1 has Q1 anti-pattern grep gate.
+- **Panoramic wrap scope:** only the panoramic `<TextInput>`, NOT the parent "Links" section (videoUrl/instagramUrl must remain visible to non-admins per RESEARCH §2.2).
+- **Plan 03-05 Task 1 pre-check:** executor MUST run `grep -n "isAdmin" src/screens/CreateListingScreen.tsx` and confirm exactly 4 matches at lines 110/319/396/933 BEFORE editing. Halt on mismatch.
+- **Wave 0 RED-state assertions:** Plan 03-01 Tasks 1+2 use `(! npx jest <path> | grep -q "^PASS ")` — test stubs MUST fail at Wave 0 end (turned GREEN in Wave 1/2).
+- **Backend coordination path B (D-22):** if Railway team has not confirmed by release cut, Plan 03-07 Task 3 writes a Key Decisions row/bullet in PROJECT.md citing "not confirmed by Railway team by release cut" + D-22 fallback. Deterministic table-vs-bullet branch selector in action.
+- **4-part grep invariant (D-14):** `scripts/check-role-grep.sh` — runnable CI gate, exits 0 only when all 4 invariants hold.
+- **Behavior change callout:** non-admin listers lose Matterport + panoramic URL inputs by design (D-08); existing URLs preserved on save (D-09).
 
 **Phase 2 artifacts preserved:**
 - `02-VERIFICATION.md` — verifier's 34/34 PASS report + accepted-override record for `47a52b7`
@@ -106,4 +110,4 @@
 ---
 
 *State initialized: 2026-04-22 after roadmap creation*
-*Last updated: 2026-04-23 after Phase 3 CONTEXT capture (`c1518cf`)*
+*Last updated: 2026-04-23 after Phase 3 planning (`d884413`, plan checker PASSED iteration 2)*
