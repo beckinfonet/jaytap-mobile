@@ -16,10 +16,11 @@ import React from 'react';
 import { View, TextInput, Text } from 'react-native';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../theme/ThemeContext';
+import type { TranslationKeys } from '../../locales';
 import type { SectionProps } from './types';
 import { commonStyles } from './styles';
 
-export function CommercialSection({ values, onChange, errors: _errors }: SectionProps) {
+export function CommercialSection({ values, onChange, errors }: SectionProps) {
   const { t } = useLanguage();
   const { colors } = useTheme();
 
@@ -44,6 +45,11 @@ export function CommercialSection({ values, onChange, errors: _errors }: Section
             onChangeText={(v) => onChange('areaSqm', v)}
             keyboardType="numeric"
           />
+          {errors.areaSqm && (
+            <Text style={[commonStyles.hint, { color: colors.error }]}>
+              {t(errors.areaSqm as TranslationKeys)}
+            </Text>
+          )}
         </View>
       </View>
     </View>

@@ -15,19 +15,12 @@ import React from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../theme/ThemeContext';
+import type { TranslationKeys } from '../../locales';
 import type { SectionProps } from './types';
 import { commonStyles } from './styles';
+import { CURRENCY_OPTIONS } from './validators';
 
-// CURRENCY_OPTIONS — transcribed verbatim from CreateListingScreen.tsx:36-39.
-// values ('$' / 'сом') are the storage tokens the orchestrator persists at
-// :375 submit payload and rehydrates at :164 propertyToEdit.currency; labels
-// carry the flag emoji from the source (visible to user).
-const CURRENCY_OPTIONS = [
-  { value: '$', label: '🇺🇸 USD' },
-  { value: 'сом', label: '🇰🇬 сом' },
-] as const;
-
-export function PriceSection({ values, onChange, errors: _errors }: SectionProps) {
+export function PriceSection({ values, onChange, errors }: SectionProps) {
   const { t } = useLanguage();
   const { colors } = useTheme();
 
@@ -72,6 +65,11 @@ export function PriceSection({ values, onChange, errors: _errors }: SectionProps
           );
         })}
       </View>
+      {errors.currency && (
+        <Text style={[commonStyles.hint, { color: colors.error }]}>
+          {t(errors.currency as TranslationKeys)}
+        </Text>
+      )}
 
       <Text
         style={[
@@ -96,6 +94,11 @@ export function PriceSection({ values, onChange, errors: _errors }: SectionProps
         onChangeText={(v) => onChange('price', v)}
         keyboardType="numeric"
       />
+      {errors.price && (
+        <Text style={[commonStyles.hint, { color: colors.error }]}>
+          {t(errors.price as TranslationKeys)}
+        </Text>
+      )}
 
       <Text style={[commonStyles.hint, { color: colors.textSecondary }]}>
         {t('createListing.selectCurrencyHint')}
