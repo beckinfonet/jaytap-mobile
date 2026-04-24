@@ -978,25 +978,31 @@ Per CONTEXT Discretion ("one-off visual device-smoke-test cell... or rely on the
 
 ---
 
-## §10 Open Questions for the Planner
+## §10 Open Questions for the Planner (RESOLVED)
 
 1. **D-10 literal vs. effective action mapping.** D-10 says line 396's submit-payload branch is gated by `can('editMatterportUrl')`. §2.3 shows that line 396 ACTUALLY governs `platformVerifications` — semantically `can('editVerifications')`. The literal D-10 interpretation would mis-gate `platformVerifications`. Recommended resolution: line 396 → `can('editVerifications')`; leave `tours` / `panoramicPhotosUrl` payload fields unwrapped (D-09 preservation). **Is this the correct interpretation of combined D-08 + D-09 + D-10 intent?** If so, flag in the plan's Decisions table and reference §2.3. If the planner disagrees, raise a pre-planning question.
    - **Recommendation:** Go with §2.3. Consistent with code reality and D-09.
+   - **RESOLVED:** Line 396 uses `can('editVerifications')` per Plan 05 Task 1 (Q1 anti-pattern grep in Plan 05 Task 1 acceptance_criteria: `grep -Fc "...(can('editMatterportUrl')" returns 0`). The `tours` / `panoramicPhotosUrl` payload fields remain unwrapped at lines 390, 394 per D-09 preservation.
 
 2. **Jest test location convention.** Co-locate under `src/hooks/__tests__/` (establishes new convention) vs. root `__tests__/useRole.test.ts` (matches existing `App.test.tsx`)? D-19 says "path subject to planner convention."
    - **Recommendation:** Co-locate. New `src/hooks/` directory starts fresh; co-located tests are easier to keep in sync. If planner has strong preference for root-level, either works — grep invariants don't care about test paths.
+   - **RESOLVED:** Tests co-located under `src/hooks/__tests__/`, `src/services/__tests__/`, and `src/components/__tests__/` per Plan 01 Tasks 1 and 2. Scaffolded in Wave 0.
 
 3. **Extraction of `PermissionDeniedError` to its own file.** CONTEXT Discretion offers `src/hooks/errors.ts` vs. co-locate in `useRole.ts`.
    - **Recommendation:** Co-locate. One-item modules are friction.
+   - **RESOLVED:** `PermissionDeniedError` co-located in `src/hooks/useRole.ts` per Plan 02 Task 2 (not a separate `src/hooks/errors.ts` module).
 
 4. **Type augmentation for `customClaims`.** CONTEXT Discretion offers adding `customClaims?: { role?: Role }` to the backend-user type. No `BackendUser` / `AuthUser` type exists (§2.4). Options: (a) add a narrow local type in `useRole.ts` (§2.4 example); (b) use `(user as any)?.backendProfile?.customClaims?.role`; (c) create `src/types/AuthUser.ts`.
    - **Recommendation:** Option (a). One local type in `useRole.ts`. Cheap, improves readability, doesn't fragment type system. Option (c) is over-reach for Phase 3.
+   - **RESOLVED:** No `customClaims` augmentation — local `Role | undefined` cast inside `useRole.ts` matches the existing `AuthContext` convention of `user: any` (per Plan 02 Task 2). No new `src/types/AuthUser.ts` file. Option (a) chosen.
 
 5. **Should `canManageListings` become part of `can('manageListings')` entirely, or keep the local rename?** D-11 site 9 says: `const { can } = useRole(); const canManageListings = can('manageListings');` — preserves the local name. Alternative: inline `can('manageListings')` at every use site (only ~2 call sites in ProfileScreen).
    - **Recommendation:** Keep the local alias — matches existing variable name, minimal diff.
+   - **RESOLVED:** `canManageListings` alias retained locally in `ProfileScreen.tsx` per Plan 06 Task 2 (`const canManageListings = can('manageListings');`). Minimal diff, preserves existing variable name.
 
 6. **Whether to delete the `isAdmin` destructure at `CreateListingScreen.tsx:110` entirely after Wave 1.** After migrating sites 2–4 to `can()`, `isAdmin` may have no consumers inside the file.
    - **Recommendation:** Run `grep -n "isAdmin" src/screens/CreateListingScreen.tsx` at Wave 1 end. If zero matches beyond line 110, drop `isAdmin` from the destructure: `const { can } = useRole();`. If any remain, keep the destructure.
+   - **RESOLVED:** `isAdmin` destructure dropped entirely from `CreateListingScreen.tsx` and `PropertyDetailsScreen.tsx` (Plan 05 Task 1 + Plan 06 Task 1 migrate ALL `isAdmin` sites to `can()` / `<Gated>`). Plan 05 Task 1 includes a pre-check grep asserting exactly 4 pre-migration matches at lines 110, 319, 396, 933; anything else halts execution for human review.
 
 ---
 

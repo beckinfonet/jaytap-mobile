@@ -81,7 +81,14 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   3. The existing admin check at `PropertyDetailsScreen.tsx:178` (and any other scattered `userType === 'admin'` sites surfaced by grep) is migrated to `useRole()`; the `can(action)` API shape accepts actions, not role names, so the M1→M2 swap requires zero call-site changes
   4. Backend enforcement on admin-only endpoints (`PATCH /properties/:id/verifications`, `/tours`) is either confirmed with the Railway backend team (release-unblocking) or documented as an accepted known risk in PROJECT.md's Key Decisions table
   5. A `// TODO(M2): replace allowlist with role-based implementation` comment exists at the allowlist definition; admin emails are lowercase-normalized on comparison
-**Plans**: TBD
+**Plans**: 7 plans
+  - [ ] 03-01-PLAN.md — Wave 0: scaffold failing test stubs (useRole / Gated / PropertyService) + CONVENTIONS.md src/hooks/ note
+  - [ ] 03-02-PLAN.md — Wave 1: adminAllowlist.ts + useRole.ts (canFromUser + Action union + PermissionDeniedError) + Gated.tsx
+  - [ ] 03-03-PLAN.md — Wave 1: errors.permissionDenied i18n key in en.ts + ru.ts (parallel with 03-02)
+  - [ ] 03-04-PLAN.md — Wave 2: PropertyService.patchPlatformVerifications canFromUser guard (D-15 scope)
+  - [ ] 03-05-PLAN.md — Wave 3: CreateListingScreen.tsx — 4 isAdmin sites + 3 Gated wraps (D-08/D-09 preserve-on-save intact; Q1: editVerifications at line 396)
+  - [ ] 03-06-PLAN.md — Wave 3: PropertyDetailsScreen.tsx + ProfileScreen.tsx migrations (D-11 sites 5/6/7; D-12 manageListings; D-13 display-only userType stays) — parallel with 03-05
+  - [ ] 03-07-PLAN.md — Wave 4: 4-part grep invariant as scripts/check-role-grep.sh + 03-BACKEND-COORDINATION.md + GATE-05 two-path exit (D-22) + 03-VERIFICATION.md
 
 ### Phase 4: Listing Form Taxonomy & Decomposition
 
@@ -170,7 +177,7 @@ M2 requirements (ROLE-01…04, MOD-01…06, ADMIN-01…04) are tracked in REQUIR
 |-------|----------------|--------|-----------|
 | 1. Nav Reliability | 6/6 | Complete | 2026-04-22 |
 | 2. Universal Keyboard Handling | 0/6 | Planned | - |
-| 3. Role Gating Precursor | 0/? | Not started | - |
+| 3. Role Gating Precursor | 0/7 | Planned | - |
 | 4. Listing Form Taxonomy & Decomposition | 0/? | Not started | - |
 | 5. Listing Form Validation & Edit Flow | 0/? | Not started | - |
 | 6. Hospitality Rendering | 0/? | Not started | - |

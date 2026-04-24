@@ -2,7 +2,7 @@
 phase: 3
 slug: role-gating-precursor
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-04-23
 ---
@@ -38,20 +38,26 @@ created: 2026-04-23
 
 *To be filled by planner during Step 8. Every task with `type: execute` on a `.ts/.tsx` file that contains a gated decision (hook, helper, component, call-site) MUST have an automated verify entry referencing a unit test or a grep invariant. Gaps here BLOCK Nyquist Dim 8.*
 
-Seed entries (planner to refine with concrete Task IDs once PLAN files are authored):
+Concrete task-ref table (planner-filled at Step 8; executor flips `wave_0_complete: true` in frontmatter after Wave 0 ships):
 
-| Task area | Wave | Requirement | Test Type | Automated Command | File Exists |
-|-----------|------|-------------|-----------|-------------------|-------------|
-| `useRole()` priority ladder | 1 | GATE-01 | unit | `npx jest useRole.test` | ❌ W0 (test stub) |
-| `canFromUser(user, action)` matrix | 1 | GATE-01, GATE-04 | unit | `npx jest permissions.test` | ❌ W0 (test stub) |
-| Allowlist lowercase normalization | 1 | GATE-05 | unit (inside useRole.test) | `npx jest useRole.test -t "allowlist is case-insensitive"` | ❌ W0 |
-| `<Gated>` render path | 1 | GATE-02, GATE-03 | unit (logic-only — no RN renderer needed per research §3.2) | `npx jest Gated.test` | ❌ W0 |
-| `PropertyService.patchPlatformVerifications` guard | 2 | GATE-04 | unit (mocked axios + AuthService) | `npx jest PropertyService.test -t "permission"` | ❌ W0 |
-| Matterport/panoramic visibility at CreateListingScreen | 2 | GATE-02 | grep invariant | `grep -E "isAdmin" src/screens/CreateListingScreen.tsx \| wc -l` must be 0 | ✅ (source) |
-| PropertyDetailsScreen:178 migration | 3 | GATE-03 | grep invariant | `grep -n "userType === 'admin'" src/screens/PropertyDetailsScreen.tsx` must be empty | ✅ (source) |
-| ProfileScreen:33 migration | 3 | GATE-03 | grep invariant | `grep -n "userType === 'admin'" src/screens/ProfileScreen.tsx` must be empty | ✅ (source) |
-| 4-part grep invariant (D-14) | 4 | GATE-03 | CI gate | `./scripts/check-role-grep.sh` (or inline shell — planner chooses) | ❌ W0 |
-| Allowlist TODO(M2) comment | 1 | GATE-05 | grep | `grep -F "TODO(M2): replace allowlist" src/constants/adminAllowlist.ts` must match | ❌ W0 |
+| Task Ref | Wave | Requirement | Test Type | Automated Command | File Exists |
+|----------|------|-------------|-----------|-------------------|-------------|
+| 03-01 Task 1 (useRole priority ladder stub) | 0 | GATE-01 | unit scaffold | `test -f src/hooks/__tests__/useRole.test.ts && grep -q "case-insensitive (D-06)" src/hooks/__tests__/useRole.test.ts` | ✅ (test stub scaffolded by Plan 01) |
+| 03-01 Task 2 (PropertyService guard stub + Gated render stub) | 0 | GATE-02, GATE-03, GATE-04 | unit scaffolds | `test -f src/services/__tests__/PropertyService.test.ts && test -f src/components/__tests__/Gated.test.tsx` | ✅ (test stubs scaffolded by Plan 01) |
+| 03-02 Task 2 (useRole + PermissionDeniedError impl) | 1 | GATE-01, GATE-04 | unit | `npx jest src/hooks/__tests__/useRole.test.ts --runInBand` exits 0 | ✅ (impl lands Wave 1; test stub exists Wave 0) |
+| 03-04 Task 2 (patchPlatformVerifications service guard) | 2 | GATE-04 | unit | `npx jest src/services/__tests__/PropertyService.test.ts --runInBand` exits 0 | ✅ (test stub exists Wave 0; guard lands Wave 2) |
+| 03-05 Task 1 (CreateListingScreen isAdmin → can) | 3 | GATE-01, GATE-02, GATE-04 | grep invariant | `[ "$(grep -c isAdmin src/screens/CreateListingScreen.tsx)" = "1" ]` at mid-task; `0` after Task 2 | ✅ (source) |
+| 03-06 Task 1 (PropertyDetailsScreen:178,401 migration) | 3 | GATE-03 | grep invariant | `[ "$(grep -c \"userType === 'admin'\" src/screens/PropertyDetailsScreen.tsx)" = "0" ]` | ✅ (source) |
+| 03-06 Task 2 (ProfileScreen:33 → canManageListings) | 3 | GATE-03 | grep invariant | `[ "$(grep -c \"userType === 'admin'\" src/screens/ProfileScreen.tsx)" = "0" ]` | ✅ (source) |
+| 03-07 Task 1 (D-14 4-part grep invariant CI gate) | 4 | GATE-03, GATE-05 | CI gate | `./scripts/check-role-grep.sh` exits 0 | ✅ (script created Task 1; runs clean after Wave 3) |
+
+Supporting (non-Nyquist gated but tracked):
+
+| Task Ref | Wave | Requirement | Test Type | Automated Command | File Exists |
+|----------|------|-------------|-----------|-------------------|-------------|
+| 03-02 Task 1 (adminAllowlist constant) | 1 | GATE-05 | grep | `grep -F "TODO(M2): replace allowlist" src/constants/adminAllowlist.ts` matches | ✅ |
+| 03-02 Task 3 (Gated component impl) | 1 | GATE-02, GATE-03 | unit | `npx jest src/components/__tests__/Gated.test.tsx --runInBand` exits 0 | ✅ (test stub exists Wave 0) |
+| 03-03 Task 1+2 (errors.permissionDenied EN+RU) | 1 | GATE-01 | TSC parity | `npx tsc --noEmit 2>&1 \| grep -E "locales/(en\|ru)\.ts.*error TS" \| wc -l` returns `0` | ✅ (locale files exist) |
 
 *Status column: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky — applied per-task during execution.*
 
