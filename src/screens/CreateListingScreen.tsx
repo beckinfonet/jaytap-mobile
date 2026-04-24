@@ -664,32 +664,43 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
       </View>
 
       <KeyboardAwareScrollView
+        ref={scrollRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         bottomOffset={20}
       >
-        <BasicInfoSection values={values} onChange={onChange} errors={{}} />
+        <View onLayout={(e) => { fieldLayouts.current.title = e.nativeEvent.layout.y; }}>
+          <BasicInfoSection values={values} onChange={onChange} errors={errors} />
+        </View>
 
         {category === 'Residential' && (
-          <ResidentialSection values={values} onChange={onChange} errors={{}} />
+          <View onLayout={(e) => { fieldLayouts.current.bedrooms = e.nativeEvent.layout.y; }}>
+            <ResidentialSection values={values} onChange={onChange} errors={errors} />
+          </View>
         )}
         {category === 'Commercial' && (
-          <CommercialSection values={values} onChange={onChange} errors={{}} />
+          <View onLayout={(e) => { fieldLayouts.current.areaSqm = e.nativeEvent.layout.y; }}>
+            <CommercialSection values={values} onChange={onChange} errors={errors} />
+          </View>
         )}
         {category === 'Hospitality' && (
-          <HospitalitySection values={values} onChange={onChange} errors={{}} />
+          <View onLayout={(e) => { fieldLayouts.current.rooms = e.nativeEvent.layout.y; }}>
+            <HospitalitySection values={values} onChange={onChange} errors={errors} />
+          </View>
         )}
 
         {category !== 'Hospitality' && (
-          <PriceSection values={values} onChange={onChange} errors={{}} />
+          <View onLayout={(e) => { fieldLayouts.current.currency = e.nativeEvent.layout.y; fieldLayouts.current.price = e.nativeEvent.layout.y; }}>
+            <PriceSection values={values} onChange={onChange} errors={errors} />
+          </View>
         )}
 
         <MediaSection
           values={values}
           onChange={onChange}
-          errors={{}}
+          errors={errors}
           onSelectImages={handleSelectImages}
           onRemoveImage={removeImage}
           onAddTour={addTour}
@@ -697,36 +708,43 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
         />
 
         {/* Contact Info (Auto-filled, read-only) — kept inline (~30 LOC; low carve value) */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.contactInfo')}</Text>
-          <TextInput
-            style={[styles.input, styles.readOnlyInput, { backgroundColor: colors.inputBackground, color: colors.textSecondary, borderColor: colors.border }]}
-            placeholder={t('createListing.contactEmail')}
-            placeholderTextColor={colors.textSecondary}
-            value={contactEmail}
-            editable={false}
-          />
-          <TextInput
-            style={[styles.input, styles.readOnlyInput, { backgroundColor: colors.inputBackground, color: colors.textSecondary, borderColor: colors.border }]}
-            placeholder={t('createListing.contactPhone')}
-            placeholderTextColor={colors.textSecondary}
-            value={contactPhone}
-            editable={false}
-          />
-          <TextInput
-            style={[styles.input, styles.readOnlyInput, { backgroundColor: colors.inputBackground, color: colors.textSecondary, borderColor: colors.border }]}
-            placeholder={t('createListing.contactWhatsapp')}
-            placeholderTextColor={colors.textSecondary}
-            value={contactWhatsapp}
-            editable={false}
-          />
-          <TextInput
-            style={[styles.input, styles.readOnlyInput, { backgroundColor: colors.inputBackground, color: colors.textSecondary, borderColor: colors.border }]}
-            placeholder={t('createListing.contactTelegram')}
-            placeholderTextColor={colors.textSecondary}
-            value={contactTelegram}
-            editable={false}
-          />
+        <View onLayout={(e) => { fieldLayouts.current.contactPhone = e.nativeEvent.layout.y; }}>
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.contactInfo')}</Text>
+            {errors.contactPhone && (
+              <Text style={[styles.hint, { color: colors.error, marginBottom: 8 }]}>
+                {t(errors.contactPhone as TranslationKeys)}
+              </Text>
+            )}
+            <TextInput
+              style={[styles.input, styles.readOnlyInput, { backgroundColor: colors.inputBackground, color: colors.textSecondary, borderColor: colors.border }]}
+              placeholder={t('createListing.contactEmail')}
+              placeholderTextColor={colors.textSecondary}
+              value={contactEmail}
+              editable={false}
+            />
+            <TextInput
+              style={[styles.input, styles.readOnlyInput, { backgroundColor: colors.inputBackground, color: colors.textSecondary, borderColor: colors.border }]}
+              placeholder={t('createListing.contactPhone')}
+              placeholderTextColor={colors.textSecondary}
+              value={contactPhone}
+              editable={false}
+            />
+            <TextInput
+              style={[styles.input, styles.readOnlyInput, { backgroundColor: colors.inputBackground, color: colors.textSecondary, borderColor: colors.border }]}
+              placeholder={t('createListing.contactWhatsapp')}
+              placeholderTextColor={colors.textSecondary}
+              value={contactWhatsapp}
+              editable={false}
+            />
+            <TextInput
+              style={[styles.input, styles.readOnlyInput, { backgroundColor: colors.inputBackground, color: colors.textSecondary, borderColor: colors.border }]}
+              placeholder={t('createListing.contactTelegram')}
+              placeholderTextColor={colors.textSecondary}
+              value={contactTelegram}
+              editable={false}
+            />
+          </View>
         </View>
 
         {/* D-16: Status toggle visible on create OR editing a draft; hidden only when editing a live listing */}
