@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0.4
 milestone_name: milestone
 status: executing
-last_updated: "2026-04-24T06:18:04Z"
+last_updated: "2026-04-24T14:00:00Z"
 progress:
   total_phases: 8
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 25
   completed_plans: 25
   percent: 100
@@ -14,7 +14,7 @@ progress:
 
 # STATE: JayTap
 
-**Last updated:** 2026-04-24 (Phase 4 AWAITING-MANUAL-QA — Plan 04-06 FINAL Wave-3 orchestrator reduction landed in 2 scoped commits: `ac02eb2` refactor `CreateListingScreen.tsx` 1404→871 LOC (−533 / 37% reduction) composing 7 sub-components via the barrel + category-branched conditional mounts + caller-wrapped `<Gated action="editVerifications">` around VerificationSection + 3 D-09 preserve-on-save anchors retained verbatim + `verificationOnly` admin-minimal branch untouched + trimmed orchestrator StyleSheet 27→16 keys; `a42341c` docs regression bundle `04-VERIFICATION.md` + manual QA scaffold `04-QA-MATRIX.md` + D-09 docblock Rule-1 reword (docblock was matching grep-acceptance regex → reworded to paraphrase, real anchors at source lines 253/465/469 remain only matches). Phase-exit automated gates ALL PASS: check-role-grep.sh (CRITICAL Phase 3 D-14 invariant PRESERVED) + check-land-removed.sh + check-i18n-parity.sh; `<Gated>` tree count 3 (2 MediaSection + 1 orchestrator); 3 D-09 anchors each grep to exactly 1; tsc baseline 16 lines; npm test 22/22 across 5 suites; jest propertyCategory 7/7. `android/app/build.gradle` uncommitted drift preserved through both commits. Plan 04-06 SUMMARY self-check PASSED (4 file claims + 2 commit claims verified). Task 2 (18-cell manual QA matrix on physical iOS + Android) is OPEN — this is the blocking phase-exit checkpoint that cannot be self-approved per CLAUDE.md. Next: manual QA walk → `/gsd-verify-work` to close Phase 4.)
+**Last updated:** 2026-04-24 (Phase 4 **COMPLETE** — all 6 plans landed; 18/18 manual QA PASS on iPhone (iOS 26) + Moto G (Android 16 / Fabric) at `ac02eb2`; QA matrix session log committed at `530b28e`; code-review advisory `7856206` 0 critical / 3 warning / 6 info; verifier `9266329` PASSED 5/5 must_haves. Three WR-advisories deferred: WR-01 Hospitality submit blocks on currency/price check (Phase 5 `validateByCategory` fixes; Hospitality not user-exposed until Phase 6), WR-02 `check-i18n-parity.sh` regex under-covers digit-containing keys (`Record<TranslationKeys,string>` tsc is the real safety net), WR-03 `HomeScreen.tsx` duplicates RESIDENTIAL_TYPES/COMMERCIAL_TYPES instead of importing (Phase 6 render-fix owns cleanup). Next focus: **Phase 5 Listing Form Validation & Edit Flow**.)
 
 ## Project Reference
 
@@ -25,19 +25,19 @@ progress:
 
 ## Current Position
 
-Phase: 04 (listing-form-taxonomy-decomposition) — AWAITING-MANUAL-QA (2026-04-24)
-Plan: 6 of 6 complete (code landed; manual-QA checkpoint open)
-**Phase:** 4
-**Plan:** 04-06 (code landed — awaiting 18-cell manual QA matrix walk on physical iOS + Android; then `/gsd-verify-work` closes Phase 4)
-**Status:** Awaiting manual QA
-**Progress:** [██████████] 100% code / 3/8 phases verified (25/25 plans coded; Phase 4 awaiting manual-QA gate — Plan 04-06 landed as 2 commits: ac02eb2 + a42341c)
+Phase: 04 (listing-form-taxonomy-decomposition) — **COMPLETE** (2026-04-24)
+Plan: 6 of 6 complete
+**Phase:** 5 (listing-form-validation-edit-flow) — Not started
+**Plan:** —
+**Status:** Ready to plan Phase 5
+**Progress:** [████████░░] 50% (4/8 phases complete; 25/25 plans executed through Phase 4)
 
 ### Phase pipeline
 
 1. Nav Reliability — Complete (6/6 plans resolved; Plan 05 SKIPPED per D-15) — 2026-04-22
 2. Universal Keyboard Handling — Complete (6/6 plans executed; gap-closure `47a52b7` added `behavior="padding"` after matrix walk disproved RESEARCH §9 A8; 22/22 matrix cells PASS on both devices; verifier PASSED 34/34) — 2026-04-23
 3. Role Gating Precursor — Complete (7/7 plans done 2026-04-23; all 5 GATE reqs PASS; GATE-05 via D-22 Path B accepted risk in PROJECT.md; scripts/check-role-grep.sh CI gate at `fa25b8b`; 03-VERIFICATION.md at `df6561f`)
-4. Listing Form Taxonomy & Decomposition — Awaiting manual QA (6/6 plans coded: 04-01 Wave-0 validation scaffolding landed 2026-04-23; 04-02 Wave-1 taxonomy foundation landed 2026-04-24; 04-03 Wave-2 scaffolding + BasicInfoSection landed 2026-04-24; 04-04 Wave-2 category sub-components landed 2026-04-24; 04-05 Wave-2 Media+Price+Verification + barrel closure landed 2026-04-24; 04-06 Wave-3 orchestrator reduction landed 2026-04-24 — ac02eb2 + a42341c; 18-cell manual QA matrix checkpoint OPEN → blocking phase close)
+4. Listing Form Taxonomy & Decomposition — **Complete** (6/6 plans; CreateListingScreen 1404→871 LOC; 10 files in `src/components/CreateListingForm/`; 18/18 manual QA PASS; verifier 5/5) — 2026-04-24
 5. Listing Form Validation & Edit Flow — Not started
 6. Hospitality Rendering — Not started
 7. Alignment Pass — Not started (blocked on user screenshots)
@@ -49,7 +49,7 @@ Plan: 6 of 6 complete (code landed; manual-QA checkpoint open)
 |--------|-------|
 | v1 requirements defined | 35 |
 | v1 requirements mapped to phases | 35 |
-| Phases complete | 3/8 |
+| Phases complete | 4/8 |
 | Plans completed | 25 (5 Phase-1 implemented + 1 Phase-1 skipped per D-15 + 6 Phase-2 executed + 7 Phase-3 executed + 6 Phase-4 executed: 04-01 + 04-02 + 04-03 + 04-04 + 04-05 + 04-06) |
 | Plan 04-06 timing | ~6.8 min / 2 tasks committed (Task 2 manual QA is the blocking checkpoint — cannot be self-approved) / 3 files created (04-QA-MATRIX.md + 04-VERIFICATION.md + 04-06-SUMMARY.md) + 1 file modified (CreateListingScreen.tsx 1404→871 LOC, −533 / 37% reduction) / 2 commits (`ac02eb2` orchestrator reduction + `a42341c` regression bundle + QA scaffold) / 1 Rule-1 auto-fix (D-09 anchor docblock reword to satisfy "exactly 1 grep hit" acceptance) |
 | Plan 04-01 timing | < 10min / 3 tasks / 3 files created / 3 commits (`2583c7a` RED test + `5ba60e2` land-removed gate + `8453984` i18n-parity gate) |
@@ -117,7 +117,41 @@ Plan: 6 of 6 complete (code landed; manual-QA checkpoint open)
 
 ## Session Continuity
 
-**Last session:** Phase 4 Plan 04-06 (sequential executor on main) — FINAL Wave-3 orchestrator reduction landed in 2 scoped commits; Task 2 manual QA checkpoint OPEN (blocking phase close).
+**Last session:** Phase 4 **COMPLETE** (2026-04-24) — all 6 plans landed; 18/18 manual QA PASS on iPhone (iOS 26) + Moto G (Android 16 / Fabric) at `ac02eb2`; code-review advisory PASS (0 critical / 3 warning / 6 info); verifier `9266329` PASSED 5/5 must_haves.
+
+**Phase 4 close-out commits:**
+- `530b28e` test(04-06): record 18/18 PASS on iOS + Android manual QA walk
+- `7856206` docs(04): add code review report (REVIEW.md)
+- `9266329` docs(04): verifier PASSED — 5/5 must_haves verified
+- (this commit) docs(phase-04): complete phase execution — ROADMAP + STATE
+
+**Three WR-advisories deferred with ownership mapped** (from 04-REVIEW.md):
+1. **WR-01** Hospitality submit blocks at `!currency`/`!price.trim()` unconditional check in `handleSubmit` (CreateListingScreen.tsx:424-431), but PriceSection is unmounted for Hospitality. **Phase 5** owns — `validateByCategory()` will branch on category so Hospitality skips currency/price requirements. Hospitality not user-exposed until Phase 6 so no production blast radius.
+2. **WR-02** `scripts/check-i18n-parity.sh` regex `'[a-zA-Z.]+':` excludes digits → silently skips `createListing.tours3d`, `hospitality.amenitiesPhase6Placeholder`, `profile.min30`, `modal.deleteAccountBullet1..5`. Real safety net is `Record<TranslationKeys,string>` tsc. **Quick fix owner:** broaden regex to `[a-zA-Z0-9.]+` — can be Phase 5 wave-0 housekeeping or a spot-fix anytime before Phase 8.
+3. **WR-03** `HomeScreen.tsx:48-49` keeps local `RESIDENTIAL_TYPES`/`COMMERCIAL_TYPES` arrays instead of importing from `propertyCategory.ts`. **Phase 6** owns — Hospitality rendering on Home will need the taxonomy import anyway; consolidate then.
+
+**Phase 4 deliverables:**
+- `src/utils/propertyCategory.ts` — single source of truth (PROPERTY_TYPES × 10, RESIDENTIAL/COMMERCIAL/HOSPITALITY_TYPES, PROPERTY_TYPE_TO_CATEGORY, propertyTypeToCategory)
+- `src/components/CreateListingForm/` — 10 files (types + styles + index barrel + 7 sub-components)
+- `src/screens/CreateListingScreen.tsx` — reduced 1404→871 LOC (−37%) as orchestrator
+- `src/locales/en.ts` + `ru.ts` — 365 keys each, FORM-09 parity
+- `scripts/check-land-removed.sh` + `scripts/check-i18n-parity.sh` — CI gate scripts
+- `src/utils/__tests__/propertyCategory.test.ts` — 7 assertions GREEN
+
+**Phase 4 invariants verified preserved:**
+- `<Gated>` tree count = 3 (2 in MediaSection + 1 in orchestrator around VerificationSection)
+- `./scripts/check-role-grep.sh` exits 0 (Phase 3 D-14 invariant)
+- D-09 anchors A/B/C each grep to exactly 1 (panoramicPhotosUrl rehydrate useEffect + panoramicPhotosUrl unconditionally in payload + tours unconditionally in payload)
+
+**Resume with:** `/gsd-discuss-phase 5` (recommended — new phase without CONTEXT.md yet) or `/gsd-plan-phase 5` (skip discuss). Phase 5 scope: FORM-04/06/07/08 — single-source `validateByCategory()`, category-branched required fields, no category-change data loss on user switch, correct initialization on edit. Phase 4 sub-component contracts (`SectionProps`, `FormBag`, `propertyTypeToCategory`) are all ready to consume.
+
+**Known unstaged drift (unchanged):** `android/app/build.gradle` versionCode 25→26 / versionName 1.0.24→1.0.25 — preserved through all Phase 4 commits. Belongs to Phase 8 release-prep scope.
+
+---
+
+**PRIOR SESSION** (Plan 04-06 — preserved for history):
+
+Phase 4 Plan 04-06 (sequential executor on main) — FINAL Wave-3 orchestrator reduction landed in 2 scoped commits; Task 2 manual QA checkpoint resolved 2026-04-24 when user reported 18/18 PASS.
 
 - `ac02eb2` `refactor(04-06): reduce CreateListingScreen to orchestrator; preserve D-09 anchors + Phase 3 Gated wraps` — `src/screens/CreateListingScreen.tsx` 1404 → 871 LOC (−533 / 37% reduction). Barrel import `{ BasicInfoSection, ResidentialSection, CommercialSection, HospitalitySection, MediaSection, PriceSection, VerificationSection, type FormBag, type SectionProps } from '../components/CreateListingForm'` + `propertyTypeToCategory` single call + 28+ `useState` hooks retained + memoized `useCallback` onChange switch dispatcher routing 33 FormBag keys + plain `values: FormBag` object per render + category-branched conditional mounts (Residential/Commercial/Hospitality) + `{category !== 'Hospitality' && <PriceSection ... />}` conditional unmount + `<Gated action="editVerifications"><VerificationSection ... /></Gated>` caller-wrap (single in-orchestrator `<Gated>` — exactly 1 per plan acceptance) + 3 D-09 anchors retained verbatim (rehydrate useEffect line 253 + handleSubmit `panoramicPhotosUrl: panoramicPhotosUrl.trim()` line 465 + handleSubmit `tours: tours.length > 0 ? tours : undefined` line 469) + `verificationOnly` admin-minimal branch UNTOUCHED (per RESEARCH row 401) + Contact (read-only, 4 inputs) + Status (`!isEditMode` guard) blocks kept inline + image/tour handlers `useCallback`-wrapped + orchestrator `StyleSheet` trimmed 27 → 16 keys.
 - `a42341c` `docs(04-06): phase-exit regression bundle + manual QA matrix scaffold` — 3 files: `04-VERIFICATION.md` (phase-exit regression bundle — all 10 sections PASS), `04-QA-MATRIX.md` (18-cell manual QA matrix scaffold for physical iOS + Android walk), + `CreateListingScreen.tsx` docblock reword ([Rule 1 — Bug] original docblock cited anchor regex patterns verbatim → grep returned 2 hits per anchor instead of 1; reworded to paraphrase, source lines remain only matches).

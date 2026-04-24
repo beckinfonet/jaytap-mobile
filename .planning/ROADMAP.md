@@ -24,7 +24,7 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
 - [x] **Phase 1: Nav Reliability** (2026-04-22) — Reproduce, root-cause, and fix the bottom-nav unresponsiveness bug in `App.tsx`; apply `pointerEvents` belt-and-suspenders to all keep-alive screens
 - [x] **Phase 2: Universal Keyboard Handling** (2026-04-23) — Installed reanimated@4.3.0 + worklets@0.8.1 + keyboard-controller@1.21.6 (v4 Babel plugin `'react-native-worklets/plugin'` LAST); `<KeyboardProvider>` at App.tsx root; KASV wraps 4 auth + AccountSettings + CreateListing both branches; library KAV drop-in on 2 chat screens with `behavior="padding"` (gap-closure disproving RESEARCH §9 A8). 22/22 matrix cells PASS on iPhone 15 Pro Max / iOS 26.4 + Moto G XT2513V / Android 16 under Fabric.
 - [ ] **Phase 3: Role Gating Precursor** — Ship `useRole()` + `can(action)` + `<Gated>` over a hardcoded email allowlist, migrate existing admin checks, and confirm backend enforcement
-- [ ] **Phase 4: Listing Form Taxonomy & Decomposition** — Remove `Land` atomically; add Hostel/Hotel under Hospitality; decompose `CreateListingScreen` into `CreateListingForm/` sub-components; EN+RU parity
+- [x] **Phase 4: Listing Form Taxonomy & Decomposition** (2026-04-24) — Removed `Land` atomically; added Hostel/Hotel under Hospitality; decomposed `CreateListingScreen` 1404→871 LOC (−37%) into 7 `CreateListingForm/` sub-components; EN+RU parity at 365 keys; 18/18 manual QA PASS on iPhone (iOS 26) + Moto G (Android 16 / Fabric); verifier 5/5 must_haves PASS
 - [ ] **Phase 5: Listing Form Validation & Edit Flow** — Single-source `validateByCategory()`; category-branched required fields; no category-change data loss; correct initialization on edit
 - [ ] **Phase 6: Hospitality Rendering** — `HospitalitySection` + `HospitalityCard` on Home/Favorites/OwnerListings; Hospitality-aware `PropertyDetailsScreen`; 12-item amenity taxonomy in EN+RU
 - [ ] **Phase 7: Alignment Pass** — Screenshot-driven fixes across flagged screens, respecting existing theme tokens and dark/light parity
@@ -184,7 +184,7 @@ M2 requirements (ROLE-01…04, MOD-01…06, ADMIN-01…04) are tracked in REQUIR
 | 1. Nav Reliability | 6/6 | Complete | 2026-04-22 |
 | 2. Universal Keyboard Handling | 6/6 | Complete | 2026-04-23 |
 | 3. Role Gating Precursor | 7/7 | Complete | 2026-04-23 |
-| 4. Listing Form Taxonomy & Decomposition | 6/6 | Awaiting manual QA | - |
+| 4. Listing Form Taxonomy & Decomposition | 6/6 | Complete | 2026-04-24 |
 | 5. Listing Form Validation & Edit Flow | 0/? | Not started | - |
 | 6. Hospitality Rendering | 0/? | Not started | - |
 | 7. Alignment Pass | 0/? | Not started | - |

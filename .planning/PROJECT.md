@@ -41,13 +41,17 @@ Prospective renters and buyers can reliably browse, filter, and inquire about Bi
 - [ ] Alignment issues addressed across app (specific screens to be provided via screenshots) — Phase 7
 
 **Listing form overhaul:**
-- [ ] `Land` property type removed everywhere (chips, filters, i18n keys, type definitions)
-- [ ] `Hostel` and `Hotel` added under new `Hospitality` category
-- [ ] Property types grouped into three categories: Residential / Commercial / Hospitality
-- [ ] Required fields branch by category (Residential: bedrooms/bathrooms/area; Commercial: area + no bedrooms/bathrooms; Hospitality: rooms + bathrooms + amenities, no price)
-- [ ] Hospitality listings appear under both Rent and Sell toggles, with price hidden in both
-- [ ] Hospitality listings render in a separate section on Home / Favorites / OwnerListings (not mixed with residential/commercial)
-- [ ] `PropertyDetailsScreen` renders hospitality listings without price, surfacing 3D tours and panoramic media
+- [x] `Land` property type removed everywhere (chips, filters, i18n keys, type definitions) — Validated in Phase 4 (2026-04-24): atomic removal confirmed by `scripts/check-land-removed.sh` (exit 0) + verifier 5/5 must_haves PASS
+- [x] `Hostel` and `Hotel` added under new `Hospitality` category — Validated in Phase 4 (2026-04-24): `src/utils/propertyCategory.ts` single source of truth (PROPERTY_TYPE_TO_CATEGORY Record)
+- [x] Property types grouped into three categories: Residential / Commercial / Hospitality — Validated in Phase 4 (2026-04-24): three stacked chipRows with group labels; `propertyTypeToCategory()` derived, never stored in FormBag
+- [ ] Required fields branch by category (Residential: bedrooms/bathrooms/area; Commercial: area + no bedrooms/bathrooms; Hospitality: rooms + bathrooms + amenities, no price) — **Phase 5** owns (`validateByCategory()`)
+- [ ] Hospitality listings appear under both Rent and Sell toggles, with price hidden in both — Phase 6
+- [ ] Hospitality listings render in a separate section on Home / Favorites / OwnerListings (not mixed with residential/commercial) — Phase 6
+- [ ] `PropertyDetailsScreen` renders hospitality listings without price, surfacing 3D tours and panoramic media — Phase 6
+
+**Phase 4 decomposition (structural enablement for Phases 5 + 6):**
+- [x] `CreateListingScreen.tsx` reduced to orchestrator (1404→871 LOC / −37%) composing 7 sub-components — Validated in Phase 4 (2026-04-24): `src/components/CreateListingForm/` directory with BasicInfoSection + ResidentialSection + CommercialSection + HospitalitySection + MediaSection + PriceSection + VerificationSection + types + styles + barrel; `SectionProps` / `FormBag` contract in place for Phase 5 validation work
+- [x] EN+RU locale parity (`src/locales/en.ts` ↔ `ru.ts` at 365 keys each) — Validated in Phase 4 (2026-04-24): `Record<TranslationKeys,string>` tsc compile-gate + `scripts/check-i18n-parity.sh` script
 
 **Minimal-roles precursor (supports Hospitality URL gating in M1):**
 - [x] Hardcoded admin email allowlist gates Matterport URL + panoramic image URL edit fields (all other listing fields remain user-editable) — Validated in Phase 3 (2026-04-24): `src/constants/adminAllowlist.ts` + `src/hooks/useRole.ts` (`canFromUser`, `PermissionDeniedError`, D-03 priority ladder) + `src/components/Gated.tsx`; PropertyService guard throws `E_PERMISSION_DENIED`; 3 screens migrated (CreateListing + PropertyDetails + Profile); D-14 4-part grep-invariant CI gate `scripts/check-role-grep.sh`; 15/15 Jest tests GREEN; GATE-05 backend enforcement via D-22 Path B accepted-risk (unconfirmed at ship — revisit in M2)
@@ -141,4 +145,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-24 after Phase 3 completion*
+*Last updated: 2026-04-24 after Phase 4 completion (listing-form-taxonomy-decomposition)*

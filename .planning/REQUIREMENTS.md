@@ -28,18 +28,18 @@ Requirements for v1.0.4 release. Each maps to exactly one roadmap phase.
 
 ### Listing Form Overhaul (FORM)
 
-- [ ] **FORM-01**: `Land` property type removed from `PROPERTY_TYPES` in `CreateListingScreen.tsx`, from any filter UI in Home, from `TranslationKeys`, from type definitions, and from any mock/seed data
-- [ ] **FORM-02**: `Hostel` and `Hotel` added as property types under a new `Hospitality` category
-- [ ] **FORM-03**: Property types grouped into three categories (`Residential` / `Commercial` / `Hospitality`), with a `propertyCategory` derivation from `propertyType` accessible as a utility (`src/utils/propertyCategory.ts` per architecture research)
+- [x] **FORM-01**: `Land` property type removed from `PROPERTY_TYPES` in `CreateListingScreen.tsx`, from any filter UI in Home, from `TranslationKeys`, from type definitions, and from any mock/seed data — Phase 4 complete 2026-04-24
+- [x] **FORM-02**: `Hostel` and `Hotel` added as property types under a new `Hospitality` category — Phase 4 complete 2026-04-24
+- [x] **FORM-03**: Property types grouped into three categories (`Residential` / `Commercial` / `Hospitality`), with a `propertyCategory` derivation from `propertyType` accessible as a utility (`src/utils/propertyCategory.ts` per architecture research) — Phase 4 complete 2026-04-24
 - [ ] **FORM-04**: `CreateListingScreen` renders a different required-field set based on category:
   - Residential → title, description, address, city, district, price, currency, bedrooms, bathrooms, areaSqm, availableDate
   - Commercial → title, description, address, city, district, price, currency, areaSqm (no bedrooms/bathrooms), sub-type (office/retail/warehouse/industrial)
   - Hospitality → title, description, address, city, district, rooms, bathrooms, maxGuests, amenities, contact (phone + WhatsApp or Telegram required), no price/currency
-- [ ] **FORM-05**: `CreateListingScreen.tsx` is decomposed into category sub-components (new `src/components/CreateListingForm/` directory per architecture research: `BasicInfo`, `Residential`, `Commercial`, `Hospitality`, `Media`, `Price`, `Verification`)
+- [x] **FORM-05**: `CreateListingScreen.tsx` is decomposed into category sub-components (new `src/components/CreateListingForm/` directory per architecture research: `BasicInfo`, `Residential`, `Commercial`, `Hospitality`, `Media`, `Price`, `Verification`) — Phase 4 complete 2026-04-24 (orchestrator 1404→871 LOC / −37%)
 - [ ] **FORM-06**: `validateByCategory()` is the single source of truth for per-category validation; submitting an invalid form surfaces per-field errors and prevents submission
 - [ ] **FORM-07**: Switching the category chip while filling a form does not silently blank out already-entered fields shared across categories (title, description, address) — research pitfall #4 explicitly
 - [ ] **FORM-08**: Editing an existing listing correctly initializes the form into the listing's category (no residential fields shown on a commercial listing, etc.)
-- [ ] **FORM-09**: All new UI strings added to both EN and RU locale tables (`src/locales/en.json`, `src/locales/ru.json`) — bilingual parity per project constraints
+- [x] **FORM-09**: All new UI strings added to both EN and RU locale tables (`src/locales/en.ts`, `src/locales/ru.ts` — project uses `.ts` not `.json`) — bilingual parity per project constraints — Phase 4 complete 2026-04-24 (both files at 365 keys; `Record<TranslationKeys,string>` tsc gate + `check-i18n-parity.sh` script)
 
 ### Hospitality Rendering (HOSP)
 
@@ -129,15 +129,15 @@ Each v1 REQ-ID maps to exactly one phase in ROADMAP.md.
 | KBD-04 | Phase 2: Universal Keyboard Handling | Pending |
 | ALIGN-01 | Phase 7: Alignment Pass | Pending |
 | ALIGN-02 | Phase 7: Alignment Pass | Pending |
-| FORM-01 | Phase 4: Listing Form Taxonomy & Decomposition | Pending |
-| FORM-02 | Phase 4: Listing Form Taxonomy & Decomposition | Pending |
-| FORM-03 | Phase 4: Listing Form Taxonomy & Decomposition | Pending |
+| FORM-01 | Phase 4: Listing Form Taxonomy & Decomposition | Complete |
+| FORM-02 | Phase 4: Listing Form Taxonomy & Decomposition | Complete |
+| FORM-03 | Phase 4: Listing Form Taxonomy & Decomposition | Complete |
 | FORM-04 | Phase 5: Listing Form Validation & Edit Flow | Pending |
-| FORM-05 | Phase 4: Listing Form Taxonomy & Decomposition | Pending |
+| FORM-05 | Phase 4: Listing Form Taxonomy & Decomposition | Complete |
 | FORM-06 | Phase 5: Listing Form Validation & Edit Flow | Pending |
 | FORM-07 | Phase 5: Listing Form Validation & Edit Flow | Pending |
 | FORM-08 | Phase 5: Listing Form Validation & Edit Flow | Pending |
-| FORM-09 | Phase 4: Listing Form Taxonomy & Decomposition | Pending |
+| FORM-09 | Phase 4: Listing Form Taxonomy & Decomposition | Complete |
 | HOSP-01 | Phase 6: Hospitality Rendering | Pending |
 | HOSP-02 | Phase 6: Hospitality Rendering | Pending |
 | HOSP-03 | Phase 6: Hospitality Rendering | Pending |
