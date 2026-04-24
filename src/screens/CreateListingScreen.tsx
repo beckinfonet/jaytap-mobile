@@ -19,6 +19,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useRole } from '../hooks/useRole';
+import { Gated } from '../components/Gated';
 import { useLanguage } from '../context/LanguageContext';
 import { PropertyService } from '../services/PropertyService';
 import { AuthService } from '../services/AuthService';
@@ -107,7 +109,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
   const [verifyStateDocs, setVerifyStateDocs] = useState(false);
 
   const isEditMode = !!propertyToEdit;
-  const isAdmin = user?.backendProfile?.userType === 'admin';
+  const { can } = useRole();
 
   const verificationSwitchRow = (
     label: string,
@@ -316,7 +318,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
 
   const handleSubmit = async () => {
     if (verificationOnly) {
-      if (!propertyToEdit?.id || !isAdmin) return;
+      if (!propertyToEdit?.id || !can('editVerifications')) return;
       setLoading(true);
       try {
         await PropertyService.patchPlatformVerifications(propertyToEdit.id, {
@@ -393,7 +395,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
         status,
         tours: tours.length > 0 ? tours : undefined, // Include Matterport tours
         existingImages: existingImageUrls, // Send existing image URLs for merging
-        ...(isAdmin
+        ...(can('editVerifications')
           ? {
               platformVerifications: {
                 ownershipDocuments: verifyOwnership,
@@ -778,56 +780,58 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
           )}
         </View>
 
-        {/* Matterport 3D Tours */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.tours3d')}</Text>
-          <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: 12 }]}>{t('createListing.matterportHint')}</Text>
+        {/* Matterport 3D Tours — admin only (D-08) */}
+        <Gated action="editMatterportUrl">
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.tours3d')}</Text>
+            <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: 12 }]}>{t('createListing.matterportHint')}</Text>
 
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder={t('createListing.tourTitle')}
-            placeholderTextColor={colors.textSecondary}
-            value={tourTitle}
-            onChangeText={setTourTitle}
-          />
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder={t('createListing.matterportUrlExample')}
-            placeholderTextColor={colors.textSecondary}
-            value={tourUrl}
-            onChangeText={setTourUrl}
-            keyboardType="url"
-          />
-          <TouchableOpacity
-            style={[styles.addTourButton, { backgroundColor: colors.primary, borderColor: colors.border }]}
-            onPress={addTour}
-          >
-            <Text style={[styles.addTourButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>{t('createListing.add3dTour')}</Text>
-          </TouchableOpacity>
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
+              placeholder={t('createListing.tourTitle')}
+              placeholderTextColor={colors.textSecondary}
+              value={tourTitle}
+              onChangeText={setTourTitle}
+            />
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
+              placeholder={t('createListing.matterportUrlExample')}
+              placeholderTextColor={colors.textSecondary}
+              value={tourUrl}
+              onChangeText={setTourUrl}
+              keyboardType="url"
+            />
+            <TouchableOpacity
+              style={[styles.addTourButton, { backgroundColor: colors.primary, borderColor: colors.border }]}
+              onPress={addTour}
+            >
+              <Text style={[styles.addTourButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>{t('createListing.add3dTour')}</Text>
+            </TouchableOpacity>
 
-          {tours.length > 0 && (
-            <View style={styles.toursList}>
-              {tours.map((tour) => (
-                <View key={tour.id} style={[styles.tourItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                  <View style={styles.tourInfo}>
-                    <Text style={[styles.tourTitle, { color: colors.text }]} numberOfLines={1}>
-                      {tour.title}
-                    </Text>
-                    <Text style={[styles.tourUrl, { color: colors.textSecondary }]} numberOfLines={1}>
-                      {tour.url}
-                    </Text>
+            {tours.length > 0 && (
+              <View style={styles.toursList}>
+                {tours.map((tour) => (
+                  <View key={tour.id} style={[styles.tourItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <View style={styles.tourInfo}>
+                      <Text style={[styles.tourTitle, { color: colors.text }]} numberOfLines={1}>
+                        {tour.title}
+                      </Text>
+                      <Text style={[styles.tourUrl, { color: colors.textSecondary }]} numberOfLines={1}>
+                        {tour.url}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.removeTourButton}
+                      onPress={() => removeTour(tour.id)}
+                    >
+                      <Text style={[styles.removeTourText, { color: colors.textSecondary }]}>×</Text>
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity
-                    style={styles.removeTourButton}
-                    onPress={() => removeTour(tour.id)}
-                  >
-                    <Text style={[styles.removeTourText, { color: colors.textSecondary }]}>×</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
+                ))}
+              </View>
+            )}
+          </View>
+        </Gated>
 
         {/* Links */}
         <View style={styles.section}>
@@ -840,14 +844,17 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
             onChangeText={setVideoUrl}
             keyboardType="url"
           />
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder={t('createListing.panoramicUrl')}
-            placeholderTextColor={colors.textSecondary}
-            value={panoramicPhotosUrl}
-            onChangeText={setPanoramicPhotosUrl}
-            keyboardType="url"
-          />
+          {/* Panoramic URL — admin only (D-08) */}
+          <Gated action="editPanoramicUrl">
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
+              placeholder={t('createListing.panoramicUrl')}
+              placeholderTextColor={colors.textSecondary}
+              value={panoramicPhotosUrl}
+              onChangeText={setPanoramicPhotosUrl}
+              keyboardType="url"
+            />
+          </Gated>
           <TextInput
             style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
             placeholder={t('createListing.instagramUrl')}
@@ -930,7 +937,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
           </View>
         )}
 
-        {isAdmin && (
+        <Gated action="editVerifications">
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('verification.adminSectionTitle')}</Text>
             <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: 12 }]}>{t('verification.adminSectionHint')}</Text>
@@ -940,7 +947,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
               {verificationSwitchRow(t('verification.stateIssued'), verifyStateDocs, setVerifyStateDocs)}
             </View>
           </View>
-        )}
+        </Gated>
 
         {/* Submit Button */}
         <TouchableOpacity
