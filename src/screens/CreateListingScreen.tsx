@@ -932,7 +932,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
           </View>
         )}
 
-        {isAdmin && (
+        <Gated action="editVerifications">
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('verification.adminSectionTitle')}</Text>
             <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: 12 }]}>{t('verification.adminSectionHint')}</Text>
@@ -942,7 +942,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
               {verificationSwitchRow(t('verification.stateIssued'), verifyStateDocs, setVerifyStateDocs)}
             </View>
           </View>
-        )}
+        </Gated>
 
         {/* Submit Button */}
         <TouchableOpacity
