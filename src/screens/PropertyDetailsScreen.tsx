@@ -65,6 +65,8 @@ import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { PropertyService } from '../services/PropertyService';
 import { useAuth } from '../context/AuthContext';
+import { useRole } from '../hooks/useRole';
+import { Gated } from '../components/Gated';
 
 interface PropertyDetailsScreenProps {
   property: Property;
@@ -175,7 +177,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
   const { t } = useLanguage();
-  const isAdmin = user?.backendProfile?.userType === 'admin';
+  const { can } = useRole();
   const [property, setProperty] = useState<Property>(initialProperty);
   const [activeSlide, setActiveSlide] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -398,15 +400,17 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('property.details')}</Text>
         <View style={styles.headerRightActions}>
-          {isAdmin && onAdminVerifyDocuments && (
-            <TouchableOpacity
-              style={[styles.iconButton, { backgroundColor: colors.surface }]}
-              onPress={() => onAdminVerifyDocuments(property)}
-              accessibilityLabel={t('verification.screenTitle')}
-            >
-              <ShieldCheck size={22} color={colors.accent} />
-            </TouchableOpacity>
-          )}
+          <Gated action="editVerifications">
+            {onAdminVerifyDocuments && (
+              <TouchableOpacity
+                style={[styles.iconButton, { backgroundColor: colors.surface }]}
+                onPress={() => onAdminVerifyDocuments(property)}
+                accessibilityLabel={t('verification.screenTitle')}
+              >
+                <ShieldCheck size={22} color={colors.accent} />
+              </TouchableOpacity>
+            )}
+          </Gated>
           <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: colors.surface }]}
             onPress={handleShare}
