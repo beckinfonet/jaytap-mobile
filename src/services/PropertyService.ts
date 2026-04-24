@@ -200,6 +200,10 @@ export const PropertyService = {
     if (!userData?.localId) {
       throw new Error('User not authenticated');
     }
+    if (!canFromUser(userData, 'editVerifications')) {
+      console.error('[PropertyService.patchPlatformVerifications] permission denied', { userId: userData?.localId });
+      throw new PermissionDeniedError();
+    }
     const response = await axios.patch(
       `${API_URL}/properties/${propertyId}/verifications`,
       { firebaseUid: userData.localId, platformVerifications },
