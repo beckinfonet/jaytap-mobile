@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0.4
 milestone_name: milestone
 status: executing
-last_updated: "2026-04-24T15:30:00Z"
+last_updated: "2026-04-24T18:00:00Z"
 progress:
   total_phases: 8
   completed_phases: 4
-  total_plans: 25
+  total_plans: 30
   completed_plans: 25
-  percent: 100
+  percent: 83
 ---
 
 # STATE: JayTap
 
-**Last updated:** 2026-04-24 (Phase 5 CONTEXT captured at `b0dd253` — 18 decisions across 7 gray areas (Error surfacing / Category-switch / Hospitality contact hybrid rule / Amenities-deferred / Draft-Publish toggle on edit [user-raised bug] / Validator Jest tests / Currency literal union). Locks `validateByCategory` + `buildPayloadByCategory` contract at `src/components/CreateListingForm/validators.ts`, FORM-04 field map verbatim, D-09 payload anchors preserved, FORM-08 scope expanded to include status-toggle-visibility fix (D-16). Amenity validation deferred to Phase 6 with explicit Deferred Ideas handoff. Next: `/gsd-plan-phase 5`.)
+**Last updated:** 2026-04-24 (Phase 5 PLANNED — 5 plans / 12 tasks / 4 waves committed at `95263d5` + revisions `c3d8529`. Plan split: 01 validators-foundation (W1), 02 section-errors-threading + 03 i18n-validation-keys (W2 parallel), 04 orchestrator-integration (W3), 05 nav-wiring-and-qa-matrix (W4). REQ coverage 4/4 (FORM-04/06/07/08). Plan-checker VERIFIED PASSED iteration 2/3 after W1–W4 warning fixes (FORM-07 grep invariant, emoji typo, RESEARCH resolutions, prescriptive as-any cleanup). Research file: 05-RESEARCH.md (824 lines, 12 findings) + 05-PATTERNS.md + 05-VALIDATION.md Nyquist contract. Next: `/gsd-execute-phase 5`.)
 
 ## Project Reference
 
@@ -27,10 +27,10 @@ progress:
 
 Phase: 04 (listing-form-taxonomy-decomposition) — **COMPLETE** (2026-04-24)
 Plan: 6 of 6 complete
-**Phase:** 5 (listing-form-validation-edit-flow) — CONTEXT captured (2026-04-24)
-**Plan:** —
-**Status:** Ready for `/gsd-plan-phase 5`
-**Progress:** [████████░░] 50% (4/8 phases complete; 25/25 plans executed through Phase 4)
+**Phase:** 5 (listing-form-validation-edit-flow) — PLANNED (2026-04-24)
+**Plan:** 0 of 5 executed
+**Status:** Ready to execute — `/gsd-execute-phase 5`
+**Progress:** [████████░░] 50% (4/8 phases complete; 25/30 plans executed; Phase 5 plans verified PASSED)
 
 ### Phase pipeline
 
