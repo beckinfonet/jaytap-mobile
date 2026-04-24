@@ -105,7 +105,7 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   - [x] 04-01-PLAN.md — Wave 0: validation scaffolding (propertyCategory.test.ts RED + check-land-removed.sh FAIL-by-design + check-i18n-parity.sh PASS) — 2026-04-23 (`2583c7a` + `5ba60e2` + `8453984`)
   - [x] 04-02-PLAN.md — Wave 1: taxonomy foundation (propertyCategory.ts + atomic Land removal + Hostel/Hotel + 11 new i18n keys EN+RU + chip UX rework) — 2026-04-24 (`a1539cb` + `3b24097` + `633637c`)
   - [x] 04-03-PLAN.md — Wave 2: sub-component scaffolding (types.ts + styles.ts + barrel + BasicInfoSection.tsx) — 2026-04-24 (`4207cf3` + `1003ac1`)
-  - [ ] 04-04-PLAN.md — Wave 2: category sub-components (ResidentialSection + CommercialSection + HospitalitySection + barrel update)
+  - [x] 04-04-PLAN.md — Wave 2: category sub-components (ResidentialSection + CommercialSection + HospitalitySection + barrel update) — 2026-04-24 (`2c2e381` + `e516426` + `f84df0e`)
   - [ ] 04-05-PLAN.md — Wave 2: MediaSection (2x Gated wraps preserved) + PriceSection + VerificationSection + barrel completion
   - [ ] 04-06-PLAN.md — Wave 3: orchestrator reduction + D-09 anchor preservation + 18-cell manual QA + phase-exit regression bundle
 **UI hint**: yes

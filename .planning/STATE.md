@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0.4
 milestone_name: milestone
 status: executing
-last_updated: "2026-04-24T05:36:00.000Z"
+last_updated: "2026-04-24T05:48:00.000Z"
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 25
-  completed_plans: 22
-  percent: 88
+  completed_plans: 23
+  percent: 92
 ---
 
 # STATE: JayTap
 
-**Last updated:** 2026-04-24 (Phase 4 EXECUTING — Plan 04-03 Wave-2 sub-component scaffolding + BasicInfoSection landed in 2 scoped commits: `4207cf3` feat scaffolding trio (types.ts + styles.ts + barrel index.ts) + `1003ac1` feat BasicInfoSection.tsx carve-out + barrel re-export activation. `src/components/CreateListingForm/` directory now exists with 4 files; BasicInfoSection is a plain function component with named export, SectionProps-driven, rendering 6 subsections (transaction segment + basic info + location + 3 stacked chipRows with a11y + date picker + features) — compiles in isolation. CreateListingScreen.tsx intentionally UNMODIFIED (orchestrator reduction is Plan 04-06). tsc baseline preserved at 16 lines (AuthContext/ThemeContext pre-existing per 04-02 §Deviations). All 3 phase gates exit 0. Full `npm test` 22/22 across 5 suites. `android/app/build.gradle` uncommitted drift preserved. Plan 04-03 SUMMARY self-check PASSED. Next: /gsd-execute-phase 4 Plan 04-04.)
+**Last updated:** 2026-04-24 (Phase 4 EXECUTING — Plan 04-04 Wave-2 category sub-components landed in 3 scoped commits: `2c2e381` feat ResidentialSection + CommercialSection + `e516426` feat HospitalitySection with Phase-6 placeholder + `f84df0e` feat barrel re-export activation. `src/components/CreateListingForm/` directory now contains 7 files (types.ts + styles.ts + index.ts + BasicInfoSection.tsx + ResidentialSection.tsx + CommercialSection.tsx + HospitalitySection.tsx). Three new sections are plain function components, named exports, SectionProps-driven, verbatim transcription from CreateListingScreen.tsx:732-763 (Residential). HospitalitySection ships minimum field set per UI-SPEC (rooms + maxGuests + bathrooms + amenities Phase-6 deferral hint). CreateListingScreen.tsx still intentionally UNMODIFIED (last touched at 633637c / Plan 04-02; orchestrator reduction is Plan 04-06). tsc baseline preserved at 16 lines. All 3 phase gates exit 0. Full `npm test` 22/22 across 5 suites. `android/app/build.gradle` uncommitted drift preserved. Zero deviations — plan executed exactly as written. Plan 04-04 SUMMARY self-check PASSED. Next: /gsd-execute-phase 4 Plan 04-05.)
 
 ## Project Reference
 
@@ -26,18 +26,18 @@ progress:
 ## Current Position
 
 Phase: 04 (listing-form-taxonomy-decomposition) — EXECUTING (2026-04-24)
-Plan: 3 of 6 complete
+Plan: 4 of 6 complete
 **Phase:** 4
-**Plan:** 04-04 (next — Wave 2: category sub-components ResidentialSection + CommercialSection + HospitalitySection + PriceSection + barrel update)
+**Plan:** 04-05 (next — Wave 2: MediaSection (preserve 2x Gated wraps) + PriceSection + VerificationSection (preserve 1x Gated wrap) + barrel completion)
 **Status:** Executing
-**Progress:** [████████▊░] 88% (3/8 phases complete; 22/25 plans done — Plan 04-03 landed as 2 commits: 4207cf3 + 1003ac1)
+**Progress:** [█████████▏] 92% (3/8 phases complete; 23/25 plans done — Plan 04-04 landed as 3 commits: 2c2e381 + e516426 + f84df0e)
 
 ### Phase pipeline
 
 1. Nav Reliability — Complete (6/6 plans resolved; Plan 05 SKIPPED per D-15) — 2026-04-22
 2. Universal Keyboard Handling — Complete (6/6 plans executed; gap-closure `47a52b7` added `behavior="padding"` after matrix walk disproved RESEARCH §9 A8; 22/22 matrix cells PASS on both devices; verifier PASSED 34/34) — 2026-04-23
 3. Role Gating Precursor — Complete (7/7 plans done 2026-04-23; all 5 GATE reqs PASS; GATE-05 via D-22 Path B accepted risk in PROJECT.md; scripts/check-role-grep.sh CI gate at `fa25b8b`; 03-VERIFICATION.md at `df6561f`)
-4. Listing Form Taxonomy & Decomposition — Executing (3/6 plans done: 04-01 Wave-0 validation scaffolding landed 2026-04-23; 04-02 Wave-1 taxonomy foundation landed 2026-04-24; 04-03 Wave-2 scaffolding + BasicInfoSection landed 2026-04-24; 04-04..04-06 pending)
+4. Listing Form Taxonomy & Decomposition — Executing (4/6 plans done: 04-01 Wave-0 validation scaffolding landed 2026-04-23; 04-02 Wave-1 taxonomy foundation landed 2026-04-24; 04-03 Wave-2 scaffolding + BasicInfoSection landed 2026-04-24; 04-04 Wave-2 category sub-components landed 2026-04-24; 04-05..04-06 pending)
 5. Listing Form Validation & Edit Flow — Not started
 6. Hospitality Rendering — Not started
 7. Alignment Pass — Not started (blocked on user screenshots)
@@ -50,10 +50,11 @@ Plan: 3 of 6 complete
 | v1 requirements defined | 35 |
 | v1 requirements mapped to phases | 35 |
 | Phases complete | 3/8 |
-| Plans completed | 22 (5 Phase-1 implemented + 1 Phase-1 skipped per D-15 + 6 Phase-2 executed + 7 Phase-3 executed + 3 Phase-4 executed: 04-01 + 04-02 + 04-03) |
+| Plans completed | 23 (5 Phase-1 implemented + 1 Phase-1 skipped per D-15 + 6 Phase-2 executed + 7 Phase-3 executed + 4 Phase-4 executed: 04-01 + 04-02 + 04-03 + 04-04) |
 | Plan 04-01 timing | < 10min / 3 tasks / 3 files created / 3 commits (`2583c7a` RED test + `5ba60e2` land-removed gate + `8453984` i18n-parity gate) |
 | Plan 04-02 timing | ~4 min / 2 tasks + 1 carve-out / 1 file created + 5 modified / 3 commits (`a1539cb` propertyCategory.ts GREEN + `3b24097` carve-out + `633637c` atomic Land removal + Hostel/Hotel + 11 i18n keys + chip UX rework) |
 | Plan 04-03 timing | ~6 min / 2 tasks / 4 files created (types.ts + styles.ts + index.ts + BasicInfoSection.tsx) + 0 modified / 2 commits (`4207cf3` scaffolding trio + `1003ac1` BasicInfoSection carve + barrel activation) |
+| Plan 04-04 timing | ~3.2 min / 3 tasks / 3 files created (ResidentialSection.tsx + CommercialSection.tsx + HospitalitySection.tsx) + 1 modified (index.ts barrel) / 3 commits (`2c2e381` Residential+Commercial + `e516426` Hospitality + `f84df0e` barrel activation) |
 | Phase 4 CI gates | `scripts/check-land-removed.sh` (FORM-01, exit 0 after 04-02) + `scripts/check-i18n-parity.sh` (FORM-09, exit 0) + `scripts/check-role-grep.sh` (Phase 3 regression gate, exit 0) |
 | Phase 4 jest baseline | 7 assertions GREEN (propertyCategory.test.ts) — flipped RED→GREEN by 04-02 `a1539cb` |
 | Phase 3 test baseline | 4 suites / 15 tests GREEN at phase exit (unchanged from Plan 03-04 baseline; Plan 03-07 adds no source-tree changes) |
@@ -114,24 +115,28 @@ Plan: 3 of 6 complete
 
 ## Session Continuity
 
-**Last session:** Phase 4 Plan 04-03 (sequential executor on main) — Wave-2 sub-component scaffolding + BasicInfoSection landed in 2 scoped commits.
+**Last session:** Phase 4 Plan 04-04 (sequential executor on main) — Wave-2 category sub-components landed in 3 scoped commits.
 
-- `4207cf3` `feat(04-03): scaffold CreateListingForm trio (types + styles + barrel)` — 3 files created: `src/components/CreateListingForm/types.ts` (FormBag 28-field interface + FormErrorBag Partial-Record + SectionProps contract); `src/components/CreateListingForm/styles.ts` (commonStyles — 21 keys transcribed verbatim from CreateListingScreen.tsx:1097-1291, header documents CONVENTION EXCEPTION per planner context note); `src/components/CreateListingForm/index.ts` (barrel — re-exports types; BasicInfoSection re-export commented-out to keep tsc clean at this commit boundary; 6 placeholder comment lines for Plans 04-04/05).
-- `1003ac1` `feat(04-03): carve BasicInfoSection sub-component + activate barrel export` — `src/components/CreateListingForm/BasicInfoSection.tsx` (567 LOC plain function component, named export, SectionProps-driven) + `src/components/CreateListingForm/index.ts` (activated `export { BasicInfoSection } from './BasicInfoSection';`). Renders 6 subsections: transaction segment (rent/sale, verbatim segment-control transcription) + Basic Info (title + description) + Location (address + district + city) + 3 stacked chipRows (Residential/Commercial/Hospitality with group-label `accessibilityRole="header"` + chip a11y upgrades: role=button, state={selected}, label, hitSlop 4×4, numberOfLines=1, ellipsizeMode=tail) + Available Date picker (iOS spinner + Android default + iOS Done button) + Features chips (add/remove). No Gated wraps. No KeyboardAvoidingView/KASV (inherits from orchestrator). `errors` prop renamed to `_errors` (Phase 5 fills it). Local state limited to `showDatePicker` ephemeral boolean.
+- `2c2e381` `feat(04-04): carve ResidentialSection + CommercialSection sub-components` — 2 files created: `src/components/CreateListingForm/ResidentialSection.tsx` (76 LOC — 3-thirdInput row for bedrooms + bathrooms + areaSqm, transcribed verbatim from CreateListingScreen.tsx:732-763); `src/components/CreateListingForm/CommercialSection.tsx` (51 LOC — single halfInput cell wrapping areaSqm TextInput; bedrooms/bathrooms intentionally omitted per REQUIREMENTS.md FORM-04; sub-type picker deferred to Phase 5). Both plain function components, named exports, SectionProps contract, `errors: _errors` rename, no `<Gated>` wraps, no keyboard-avoidance, zero hex literals.
+- `e516426` `feat(04-04): carve HospitalitySection with minimum field set + Phase-6 placeholder` — `src/components/CreateListingForm/HospitalitySection.tsx` (89 LOC) — section header + 3-thirdInput row (rooms + maxGuests + bathrooms) + `<Text style={[commonStyles.hint]}>` reading `t('hospitality.amenitiesPhase6Placeholder')` (user-facing deferral signal to Phase 6 HOSP-05). Fields explicitly ABSENT: bedrooms (Residential concept), areaSqm (not required per FORM-04), price/currency (Hospitality is showcase-only — orchestrator will unmount PriceSection in Plan 04-06). `bathrooms` is a shared FormBag field with Residential by design (UI-SPEC row 219).
+- `f84df0e` `feat(04-04): activate barrel re-exports for 3 Wave-2 category sub-components` — `src/components/CreateListingForm/index.ts` now activates `export { ResidentialSection/CommercialSection/HospitalitySection } from './*Section'` lines. Preserves existing `BasicInfoSection` re-export from 04-03 and `export type` block. MediaSection/PriceSection/VerificationSection TODO block reduced from 6 commented lines to 3 (Plan 04-05 appends those).
 
-All 10 plan success criteria met (with 1 documented observation re: verbatim-transcribed brownfield hex literals — Path B preserve); SUMMARY self-check PASSED (5 file claims + 2 commit claims verified). All 3 phase-level gates exit 0: check-land-removed.sh (preserved), check-i18n-parity.sh (preserved), check-role-grep.sh (preserved). Jest propertyCategory suite 7/7 GREEN. Full npm test: 22/22 tests across 5 suites. tsc baseline preserved at 16 lines (AuthContext + ThemeContext pre-existing per 04-02 Observation 2). `src/screens/CreateListingScreen.tsx` NOT touched — orchestrator reduction is Plan 04-06. `android/app/build.gradle` uncommitted drift preserved through both commits.
+All 11 plan success criteria met with zero deviations. Plan 04-04 SUMMARY self-check PASSED (7 file claims + 3 commit claims verified). All 3 phase-level gates exit 0: check-land-removed.sh (FORM-01 preserved), check-i18n-parity.sh (FORM-09 preserved), check-role-grep.sh (Phase 3 D-14 preserved). Full npm test: 22/22 tests across 5 suites (no regressions). tsc baseline preserved at 16 lines (AuthContext + ThemeContext pre-existing). `src/screens/CreateListingScreen.tsx` NOT touched — last commit there remains `633637c` (Plan 04-02); orchestrator reduction is Plan 04-06. `android/app/build.gradle` uncommitted drift preserved through all three commits.
 
-**Observations logged in SUMMARY:**
-1. Task 1→Task 2 barrel re-export split (Rule 3 auto-fix): plan's Task 1 acceptance conflicted internally (`tsc --noEmit` exit 0 AND `grep "export { BasicInfoSection }"` == 1 simultaneously impossible since BasicInfoSection.tsx is not yet created at Task 1 commit). Resolution: commented-out re-export in Task 1, activated in Task 2.
-2. Verbatim-transcribed brownfield hex literals (21 hits vs plan's "at most 1"): segment-control + date-picker + addButton text regions carry pre-existing iOS-HIG-inspired hex colors 1:1 from CreateListingScreen.tsx. Zero NEW hex literals introduced. Plan's "transcribe verbatim" directive takes precedence over the overconservative grep bound. Phase 7 Alignment Pass is the correct venue for theme-token revisit.
-3. Pre-existing tsc errors in AuthContext.tsx (10) + ThemeContext.tsx (2) carried from 04-02 — confirmed not caused by any 04-03 edit. Deferred to future infra/quality phase.
-4. LOC overshoot on BasicInfoSection.tsx (567 vs target 150–250) — driven by verbose JSX formatting (multi-line ternaries + a11y annotations on ~10 interactive elements + full 6-subsection scope). Non-blocking; documented for Plans 04-04/05 planning.
+**Plan 04-04 deviations:** none. Upstream trimmer-profile signal from 04-03-SUMMARY honored — 3 sections landed at 76 / 51 / 89 LOC (216 LOC total, well under BasicInfoSection's 567 LOC due to no segment-control/date-picker/features scope and no a11y-heavy chipRow callbacks).
 
-**Resume with:** `/gsd-execute-phase 4` (Plan 04-04 Wave 2 — category sub-components: `ResidentialSection.tsx` (bedrooms + bathrooms + areaSqm row) + `CommercialSection.tsx` (area-only per UI-SPEC §Component Inventory) + `HospitalitySection.tsx` (rooms + maxGuests + bathrooms row + amenities Phase-6-placeholder hint) + `PriceSection.tsx` (currency row + price input, conditionally mounted when `category !== 'Hospitality'`) + barrel append for those 4 re-exports). Key downstream-consumer notes:
+**Observations logged in SUMMARY (non-rule-triggering):**
+1. Pre-existing tsc errors in AuthContext.tsx (10) + ThemeContext.tsx (2) continue to carry — not caused by any 04-04 edit; matches upstream 04-03 Observation 3. Deferred to future infra/quality phase.
+2. Cross-section `bathrooms` FormBag field is shared by design between Residential and Hospitality (UI-SPEC row 219). Draft-state preserve-on-category-switch mirrors D-09's save-time preserve principle.
+3. CommercialSection's `halfInput`-inside-`row` wrapping (vs bare full-width input) is a forward-compat seam for the Office/Retail/Warehouse/Industrial sub-type picker that Phase 5 FORM-04 will drop into the second cell. No pixel-behavior change today.
 
-- **Plan 04-03 foundation available:** `src/components/CreateListingForm/types.ts` (SectionProps contract) + `src/components/CreateListingForm/styles.ts` (commonStyles shared tokens) + barrel scaffold. Plans 04-04/05 MAY extend styles.ts with MediaSection/VerificationSection keys. Plan 04-06 imports all 7 sub-components via one line from the barrel.
-- **Brownfield hex literals persist** in transcribed regions (segment control, date picker, currency options). Apply same Path B (verbatim preserve) decision in Plans 04-04/05 — do NOT silently substitute theme tokens.
-- **Sequential Wave-2 merge surface:** `src/components/CreateListingForm/index.ts` will be edited by 04-03 (this plan) + 04-04 + 04-05 sequentially — each appends its re-export lines. Expected clean stacked-diff.
+**Resume with:** `/gsd-execute-phase 4` (Plan 04-05 Wave 2 — MediaSection.tsx (CRITICAL: preserve 2 Phase-3 `<Gated>` wraps — Matterport whole-section wrap + panoramic single-input wrap — per 04-PATTERNS.md §10) + PriceSection.tsx (currency row + price input, category-agnostic; Plan 04-06 orchestrator conditionally mounts when `category !== 'Hospitality'`) + VerificationSection.tsx (CRITICAL: preserve 1 Phase-3 `<Gated editVerifications>` wrap around the admin-only platform-verification switches row) + barrel completion — the 3 commented TODO lines in index.ts get uncommented). Key downstream-consumer notes:
+
+- **Plan 04-04 foundation available:** `src/components/CreateListingForm/` directory now contains 7 files (types.ts + styles.ts + index.ts + 4 carved sections: BasicInfoSection + ResidentialSection + CommercialSection + HospitalitySection). Plan 04-05 MAY extend `styles.ts` with MediaSection/VerificationSection-specific keys (imagesGrid, imageItem, addTourButton, tourItem, removeImageButton, verificationSwitchRow, submitButton, toursList, imagePickerButton). Plan 04-06 imports all 7 sub-components via one-line barrel import.
+- **Brownfield hex literals persist** in Plan 04-05 transcription targets (currency options, image picker, verification switches). Apply same Path B (verbatim preserve) decision. Phase 7 Alignment Pass is the correct venue.
+- **Plan 04-05 LOC overshoot risk:** MediaSection is the largest remaining analog — CreateListingScreen.tsx:836-920+ is ~100 LOC of dense JSX that will expand to ~300-400 LOC with Prettier formatting + a11y annotations.
+- **Sequential Wave-2 merge surface:** index.ts linear-stacked-diff continues — Plan 04-05 starts from a 27-LOC barrel with 3 commented lines to uncomment (identical pattern to Plan 04-04 just completed).
+- **D-09 preserve-on-save anchors:** Plans 04-05 + 04-06 MUST NOT move the 3 D-09 anchors (`CreateListingScreen.tsx:187` rehydrate, `:392` panoramicPhotosUrl payload, `:396` tours ternary payload) out of the orchestrator. They stay at orchestrator level per PATTERNS.md §15.
 
 - **CI grep gate available:** `./scripts/check-role-grep.sh` for any future PR touching src/; Phase 4+ migrations stay blocked-on-regression by this gate. Wire into `.github/workflows/` or Husky in a future infra phase.
 - **GATE-05 status:** accepted risk at ship; PROJECT.md Key Decisions row 124 is the paper trail. Post-ship, route the outreach question from 03-BACKEND-COORDINATION.md to the Railway team. M2 ROLE-04 closes via firebase-admin SDK.
@@ -150,4 +155,4 @@ All 10 plan success criteria met (with 1 documented observation re: verbatim-tra
 ---
 
 *State initialized: 2026-04-22 after roadmap creation*
-*Last updated: 2026-04-24 after Phase 4 Plan 04-03 execution (`4207cf3` + `1003ac1`; Phase 4 EXECUTING — 3/6 plans done; Wave-2 sub-component scaffolding + BasicInfoSection complete: `src/components/CreateListingForm/` 4-file bundle lands — types.ts/styles.ts/index.ts/BasicInfoSection.tsx with SectionProps contract + commonStyles shared StyleSheet + barrel + plain-function-component carve-out; CreateListingScreen.tsx untouched (orchestrator reduction is Plan 04-06); all 3 phase gates exit 0; tsc baseline preserved; 22/22 tests across 5 suites; ready for `/gsd-execute-phase 4` Plan 04-04)*
+*Last updated: 2026-04-24 after Phase 4 Plan 04-04 execution (`2c2e381` + `e516426` + `f84df0e`; Phase 4 EXECUTING — 4/6 plans done; Wave-2 category sub-components complete: `src/components/CreateListingForm/` now holds 7 files with 4 active section exports — BasicInfoSection + ResidentialSection + CommercialSection + HospitalitySection; HospitalitySection ships minimum field set per UI-SPEC locked decision with `hospitality.amenitiesPhase6Placeholder` hint deferring the full 12-item taxonomy to Phase 6 HOSP-05; CreateListingScreen.tsx still untouched (last commit there 633637c / Plan 04-02); all 3 phase gates exit 0; tsc baseline preserved at 16 lines; 22/22 tests across 5 suites; zero deviations; ready for `/gsd-execute-phase 4` Plan 04-05)*
