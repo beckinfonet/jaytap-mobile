@@ -1,6 +1,6 @@
 # STATE: JayTap
 
-**Last updated:** 2026-04-23 (Phase 2 COMPLETE — 6 plans executed across 4 waves; 22/22 physical-device matrix cells PASS on iPhone 15 Pro Max / iOS 26.4 + Moto G XT2513V / Android 16; verifier PASSED 34/34 must-haves. One gap-closure landed mid-walk: library `KeyboardAvoidingView` requires explicit `behavior="padding"` — disproved RESEARCH §9 A8. Next: /gsd-plan-phase 3 — Role Gating Precursor.)
+**Last updated:** 2026-04-23 (Phase 3 CONTEXT captured — 25 decisions across 7 categories: scope-locked (D-01..07), Matterport/panoramic gating (D-08..10 — HIDE non-admin URL inputs entirely, preserve existing URLs on save), call-site migration (D-11..14 — all 4 CreateListingScreen isAdmin sites + PropertyDetailsScreen:178 + ProfileScreen:33 via new `manageListings` action; grep invariant as exit bar), service-layer defense (D-15..20 — `canFromUser` pure helper guards `patchPlatformVerifications` only, unit test raises M1 bar), backend coordination (D-21..23 — parallel task, accept as known risk if unconfirmed at ship), allowlist (D-24..25 — `beckprograms@gmail.com` only). Next: /gsd-plan-phase 3.)
 
 ## Project Reference
 
@@ -11,16 +11,16 @@
 
 ## Current Position
 
-**Phase:** Phase 3 — Role Gating Precursor (Ready to plan)
-**Plan:** Phase 2 complete at HEAD (18 commits since `2c10056`). Verifier PASSED 34/34 must-haves. All 4 KBD requirements delivered on physical devices.
-**Status:** Phase 2 closed 2026-04-23. Shipped: reanimated@4.3.0 + worklets@0.8.1 + keyboard-controller@1.21.6 installed with v4 Babel plugin name; `<KeyboardProvider>` at App.tsx root between SafeAreaProvider and ThemeProvider; KASV wraps 4 auth screens + AccountSettings + CreateListing (both branches); library KAV drop-in on ChatThread + ChatCompose with `behavior="padding"`; HomeScreen workaround comment removed. RESEARCH §9 A8 disproven (library `KeyboardAvoidingView` has no default `behavior`; fix committed as `47a52b7`). Phase 1 still closed.
+**Phase:** Phase 3 — Role Gating Precursor (CONTEXT captured — ready for `/gsd-plan-phase 3`)
+**Plan:** Phase 3 CONTEXT.md + DISCUSSION-LOG.md committed `c1518cf`. 25 decisions locked across 7 categories. No research/plan artifacts yet.
+**Status:** Phase 3 discuss complete 2026-04-23. Key decisions: HIDE Matterport + panoramic URL sections from non-admins (behavior change, preserve existing URLs on save); migrate all 4 CreateListingScreen `isAdmin` sites + PropertyDetailsScreen:178 + ProfileScreen:33 (via new `manageListings` action) to `useRole()`; grep invariant + `useRole()` unit test is the exit bar; service-layer gate scoped to `patchPlatformVerifications` only (pure `canFromUser(user, action)` helper, throws `E_PERMISSION_DENIED`, unit-tested); backend-enforcement coordination runs parallel — accept as documented risk in PROJECT.md Key Decisions if unconfirmed at M1 ship (D-22). Allowlist seeds with `beckprograms@gmail.com` only. Phase 1 + 2 still closed.
 **Progress:** [██░░░░░░] 2/8 phases complete
 
 ### Phase pipeline
 
 1. Nav Reliability — Complete (6/6 plans resolved; Plan 05 SKIPPED per D-15) — 2026-04-22
 2. Universal Keyboard Handling — Complete (6/6 plans executed; gap-closure `47a52b7` added `behavior="padding"` after matrix walk disproved RESEARCH §9 A8; 22/22 matrix cells PASS on both devices; verifier PASSED 34/34) — 2026-04-23
-3. Role Gating Precursor — Not started (next — `/gsd-plan-phase 3`; parallelizable with Phase 4+; backend enforcement is the real security boundary per Phase 3 research flag)
+3. Role Gating Precursor — CONTEXT captured 2026-04-23 (`c1518cf`) — next `/gsd-plan-phase 3`; parallelizable with Phase 4+; backend enforcement coordination runs parallel with implementation per D-21/D-22
 4. Listing Form Taxonomy & Decomposition — Not started
 5. Listing Form Validation & Edit Flow — Not started
 6. Hospitality Rendering — Not started
@@ -87,9 +87,13 @@
 
 ## Session Continuity
 
-**Last session:** Phase 2 execution (18 commits `2c10056` → `a3cc03b`). Wave 0 install precondition landed atomically (`8ea02cf` reanimated+worklets+Babel; `0fa3d20` keyboard-controller+pod+gradle; `f46773a` SUMMARY). Wave 1 KeyboardProvider wiring (`935697a` App.tsx; `33d52f4` SUMMARY). Wave 2 parallel screen wrappers across 3 plans: 02-03 auth×4 (5 commits `857bd05`..`b5b904e`), 02-04 settings + listing×3 sites (3 commits `092caf7`..`8af9e3b`), 02-05 chat×2 (3 commits `f728b3b`..`0b81112`). Wave 3 matrix scaffold `0c271ca` → device walk surfaced chat KAV failure → gap-closure `47a52b7` added `behavior="padding"` (disproves RESEARCH §9 A8, annotated in RESEARCH) → re-walk 22/22 PASS → HomeScreen workaround comment removed + 02-VALIDATION.md flipped + 02-06-SUMMARY.md written (`a3cc03b`). Verifier returned `status: passed, 34/34 must-haves verified`. Phase-wide grep gate `grep -rn "keyboardVerticalOffset" src/` returns 0.
+**Last session:** Phase 3 discuss-phase — 1 commit `c1518cf` capturing `03-CONTEXT.md` + `03-DISCUSSION-LOG.md` (429 insertions). User selected 3 of 4 gray areas to discuss interactively (Matterport/panoramic semantics, call-site migration scope, service-layer defense-in-depth) + confirmed backend-enforcement default + allowlist contents as follow-up questions. 25 decisions locked (D-01 through D-25). No code changes this session.
 
-**Resume with:** `/gsd-plan-phase 3` — Role Gating Precursor (GATE-01..GATE-05). Research flag from Phase 3: backend enforcement is the real security boundary — client-side gating is UX only. Railway backend must independently reject non-admin PATCH requests to `/properties/:id/verifications` and `/tours`. Parallelizable with Phase 4+ if desired.
+**Resume with:** `/gsd-plan-phase 3` — Role Gating Precursor (GATE-01..GATE-05). CONTEXT.md captures all implementation decisions; planner should focus on wave structure + task decomposition, NOT re-asking decided questions. Key downstream consumer notes:
+- Six call-site migrations across three screens + one service method + four new files (`src/hooks/useRole.ts`, `src/components/Gated.tsx`, `src/constants/adminAllowlist.ts`, `src/hooks/__tests__/useRole.test.ts`)
+- Exit bar: 4-part grep invariant (D-14) + `useRole()` priority-ladder unit test + service-guard unit test (D-19, D-20 — planner must check Jest config during Wave 0)
+- Backend coordination runs in parallel — NOT a serial dependency (D-23); failure-to-confirm fallback is a PROJECT.md Key Decisions row (D-22)
+- Behavior change callout: non-admin listers lose Matterport + panoramic URL inputs (D-08 — by design; existing URLs preserved on save per D-09)
 
 **Phase 2 artifacts preserved:**
 - `02-VERIFICATION.md` — verifier's 34/34 PASS report + accepted-override record for `47a52b7`
@@ -102,4 +106,4 @@
 ---
 
 *State initialized: 2026-04-22 after roadmap creation*
-*Last updated: 2026-04-23 after Phase 2 execution + verifier PASS*
+*Last updated: 2026-04-23 after Phase 3 CONTEXT capture (`c1518cf`)*
