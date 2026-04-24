@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0.4
 milestone_name: milestone
 status: executing
-last_updated: "2026-04-24T03:03:04Z"
+last_updated: "2026-04-24T03:25:19.984Z"
 progress:
   total_phases: 8
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 19
-  completed_plans: 16
-  percent: 74
+  completed_plans: 19
+  percent: 100
 ---
 
 # STATE: JayTap
 
-**Last updated:** 2026-04-24 (Phase 3 Plan 03-04 EXECUTED — service-layer guard `0632da9` + `ed037ef`. All 4 test suites / 15 tests GREEN including previously-broken App.test.tsx. Next: Plans 03-05 + 03-06 in parallel Wave 3.)
+**Last updated:** 2026-04-23 (Phase 3 COMPLETE — Plan 03-07 closed GATE-05 via D-22 Path B accepted risk. All 5 GATE reqs PASS. `scripts/check-role-grep.sh` CI gate exits 0 on clean tree; Jest 15/15 GREEN. Ready for `/gsd-verify-work`.)
 
 ## Project Reference
 
@@ -25,18 +25,18 @@ progress:
 
 ## Current Position
 
-Phase: 03 (role-gating-precursor) — EXECUTING
-Plan: 5 of 7 (03-01/02/03/04 complete; next Wave 3 Plans 03-05 + 03-06 in parallel)
-**Phase:** Phase 3 — Role Gating Precursor (EXECUTING — Wave 0 + Wave 1 + Wave 2 complete)
-**Plan:** Plan 03-04 complete 2026-04-24 — `0632da9` imports canFromUser + PermissionDeniedError; `ed037ef` inserts guard in patchPlatformVerifications + extends jest.setup.js (native-module stubs closing Phase 2 App.test.tsx residual). Full Jest suite 15/15 GREEN across 4 suites. Guard scope per D-15: only patchPlatformVerifications (`grep -c "canFromUser" src/services/PropertyService.ts` = 2 — import + one call). React-free invariant preserved.
-**Status:** Executing Phase 03
-**Progress:** [██░░░░░░] 2/8 phases complete (Phase 3 at 4/7 plans)
+Phase: 03 (role-gating-precursor) — COMPLETE (2026-04-23; pending `/gsd-verify-work`)
+Plan: 7 of 7 (all Phase 3 plans complete)
+**Phase:** Phase 3 — Role Gating Precursor (COMPLETE — all 4 waves done; GATE-05 via D-22 Path B accepted risk)
+**Plan:** Plan 03-07 complete 2026-04-23 — `fa25b8b` scripts/check-role-grep.sh D-14 CI gate (exits 0 on clean tree); `1bfe875` 03-BACKEND-COORDINATION.md (Status: UNCONFIRMED-AT-SHIP); `df6561f` 03-VERIFICATION.md + PROJECT.md Key Decisions Path B row. All 5 GATE reqs (GATE-01..GATE-05) marked complete in REQUIREMENTS.md. Jest 15/15 GREEN unchanged. Phase artifacts: 03-CONTEXT + 03-RESEARCH + 03-VALIDATION + 7× SUMMARYs + 03-BACKEND-COORDINATION + 03-VERIFICATION.
+**Status:** Phase 03 complete — awaiting verifier
+**Progress:** [██████████] 100% (3/8 phases complete; 19/19 Phase 1-3 plans done)
 
 ### Phase pipeline
 
 1. Nav Reliability — Complete (6/6 plans resolved; Plan 05 SKIPPED per D-15) — 2026-04-22
 2. Universal Keyboard Handling — Complete (6/6 plans executed; gap-closure `47a52b7` added `behavior="padding"` after matrix walk disproved RESEARCH §9 A8; 22/22 matrix cells PASS on both devices; verifier PASSED 34/34) — 2026-04-23
-3. Role Gating Precursor — EXECUTING (4/7 plans done — 03-01 Wave 0 test scaffolds + 03-02 hook/allowlist/Gated + 03-03 i18n key + 03-04 service-layer guard `0632da9`+`ed037ef` 2026-04-24; next Wave 3 Plans 03-05 CreateListingScreen + 03-06 PropertyDetails/Profile in parallel); backend enforcement coordination runs parallel per D-21/D-22 (handled in Plan 03-07)
+3. Role Gating Precursor — Complete (7/7 plans done 2026-04-23; all 5 GATE reqs PASS; GATE-05 via D-22 Path B accepted risk in PROJECT.md; scripts/check-role-grep.sh CI gate at `fa25b8b`; 03-VERIFICATION.md at `df6561f`)
 4. Listing Form Taxonomy & Decomposition — Not started
 5. Listing Form Validation & Edit Flow — Not started
 6. Hospitality Rendering — Not started
@@ -49,11 +49,14 @@ Plan: 5 of 7 (03-01/02/03/04 complete; next Wave 3 Plans 03-05 + 03-06 in parall
 |--------|-------|
 | v1 requirements defined | 35 |
 | v1 requirements mapped to phases | 35 |
-| Phases complete | 2/8 |
-| Plans completed | 16 (5 Phase-1 implemented + 1 Phase-1 skipped per D-15 + 6 Phase-2 executed + 4 Phase-3 executed: 03-01/02/03/04) |
-| Phase 3 test baseline | 4 suites / 15 tests GREEN after Plan 03-04 (`0632da9` + `ed037ef`) — App.test.tsx residual from Phase 2 cleared via jest.setup.js native-module stubs |
+| Phases complete | 3/8 |
+| Plans completed | 19 (5 Phase-1 implemented + 1 Phase-1 skipped per D-15 + 6 Phase-2 executed + 7 Phase-3 executed: 03-01..03-07) |
+| Phase 3 test baseline | 4 suites / 15 tests GREEN at phase exit (unchanged from Plan 03-04 baseline; Plan 03-07 adds no source-tree changes) |
+| Phase 3 CI gate | `scripts/check-role-grep.sh` (`fa25b8b`) — D-14 4-part grep invariant, exits 0 on clean tree, 0.04s runtime |
+| Phase 3 GATE-05 disposition | D-22 Path B accepted risk — PROJECT.md Key Decisions row 124 + 03-BACKEND-COORDINATION.md Status UNCONFIRMED-AT-SHIP + 03-VERIFICATION.md outcome section |
 | Phase 2 gap closures | 1 (`47a52b7` — chat KAV `behavior="padding"` after A8 disproven) |
 | Code review passes | 0 (M1 testing bar is manual physical-device QA per CLAUDE.md) |
+| Plan 03-07 timing | 10min / 3 tasks / 4 files (3 created + 1 modified) |
 
 ## Accumulated Context
 
@@ -93,10 +96,12 @@ Plan: 5 of 7 (03-01/02/03/04 complete; next Wave 3 Plans 03-05 + 03-06 in parall
 ### Todos carried forward
 
 - [ ] User to provide screenshots that concretize Phase 7 alignment fixes
-- [ ] Coordinate with Railway backend team in Phase 3 to confirm admin-endpoint enforcement
+- [x] Coordinate with Railway backend team in Phase 3 to confirm admin-endpoint enforcement — closed 2026-04-23 via D-22 Path B (accepted risk in PROJECT.md Key Decisions; 03-BACKEND-COORDINATION.md Status: UNCONFIRMED-AT-SHIP; outreach text preserved for post-ship routing; M2 ROLE-04 closes)
 - [x] Verify `react-native-reanimated` presence in `package.json` before Phase 2 planning begins (confirmed ABSENT 2026-04-22; installed 2026-04-23 via Wave 0 / Plan 02-01 as reanimated@4.3.0 + worklets@0.8.1)
 - [ ] Verify Xcode 26 / iOS 26 SDK on build machine before Phase 8 begins
 - [ ] Decide: commit or revert `android/app/build.gradle` versionCode 25→26 / versionName 1.0.24→1.0.25 (unstaged from Phase 2 walk; belongs to Phase 8 release-prep scope)
+- [ ] Future infra phase: wire `scripts/check-role-grep.sh` into `.github/workflows/` or Husky pre-commit (currently runnable manually; exits 0 on clean tree)
+- [ ] Post-ship: route 03-BACKEND-COORDINATION.md outreach question to Railway team; append "Response received — late" block if answered before M2 ROLE-04 planning
 
 ### Blockers
 
@@ -104,18 +109,17 @@ Plan: 5 of 7 (03-01/02/03/04 complete; next Wave 3 Plans 03-05 + 03-06 in parall
 
 ## Session Continuity
 
-**Last session:** Phase 3 execute-plan 03-04 (sequential executor on main) — service-layer guard landed in 2 atomic commits. `0632da9` adds `canFromUser` + `PermissionDeniedError` imports to `PropertyService.ts`; `ed037ef` inserts the 4-line `if (!canFromUser(userData, 'editVerifications'))` guard in `patchPlatformVerifications` AND extends `jest.setup.js` with native-module stubs for `react-native-keyboard-controller` + `react-native-maps` + `react-native-webview` + `react-native-svg` + `react-native-image-picker` (closes 03-01-SUMMARY Observation #1). Full Jest suite now 4 suites / 15 tests GREEN (was 14/15 with App.test.tsx failing at Plan 02 end). PermissionDeniedError message token `E_PERMISSION_DENIED` confirmed flowing through via the Jest `rejects.toThrow` assertion. D-15 scope invariant holds: `grep -n canFromUser src/services/PropertyService.ts` returns exactly 2 lines (import + single guard call). 2 deviations auto-fixed (Rule 3 — blocking jest env gap extended per plan runtime_notes; Rule 1 — rolled back premature GATE-05 mark-complete, same class as Plan 03-01's GATE-01/04 rollback).
+**Last session:** Phase 3 Plan 03-07 (sequential executor on main) — phase-exit work landed in 3 atomic commits.
+- `fa25b8b` adds `scripts/check-role-grep.sh` (D-14 4-part grep invariant CI gate; Rule 1 auto-fix added `src/hooks/useRole.ts` exclusion to invariant #1 to match #2's hook-internals carve-out).
+- `1bfe875` adds `03-BACKEND-COORDINATION.md` (Status: OPEN initially).
+- `df6561f` closes GATE-05 via D-22 Path B — creates `03-VERIFICATION.md` (all 5 ROADMAP criteria PASS), updates coordination Status to UNCONFIRMED-AT-SHIP with Path B checkbox ticked + per-endpoint dispositions, appends PROJECT.md Key Decisions row 124 (3-column schema fit — Rule 3 auto-fix; all 3 plan-mandated greps still pass: Backend enforcement + D-22 + "not confirmed by Railway team by release cut"). Final script run exits 0; Jest 15/15 GREEN unchanged.
 
-**Resume with:** `/gsd-execute-phase 3` — continues with Wave 3 (parallel Plans 03-05 CreateListingScreen UI migration + 03-06 PropertyDetailsScreen + ProfileScreen migration). Key downstream-consumer notes for executor:
+**Resume with:** `/gsd-verify-work` — Phase 3 verifier + code-review + regression-gate. After verify passes, `/gsd-plan-phase 4` for Listing Form Taxonomy. Key downstream-consumer notes:
 
-- **Jest is already configured** (`jest.config.js`, `jest@^29.6.3`) — no framework install in Wave 0.
-- **D-10 resolution (load-bearing):** CreateListingScreen:396 uses `can('editVerifications')` — NOT `can('editMatterportUrl')`. Plan 03-05 Task 1 has Q1 anti-pattern grep gate.
-- **Panoramic wrap scope:** only the panoramic `<TextInput>`, NOT the parent "Links" section (videoUrl/instagramUrl must remain visible to non-admins per RESEARCH §2.2).
-- **Plan 03-05 Task 1 pre-check:** executor MUST run `grep -n "isAdmin" src/screens/CreateListingScreen.tsx` and confirm exactly 4 matches at lines 110/319/396/933 BEFORE editing. Halt on mismatch.
-- **Wave 0 RED-state assertions:** Plan 03-01 Tasks 1+2 use `(! npx jest <path> | grep -q "^PASS ")` — test stubs MUST fail at Wave 0 end (turned GREEN in Wave 1/2).
-- **Backend coordination path B (D-22):** if Railway team has not confirmed by release cut, Plan 03-07 Task 3 writes a Key Decisions row/bullet in PROJECT.md citing "not confirmed by Railway team by release cut" + D-22 fallback. Deterministic table-vs-bullet branch selector in action.
-- **4-part grep invariant (D-14):** `scripts/check-role-grep.sh` — runnable CI gate, exits 0 only when all 4 invariants hold.
-- **Behavior change callout:** non-admin listers lose Matterport + panoramic URL inputs by design (D-08); existing URLs preserved on save (D-09).
+- **CI grep gate available:** `./scripts/check-role-grep.sh` for any future PR touching src/; Phase 4+ migrations stay blocked-on-regression by this gate. Wire into `.github/workflows/` or Husky in a future infra phase.
+- **GATE-05 status:** accepted risk at ship; PROJECT.md Key Decisions row 124 is the paper trail. Post-ship, route the outreach question from 03-BACKEND-COORDINATION.md to the Railway team. M2 ROLE-04 closes via firebase-admin SDK.
+- **Phase 4 unblocked:** `useRole()` + `<Gated>` + `canFromUser()` consumable for any admin-gated UI in FORM-01..FORM-09. The grep gate catches regressions. Priority-ladder branch 1 remains inert until M2 backend populates customClaims.
+- **Behavior change callout (still in force):** non-admin listers have NO in-app way to set Matterport tours or panoramic URLs in v1.0.4. Existing URLs preserved on save per D-09 — verified by D-09 preserve-on-save anchors in 03-05-SUMMARY.
 
 **Phase 2 artifacts preserved:**
 
@@ -129,4 +133,4 @@ Plan: 5 of 7 (03-01/02/03/04 complete; next Wave 3 Plans 03-05 + 03-06 in parall
 ---
 
 *State initialized: 2026-04-22 after roadmap creation*
-*Last updated: 2026-04-24 after Phase 3 Plan 03-04 execution (`0632da9` + `ed037ef`; 15/15 tests GREEN incl. App.test.tsx; Phase 3 at 4/7 plans)*
+*Last updated: 2026-04-23 after Phase 3 Plan 03-07 execution (`fa25b8b` + `1bfe875` + `df6561f`; Phase 3 COMPLETE — 7/7 plans; all 5 GATE reqs PASS; GATE-05 via D-22 Path B accepted risk; ready for `/gsd-verify-work`)*

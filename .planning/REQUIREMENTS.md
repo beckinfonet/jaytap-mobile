@@ -52,11 +52,11 @@ Requirements for v1.0.4 release. Each maps to exactly one roadmap phase.
 
 ### Role Gating Precursor (GATE)
 
-- [ ] **GATE-01**: `src/hooks/useRole.ts` + `src/hooks/useRole.ts:can(action)` + `src/components/Gated.tsx` implemented per architecture research, with M1 implementation backed by a hardcoded email allowlist in `src/constants/adminAllowlist.ts`
-- [ ] **GATE-02**: Matterport tour URL fields and panoramic image URL fields in `CreateListingScreen` are gated — only renderable when `can('edit_matterport_url')` / `can('edit_panoramic_url')` returns true
-- [ ] **GATE-03**: Existing `user.backendProfile.userType === 'admin'` check at `PropertyDetailsScreen.tsx:178` (and any other scattered admin checks) replaced by the `useRole()` helper — no new call site hardcodes email strings or `userType` literals
-- [ ] **GATE-04**: Hook + component shape is forward-compatible with M2 role system (no call-site changes needed when the allowlist is replaced by a role-based implementation — verified by shape of `can(action)` API accepting actions, not role names)
-- [ ] **GATE-05**: Backend-side enforcement checkpoint recorded: confirmed that Matterport/panoramic URL writes on the Railway backend enforce admin-only at the API layer (client gate is cosmetic otherwise). If backend does NOT enforce, a coordination task is raised (may block the release or be accepted as a known risk)
+- [x] **GATE-01**: `src/hooks/useRole.ts` + `src/hooks/useRole.ts:can(action)` + `src/components/Gated.tsx` implemented per architecture research, with M1 implementation backed by a hardcoded email allowlist in `src/constants/adminAllowlist.ts`
+- [x] **GATE-02**: Matterport tour URL fields and panoramic image URL fields in `CreateListingScreen` are gated — only renderable when `can('edit_matterport_url')` / `can('edit_panoramic_url')` returns true
+- [x] **GATE-03**: Existing `user.backendProfile.userType === 'admin'` check at `PropertyDetailsScreen.tsx:178` (and any other scattered admin checks) replaced by the `useRole()` helper — no new call site hardcodes email strings or `userType` literals
+- [x] **GATE-04**: Hook + component shape is forward-compatible with M2 role system (no call-site changes needed when the allowlist is replaced by a role-based implementation — verified by shape of `can(action)` API accepting actions, not role names)
+- [x] **GATE-05**: Backend-side enforcement checkpoint recorded: confirmed that Matterport/panoramic URL writes on the Railway backend enforce admin-only at the API layer (client gate is cosmetic otherwise). If backend does NOT enforce, a coordination task is raised (may block the release or be accepted as a known risk)
 
 ### Release (REL)
 
@@ -144,11 +144,11 @@ Each v1 REQ-ID maps to exactly one phase in ROADMAP.md.
 | HOSP-04 | Phase 6: Hospitality Rendering | Pending |
 | HOSP-05 | Phase 6: Hospitality Rendering | Pending |
 | HOSP-06 | Phase 6: Hospitality Rendering | Pending |
-| GATE-01 | Phase 3: Role Gating Precursor | Pending |
-| GATE-02 | Phase 3: Role Gating Precursor | Pending |
-| GATE-03 | Phase 3: Role Gating Precursor | Pending |
-| GATE-04 | Phase 3: Role Gating Precursor | Pending |
-| GATE-05 | Phase 3: Role Gating Precursor | Pending |
+| GATE-01 | Phase 3: Role Gating Precursor | Complete |
+| GATE-02 | Phase 3: Role Gating Precursor | Complete |
+| GATE-03 | Phase 3: Role Gating Precursor | Complete |
+| GATE-04 | Phase 3: Role Gating Precursor | Complete |
+| GATE-05 | Phase 3: Role Gating Precursor | Complete |
 | REL-01 | Phase 8: Release & Store Submission | Pending |
 | REL-02 | Phase 8: Release & Store Submission | Pending |
 | REL-03 | Phase 8: Release & Store Submission | Pending |

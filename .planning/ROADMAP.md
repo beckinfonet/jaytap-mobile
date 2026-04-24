@@ -88,7 +88,7 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   - [x] 03-04-PLAN.md — Wave 2: PropertyService.patchPlatformVerifications canFromUser guard (D-15 scope) — 2026-04-24 (`0632da9` + `ed037ef`; full Jest suite 15/15 GREEN incl. App.test.tsx)
   - [x] 03-05-PLAN.md — Wave 3: CreateListingScreen.tsx — 4 isAdmin sites + 3 Gated wraps (D-08/D-09 preserve-on-save intact; Q1: editVerifications at line 396)
   - [x] 03-06-PLAN.md — Wave 3: PropertyDetailsScreen.tsx + ProfileScreen.tsx migrations (D-11 sites 5/6/7; D-12 manageListings; D-13 display-only userType stays) — parallel with 03-05
-  - [ ] 03-07-PLAN.md — Wave 4: 4-part grep invariant as scripts/check-role-grep.sh + 03-BACKEND-COORDINATION.md + GATE-05 two-path exit (D-22) + 03-VERIFICATION.md
+  - [x] 03-07-PLAN.md — Wave 4: 4-part grep invariant as scripts/check-role-grep.sh + 03-BACKEND-COORDINATION.md + GATE-05 two-path exit (D-22) + 03-VERIFICATION.md
 
 ### Phase 4: Listing Form Taxonomy & Decomposition
 
