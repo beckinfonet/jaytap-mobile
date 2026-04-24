@@ -107,7 +107,7 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   - [x] 04-03-PLAN.md — Wave 2: sub-component scaffolding (types.ts + styles.ts + barrel + BasicInfoSection.tsx) — 2026-04-24 (`4207cf3` + `1003ac1`)
   - [x] 04-04-PLAN.md — Wave 2: category sub-components (ResidentialSection + CommercialSection + HospitalitySection + barrel update) — 2026-04-24 (`2c2e381` + `e516426` + `f84df0e`)
   - [x] 04-05-PLAN.md — Wave 2: MediaSection (2x Gated wraps preserved) + PriceSection + VerificationSection + barrel completion — 2026-04-24 (`a9e4e60` + `43f5822` + `3ce7356`)
-  - [ ] 04-06-PLAN.md — Wave 3: orchestrator reduction + D-09 anchor preservation + 18-cell manual QA + phase-exit regression bundle
+  - [x] 04-06-PLAN.md — Wave 3: orchestrator reduction (CreateListingScreen.tsx 1404→871 LOC, −37%) + 3 D-09 anchors preserved verbatim + 1 in-orchestrator `<Gated editVerifications>` wrap + 18-cell manual QA matrix scaffold + phase-exit regression bundle — 2026-04-24 (`ac02eb2` + `a42341c`; manual QA checkpoint OPEN pending physical-device walk)
 **UI hint**: yes
 
 ### Phase 5: Listing Form Validation & Edit Flow
@@ -184,7 +184,7 @@ M2 requirements (ROLE-01…04, MOD-01…06, ADMIN-01…04) are tracked in REQUIR
 | 1. Nav Reliability | 6/6 | Complete | 2026-04-22 |
 | 2. Universal Keyboard Handling | 6/6 | Complete | 2026-04-23 |
 | 3. Role Gating Precursor | 7/7 | Complete | 2026-04-23 |
-| 4. Listing Form Taxonomy & Decomposition | 3/6 | Executing | - |
+| 4. Listing Form Taxonomy & Decomposition | 6/6 | Awaiting manual QA | - |
 | 5. Listing Form Validation & Edit Flow | 0/? | Not started | - |
 | 6. Hospitality Rendering | 0/? | Not started | - |
 | 7. Alignment Pass | 0/? | Not started | - |
