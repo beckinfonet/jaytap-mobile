@@ -50,7 +50,7 @@ Prospective renters and buyers can reliably browse, filter, and inquire about Bi
 - [ ] `PropertyDetailsScreen` renders hospitality listings without price, surfacing 3D tours and panoramic media
 
 **Minimal-roles precursor (supports Hospitality URL gating in M1):**
-- [ ] Hardcoded admin email allowlist gates Matterport URL + panoramic image URL edit fields (all other listing fields remain user-editable)
+- [x] Hardcoded admin email allowlist gates Matterport URL + panoramic image URL edit fields (all other listing fields remain user-editable) — Validated in Phase 3 (2026-04-24): `src/constants/adminAllowlist.ts` + `src/hooks/useRole.ts` (`canFromUser`, `PermissionDeniedError`, D-03 priority ladder) + `src/components/Gated.tsx`; PropertyService guard throws `E_PERMISSION_DENIED`; 3 screens migrated (CreateListing + PropertyDetails + Profile); D-14 4-part grep-invariant CI gate `scripts/check-role-grep.sh`; 15/15 Jest tests GREEN; GATE-05 backend enforcement via D-22 Path B accepted-risk (unconfirmed at ship — revisit in M2)
 
 **Release:**
 - [ ] Version bump to 1.0.4 (Android versionCode → 25, iOS CURRENT_PROJECT_VERSION → 21)
@@ -141,4 +141,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-23 after Phase 2 completion*
+*Last updated: 2026-04-24 after Phase 3 completion*
