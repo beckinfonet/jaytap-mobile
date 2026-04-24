@@ -14,7 +14,11 @@ violations=""
 echo "== Phase-4 FORM-01 Land-removal grep invariant =="
 
 # Invariant 1: no 'Land' or "Land" string literal in src/ (allow landlord/landscape as wordy alternates)
-hits1=$(grep -rn "'Land'\|\"Land\"" src/ 2>/dev/null || true)
+# Exception: src/utils/__tests__/propertyCategory.test.ts contains a map-drift
+# assertion `'Land' in PROPERTY_TYPE_TO_CATEGORY` which asserts Land is NOT a
+# key — semantically the opposite of a regression. Precedent: scripts/check-role-grep.sh
+# invariant #1 carves out src/hooks/useRole.ts for the same "hook internals" reason.
+hits1=$(grep -rn "'Land'\|\"Land\"" src/ 2>/dev/null | grep -v '^src/utils/__tests__/propertyCategory\.test\.ts:' || true)
 if [ -n "$hits1" ]; then
   echo "FAIL #1: 'Land' or \"Land\" string literal found in src/"
   echo "$hits1"
