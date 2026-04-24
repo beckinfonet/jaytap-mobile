@@ -18,10 +18,9 @@ export { BasicInfoSection } from './BasicInfoSection';
 export { ResidentialSection } from './ResidentialSection';
 export { CommercialSection } from './CommercialSection';
 export { HospitalitySection } from './HospitalitySection';
-
-// Plan 04-05 will add the remaining 3 re-exports:
-// export { MediaSection } from './MediaSection';
-// export { PriceSection } from './PriceSection';
-// export { VerificationSection } from './VerificationSection';
+export { MediaSection } from './MediaSection';
+export { PriceSection } from './PriceSection';
+export { VerificationSection } from './VerificationSection';
 
 export type { FormBag, FormErrorBag, SectionProps } from './types';
+export type { MediaSectionProps } from './MediaSection';
