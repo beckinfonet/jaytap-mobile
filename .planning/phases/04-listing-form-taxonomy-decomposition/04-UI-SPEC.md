@@ -1,10 +1,11 @@
 ---
 phase: 4
 slug: listing-form-taxonomy-decomposition
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-04-24
+reviewed_at: 2026-04-24
 ---
 
 # Phase 4 — UI Design Contract
@@ -518,14 +519,14 @@ Inherits from orchestrator-level `KeyboardAwareScrollView`. Sub-components do NO
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: FLAG (non-blocking) — 4 font weights (400/500/600/700) preserved from existing production `CreateListingScreen.tsx` StyleSheet; exceeds checker's typical 2-weight ceiling but Phase 4 scope is brownfield preservation, not redesign. Collapsing weights would force cosmetic regression outside this phase. Queue for Phase 7 Alignment Pass.
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-04-24 by gsd-ui-checker
 
 ---
 
