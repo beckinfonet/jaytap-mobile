@@ -121,7 +121,12 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   3. Switching the category chip mid-form preserves shared fields (title, description, address, city, district, images) — no silent data loss — while category-specific sections mount/unmount cleanly and the submit payload excludes fields not valid for the active category
   4. Editing an existing listing initializes the form into the listing's category: a Residential listing shows bedrooms/bathrooms/area fields (not rooms/amenities); a Commercial listing shows area + sub-type (no bedrooms/bathrooms); a Hospitality listing shows rooms/bathrooms/maxGuests/amenities (no price)
   5. Hospitality listings can be saved under both Rent and Sell toggle modes; price is hidden in both modes; no stale price value leaks into the submitted payload when switching from Residential/Commercial to Hospitality mid-form
-**Plans**: TBD
+**Plans**: 5 plans
+  - [ ] 05-01-validators-foundation-PLAN.md — Wave 1: pure validators.ts (validateByCategory + buildPayloadByCategory + Currency type + CURRENCY_OPTIONS + FIELD_ORDER_BY_CATEGORY) + Jest suite (~22 assertions) + FormBag.currency tightening + barrel exports
+  - [ ] 05-02-section-errors-threading-PLAN.md — Wave 2: thread errors through 5 sub-components (BasicInfo/Residential/Commercial/Hospitality/PriceSection) via `commonStyles.hint + colors.error` + migrate CURRENCY_OPTIONS to validators import
+  - [ ] 05-03-i18n-validation-keys-PLAN.md — Wave 2: 14 new EN+RU validation error keys in parity + createListing.publishListing for D-16 submit label
+  - [ ] 05-04-orchestrator-integration-PLAN.md — Wave 3: CreateListingScreen.tsx 10 edits (validator call + payload builder + errors state + scroll-to-first-error + D-11 contact Alert + D-16 status rule + onNavigateToAccountSettings prop); D-09 anchors preserved
+  - [ ] 05-05-nav-wiring-and-qa-matrix-PLAN.md — Wave 4: App.tsx onNavigateToAccountSettings wiring + Property `status?` type + 05-QA-MATRIX.md (54-cell physical-device scaffold) + 05-VERIFICATION.md (phase-exit regression bundle)
 **UI hint**: yes
 
 ### Phase 6: Hospitality Rendering
@@ -185,7 +190,7 @@ M2 requirements (ROLE-01…04, MOD-01…06, ADMIN-01…04) are tracked in REQUIR
 | 2. Universal Keyboard Handling | 6/6 | Complete | 2026-04-23 |
 | 3. Role Gating Precursor | 7/7 | Complete | 2026-04-23 |
 | 4. Listing Form Taxonomy & Decomposition | 6/6 | Complete | 2026-04-24 |
-| 5. Listing Form Validation & Edit Flow | 0/? | Not started | - |
+| 5. Listing Form Validation & Edit Flow | 0/5 | Planned | - |
 | 6. Hospitality Rendering | 0/? | Not started | - |
 | 7. Alignment Pass | 0/? | Not started | - |
 | 8. Release & Store Submission | 0/? | Not started | - |
