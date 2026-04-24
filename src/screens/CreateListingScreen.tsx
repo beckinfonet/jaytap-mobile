@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,11 +10,7 @@ import {
   ActivityIndicator,
   Switch,
   Platform,
-  Image,
-  FlatList,
-  Dimensions,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useTheme } from '../theme/ThemeContext';
@@ -25,18 +21,19 @@ import { useLanguage } from '../context/LanguageContext';
 import { PropertyService } from '../services/PropertyService';
 import { AuthService } from '../services/AuthService';
 import { Property } from '../types/Property';
-import type { TranslationKeys } from '../locales';
 import * as ImagePicker from 'react-native-image-picker';
+import { propertyTypeToCategory } from '../utils/propertyCategory';
 import {
-  RESIDENTIAL_TYPES,
-  COMMERCIAL_TYPES,
-  HOSPITALITY_TYPES,
-} from '../utils/propertyCategory';
-
-const CURRENCY_OPTIONS = [
-  { value: '$', label: '🇺🇸 USD' },
-  { value: 'сом', label: '🇰🇬 сом' },
-] as const;
+  BasicInfoSection,
+  ResidentialSection,
+  CommercialSection,
+  HospitalitySection,
+  MediaSection,
+  PriceSection,
+  VerificationSection,
+  type FormBag,
+  type SectionProps,
+} from '../components/CreateListingForm';
 
 interface CreateListingScreenProps {
   onBack: () => void;
@@ -46,6 +43,30 @@ interface CreateListingScreenProps {
   verificationOnly?: boolean;
 }
 
+/**
+ * CreateListingScreen — orchestrator (Phase 4 Plan 04-06).
+ *
+ * Reduced from a ~1400-LOC monolith to a thin composer over seven sub-components
+ * imported from `../components/CreateListingForm`. All persistent form state still
+ * lives here (28+ `useState` hooks) — sub-components are pure presentation and
+ * receive `(values, onChange, errors)` via `SectionProps`.
+ *
+ * LOAD-BEARING invariants preserved (MUST NOT regress):
+ *   - D-09 anchor A: `setPanoramicPhotosUrl((propertyToEdit as any).panoramicPhotosUrl || '')`
+ *     in the rehydrate useEffect — runs for EVERY user including non-admin
+ *   - D-09 anchor B: `panoramicPhotosUrl: panoramicPhotosUrl.trim()` in handleSubmit
+ *     payload — UNCONDITIONAL (no can('editPanoramicUrl') ternary)
+ *   - D-09 anchor C: `tours: tours.length > 0 ? tours : undefined` in handleSubmit
+ *     payload — UNCONDITIONAL
+ *   - Phase 3 Gated wraps: 2 inside MediaSection (editMatterportUrl whole-section
+ *     + editPanoramicUrl element-scope) + 1 here around VerificationSection call
+ *     site (editVerifications) = 3 in tree
+ *   - verificationOnly admin-only branch (below) is UNTOUCHED — renders its own
+ *     minimal screen called from PropertyDetailsScreen
+ *
+ * Category is DERIVED via propertyTypeToCategory(values.propertyType) — never
+ * stored in FormBag, never sent in the submit payload.
+ */
 export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
   onBack,
   onSuccess,
@@ -54,10 +75,13 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
-  const { t, language } = useLanguage();
-  const dateLocale = language === 'ru' ? 'ru-RU' : 'en-US';
+  const { t } = useLanguage();
 
-  // Form state
+  // ---------------------------------------------------------------------------
+  // Form state — single orchestrator source of truth (MUST NOT MOVE per
+  // PATTERNS.md §15). Sub-components read via `values.*` and dispatch mutations
+  // through the `onChange` closure below.
+  // ---------------------------------------------------------------------------
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
@@ -70,13 +94,15 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
   const [bedrooms, setBedrooms] = useState('');
   const [bathrooms, setBathrooms] = useState('');
   const [areaSqm, setAreaSqm] = useState('');
+  const [rooms, setRooms] = useState('');
+  const [maxGuests, setMaxGuests] = useState('');
+  const [amenities, setAmenities] = useState<string[]>([]);
   const [features, setFeatures] = useState<string[]>([]);
   const [featureInput, setFeatureInput] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [panoramicPhotosUrl, setPanoramicPhotosUrl] = useState('');
   const [instagramUrl, setInstagramUrl] = useState('');
   const [availableDate, setAvailableDate] = useState('');
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [status, setStatus] = useState<'draft' | 'live'>('draft');
 
   // Images state
@@ -102,6 +128,50 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
 
   const isEditMode = !!propertyToEdit;
   const { can } = useRole();
+
+  // ---------------------------------------------------------------------------
+  // Single onChange dispatcher — memoized so sub-component React.memo (if added
+  // later) survives. Accepts any FormBag key and routes to the matching setter.
+  // The generic-signature narrowing gives callers compile-time safety; the
+  // runtime switch is the pragmatic M1 choice vs. a setter-map ref.
+  // ---------------------------------------------------------------------------
+  const onChange = useCallback<SectionProps['onChange']>((field, value) => {
+    switch (field) {
+      case 'title': setTitle(value as string); break;
+      case 'description': setDescription(value as string); break;
+      case 'address': setAddress(value as string); break;
+      case 'city': setCity(value as string); break;
+      case 'district': setDistrict(value as string); break;
+      case 'price': setPrice(value as string); break;
+      case 'currency': setCurrency(value as string); break;
+      case 'type': setType(value as 'rent' | 'sale'); break;
+      case 'propertyType': setPropertyType(value as string); break;
+      case 'bedrooms': setBedrooms(value as string); break;
+      case 'bathrooms': setBathrooms(value as string); break;
+      case 'areaSqm': setAreaSqm(value as string); break;
+      case 'rooms': setRooms(value as string); break;
+      case 'maxGuests': setMaxGuests(value as string); break;
+      case 'amenities': setAmenities(value as string[]); break;
+      case 'features': setFeatures(value as string[]); break;
+      case 'featureInput': setFeatureInput(value as string); break;
+      case 'selectedImages': setSelectedImages(value as any[]); break;
+      case 'availableDate': setAvailableDate(value as string); break;
+      case 'status': setStatus(value as 'draft' | 'live'); break;
+      case 'tours': setTours(value as FormBag['tours']); break;
+      case 'tourTitle': setTourTitle(value as string); break;
+      case 'tourUrl': setTourUrl(value as string); break;
+      case 'videoUrl': setVideoUrl(value as string); break;
+      case 'panoramicPhotosUrl': setPanoramicPhotosUrl(value as string); break;
+      case 'instagramUrl': setInstagramUrl(value as string); break;
+      case 'contactEmail': setContactEmail(value as string); break;
+      case 'contactPhone': setContactPhone(value as string); break;
+      case 'contactWhatsapp': setContactWhatsapp(value as string); break;
+      case 'contactTelegram': setContactTelegram(value as string); break;
+      case 'verifyOwnership': setVerifyOwnership(value as boolean); break;
+      case 'verifyOwnerId': setVerifyOwnerId(value as boolean); break;
+      case 'verifyStateDocs': setVerifyStateDocs(value as boolean); break;
+    }
+  }, []);
 
   const verificationSwitchRow = (
     label: string,
@@ -134,6 +204,10 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
     setVerifyStateDocs(!!pv?.stateIssuedDocumentsVerified);
   };
 
+  // ---------------------------------------------------------------------------
+  // Rehydrate from propertyToEdit — includes D-09 anchor A
+  // (setPanoramicPhotosUrl(...) MUST remain; runs for every user incl. non-admin).
+  // ---------------------------------------------------------------------------
   useEffect(() => {
     if (verificationOnly) {
       setLoadingProfile(false);
@@ -231,25 +305,18 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
     }
   };
 
-  const addFeature = () => {
-    if (featureInput.trim()) {
-      setFeatures([...features, featureInput.trim()]);
-      setFeatureInput('');
-    }
-  };
-
-  const removeFeature = (index: number) => {
-    setFeatures(features.filter((_, i) => i !== index));
-  };
-
-  const handleSelectImages = () => {
+  // ---------------------------------------------------------------------------
+  // Image + tour handlers — live in orchestrator per PATTERNS §10 (the
+  // ImagePicker native module lives here; MediaSection receives callbacks).
+  // useCallback keeps references stable for child memoization.
+  // ---------------------------------------------------------------------------
+  const handleSelectImages = useCallback(() => {
     const remainingSlots = 40 - selectedImages.length;
     if (remainingSlots <= 0) {
       Alert.alert(t('createListing.maxReachedTitle'), t('createListing.maxImagesReachedAlert'));
       return;
     }
 
-    // Check if ImagePicker is available
     if (!ImagePicker || !ImagePicker.launchImageLibrary) {
       Alert.alert(t('createListing.imagePickerUnavailable'), t('createListing.imagePickerUnavailableMessage'));
       return;
@@ -284,30 +351,44 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
         }
       }
     );
-  };
+  }, [selectedImages, t]);
 
-  const removeImage = (index: number) => {
-    setSelectedImages(selectedImages.filter((_, i) => i !== index));
-  };
+  const removeImage = useCallback(
+    (index: number) => {
+      setSelectedImages(selectedImages.filter((_, i) => i !== index));
+    },
+    [selectedImages]
+  );
 
-  const addTour = () => {
+  const addTour = useCallback(() => {
     if (tourTitle.trim() && tourUrl.trim()) {
-      setTours([...tours, {
-        id: Math.random().toString(),
-        title: tourTitle.trim(),
-        url: tourUrl.trim(),
-      }]);
+      setTours([
+        ...tours,
+        {
+          id: Math.random().toString(),
+          title: tourTitle.trim(),
+          url: tourUrl.trim(),
+        },
+      ]);
       setTourTitle('');
       setTourUrl('');
     } else {
       Alert.alert(t('common.error'), t('createListing.tourTitleUrlRequired'));
     }
-  };
+  }, [tourTitle, tourUrl, tours, t]);
 
-  const removeTour = (id: string) => {
-    setTours(tours.filter(t => t.id !== id));
-  };
+  const removeTour = useCallback(
+    (id: string) => {
+      setTours(tours.filter((tour) => tour.id !== id));
+    },
+    [tours]
+  );
 
+  // ---------------------------------------------------------------------------
+  // handleSubmit — includes D-09 anchor B (panoramicPhotosUrl unconditional) and
+  // D-09 anchor C (tours unconditional). Also preserves the verificationOnly
+  // admin-PATCH path untouched.
+  // ---------------------------------------------------------------------------
   const handleSubmit = async () => {
     if (verificationOnly) {
       if (!propertyToEdit?.id || !can('editVerifications')) return;
@@ -423,6 +504,51 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
     }
   };
 
+  // ---------------------------------------------------------------------------
+  // Bundle state into FormBag for sub-component consumption. Plain object (no
+  // useMemo) — M1 re-renders on every keystroke anyway; stable `onChange` is
+  // the reference-stability that matters.
+  // ---------------------------------------------------------------------------
+  const values: FormBag = {
+    title,
+    description,
+    address,
+    city,
+    district,
+    type,
+    propertyType,
+    status,
+    features,
+    featureInput,
+    selectedImages,
+    availableDate,
+    bedrooms,
+    bathrooms,
+    areaSqm,
+    price,
+    currency,
+    rooms,
+    maxGuests,
+    amenities,
+    tours,
+    tourTitle,
+    tourUrl,
+    videoUrl,
+    panoramicPhotosUrl,
+    instagramUrl,
+    contactEmail,
+    contactPhone,
+    contactWhatsapp,
+    contactTelegram,
+    verifyOwnership,
+    verifyOwnerId,
+    verifyStateDocs,
+  };
+
+  // Category is DERIVED — never stored in FormBag, never sent in the submit
+  // payload. Single source of truth: propertyTypeToCategory().
+  const category = propertyTypeToCategory(values.propertyType);
+
   if (loadingProfile && !verificationOnly) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
@@ -433,6 +559,11 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // verificationOnly admin-minimal-screen branch — UNTOUCHED per RESEARCH row
+  // 401 + PATTERNS.md §15. Called from PropertyDetailsScreen for admin PATCHing
+  // verification flags; separate render path from the main form.
+  // ---------------------------------------------------------------------------
   if (verificationOnly) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
@@ -478,6 +609,12 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Main orchestrator body — composes 7 sub-components + conditional mounts.
+  // Category-branched mount for Residential/Commercial/Hospitality; PriceSection
+  // unmounted for Hospitality (showcase-only). VerificationSection wrapped in
+  // the role-gating guard at the VerificationSection call site per UI-SPEC row 40.
+  // ---------------------------------------------------------------------------
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
@@ -500,463 +637,33 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
         keyboardShouldPersistTaps="handled"
         bottomOffset={20}
       >
-        {/* Transaction Type */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.transactionType')}</Text>
-          <View style={[styles.segmentedControl, { backgroundColor: isDark ? '#2C2C2E' : '#E5E5EA' }]}>
-            <TouchableOpacity
-              style={[
-                styles.segmentButton,
-                type === 'rent' && { backgroundColor: isDark ? '#000000' : '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }
-              ]}
-              onPress={() => setType('rent')}
-            >
-              <Text style={[styles.segmentText, { color: type === 'rent' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }]}>
-                {`🏠 ${t('createListing.rent')}`}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.segmentButton,
-                type === 'sale' && { backgroundColor: isDark ? '#000000' : '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }
-              ]}
-              onPress={() => setType('sale')}
-            >
-              <Text style={[styles.segmentText, { color: type === 'sale' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }]}>
-                {`💰 ${t('createListing.sell')}`}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <BasicInfoSection values={values} onChange={onChange} errors={{}} />
 
-        {/* Basic Info */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.basicInfo')}</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder={t('createListing.title')}
-            placeholderTextColor={colors.textSecondary}
-            value={title}
-            onChangeText={setTitle}
-          />
-          <TextInput
-            style={[styles.textArea, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder={t('createListing.description')}
-            placeholderTextColor={colors.textSecondary}
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            numberOfLines={4}
-          />
-        </View>
+        {category === 'Residential' && (
+          <ResidentialSection values={values} onChange={onChange} errors={{}} />
+        )}
+        {category === 'Commercial' && (
+          <CommercialSection values={values} onChange={onChange} errors={{}} />
+        )}
+        {category === 'Hospitality' && (
+          <HospitalitySection values={values} onChange={onChange} errors={{}} />
+        )}
 
-        {/* Location */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.location')}</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder={t('createListing.streetAddress')}
-            placeholderTextColor={colors.textSecondary}
-            value={address}
-            onChangeText={setAddress}
-          />
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder={t('createListing.district')}
-            placeholderTextColor={colors.textSecondary}
-            value={district}
-            onChangeText={setDistrict}
-          />
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder={t('createListing.city')}
-            placeholderTextColor={colors.textSecondary}
-            value={city}
-            onChangeText={setCity}
-          />
-        </View>
+        {category !== 'Hospitality' && (
+          <PriceSection values={values} onChange={onChange} errors={{}} />
+        )}
 
-        {/* Property Details */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.propertyDetails')}</Text>
-          <Text style={[styles.label, { color: colors.textSecondary, marginBottom: 8 }]}>{t('createListing.currency')}</Text>
-          <View style={styles.currencyRow}>
-            {CURRENCY_OPTIONS.map((opt) => (
-              <TouchableOpacity
-                key={opt.value}
-                style={[
-                  styles.currencyOption,
-                  {
-                    backgroundColor: currency === opt.value ? colors.accent : colors.inputBackground,
-                    borderColor: currency === opt.value ? colors.accent : colors.border,
-                  },
-                ]}
-                onPress={() => setCurrency(opt.value)}
-              >
-                <Text style={[styles.currencyOptionText, { color: currency === opt.value ? '#FFF' : colors.text }]}>
-                  {opt.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <Text style={[styles.label, { color: colors.textSecondary, marginBottom: 8, marginTop: 12 }]}>{t('createListing.price')}</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder={t('createListing.amount')}
-            placeholderTextColor={colors.textSecondary}
-            value={price}
-            onChangeText={setPrice}
-            keyboardType="numeric"
-          />
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('createListing.selectCurrencyHint')}</Text>
+        <MediaSection
+          values={values}
+          onChange={onChange}
+          errors={{}}
+          onSelectImages={handleSelectImages}
+          onRemoveImage={removeImage}
+          onAddTour={addTour}
+          onRemoveTour={removeTour}
+        />
 
-          <Text style={[styles.label, { color: colors.textSecondary }]}>{t('createListing.propertyType')}</Text>
-
-          {/* Residential group */}
-          <Text
-            style={[styles.label, { color: colors.textSecondary, marginBottom: 8 }]}
-            accessibilityRole="header"
-          >
-            {t('category.residential')}
-          </Text>
-          <View style={styles.chipRow}>
-            {RESIDENTIAL_TYPES.map((value) => {
-              const labelKey = `propertyType.${value.toLowerCase()}` as TranslationKeys;
-              const selected = propertyType === value;
-              return (
-                <TouchableOpacity
-                  key={value}
-                  style={[
-                    styles.chip,
-                    {
-                      backgroundColor: selected ? colors.accent : colors.inputBackground,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  onPress={() => setPropertyType(value)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                  accessibilityLabel={t(labelKey)}
-                  hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                >
-                  <Text
-                    style={[styles.chipText, { color: selected ? '#FFF' : colors.text }]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {t(labelKey)}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {/* Commercial group */}
-          <Text
-            style={[styles.label, { color: colors.textSecondary, marginTop: 12, marginBottom: 8 }]}
-            accessibilityRole="header"
-          >
-            {t('category.commercial')}
-          </Text>
-          <View style={styles.chipRow}>
-            {COMMERCIAL_TYPES.map((value) => {
-              const labelKey = `propertyType.${value.toLowerCase()}` as TranslationKeys;
-              const selected = propertyType === value;
-              return (
-                <TouchableOpacity
-                  key={value}
-                  style={[
-                    styles.chip,
-                    {
-                      backgroundColor: selected ? colors.accent : colors.inputBackground,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  onPress={() => setPropertyType(value)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                  accessibilityLabel={t(labelKey)}
-                  hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                >
-                  <Text
-                    style={[styles.chipText, { color: selected ? '#FFF' : colors.text }]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {t(labelKey)}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {/* Hospitality group */}
-          <Text
-            style={[styles.label, { color: colors.textSecondary, marginTop: 12, marginBottom: 8 }]}
-            accessibilityRole="header"
-          >
-            {t('category.hospitality')}
-          </Text>
-          <View style={styles.chipRow}>
-            {HOSPITALITY_TYPES.map((value) => {
-              const labelKey = `propertyType.${value.toLowerCase()}` as TranslationKeys;
-              const selected = propertyType === value;
-              return (
-                <TouchableOpacity
-                  key={value}
-                  style={[
-                    styles.chip,
-                    {
-                      backgroundColor: selected ? colors.accent : colors.inputBackground,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  onPress={() => setPropertyType(value)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                  accessibilityLabel={t(labelKey)}
-                  hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                >
-                  <Text
-                    style={[styles.chipText, { color: selected ? '#FFF' : colors.text }]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {t(labelKey)}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          <View style={styles.row}>
-            <View style={styles.thirdInput}>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-                placeholder={t('createListing.bedrooms')}
-                placeholderTextColor={colors.textSecondary}
-                value={bedrooms}
-                onChangeText={setBedrooms}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.thirdInput}>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-                placeholder={t('createListing.bathrooms')}
-                placeholderTextColor={colors.textSecondary}
-                value={bathrooms}
-                onChangeText={setBathrooms}
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.thirdInput}>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-                placeholder={t('createListing.area')}
-                placeholderTextColor={colors.textSecondary}
-                value={areaSqm}
-                onChangeText={setAreaSqm}
-                keyboardType="numeric"
-              />
-            </View>
-          </View>
-          <Text style={[styles.label, { color: colors.textSecondary, marginTop: 12 }]}>{t('createListing.availableFrom')}</Text>
-          <TouchableOpacity
-            style={[styles.datePickerButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Text style={[styles.datePickerButtonText, { color: availableDate ? colors.text : colors.textSecondary }]}>
-              {availableDate
-                ? new Date(availableDate + 'T12:00:00').toLocaleDateString(dateLocale, {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })
-                : t('createListing.selectDate')}
-            </Text>
-            <Text style={[styles.datePickerChevron, { color: colors.textSecondary }]}>📅</Text>
-          </TouchableOpacity>
-          {showDatePicker && (
-            <DateTimePicker
-              value={availableDate ? new Date(availableDate + 'T12:00:00') : new Date()}
-              mode="date"
-              locale={dateLocale}
-              display={Platform.OS === 'ios' ? 'spinner' : undefined}
-              themeVariant={Platform.OS === 'ios' ? (isDark ? 'dark' : 'light') : undefined}
-              textColor={Platform.OS === 'ios' ? (isDark ? '#FFFFFF' : '#000000') : undefined}
-              onChange={(_, d) => {
-                if (Platform.OS === 'android') setShowDatePicker(false);
-                if (d) setAvailableDate(d.toISOString().slice(0, 10));
-              }}
-            />
-          )}
-          {showDatePicker && Platform.OS === 'ios' && (
-            <TouchableOpacity
-              style={[styles.datePickerDoneButton, { backgroundColor: colors.primary }]}
-              onPress={() => setShowDatePicker(false)}
-            >
-              <Text style={[styles.datePickerDoneButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>{t('common.done')}</Text>
-            </TouchableOpacity>
-          )}
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('createListing.availableHintDetail')}</Text>
-        </View>
-
-        {/* Features */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.features')}</Text>
-          <View style={styles.row}>
-            <TextInput
-              style={[styles.input, { flex: 1, backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-              placeholder={t('createListing.addFeature')}
-              placeholderTextColor={colors.textSecondary}
-              value={featureInput}
-              onChangeText={setFeatureInput}
-              onSubmitEditing={addFeature}
-            />
-            <TouchableOpacity
-              style={[styles.addButton, { backgroundColor: colors.accent }]}
-              onPress={addFeature}
-            >
-              <Text style={styles.addButtonText}>+</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.featuresContainer}>
-            {features.map((feature, index) => (
-              <View key={index} style={[styles.featureTag, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                <Text style={[styles.featureText, { color: colors.text }]}>{feature}</Text>
-                <TouchableOpacity onPress={() => removeFeature(index)}>
-                  <Text style={[styles.removeFeature, { color: colors.textSecondary }]}>×</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Images */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.images')}</Text>
-          <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: 12 }]}>
-            {t('createListing.addImagesHintCount', { current: String(selectedImages.length) })}
-          </Text>
-          <TouchableOpacity
-            style={[styles.imagePickerButton, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}
-            onPress={handleSelectImages}
-            disabled={selectedImages.length >= 40}
-          >
-            <Text style={[styles.imagePickerButtonText, { color: colors.text }]}>
-              {`📷 ${selectedImages.length >= 40 ? t('createListing.maxImagesReached') : t('createListing.selectImages')}`}
-            </Text>
-          </TouchableOpacity>
-
-          {selectedImages.length > 0 && (
-            <View style={styles.imagesGrid}>
-              {selectedImages.map((image, index) => (
-                <View key={index} style={styles.imageItem}>
-                  <Image
-                    source={{ uri: image.uri }}
-                    style={styles.imageThumbnail}
-                    resizeMode="cover"
-                  />
-                  <TouchableOpacity
-                    style={styles.removeImageButton}
-                    onPress={() => removeImage(index)}
-                  >
-                    <Text style={styles.removeImageText}>×</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
-
-        {/* Matterport 3D Tours — admin only (D-08) */}
-        <Gated action="editMatterportUrl">
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.tours3d')}</Text>
-            <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: 12 }]}>{t('createListing.matterportHint')}</Text>
-
-            <TextInput
-              style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-              placeholder={t('createListing.tourTitle')}
-              placeholderTextColor={colors.textSecondary}
-              value={tourTitle}
-              onChangeText={setTourTitle}
-            />
-            <TextInput
-              style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-              placeholder={t('createListing.matterportUrlExample')}
-              placeholderTextColor={colors.textSecondary}
-              value={tourUrl}
-              onChangeText={setTourUrl}
-              keyboardType="url"
-            />
-            <TouchableOpacity
-              style={[styles.addTourButton, { backgroundColor: colors.primary, borderColor: colors.border }]}
-              onPress={addTour}
-            >
-              <Text style={[styles.addTourButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>{t('createListing.add3dTour')}</Text>
-            </TouchableOpacity>
-
-            {tours.length > 0 && (
-              <View style={styles.toursList}>
-                {tours.map((tour) => (
-                  <View key={tour.id} style={[styles.tourItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                    <View style={styles.tourInfo}>
-                      <Text style={[styles.tourTitle, { color: colors.text }]} numberOfLines={1}>
-                        {tour.title}
-                      </Text>
-                      <Text style={[styles.tourUrl, { color: colors.textSecondary }]} numberOfLines={1}>
-                        {tour.url}
-                      </Text>
-                    </View>
-                    <TouchableOpacity
-                      style={styles.removeTourButton}
-                      onPress={() => removeTour(tour.id)}
-                    >
-                      <Text style={[styles.removeTourText, { color: colors.textSecondary }]}>×</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            )}
-          </View>
-        </Gated>
-
-        {/* Links */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.links')}</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder={t('createListing.videoUrl')}
-            placeholderTextColor={colors.textSecondary}
-            value={videoUrl}
-            onChangeText={setVideoUrl}
-            keyboardType="url"
-          />
-          {/* Panoramic URL — admin only (D-08) */}
-          <Gated action="editPanoramicUrl">
-            <TextInput
-              style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-              placeholder={t('createListing.panoramicUrl')}
-              placeholderTextColor={colors.textSecondary}
-              value={panoramicPhotosUrl}
-              onChangeText={setPanoramicPhotosUrl}
-              keyboardType="url"
-            />
-          </Gated>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.inputBackground, color: colors.text, borderColor: colors.border }]}
-            placeholder={t('createListing.instagramUrl')}
-            placeholderTextColor={colors.textSecondary}
-            value={instagramUrl}
-            onChangeText={setInstagramUrl}
-            keyboardType="url"
-          />
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('createListing.instagramHint')}</Text>
-        </View>
-
-        {/* Contact Info (Auto-filled, read-only) */}
+        {/* Contact Info (Auto-filled, read-only) — kept inline (~30 LOC; low carve value) */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.contactInfo')}</Text>
           <TextInput
@@ -989,7 +696,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
           />
         </View>
 
-        {/* Status - Only show when creating new listing, not when editing */}
+        {/* Status — only visible when creating new listing; kept inline with !isEditMode guard */}
         {!isEditMode && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.status')}</Text>
@@ -1027,16 +734,12 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
           </View>
         )}
 
+        {/* VerificationSection — call-site wrap via editVerifications guard per
+            UI-SPEC Component Inventory row 40 + Phase 3 Site 4 (03-05-SUMMARY).
+            This is the single in-orchestrator role-gating wrap; the two MediaSection
+            wraps live inside MediaSection.tsx (editMatterportUrl + editPanoramicUrl). */}
         <Gated action="editVerifications">
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('verification.adminSectionTitle')}</Text>
-            <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: 12 }]}>{t('verification.adminSectionHint')}</Text>
-            <View style={{ backgroundColor: colors.inputBackground, borderColor: colors.border, borderWidth: 1, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 8 }}>
-              {verificationSwitchRow(t('verification.ownershipDocuments'), verifyOwnership, setVerifyOwnership)}
-              {verificationSwitchRow(t('verification.ownerIdentity'), verifyOwnerId, setVerifyOwnerId)}
-              {verificationSwitchRow(t('verification.stateIssued'), verifyStateDocs, setVerifyStateDocs)}
-            </View>
-          </View>
+          <VerificationSection values={values} onChange={onChange} />
         </Gated>
 
         {/* Submit Button */}
@@ -1062,6 +765,11 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
   );
 };
 
+// Orchestrator-scoped StyleSheet — trimmed to only keys used in the orchestrator
+// body (header + Status segmented control + Contact read-only + submit + the
+// verificationOnly branch). Shared sub-component styles (input, row, thirdInput,
+// chip, chipRow, section, sectionTitle, label, hint, segmentedControl keys, etc.)
+// live in `src/components/CreateListingForm/styles.ts` (commonStyles).
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -1114,150 +822,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 12,
   },
-  datePickerButton: {
-    height: 50,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  datePickerButtonText: {
-    fontSize: 16,
-  },
-  datePickerChevron: {
-    fontSize: 18,
-  },
-  datePickerModalWrapper: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  datePickerModal: {
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingBottom: 34,
-    maxHeight: '70%',
-  },
-  datePickerCalendarContainer: {
-    minHeight: 320,
-  },
-  datePickerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-  },
-  datePickerDone: {
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  datePickerDoneButton: {
-    marginTop: 8,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  datePickerDoneButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  textArea: {
-    minHeight: 100,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    marginBottom: 12,
-    textAlignVertical: 'top',
-  },
   readOnlyInput: {
     opacity: 0.6,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  currencyRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 4,
-  },
-  currencyOption: {
-    flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  currencyOptionText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  halfInput: {
-    flex: 1,
-  },
-  thirdInput: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
-  },
-  chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  chipText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  addButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: '#FFF',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  featuresContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  featureTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  featureText: {
-    fontSize: 14,
-    marginRight: 8,
-  },
-  removeFeature: {
-    fontSize: 18,
-    fontWeight: 'bold',
   },
   hint: {
     fontSize: 12,
@@ -1301,104 +867,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
-  imagePickerButton: {
-    height: 50,
-    borderWidth: 1,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  imagePickerButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  imagesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginTop: 12,
-  },
-  imageItem: {
-    width: (Dimensions.get('window').width - 60) / 3, // 3 columns with margins
-    height: (Dimensions.get('window').width - 60) / 3,
-    borderRadius: 12,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  imageThumbnail: {
-    width: '100%',
-    height: '100%',
-  },
-  removeImageButton: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  removeImageText: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  addTourButton: {
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-    marginBottom: 16,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  addTourButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  toursList: {
-    marginTop: 12,
-    gap: 8,
-  },
-  tourItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  tourInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  tourTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  tourUrl: {
-    fontSize: 12,
-  },
-  removeTourButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  removeTourText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
 });
-
