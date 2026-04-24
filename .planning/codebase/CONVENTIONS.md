@@ -15,6 +15,8 @@
 - Config files: lowercase dotted — e.g. `.eslintrc.js`, `.prettierrc.js`, `jest.config.js`, `babel.config.js`, `metro.config.js`
 - Entry / root: `App.tsx` (project root, not inside `src/`), `index.js` for RN registration
 - Tests: co-located in root-level `__tests__/` with `.test.tsx` suffix — e.g. `__tests__/App.test.tsx`
+- React custom hooks: `camelCase.ts` starting with `use` prefix, placed in `src/hooks/` (directory established Phase 3; reserve `src/hooks/` for React hooks — pure utilities stay in `src/utils/`)
+- Co-located unit tests: `src/<subdir>/__tests__/<file>.test.ts(x)` for per-module tests (established Phase 3 for hooks/services/components). Root-level `__tests__/` continues to host app-level smoke tests (e.g., `__tests__/App.test.tsx`).
 
 **Functions:**
 - `camelCase` for standalone functions and methods — e.g. `formatPrice`, `parseOobCodeFromResetInput`, `getPasswordRequirementChecks`, `passwordMeetsPolicy`
