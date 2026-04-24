@@ -19,6 +19,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useRole } from '../hooks/useRole';
+import { Gated } from '../components/Gated';
 import { useLanguage } from '../context/LanguageContext';
 import { PropertyService } from '../services/PropertyService';
 import { AuthService } from '../services/AuthService';
@@ -107,7 +109,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
   const [verifyStateDocs, setVerifyStateDocs] = useState(false);
 
   const isEditMode = !!propertyToEdit;
-  const isAdmin = user?.backendProfile?.userType === 'admin';
+  const { can } = useRole();
 
   const verificationSwitchRow = (
     label: string,
@@ -316,7 +318,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
 
   const handleSubmit = async () => {
     if (verificationOnly) {
-      if (!propertyToEdit?.id || !isAdmin) return;
+      if (!propertyToEdit?.id || !can('editVerifications')) return;
       setLoading(true);
       try {
         await PropertyService.patchPlatformVerifications(propertyToEdit.id, {
@@ -393,7 +395,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
         status,
         tours: tours.length > 0 ? tours : undefined, // Include Matterport tours
         existingImages: existingImageUrls, // Send existing image URLs for merging
-        ...(isAdmin
+        ...(can('editVerifications')
           ? {
               platformVerifications: {
                 ownershipDocuments: verifyOwnership,
