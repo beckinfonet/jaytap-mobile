@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0.4
 milestone_name: milestone
-status: planning
-last_updated: "2026-04-24T12:00:00.000Z"
+status: executing
+last_updated: "2026-04-23T22:15:00.000Z"
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 25
-  completed_plans: 19
-  percent: 76
+  completed_plans: 20
+  percent: 80
 ---
 
 # STATE: JayTap
 
-**Last updated:** 2026-04-24 (Phase 4 PLANNED — 6 plans in 4 waves; plan-checker PASSED 0 blockers / 0 warnings / 1 note-fixed. Upstream artifacts committed: RESEARCH `2ab6de0`, VALIDATION `0ec0f12`, UI-SPEC `e915682` (5 PASS + 1 non-blocking Dim 4 FLAG → Phase 7), UI-SPEC approval `b20b71a`, PLANS + PATTERNS + ROADMAP `f481a3a`. User opted to continue without CONTEXT.md (no /gsd-discuss-phase 4). Next: /gsd-execute-phase 4.)
+**Last updated:** 2026-04-23 (Phase 4 EXECUTING — Plan 04-01 Wave-0 validation scaffolding landed in 3 atomic commits: `2583c7a` RED propertyCategory.test.ts + `5ba60e2` check-land-removed.sh (FAILs by design) + `8453984` check-i18n-parity.sh (PASSes). Phase 3 regression gate `scripts/check-role-grep.sh` still exits 0. Plan 04-01 SUMMARY self-check PASSED; all 5 plan success criteria met. `android/app/build.gradle` uncommitted drift preserved per executor guard. Next: /gsd-execute-phase 4 Plan 04-02.)
 
 ## Project Reference
 
@@ -25,19 +25,19 @@ progress:
 
 ## Current Position
 
-Phase: 04 (listing-form-taxonomy-decomposition) — PLANNED (2026-04-24)
-Plan: 0 of 6 (none executed)
+Phase: 04 (listing-form-taxonomy-decomposition) — EXECUTING (2026-04-23)
+Plan: 1 of 6 complete
 **Phase:** 4
-**Plan:** Not started
-**Status:** Ready to execute
-**Progress:** [██████████] 76% (3/8 phases complete; 19/25 Phase 1-4 plans done — Phase 4 adds 6 plans)
+**Plan:** 04-02 (next — Wave 1 taxonomy foundation)
+**Status:** Executing
+**Progress:** [████████░░] 80% (3/8 phases complete; 20/25 plans done — Plan 04-01 landed as 3 commits)
 
 ### Phase pipeline
 
 1. Nav Reliability — Complete (6/6 plans resolved; Plan 05 SKIPPED per D-15) — 2026-04-22
 2. Universal Keyboard Handling — Complete (6/6 plans executed; gap-closure `47a52b7` added `behavior="padding"` after matrix walk disproved RESEARCH §9 A8; 22/22 matrix cells PASS on both devices; verifier PASSED 34/34) — 2026-04-23
 3. Role Gating Precursor — Complete (7/7 plans done 2026-04-23; all 5 GATE reqs PASS; GATE-05 via D-22 Path B accepted risk in PROJECT.md; scripts/check-role-grep.sh CI gate at `fa25b8b`; 03-VERIFICATION.md at `df6561f`)
-4. Listing Form Taxonomy & Decomposition — Planned (6 plans in 4 waves; plan-checker PASSED 0/0/1-note-fixed; ready for `/gsd-execute-phase 4`)
+4. Listing Form Taxonomy & Decomposition — Executing (1/6 plans done: 04-01 Wave-0 validation scaffolding landed 2026-04-23; 04-02..04-06 pending)
 5. Listing Form Validation & Edit Flow — Not started
 6. Hospitality Rendering — Not started
 7. Alignment Pass — Not started (blocked on user screenshots)
@@ -50,7 +50,9 @@ Plan: 0 of 6 (none executed)
 | v1 requirements defined | 35 |
 | v1 requirements mapped to phases | 35 |
 | Phases complete | 3/8 |
-| Plans completed | 19 (5 Phase-1 implemented + 1 Phase-1 skipped per D-15 + 6 Phase-2 executed + 7 Phase-3 executed: 03-01..03-07) |
+| Plans completed | 20 (5 Phase-1 implemented + 1 Phase-1 skipped per D-15 + 6 Phase-2 executed + 7 Phase-3 executed + 1 Phase-4 executed: 04-01) |
+| Plan 04-01 timing | < 10min / 3 tasks / 3 files created / 3 commits (`2583c7a` RED test + `5ba60e2` land-removed gate + `8453984` i18n-parity gate) |
+| Phase 4 CI gates | `scripts/check-land-removed.sh` (FORM-01, exit 1 by design until 04-02) + `scripts/check-i18n-parity.sh` (FORM-09, exit 0 at HEAD) |
 | Phase 3 test baseline | 4 suites / 15 tests GREEN at phase exit (unchanged from Plan 03-04 baseline; Plan 03-07 adds no source-tree changes) |
 | Phase 3 CI gate | `scripts/check-role-grep.sh` (`fa25b8b`) — D-14 4-part grep invariant, exits 0 on clean tree, 0.04s runtime |
 | Phase 3 GATE-05 disposition | D-22 Path B accepted risk — PROJECT.md Key Decisions row 124 + 03-BACKEND-COORDINATION.md Status UNCONFIRMED-AT-SHIP + 03-VERIFICATION.md outcome section |
@@ -109,13 +111,17 @@ Plan: 0 of 6 (none executed)
 
 ## Session Continuity
 
-**Last session:** Phase 3 Plan 03-07 (sequential executor on main) — phase-exit work landed in 3 atomic commits.
+**Last session:** Phase 4 Plan 04-01 (sequential executor on main) — Wave-0 validation scaffolding landed in 3 atomic commits.
 
-- `fa25b8b` adds `scripts/check-role-grep.sh` (D-14 4-part grep invariant CI gate; Rule 1 auto-fix added `src/hooks/useRole.ts` exclusion to invariant #1 to match #2's hook-internals carve-out).
-- `1bfe875` adds `03-BACKEND-COORDINATION.md` (Status: OPEN initially).
-- `df6561f` closes GATE-05 via D-22 Path B — creates `03-VERIFICATION.md` (all 5 ROADMAP criteria PASS), updates coordination Status to UNCONFIRMED-AT-SHIP with Path B checkbox ticked + per-endpoint dispositions, appends PROJECT.md Key Decisions row 124 (3-column schema fit — Rule 3 auto-fix; all 3 plan-mandated greps still pass: Backend enforcement + D-22 + "not confirmed by Railway team by release cut"). Final script run exits 0; Jest 15/15 GREEN unchanged.
+- `2583c7a` adds `src/utils/__tests__/propertyCategory.test.ts` (RED pure-function jest suite, 7 assertions; shape copied verbatim from `src/hooks/__tests__/useRole.test.ts` analog; fails at commit time with `Cannot find module '../propertyCategory'` until Plan 04-02 creates the source file).
+- `5ba60e2` adds `scripts/check-land-removed.sh` (FORM-01 atomic-removal CI gate; 2 invariants — `'Land'\|"Land"` literal + `propertyType.land` i18n key — chmod +x; FAILs exit 1 at commit by design: 4 hits in invariant #1, 3 in invariant #2; Plan 04-02 flips to GREEN).
+- `8453984` adds `scripts/check-i18n-parity.sh` (FORM-09 EN+RU key-set parity CI gate; single `diff` invariant wrapping canonical recipe from RESEARCH §Pitfall 5; chmod +x; PASSes exit 0 at HEAD; belt-and-suspenders to TypeScript `Record<TranslationKeys, string>` enforcement per docblock).
 
-**Resume with:** `/gsd-verify-work` — Phase 3 verifier + code-review + regression-gate. After verify passes, `/gsd-plan-phase 4` for Listing Form Taxonomy. Key downstream-consumer notes:
+All 5 plan success criteria met; SUMMARY self-check PASSED (file + commit claims verified against disk/git). Phase 3 `scripts/check-role-grep.sh` regression gate still exits 0 (this plan touched no src/ code). `android/app/build.gradle` uncommitted drift preserved in working tree per executor instructions.
+
+**Forward signal for Plan 04-02:** `check-land-removed.sh` invariant #1 will match the new test file's `'Land' in PROPERTY_TYPE_TO_CATEGORY` map-drift assertion after Plan 04-02 removes the 3 src/ Land hits. Executor should add a `grep -v '^src/utils/__tests__/propertyCategory\.test\.ts:'` carve-out (precedent: check-role-grep.sh invariant #1 carves out useRole.ts for the same hook-internals pattern). See 04-01-SUMMARY.md §Observations.
+
+**Resume with:** `/gsd-execute-phase 4` (Plan 04-02 Wave 1 — taxonomy foundation: propertyCategory.ts + atomic Land removal + Hostel/Hotel + 11 new i18n keys EN+RU + chip UX rework). Key downstream-consumer notes:
 
 - **CI grep gate available:** `./scripts/check-role-grep.sh` for any future PR touching src/; Phase 4+ migrations stay blocked-on-regression by this gate. Wire into `.github/workflows/` or Husky in a future infra phase.
 - **GATE-05 status:** accepted risk at ship; PROJECT.md Key Decisions row 124 is the paper trail. Post-ship, route the outreach question from 03-BACKEND-COORDINATION.md to the Railway team. M2 ROLE-04 closes via firebase-admin SDK.
@@ -134,4 +140,4 @@ Plan: 0 of 6 (none executed)
 ---
 
 *State initialized: 2026-04-22 after roadmap creation*
-*Last updated: 2026-04-23 after Phase 3 Plan 03-07 execution (`fa25b8b` + `1bfe875` + `df6561f`; Phase 3 COMPLETE — 7/7 plans; all 5 GATE reqs PASS; GATE-05 via D-22 Path B accepted risk; ready for `/gsd-verify-work`)*
+*Last updated: 2026-04-23 after Phase 4 Plan 04-01 execution (`2583c7a` + `5ba60e2` + `8453984`; Phase 4 EXECUTING — 1/6 plans done; Wave-0 validation scaffolding complete: RED propertyCategory.test.ts + check-land-removed.sh (FAILs by design) + check-i18n-parity.sh (PASSes); ready for `/gsd-execute-phase 4` Plan 04-02)*
