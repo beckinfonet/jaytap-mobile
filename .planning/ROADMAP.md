@@ -101,7 +101,13 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   3. `CreateListingScreen.tsx` is reduced to an orchestrator; category-specific rendering lives in `src/components/CreateListingForm/` sub-components (`BasicInfoSection`, `ResidentialSection`, `CommercialSection`, `HospitalitySection`, `MediaSection`, `PriceSection`, `VerificationSection`)
   4. Every new UI string added in this phase exists in both `src/locales/en.json` and `src/locales/ru.json` — key-set parity verified (no EN-only or RU-only keys)
   5. Existing and new listings render in the refactored screen without regression: a smoke-test for each of the 10 property types (Apartment, House, Townhome, Condo, Office, Retail, Warehouse, Industrial, Hostel, Hotel) opens the correct category and shows the expected field set
-**Plans**: TBD
+**Plans**: 6 plans
+  - [ ] 04-01-PLAN.md — Wave 0: validation scaffolding (propertyCategory.test.ts RED + check-land-removed.sh + check-i18n-parity.sh)
+  - [ ] 04-02-PLAN.md — Wave 1: taxonomy foundation (propertyCategory.ts + atomic Land removal + Hostel/Hotel + 11 new i18n keys EN+RU + chip UX rework)
+  - [ ] 04-03-PLAN.md — Wave 2: sub-component scaffolding (types.ts + styles.ts + barrel + BasicInfoSection.tsx)
+  - [ ] 04-04-PLAN.md — Wave 2: category sub-components (ResidentialSection + CommercialSection + HospitalitySection + barrel update)
+  - [ ] 04-05-PLAN.md — Wave 2: MediaSection (2x Gated wraps preserved) + PriceSection + VerificationSection + barrel completion
+  - [ ] 04-06-PLAN.md — Wave 3: orchestrator reduction + D-09 anchor preservation + 18-cell manual QA + phase-exit regression bundle
 **UI hint**: yes
 
 ### Phase 5: Listing Form Validation & Edit Flow
@@ -178,7 +184,7 @@ M2 requirements (ROLE-01…04, MOD-01…06, ADMIN-01…04) are tracked in REQUIR
 | 1. Nav Reliability | 6/6 | Complete | 2026-04-22 |
 | 2. Universal Keyboard Handling | 0/6 | Planned | - |
 | 3. Role Gating Precursor | 4/7 | Executing | - |
-| 4. Listing Form Taxonomy & Decomposition | 0/? | Not started | - |
+| 4. Listing Form Taxonomy & Decomposition | 0/6 | Planned | - |
 | 5. Listing Form Validation & Edit Flow | 0/? | Not started | - |
 | 6. Hospitality Rendering | 0/? | Not started | - |
 | 7. Alignment Pass | 0/? | Not started | - |
