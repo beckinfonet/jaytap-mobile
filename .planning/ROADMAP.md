@@ -82,7 +82,7 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   4. Backend enforcement on admin-only endpoints (`PATCH /properties/:id/verifications`, `/tours`) is either confirmed with the Railway backend team (release-unblocking) or documented as an accepted known risk in PROJECT.md's Key Decisions table
   5. A `// TODO(M2): replace allowlist with role-based implementation` comment exists at the allowlist definition; admin emails are lowercase-normalized on comparison
 **Plans**: 7 plans
-  - [ ] 03-01-PLAN.md — Wave 0: scaffold failing test stubs (useRole / Gated / PropertyService) + CONVENTIONS.md src/hooks/ note
+  - [x] 03-01-PLAN.md — Wave 0: scaffold failing test stubs (useRole / Gated / PropertyService) + CONVENTIONS.md src/hooks/ note
   - [ ] 03-02-PLAN.md — Wave 1: adminAllowlist.ts + useRole.ts (canFromUser + Action union + PermissionDeniedError) + Gated.tsx
   - [ ] 03-03-PLAN.md — Wave 1: errors.permissionDenied i18n key in en.ts + ru.ts (parallel with 03-02)
   - [ ] 03-04-PLAN.md — Wave 2: PropertyService.patchPlatformVerifications canFromUser guard (D-15 scope)

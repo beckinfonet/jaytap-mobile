@@ -1,6 +1,20 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0.4
+milestone_name: milestone
+status: executing
+last_updated: "2026-04-24T02:41:10.066Z"
+progress:
+  total_phases: 8
+  completed_phases: 2
+  total_plans: 19
+  completed_plans: 13
+  percent: 68
+---
+
 # STATE: JayTap
 
-**Last updated:** 2026-04-23 (Phase 3 PLANNED — 7 plans in 4 waves. Research `5fc2409` + Validation seed `90fa29f` + revision `d884413`. Plan checker PASSED on iteration 2. All 25 CONTEXT decisions mapped; all 5 GATEs covered. Next: /gsd-execute-phase 3.)
+**Last updated:** 2026-04-23 (Phase 3 Plan 03-01 EXECUTED — Wave 0 test scaffolds `3e3abd6`/`96416b8`/`781b612`. RED state confirmed on 3 new suites. CONVENTIONS.md hook-dir note landed. Next: Plan 03-02 Wave 1 hook+allowlist+Gated surface.)
 
 ## Project Reference
 
@@ -11,16 +25,18 @@
 
 ## Current Position
 
+Phase: 03 (role-gating-precursor) — EXECUTING
+Plan: 2 of 7 (03-01 complete → `3e3abd6` + `96416b8` + `781b612`; next Wave 1 Plan 03-02)
 **Phase:** Phase 3 — Role Gating Precursor (PLANNED — ready for `/gsd-execute-phase 3`)
 **Plan:** 7 plans in 4 waves committed `d884413`. Research `5fc2409` (1135 lines, §7 Validation Architecture, §10 RESOLVED). Validation seed `90fa29f` (Nyquist Dim 8, nyquist_compliant: true). Pattern map + 4 revised plans in same commit. 03-CONTEXT.md + 03-DISCUSSION-LOG.md from `c1518cf`.
-**Status:** Phase 3 planning complete 2026-04-23. Plan checker PASSED on iteration 2 (1 BLOCKER + 7 WARNINGS from iteration 1 all resolved). Wave structure: Wave 0 (03-01 test scaffolds + CONVENTIONS hook-dir note) → Wave 1 (03-02 allowlist+useRole+Gated core surface, 03-03 i18n key errors.permissionDenied) → Wave 2 (03-04 PropertyService.patchPlatformVerifications guard) → Wave 3 (03-05 CreateListingScreen 4-site migration + 3 Gated wraps, 03-06 PropertyDetailsScreen + ProfileScreen migration) → Wave 4 (03-07 D-14 grep invariant CI gate + backend coord + GATE-05 exit). ASVS L1 threat model on every plan. 18/18 tasks have `<automated>` verify. D-10 Q1 resolved: CreateListingScreen:396 uses `can('editVerifications')`. Panoramic wrap scoped to TextInput only. Phase 1 + 2 still closed.
+**Status:** Executing Phase 03
 **Progress:** [██░░░░░░] 2/8 phases complete
 
 ### Phase pipeline
 
 1. Nav Reliability — Complete (6/6 plans resolved; Plan 05 SKIPPED per D-15) — 2026-04-22
 2. Universal Keyboard Handling — Complete (6/6 plans executed; gap-closure `47a52b7` added `behavior="padding"` after matrix walk disproved RESEARCH §9 A8; 22/22 matrix cells PASS on both devices; verifier PASSED 34/34) — 2026-04-23
-3. Role Gating Precursor — PLANNED 2026-04-23 (7 plans, 4 waves; research `5fc2409` + plans/revision `d884413`) — next `/gsd-execute-phase 3`; parallelizable with Phase 4+; backend enforcement coordination runs parallel per D-21/D-22 (handled in Plan 03-07 Task 3)
+3. Role Gating Precursor — EXECUTING (1/7 plans done — Plan 03-01 Wave 0 test scaffolds `3e3abd6`+`96416b8`+`781b612` 2026-04-23; next Plan 03-02 Wave 1); parallelizable with Phase 4+; backend enforcement coordination runs parallel per D-21/D-22 (handled in Plan 03-07 Task 3)
 4. Listing Form Taxonomy & Decomposition — Not started
 5. Listing Form Validation & Edit Flow — Not started
 6. Hospitality Rendering — Not started
@@ -34,7 +50,7 @@
 | v1 requirements defined | 35 |
 | v1 requirements mapped to phases | 35 |
 | Phases complete | 2/8 |
-| Plans completed | 12 (5 Phase-1 implemented + 1 Phase-1 skipped per D-15 + 6 Phase-2 executed) |
+| Plans completed | 13 (5 Phase-1 implemented + 1 Phase-1 skipped per D-15 + 6 Phase-2 executed + 1 Phase-3 executed) |
 | Phase 2 gap closures | 1 (`47a52b7` — chat KAV `behavior="padding"` after A8 disproven) |
 | Code review passes | 0 (M1 testing bar is manual physical-device QA per CLAUDE.md) |
 
@@ -87,9 +103,10 @@
 
 ## Session Continuity
 
-**Last session:** Phase 3 plan-phase — research `5fc2409` (1135 lines) + validation seed `90fa29f` + plans/revision `d884413` (7 PLAN.md + PATTERNS.md + ROADMAP update + targeted revisions; 3619 insertions / 18 deletions). Plan checker PASSED iteration 2 after revision cleared 1 BLOCKER + 7 WARNINGS. No application code changes this session — only planning artifacts.
+**Last session:** Phase 3 execute-plan 03-01 — Wave 0 test scaffolds landed in 3 atomic commits (`3e3abd6` useRole stub, `96416b8` PropertyService + Gated stubs, `781b612` CONVENTIONS.md hook-dir note). RED state confirmed on all 3 new suites via the `(! ... | grep -q "^PASS ")` assertion + `grep -qE "Cannot find module|Tests:.*failed"` marker. GATE-01 + GATE-04 requirements marked complete. Roadmap plan-progress updated. Observation logged: pre-existing `__tests__/App.test.tsx` fails on `react-native-keyboard-controller` native binding (Phase 2 residual, introduced `935697a`); Plan 04 will need a Jest setup shim for AsyncStorage anyway and can fold in a `react-native-keyboard-controller` mock.
 
-**Resume with:** `/gsd-execute-phase 3` — executes the 7 plans in wave order. Key downstream-consumer notes for executor:
+**Resume with:** `/gsd-execute-phase 3` — continues with Plan 03-02 Wave 1 (useRole hook + allowlist + Gated component). Key downstream-consumer notes for executor:
+
 - **Jest is already configured** (`jest.config.js`, `jest@^29.6.3`) — no framework install in Wave 0.
 - **D-10 resolution (load-bearing):** CreateListingScreen:396 uses `can('editVerifications')` — NOT `can('editMatterportUrl')`. Plan 03-05 Task 1 has Q1 anti-pattern grep gate.
 - **Panoramic wrap scope:** only the panoramic `<TextInput>`, NOT the parent "Links" section (videoUrl/instagramUrl must remain visible to non-admins per RESEARCH §2.2).
@@ -100,6 +117,7 @@
 - **Behavior change callout:** non-admin listers lose Matterport + panoramic URL inputs by design (D-08); existing URLs preserved on save (D-09).
 
 **Phase 2 artifacts preserved:**
+
 - `02-VERIFICATION.md` — verifier's 34/34 PASS report + accepted-override record for `47a52b7`
 - `02-KEYBOARD-MATRIX.md` — 22-cell walk record + session metadata + all 12 grep gates filled
 - `02-06-SUMMARY.md` — phase sign-off with decision log (REMOVE HomeScreen comment)
@@ -110,4 +128,4 @@
 ---
 
 *State initialized: 2026-04-22 after roadmap creation*
-*Last updated: 2026-04-23 after Phase 3 planning (`d884413`, plan checker PASSED iteration 2)*
+*Last updated: 2026-04-23 after Phase 3 Plan 03-01 execution (`3e3abd6`/`96416b8`/`781b612`, RED state preserved per Nyquist Dim 8)*
