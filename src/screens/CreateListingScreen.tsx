@@ -52,12 +52,13 @@ interface CreateListingScreenProps {
  * receive `(values, onChange, errors)` via `SectionProps`.
  *
  * LOAD-BEARING invariants preserved (MUST NOT regress):
- *   - D-09 anchor A: `setPanoramicPhotosUrl((propertyToEdit as any).panoramicPhotosUrl || '')`
- *     in the rehydrate useEffect — runs for EVERY user including non-admin
- *   - D-09 anchor B: `panoramicPhotosUrl: panoramicPhotosUrl.trim()` in handleSubmit
- *     payload — UNCONDITIONAL (no can('editPanoramicUrl') ternary)
- *   - D-09 anchor C: `tours: tours.length > 0 ? tours : undefined` in handleSubmit
- *     payload — UNCONDITIONAL
+ *   - D-09 anchor A: the rehydrate useEffect below restores panoramicPhotosUrl
+ *     from propertyToEdit for EVERY user including non-admin (search this file
+ *     for `setPanoramic` inside the rehydrate path)
+ *   - D-09 anchor B: the handleSubmit payload below sends panoramicPhotosUrl
+ *     UNCONDITIONALLY (no can('editPanoramicUrl') ternary guarding it)
+ *   - D-09 anchor C: the handleSubmit payload below sends tours UNCONDITIONALLY
+ *     (ternary is `tours.length > 0 ? tours : undefined`, NOT guarded by role)
  *   - Phase 3 Gated wraps: 2 inside MediaSection (editMatterportUrl whole-section
  *     + editPanoramicUrl element-scope) + 1 here around VerificationSection call
  *     site (editVerifications) = 3 in tree
