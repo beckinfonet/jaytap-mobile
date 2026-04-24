@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0.4
 milestone_name: milestone
 status: executing
-last_updated: "2026-04-24T14:00:00Z"
+last_updated: "2026-04-24T15:30:00Z"
 progress:
   total_phases: 8
   completed_phases: 4
@@ -14,7 +14,7 @@ progress:
 
 # STATE: JayTap
 
-**Last updated:** 2026-04-24 (Phase 4 **COMPLETE** — all 6 plans landed; 18/18 manual QA PASS on iPhone (iOS 26) + Moto G (Android 16 / Fabric) at `ac02eb2`; QA matrix session log committed at `530b28e`; code-review advisory `7856206` 0 critical / 3 warning / 6 info; verifier `9266329` PASSED 5/5 must_haves. Three WR-advisories deferred: WR-01 Hospitality submit blocks on currency/price check (Phase 5 `validateByCategory` fixes; Hospitality not user-exposed until Phase 6), WR-02 `check-i18n-parity.sh` regex under-covers digit-containing keys (`Record<TranslationKeys,string>` tsc is the real safety net), WR-03 `HomeScreen.tsx` duplicates RESIDENTIAL_TYPES/COMMERCIAL_TYPES instead of importing (Phase 6 render-fix owns cleanup). Next focus: **Phase 5 Listing Form Validation & Edit Flow**.)
+**Last updated:** 2026-04-24 (Phase 5 CONTEXT captured at `b0dd253` — 18 decisions across 7 gray areas (Error surfacing / Category-switch / Hospitality contact hybrid rule / Amenities-deferred / Draft-Publish toggle on edit [user-raised bug] / Validator Jest tests / Currency literal union). Locks `validateByCategory` + `buildPayloadByCategory` contract at `src/components/CreateListingForm/validators.ts`, FORM-04 field map verbatim, D-09 payload anchors preserved, FORM-08 scope expanded to include status-toggle-visibility fix (D-16). Amenity validation deferred to Phase 6 with explicit Deferred Ideas handoff. Next: `/gsd-plan-phase 5`.)
 
 ## Project Reference
 
@@ -27,9 +27,9 @@ progress:
 
 Phase: 04 (listing-form-taxonomy-decomposition) — **COMPLETE** (2026-04-24)
 Plan: 6 of 6 complete
-**Phase:** 5 (listing-form-validation-edit-flow) — Not started
+**Phase:** 5 (listing-form-validation-edit-flow) — CONTEXT captured (2026-04-24)
 **Plan:** —
-**Status:** Ready to plan Phase 5
+**Status:** Ready for `/gsd-plan-phase 5`
 **Progress:** [████████░░] 50% (4/8 phases complete; 25/25 plans executed through Phase 4)
 
 ### Phase pipeline
