@@ -64,10 +64,11 @@ interface CreateListingScreenProps {
  *   - D-09 anchor A: the rehydrate useEffect below restores panoramicPhotosUrl
  *     from propertyToEdit for EVERY user including non-admin (search this file
  *     for `setPanoramic` inside the rehydrate path)
- *   - D-09 anchor B: the handleSubmit payload below sends panoramicPhotosUrl
- *     UNCONDITIONALLY (no can('editPanoramicUrl') ternary guarding it)
- *   - D-09 anchor C: the handleSubmit payload below sends tours UNCONDITIONALLY
- *     (ternary is `tours.length > 0 ? tours : undefined`, NOT guarded by role)
+ *   - D-09 anchor B: handleSubmit payload (via buildPayloadByCategory's shared block)
+ *     sends panoramicPhotosUrl UNCONDITIONALLY — no role gate
+ *   - D-09 anchor C: handleSubmit payload (via buildPayloadByCategory's shared block)
+ *     sends tours UNCONDITIONALLY — no role gate. See validators.ts for the
+ *     length-gated `undefined` fallback.
  *   - Phase 3 Gated wraps: 2 inside MediaSection (editMatterportUrl whole-section
  *     + editPanoramicUrl element-scope) + 1 here around VerificationSection call
  *     site (editVerifications) = 3 in tree
@@ -436,23 +437,44 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
       return;
     }
 
-    // Validation
-    if (!title.trim()) {
-      Alert.alert(t('common.error'), t('createListing.titleRequired'));
+    // FORM-06 — single source of truth via validateByCategory + buildPayloadByCategory
+    const category = propertyTypeToCategory(propertyType);
+
+    // D-09/D-10/D-11: Hospitality contact hybrid rule — Alert with "Complete profile" recovery CTA
+    if (category === 'Hospitality') {
+      const phone = contactPhone.trim();
+      const wa = contactWhatsapp.trim();
+      const tg = contactTelegram.trim();
+      const anyFilled = phone !== '' || wa !== '' || tg !== '';
+      const passes = !anyFilled || (phone !== '' && (wa !== '' || tg !== ''));
+      if (!passes) {
+        Alert.alert(
+          t('createListing.contactMissingTitle'),
+          t('createListing.contactMissingMessage'),
+          [
+            { text: t('common.cancel'), style: 'cancel' },
+            { text: t('createListing.contactMissingCta'), onPress: () => onNavigateToAccountSettings?.() },
+          ],
+        );
+        setErrors((prev) => ({ ...prev, contactPhone: 'createListing.contactMissingInline' }));
+        return;
+      }
+    }
+
+    // D-01/D-02/D-04: validate + populate errors + auto-scroll to first invalid field
+    const result = validateByCategory(values, category);
+    if (!result.isValid) {
+      setErrors(result.errors);
+      const firstField = FIELD_ORDER_BY_CATEGORY[category].find((f) => result.errors[f]);
+      if (firstField) {
+        const y = fieldLayouts.current[firstField];
+        // D-04 fallback (RESEARCH Pitfall 3): if onLayout hasn't fired (e.g., just after category switch),
+        // scroll to top — better than a no-op.
+        scrollRef.current?.scrollTo({ y: y !== undefined ? Math.max(0, y - 20) : 0, animated: true });
+      }
       return;
     }
-    if (!address.trim()) {
-      Alert.alert(t('common.error'), t('createListing.addressRequired'));
-      return;
-    }
-    if (!currency) {
-      Alert.alert(t('common.error'), t('createListing.currencyRequired'));
-      return;
-    }
-    if (!price.trim()) {
-      Alert.alert(t('common.error'), t('createListing.priceRequired'));
-      return;
-    }
+    setErrors({});
 
     setLoading(true);
     try {
@@ -472,28 +494,14 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
       const existingImageUrls = selectedImages.filter(img => img.isExisting).map(img => img.uri);
       const newImages = selectedImages.filter(img => !img.isExisting);
 
+      const basePayload = buildPayloadByCategory(values, category);
+
       const propertyData = {
-        title: title.trim(),
-        description: description.trim(),
-        address: fullAddress,
+        ...basePayload,
+        address: fullAddress,                           // orchestrator-side: city-fallback side-effect builds fullAddress
         city: city || 'Bishkek',
-        price: parseFloat(price) || price,
-        currency,
-        period: type === 'rent' ? 'month' : undefined,
-        type,
-        propertyType,
-        bedrooms: parseInt(bedrooms) || 0,
-        bathrooms: parseInt(bathrooms) || 0,
-        areaSqm: parseFloat(areaSqm) || 0,
-        features,
-        videoUrl: videoUrl.trim(),
-        panoramicPhotosUrl: panoramicPhotosUrl.trim(),
-        instagramUrl: instagramUrl.trim(),
-        availableDate: availableDate.trim() || undefined,
-        status,
-        tours: tours.length > 0 ? tours : undefined, // Include Matterport tours
-        existingImages: existingImageUrls, // Send existing image URLs for merging
-        ...(can('editVerifications')
+        existingImages: existingImageUrls,              // orchestrator-side: selectedImages diff
+        ...(can('editVerifications')                    // Finding #10 / Phase 3 D-14: role gate stays at call-site
           ? {
               platformVerifications: {
                 ownershipDocuments: verifyOwnership,
@@ -721,8 +729,8 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
           />
         </View>
 
-        {/* Status — only visible when creating new listing; kept inline with !isEditMode guard */}
-        {!isEditMode && (
+        {/* D-16: Status toggle visible on create OR editing a draft; hidden only when editing a live listing */}
+        {(!isEditMode || (propertyToEdit as any)?.status === 'draft') && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.status')}</Text>
             <View style={[styles.segmentedControl, { backgroundColor: isDark ? '#2C2C2E' : '#E5E5EA' }]}>
@@ -778,10 +786,14 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
           ) : (
             <Text style={[styles.submitButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>
               {isEditMode
-                ? t('createListing.updateListing')
-                : status === 'draft'
-                  ? t('createListing.saveAsDraft')
-                  : t('createListing.createListing')}
+                ? ((propertyToEdit as any)?.status === 'draft'
+                    ? (status === 'draft'
+                        ? t('createListing.saveAsDraft')
+                        : t('createListing.publishListing'))
+                    : t('createListing.updateListing'))
+                : (status === 'draft'
+                    ? t('createListing.saveAsDraft')
+                    : t('createListing.createListing'))}
             </Text>
           )}
         </TouchableOpacity>
