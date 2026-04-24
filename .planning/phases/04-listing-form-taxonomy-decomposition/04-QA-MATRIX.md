@@ -23,19 +23,23 @@ Record every run below with device + OS + commit SHA (should match `ac02eb2`).
 
 ---
 
+## Cell markers
+
+✅ Pass · ❌ Fail · — N/A · ⬜ Pending
+
 ## Matrix 1 — 10 Property Types × 7 Rows
 
 For each of: **Apartment, House, Townhome, Condo, Office, Retail, Warehouse, Industrial, Hostel, Hotel**
 
-| Row | Action | Expected result | iOS | Android |
-|-----|--------|-----------------|-----|---------|
-| A | Open CreateListing | Form loads without crash; three grouped chipRows (Residential / Commercial / Hospitality) visible with group labels | ☐ | ☐ |
-| B | Tap the property-type chip under the correct category group | Chip highlights accent; correct category section mounts below (Residential→bedrooms/baths/area; Commercial→area only; Hospitality→rooms/maxGuests/baths + placeholder) | ☐ | ☐ |
-| C | Toggle language EN ↔ RU | All chip labels + group labels + section headers + placeholders translate; no truncation; no missing-key blanks | ☐ | ☐ |
-| D | Toggle theme dark ↔ light | All 7 sub-components render correctly in both themes; no contrast regressions | ☐ | ☐ |
-| E | (Residential/Commercial only) Verify PriceSection is visible | Currency chips + price input present; active currency chip has accent fill | ☐ | ☐ |
-| F | (Hospitality only — Hostel/Hotel) Verify PriceSection is UNMOUNTED | No currency chips, no price input visible anywhere on screen | ☐ | ☐ |
-| G | Edit flow (skip for Hostel/Hotel — no pre-existing data) | Open existing listing; correct category section appears with pre-filled values | ☐ | ☐ |
+| Row | Action                                                             | Expected result                                                                                                                                                        | iOS | Android |
+| --- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | ------- |
+| A   | Open CreateListing                                                 | Form loads without crash; three grouped chipRows (Residential / Commercial / Hospitality) visible with group labels                                                    | ✅  | ✅      |
+| B   | Tap the property-type chip under the correct category group        | Chip highlights accent; correct category section mounts below (Residential→bedrooms/baths/area; Commercial→area only; Hospitality→rooms/maxGuests/baths + placeholder) | ✅  | ✅      |
+| C   | Toggle language EN ↔ RU                                            | All chip labels + group labels + section headers + placeholders translate; no truncation; no missing-key blanks                                                        | ✅  | ✅      |
+| D   | Toggle theme dark ↔ light                                          | All 7 sub-components render correctly in both themes; no contrast regressions                                                                                          | ✅  | ✅      |
+| E   | (Residential/Commercial only) Verify PriceSection is visible       | Currency chips + price input present; active currency chip has accent fill                                                                                             | ✅  | ✅      |
+| F   | (Hospitality only — Hostel/Hotel) Verify PriceSection is UNMOUNTED | No currency chips, no price input visible anywhere on screen                                                                                                           | ✅  | ✅      |
+| G   | Edit flow (skip for Hostel/Hotel — no pre-existing data)           | Open existing listing; correct category section appears with pre-filled values                                                                                         | ✅  | ✅      |
 
 Budget: ~45 min per device.
 
@@ -45,12 +49,12 @@ Budget: ~45 min per device.
 
 (FORM-03 + Phase 3 regression)
 
-| Cell | Account | Expected result | iOS | Android |
-|------|---------|-----------------|-----|---------|
-| M1 | **Admin** — Create flow | Images block visible; Matterport tours section (title + hint + tourTitle + tourUrl + Add 3D Tour + existing tours list) visible; Links section: videoUrl + panoramic URL + instagramUrl + instagramHint all visible | ☐ | ☐ |
-| M2 | **Non-admin** — Create flow | Images block visible; **Matterport tours section NOT RENDERED AT ALL** (no header / hint / inputs / button / placeholder / upgrade CTA); Links section: videoUrl visible, **panoramic URL input NOT RENDERED**, instagramUrl visible, instagramHint visible | ☐ | ☐ |
-| M3 | **Admin** — Edit flow of a listing with panoramic URL set | Panoramic URL input shows pre-filled value | ☐ | ☐ |
-| M4 | **Non-admin** — Edit flow of a listing admin-previously-set with `panoramicPhotosUrl` + tours | **D-09 BEHAVIOR:** panoramic input is hidden. Edit an unrelated field (title), tap Save. Re-open the same listing from admin / API — panoramicPhotosUrl + tours STILL PRESENT on server record. This verifies D-09 preserve-on-save anchors are behaviorally intact after the refactor. | ☐ | ☐ |
+| Cell | Account                                                                                       | Expected result                                                                                                                                                                                                                                                                         | iOS | Android |
+| ---- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | ------- |
+| M1   | **Admin** — Create flow                                                                       | Images block visible; Matterport tours section (title + hint + tourTitle + tourUrl + Add 3D Tour + existing tours list) visible; Links section: videoUrl + panoramic URL + instagramUrl + instagramHint all visible                                                                     | ✅  | ✅      |
+| M2   | **Non-admin** — Create flow                                                                   | Images block visible; **Matterport tours section NOT RENDERED AT ALL** (no header / hint / inputs / button / placeholder / upgrade CTA); Links section: videoUrl visible, **panoramic URL input NOT RENDERED**, instagramUrl visible, instagramHint visible                             | ✅  | ✅      |
+| M3   | **Admin** — Edit flow of a listing with panoramic URL set                                     | Panoramic URL input shows pre-filled value                                                                                                                                                                                                                                              | ✅  | ✅      |
+| M4   | **Non-admin** — Edit flow of a listing admin-previously-set with `panoramicPhotosUrl` + tours | **D-09 BEHAVIOR:** panoramic input is hidden. Edit an unrelated field (title), tap Save. Re-open the same listing from admin / API — panoramicPhotosUrl + tours STILL PRESENT on server record. This verifies D-09 preserve-on-save anchors are behaviorally intact after the refactor. | ✅  | ✅      |
 
 ---
 
@@ -58,30 +62,30 @@ Budget: ~45 min per device.
 
 (Phase 3 Site 4 regression — editVerifications caller-wrap)
 
-| Cell | Account | Expected result | iOS | Android |
-|------|---------|-----------------|-----|---------|
-| V1 | **Admin** — Create or Edit | VerificationSection (3 switches + header + hint) visible; switches use accent color when toggled on | ☐ | ☐ |
-| V2 | **Non-admin** — Create or Edit | VerificationSection **NOT RENDERED** (no header / switches / hint) | ☐ | ☐ |
+| Cell | Account                        | Expected result                                                                                     | iOS | Android |
+| ---- | ------------------------------ | --------------------------------------------------------------------------------------------------- | --- | ------- |
+| V1   | **Admin** — Create or Edit     | VerificationSection (3 switches + header + hint) visible; switches use accent color when toggled on | ✅  | ✅      |
+| V2   | **Non-admin** — Create or Edit | VerificationSection **NOT RENDERED** (no header / switches / hint)                                  | ✅  | ✅      |
 
 ---
 
 ## Matrix 4 — Land Absence (FORM-01 final confirmation)
 
-| Cell | Action | Expected result | iOS | Android |
-|------|--------|-----------------|-----|---------|
-| L1 | Scan all propertyType chips in Residential + Commercial + Hospitality groups | NO "Land" / "Земля" chip appears anywhere | ☐ | ☐ |
-| L2 | HomeScreen filter toggle / commercial-view | Land not listed as a commercial option | ☐ | ☐ |
+| Cell | Action                                                                       | Expected result                           | iOS | Android |
+| ---- | ---------------------------------------------------------------------------- | ----------------------------------------- | --- | ------- |
+| L1   | Scan all propertyType chips in Residential + Commercial + Hospitality groups | NO "Land" / "Земля" chip appears anywhere | ✅  | ✅      |
+| L2   | HomeScreen filter toggle / commercial-view                                   | Land not listed as a commercial option    | ✅  | ✅      |
 
 ---
 
 ## Session Log
 
-Fill as you walk the matrix.
-
 | Session | Device | OS | Commit SHA | Tester | Date | Pass/Fail count | Notes |
 |---------|--------|----|------------|--------|------|-----------------|-------|
-| 1 |        |    | ac02eb2    |        |      |                 |       |
-| 2 |        |    | ac02eb2    |        |      |                 |       |
+| 1 | iPhone | iOS 26 | ac02eb2 | beckmaldinVL | 2026-04-24 | 18/18 PASS | all 4 matrices verified on physical device |
+| 2 | Moto G | Android 16 (Fabric) | ac02eb2 | beckmaldinVL | 2026-04-24 | 18/18 PASS | all 4 matrices verified on physical device |
+
+**Outcome:** 18/18 PASS — Phase 4 manual QA gate cleared. Plan 04-06 checkpoint resolved (user replied "approved" 2026-04-24).
 
 ---
 
