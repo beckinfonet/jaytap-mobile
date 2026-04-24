@@ -2,7 +2,8 @@
 
 **Opened:** 2026-04-23 (Phase 3 Wave 4)
 **Contact:** Railway backend owner (out-of-band — project owner to route)
-**Status:** OPEN
+**Status:** UNCONFIRMED-AT-SHIP
+**Closed:** 2026-04-23 (M1 ship deadline — autonomous executor; no out-of-band channel reached Railway)
 
 ## Context
 
@@ -30,17 +31,17 @@ Per D-23 the phase implementation does NOT block on this response — the coordi
 
 ## Response received
 
-*(To be filled — paste verbatim response + timestamp + respondent name/handle. If no response by M1 submission day, note "no response at ship" and take Path B.)*
+**No response at ship** — coordination channel not closed in M1 timeline. Accepted-risk fallback taken per D-22 Path B. The autonomous Phase 3 executor has no out-of-band channel to the Railway team; the question above is preserved verbatim for the project owner to route post-ship. When a response arrives later (during M2 prep or M2 ROLE-04 planning), this file gets a follow-up "Response received — late" block so the outcome is still traceable.
 
 ## Outcome
 
 - [ ] **Path A — confirmed:** Record verbatim confirmation below + mirror into `03-VERIFICATION.md`.
-- [ ] **Path B — accepted risk at ship:** Add row to `.planning/PROJECT.md` Key Decisions; mirror into `03-VERIFICATION.md`.
+- [x] **Path B — accepted risk at ship:** Add row to `.planning/PROJECT.md` Key Decisions; mirror into `03-VERIFICATION.md`.
 
 ## Per-endpoint status
 
-- [ ] `PATCH /properties/:id/verifications` — status: [confirmed / accepted risk] — [rationale / link to response]
-- [ ] `PUT /properties/:id` (tours + panoramicPhotosUrl + matterportUrl fields) — status: [confirmed / accepted risk] — [rationale / link to response]
+- [x] `PATCH /properties/:id/verifications` — status: **accepted risk** — rolls into `.planning/PROJECT.md` Key Decisions row added 2026-04-23; client-side defense-in-depth via Plan 03-04 `canFromUser(userData, 'editVerifications')` service guard (`ed037ef`) mitigates in-app bypass but does NOT close the raw-HTTP / non-admin-with-valid-Firebase-uid bypass. M2 ROLE-04 closes.
+- [x] `PUT /properties/:id` (tours + panoramicPhotosUrl + matterportUrl fields) — status: **accepted risk** — rolls into `.planning/PROJECT.md` Key Decisions row added 2026-04-23; client-side UI gating via Plan 03-05 `<Gated action="editMatterportUrl">` + `<Gated action="editPanoramicUrl">` + D-09 preserve-on-save invariant hides admin-only URL fields from non-admin listers in-app but does NOT close the raw-HTTP bypass. M2 ROLE-04 closes.
 
 ## Notes
 
