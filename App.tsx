@@ -46,6 +46,7 @@ function AppContent() {
   const [isAdminVerificationMode, setIsAdminVerificationMode] = useState(false);
   const skipRenterListingsReopenRef = useRef(false);
   const [isRenterListingsOpen, setIsRenterListingsOpen] = useState(false);
+  const [renterListingsRefreshKey, setRenterListingsRefreshKey] = useState(0);
   const [homeViewMode, setHomeViewMode] = useState<'list' | 'map'>('list'); // Track view mode to restore after details
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [authPromptMessage, setAuthPromptMessage] = useState('');
@@ -813,6 +814,7 @@ function AppContent() {
                 setIsRenterListingsOpen(false);
                 setIsCreateListingOpen(true);
               }}
+              refreshKey={renterListingsRefreshKey}
             />
           </View>
         )}
@@ -830,6 +832,7 @@ function AppContent() {
                 setPropertyToEdit(null);
                 setIsAdminVerificationMode(false);
                 if (!skipRenterListingsReopenRef.current) {
+                  setRenterListingsRefreshKey((k) => k + 1);
                   setIsRenterListingsOpen(true);
                 }
                 skipRenterListingsReopenRef.current = false;

@@ -23,6 +23,7 @@ interface RenterListingsScreenProps {
   onSelectProperty: (property: Property) => void;
   onOpenTours: (property: Property) => void;
   onEditProperty?: (property: Property) => void;
+  refreshKey?: number;
 }
 
 export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
@@ -30,6 +31,7 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
   onSelectProperty,
   onOpenTours,
   onEditProperty,
+  refreshKey,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -40,7 +42,7 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
 
   useEffect(() => {
     loadProperties();
-  }, []);
+  }, [refreshKey]);
 
   const loadProperties = async () => {
     if (!user?.localId) {
