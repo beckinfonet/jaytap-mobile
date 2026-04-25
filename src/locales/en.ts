@@ -192,7 +192,7 @@ export const en = {
   'createListing.title': 'Title *',
   'createListing.description': 'Description',
   'createListing.streetAddress': 'Street Address *',
-  'createListing.district': 'District (optional)',
+  'createListing.district': 'District',
   'createListing.city': 'City',
   'createListing.amount': 'Amount (e.g., 850)',
   'createListing.bedrooms': 'Bedrooms',

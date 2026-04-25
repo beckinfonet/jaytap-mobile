@@ -194,7 +194,7 @@ export const ru: Record<TranslationKeys, string> = {
   'createListing.title': 'Название *',
   'createListing.description': 'Описание',
   'createListing.streetAddress': 'Адрес *',
-  'createListing.district': 'Район (необязательно)',
+  'createListing.district': 'Район',
   'createListing.city': 'Город',
   'createListing.amount': 'Сумма (напр., 850)',
   'createListing.bedrooms': 'Спален',
