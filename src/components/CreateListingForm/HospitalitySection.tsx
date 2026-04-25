@@ -22,12 +22,17 @@
  */
 
 import React from 'react';
-import { View, TextInput, Text } from 'react-native';
+import { View, TextInput, Text, TouchableOpacity } from 'react-native';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../theme/ThemeContext';
 import type { TranslationKeys } from '../../locales';
 import type { SectionProps } from './types';
 import { commonStyles } from './styles';
+import {
+  HOSPITALITY_AMENITIES,
+  AMENITY_ICONS,
+  type HospitalityAmenity,
+} from '../../utils/hospitalityAmenities';
 
 export function HospitalitySection({ values, onChange, errors }: SectionProps) {
   const { t } = useLanguage();
@@ -97,9 +102,58 @@ export function HospitalitySection({ values, onChange, errors }: SectionProps) {
           )}
         </View>
       </View>
-      <Text style={[commonStyles.hint, { color: colors.textSecondary }]}>
-        {t('hospitality.amenitiesPhase6Placeholder')}
+      {/* Phase 6 (HOSP-05 / D-18) — 12-amenity multi-select chip grid */}
+      <Text
+        style={[commonStyles.label, { color: colors.textSecondary, marginTop: 12, marginBottom: 8 }]}
+        accessibilityRole="header"
+      >
+        {t('hospitality.amenities')}
       </Text>
+      <View style={commonStyles.chipRow}>
+        {HOSPITALITY_AMENITIES.map((token) => {
+          const Icon = AMENITY_ICONS[token];
+          const selected = values.amenities.includes(token);
+          return (
+            <TouchableOpacity
+              key={token}
+              style={[
+                commonStyles.chip,
+                {
+                  backgroundColor: selected ? colors.accent : colors.inputBackground,
+                  borderColor: selected ? colors.accent : colors.border,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                },
+              ]}
+              onPress={() => {
+                const next: HospitalityAmenity[] = selected
+                  ? values.amenities.filter((a) => a !== token)
+                  : [...values.amenities, token];
+                onChange('amenities', next);
+              }}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+              accessibilityLabel={t(`amenity.${token}` as TranslationKeys)}
+              hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+            >
+              <Icon size={14} color={selected ? '#FFFFFF' : colors.text} />
+              <Text
+                style={[commonStyles.chipText, { color: selected ? '#FFFFFF' : colors.text }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {t(`amenity.${token}` as TranslationKeys)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      {errors.amenities && (
+        <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
+          {t(errors.amenities as TranslationKeys)}
+        </Text>
+      )}
     </View>
   );
 }
