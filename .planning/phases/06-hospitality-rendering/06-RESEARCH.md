@@ -1519,25 +1519,28 @@ Claims tagged `[ASSUMED]` (A1, A2, A6, A8, A9) should be user-confirmed or early
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 ### Q1: Is the M1 Hospitality fields backend-compatible (round-trip for `rooms` / `maxGuests` / `amenities`)?
 
 - What we know: Phase 5 `bba66fe` added a `price?.toString() || '0'` guard to let Hospitality submit succeed despite the payload omitting `price`. That proves submit doesn't 400 on missing `price`. What's UNKNOWN is whether appended `rooms` / `maxGuests` / `amenities` fields are stored and echoed back by the Railway backend.
 - What's unclear: backend schema visibility — the repo has no `server/` folder (backend is a separate Railway repo). STATE.md confirms backend coordination is already a documented friction point (Phase 3 GATE-05 D-22 Path B accepted risk).
 - Recommendation: 30-minute Wave 0 backend spike. POST a Hospitality listing via Insomnia / curl with `rooms=5`, `maxGuests=10`, `amenities=["wifi","aircon"]`. GET `/properties/:id`; inspect response. If those fields appear: all clear. If they don't: raise `06-BACKEND-COORDINATION.md` and escalate.
+- **RESOLVED:** Ship as accepted risk per GATE-05 D-22 precedent (Path B). Plan 06-02 records the disposition in `06-02-SUMMARY.md`; if backend round-trip data shows missing fields during physical-device QA (Plan 06-07), file `06-BACKEND-COORDINATION.md` and escalate post-Phase-6 — does not gate the M1 ship.
 
 ### Q2: Does Phase 7 Alignment Pass reserve the right to recolor the Hospitality contact bar brand hexes?
 
 - What we know: Path B brownfield grandfather applies today per Phase 4 precedent.
 - What's unclear: whether screenshots from user (pending for Phase 7) call out the contact-bar coloring.
 - Recommendation: ship M1 with brand hexes; tag in SUMMARY so Phase 7 verifier doesn't flag them.
+- **RESOLVED:** Brand hexes (`#25D366` WhatsApp / `#0088CC` Telegram / `#10B981` phone-success / `#FFFFFF` active-chip-text / `#6C63FF` PropertyCard tour badge) ship as Path-B grandfathered for M1; Plan 06-06 SUMMARY tags them so the Phase 7 alignment-pass verifier accepts them as precedent rather than flagging.
 
 ### Q3: Does editing a Hostel listing's type to Hotel (or vice-versa) warrant category-change data preservation per FORM-07?
 
 - What we know: FORM-07 (Phase 5) mandates that switching category during form-fill doesn't blank already-entered fields shared across categories. Hostel→Hotel is a TYPE change within the same CATEGORY (both Hospitality), so theoretically no FORM-07 concern.
 - What's unclear: whether the existing FORM-07 regression test covers Hostel↔Hotel.
 - Recommendation: add one QA matrix cell for "edit a Hostel, change propertyType to Hotel, verify rooms/maxGuests/amenities all preserved." If Phase 5 FORM-07 tests already cover this via `within-Hospitality type swap`, note it and move on.
+- **RESOLVED:** Existing Phase-5 FORM-07 within-category type-swap behavior covers Hostel↔Hotel (same Hospitality category, no field-set mount/unmount). Plan 06-07's QA matrix Cell 9.1 (edit-rehydrate) implicitly exercises this path; no new code required.
 
 ---
 
