@@ -285,7 +285,6 @@ export const en = {
   'hospitality.maxGuests': 'Max Guests',
   'hospitality.bathrooms': 'Bathrooms',
   'hospitality.amenities': 'Amenities',
-  'hospitality.amenitiesPhase6Placeholder': 'Amenities list — coming in a future update',
 
   // Phase 6 (HOSP-05) — 12 amenity labels (canonical token → EN label)
   'amenity.wifi': 'Wi-Fi',
