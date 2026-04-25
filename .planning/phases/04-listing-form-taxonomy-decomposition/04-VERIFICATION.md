@@ -198,7 +198,7 @@ All automated gates pass. Remaining work before phase closure:
 | `MediaSection.tsx` | `Gated` (editMatterportUrl + editPanoramicUrl) | Lines 120, 235 | WIRED | Both Gated wraps confirmed |
 | `handleSubmit` | `panoramicPhotosUrl` (unconditional) | `panoramicPhotosUrl: panoramicPhotosUrl.trim()` at line 466 | WIRED | D-09 anchor B confirmed |
 | `handleSubmit` | `tours` (unconditional) | `tours: tours.length > 0 ? tours : undefined` at line 470 | WIRED | D-09 anchor C confirmed |
-| `rehydrate useEffect` | `setPanoramicPhotosUrl` | Line 254 inside propertyToEdit branch | WIRED | D-09 anchor A confirmed; runs for all users |
+| `rehydrate useEffect` | `setPanoramicPhotosUrl` | Line 283 inside propertyToEdit branch (shifted from 254 — Plan 06-01 added HospitalityAmenity import + Plan 06-02 inserted 3 rehydrate lines for rooms/maxGuests/amenities per Gap 9.2) | WIRED | D-09 anchor A confirmed; grep `setPanoramicPhotosUrl((propertyToEdit as any).panoramicPhotosUrl` returns exactly 1; runs for all users |
 
 ---
 

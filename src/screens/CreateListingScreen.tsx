@@ -275,6 +275,9 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
       setBedrooms(propertyToEdit.specs?.beds?.toString() || '');
       setBathrooms(propertyToEdit.specs?.baths?.toString() || '');
       setAreaSqm(propertyToEdit.specs?.sqft?.toString() || '');
+      setRooms((propertyToEdit as any).rooms?.toString() || '');
+      setMaxGuests((propertyToEdit as any).maxGuests?.toString() || '');
+      setAmenities(((propertyToEdit as any).amenities || []) as HospitalityAmenity[]);
       setFeatures(propertyToEdit.features || []);
       setVideoUrl(propertyToEdit.videoUrl || '');
       setPanoramicPhotosUrl((propertyToEdit as any).panoramicPhotosUrl || '');
