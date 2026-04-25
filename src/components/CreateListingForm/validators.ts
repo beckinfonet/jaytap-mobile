@@ -78,6 +78,7 @@ export const FIELD_ORDER_BY_CATEGORY: Record<PropertyCategory, (keyof FormBag)[]
     'rooms',
     'maxGuests',
     'bathrooms',
+    'amenities',
     'contactPhone',
   ],
 };
@@ -120,6 +121,11 @@ export function validateByCategory(
     if (!values.rooms.trim()) errors.rooms = 'createListing.roomsRequired';
     if (!values.bathrooms.trim()) errors.bathrooms = 'createListing.bathroomsRequired';
     if (!values.maxGuests.trim()) errors.maxGuests = 'createListing.maxGuestsRequired';
+
+    // D-22 — at least one amenity required
+    if (values.amenities.length < 1) {
+      errors.amenities = 'createListing.amenitiesRequired';
+    }
 
     // Hybrid contact rule per D-09/D-10:
     //   If ANY contact is filled, phone + (WA OR TG) is required.
@@ -185,11 +191,13 @@ export function buildPayloadByCategory(
       // NO bedrooms, NO bathrooms
     } as Partial<Property>;
   }
-  // Hospitality — D-14: NO price, NO currency, NO areaSqm, NO period, NO amenities
+  // Hospitality — D-14: NO price, NO currency, NO areaSqm, NO period
+  // Phase 6 D-22: amenities INCLUDED (replaces prior "NO amenities" stance)
   return {
     ...shared,
     rooms: parseInt(values.rooms) || 0,
     bathrooms: parseInt(values.bathrooms) || 0,
     maxGuests: parseInt(values.maxGuests) || 0,
+    amenities: values.amenities,
   } as Partial<Property>;
 }
