@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0.4
 milestone_name: milestone
-status: "Phase 5 closed. Recommended next: `/gsd-discuss-phase 6` (no CONTEXT.md yet)"
-last_updated: "2026-04-25T02:02:51.242Z"
+status: "Phase 6 UI-SPEC approved (5/6 PASS, 1 FLAG on type-scale preservation). Recommended next: `/gsd-plan-phase 6`"
+last_updated: "2026-04-24T00:00:00.000Z"
 progress:
   total_phases: 8
   completed_phases: 5
@@ -27,9 +27,9 @@ progress:
 
 Phase: 05 (listing-form-validation-edit-flow) — **COMPLETE** (2026-04-24)
 Plan: 5 of 5 complete
-**Phase:** 6 (hospitality-rendering) — Not started
+**Phase:** 6 (hospitality-rendering) — UI-SPEC approved
 **Plan:** —
-**Status:** Phase 5 closed. Recommended next: `/gsd-discuss-phase 6` (no CONTEXT.md yet)
+**Status:** Phase 6 CONTEXT + RESEARCH + UI-SPEC complete (UI-SPEC at `f05eea1`, checker 5/6 PASS + 1 FLAG on type-scale preservation per D-07/Pitfall 7 — recommend Phase 7 Alignment Pass as venue for global scale consolidation). Recommended next: `/gsd-plan-phase 6`
 **Progress:** [██████░░░░] 62.5% (5/8 phases complete; 30/30 M1 plans executed)
 
 ### Phase pipeline
