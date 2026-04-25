@@ -12,6 +12,7 @@
  */
 
 import type { Currency } from './validators';
+import type { HospitalityAmenity } from '../../utils/hospitalityAmenities';
 
 export interface FormBag {
   // Always-present (shared across categories)
@@ -38,7 +39,7 @@ export interface FormBag {
   // Hospitality (seeded empty in Phase 4; Plan 04-04 HospitalitySection renders the inputs)
   rooms: string;
   maxGuests: string;
-  amenities: string[];
+  amenities: HospitalityAmenity[]; // D-21: narrowed from string[] to typed token union (Phase 6)
 
   // Media (always; gating happens inside MediaSection wrap scopes in Plan 04-05)
   tours: Array<{ id: string; title: string; url: string }>;

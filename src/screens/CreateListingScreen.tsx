@@ -24,6 +24,7 @@ import { AuthService } from '../services/AuthService';
 import { Property } from '../types/Property';
 import * as ImagePicker from 'react-native-image-picker';
 import { propertyTypeToCategory } from '../utils/propertyCategory';
+import type { HospitalityAmenity } from '../utils/hospitalityAmenities';
 import {
   BasicInfoSection,
   ResidentialSection,
@@ -108,7 +109,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
   const [areaSqm, setAreaSqm] = useState('');
   const [rooms, setRooms] = useState('');
   const [maxGuests, setMaxGuests] = useState('');
-  const [amenities, setAmenities] = useState<string[]>([]);
+  const [amenities, setAmenities] = useState<HospitalityAmenity[]>([]);
   const [features, setFeatures] = useState<string[]>([]);
   const [featureInput, setFeatureInput] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
@@ -177,7 +178,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
       case 'areaSqm': setAreaSqm(value as string); break;
       case 'rooms': setRooms(value as string); break;
       case 'maxGuests': setMaxGuests(value as string); break;
-      case 'amenities': setAmenities(value as string[]); break;
+      case 'amenities': setAmenities(value as HospitalityAmenity[]); break;
       case 'features': setFeatures(value as string[]); break;
       case 'featureInput': setFeatureInput(value as string); break;
       case 'selectedImages': setSelectedImages(value as any[]); break;

@@ -7,6 +7,7 @@ import {
   buildPayloadByCategory,
 } from '../validators';
 import type { FormBag } from '../types';
+import type { HospitalityAmenity } from '../../../utils/hospitalityAmenities';
 
 function makeBase(): FormBag {
   return {
@@ -221,6 +222,7 @@ describe('validateByCategory — Hospitality', () => {
       rooms: '3',
       bathrooms: '2',
       maxGuests: '5',
+      amenities: ['wifi'] as HospitalityAmenity[],
     };
   }
 
