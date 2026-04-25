@@ -629,23 +629,52 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             </View>
           </View>
 
-          {/* Features - title + box with two-column grid */}
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('property.whatThisPlaceOffers')}</Text>
-            <View style={[styles.sectionContentBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <View style={styles.featuresGrid}>
-                {property.features.map((feature, index) => {
-                  const IconComponent = getFeatureIcon(feature);
-                  return (
-                    <View key={index} style={styles.featureItem}>
-                      <IconComponent size={20} color={colors.textSecondary} />
-                      <Text style={[styles.featureItemText, { color: colors.text }]}>{feature}</Text>
-                    </View>
-                  );
-                })}
+          {/* Features - title + box with two-column grid (Phase 6 / D-23: amenity chip grid for Hospitality) */}
+          {isHospitality ? (
+            (property.amenities ?? []).length > 0 && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                  {t('hospitality.amenities')}
+                </Text>
+                <View style={[styles.sectionContentBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <View style={styles.featuresGrid}>
+                    {((property.amenities || []) as HospitalityAmenity[]).map((token) => {
+                      const Icon = AMENITY_ICONS[token] ?? Check;
+                      return (
+                        <View key={token} style={styles.featureItem}>
+                          <Icon size={20} color={colors.textSecondary} />
+                          <Text
+                            style={[styles.featureItemText, { color: colors.text }]}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                          >
+                            {t(`amenity.${token}` as TranslationKeys)}
+                          </Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+              </View>
+            )
+          ) : (
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('property.whatThisPlaceOffers')}</Text>
+              <View style={[styles.sectionContentBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <View style={styles.featuresGrid}>
+                  {property.features.map((feature, index) => {
+                    const IconComponent = getFeatureIcon(feature);
+                    return (
+                      <View key={index} style={styles.featureItem}>
+                        <IconComponent size={20} color={colors.textSecondary} />
+                        <Text style={[styles.featureItemText, { color: colors.text }]}>{feature}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
               </View>
             </View>
-          </View>
+          )}
 
           {/* Location Map */}
           <View style={styles.section}>
