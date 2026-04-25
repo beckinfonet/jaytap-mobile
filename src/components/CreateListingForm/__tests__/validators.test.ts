@@ -332,6 +332,19 @@ describe('validateByCategory — Hospitality', () => {
     const result = validateByCategory(values, 'Hospitality');
     expect(result.errors.maxGuests).toBe('createListing.maxGuestsRequired');
   });
+
+  test('empty amenities → errors.amenities set (D-22)', () => {
+    const values: FormBag = { ...hospitalityBase(), amenities: [] as HospitalityAmenity[] };
+    const result = validateByCategory(values, 'Hospitality');
+    expect(result.isValid).toBe(false);
+    expect(result.errors.amenities).toBe('createListing.amenitiesRequired');
+  });
+
+  test('1+ amenity → errors.amenities unset (D-22)', () => {
+    const values: FormBag = { ...hospitalityBase(), amenities: ['wifi'] as HospitalityAmenity[] };
+    const result = validateByCategory(values, 'Hospitality');
+    expect(result.errors.amenities).toBe(undefined);
+  });
 });
 
 describe('buildPayloadByCategory — payload shape invariants', () => {
@@ -369,22 +382,52 @@ describe('buildPayloadByCategory — payload shape invariants', () => {
     expect('currency' in payload).toBe(true);
   });
 
-  test('Hospitality payload does NOT contain price/currency/areaSqm/amenities (D-14)', () => {
+  test('Hospitality payload excludes price/currency/areaSqm AND includes amenities (D-22)', () => {
     const values: FormBag = {
       ...makeBase(),
       propertyType: 'Hostel',
       rooms: '3',
       bathrooms: '2',
       maxGuests: '5',
+      amenities: ['wifi', 'aircon'] as HospitalityAmenity[],
     };
     const payload: Record<string, unknown> = buildPayloadByCategory(values, 'Hospitality');
     expect('price' in payload).toBe(false);
     expect('currency' in payload).toBe(false);
     expect('areaSqm' in payload).toBe(false);
-    expect('amenities' in payload).toBe(false);
+    expect('amenities' in payload).toBe(true);                 // FLIPPED from false
+    expect((payload.amenities as string[]).length).toBe(2);    // NEW
     expect('rooms' in payload).toBe(true);
     expect('bathrooms' in payload).toBe(true);
     expect('maxGuests' in payload).toBe(true);
+  });
+
+  test('Residential payload does NOT contain amenities key (D-22)', () => {
+    const values: FormBag = {
+      ...makeBase(),
+      propertyType: 'Apartment',
+      bedrooms: '2',
+      bathrooms: '1',
+      areaSqm: '80',
+      price: '1000',
+      currency: '$',
+      amenities: ['wifi'] as HospitalityAmenity[],
+    };
+    const payload: Record<string, unknown> = buildPayloadByCategory(values, 'Residential');
+    expect('amenities' in payload).toBe(false);
+  });
+
+  test('Commercial payload does NOT contain amenities key (D-22)', () => {
+    const values: FormBag = {
+      ...makeBase(),
+      propertyType: 'Office',
+      areaSqm: '200',
+      price: '5000',
+      currency: '$',
+      amenities: ['wifi'] as HospitalityAmenity[],
+    };
+    const payload: Record<string, unknown> = buildPayloadByCategory(values, 'Commercial');
+    expect('amenities' in payload).toBe(false);
   });
 
   test('D-09 anchor B: panoramicPhotosUrl present in all 3 category payloads', () => {
