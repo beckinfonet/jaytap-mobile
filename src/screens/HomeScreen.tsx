@@ -32,6 +32,15 @@ import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { PropertyService } from '../services/PropertyService';
+import {
+  RESIDENTIAL_TYPES,
+  COMMERCIAL_TYPES,
+  HOSPITALITY_TYPES,
+  propertyTypeToCategory,
+  type PropertyCategory,
+} from '../utils/propertyCategory';
+import { HospitalityCard } from '../components/HospitalityCard';
+import { HospitalitySection } from '../components/HospitalitySection';
 
 interface HomeScreenProps {
   onSelectProperty: (property: Property) => void;
@@ -44,9 +53,6 @@ interface HomeScreenProps {
   favoriteStatuses?: Record<string, boolean>; // Map of property ID to favorite status
   favoriteLoading?: Record<string, boolean>; // Map of property ID to loading status
 }
-
-const RESIDENTIAL_TYPES = ['Apartment', 'House', 'Townhome', 'Condo'];
-const COMMERCIAL_TYPES = ['Office', 'Retail', 'Warehouse', 'Industrial'];
 
 const BISHKEK_DISTRICTS = [
   'Bishkek (All)',
@@ -73,9 +79,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // New Filter State
+  // New Filter State (D-04: tri-state replaces the prior binary commercial toggle)
   const [transactionType, setTransactionType] = useState<'rent' | 'sale'>('rent');
-  const [isCommercial, setIsCommercial] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<PropertyCategory>('Residential');
   const [selectedType, setSelectedType] = useState<string | null>(null);
 
   // Filter section visibility (closed by default; tap filter icon to expand)
@@ -115,18 +121,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
       const pType = p.type?.toLowerCase();
       if (pType && pType !== transactionType) return false;
 
-      // 2. Commercial vs Residential Filter
-      const pPropertyType = p.propertyType?.toLowerCase() || 'apartment';
-      const isPropCommercial = COMMERCIAL_TYPES.some(t => t.toLowerCase() === pPropertyType);
-
-      if (isCommercial) {
-        if (!isPropCommercial) return false;
-      } else {
-        if (isPropCommercial) return false;
-      }
+      // 2. Category Filter (D-04 / D-24: tri-state via propertyTypeToCategory)
+      if (propertyTypeToCategory(p.propertyType) !== selectedCategory) return false;
 
       // 3. Specific Property Type Filter
       if (selectedType) {
+        const pPropertyType = p.propertyType?.toLowerCase() || 'apartment';
         if (pPropertyType !== selectedType.toLowerCase()) return false;
       }
 
@@ -138,7 +138,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         const descMatch = p.description?.toLowerCase().includes(searchDistrict);
 
         // Simple heuristic: if the district name is specific (like "Jal"), match it.
-        // For numbered microdistricts, we need to be careful not to match random numbers, 
+        // For numbered microdistricts, we need to be careful not to match random numbers,
         // but for now simple inclusion is a good start.
         if (!addressMatch && !descMatch) return false;
       }
@@ -171,7 +171,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
       }
       return true;
     });
-  }, [properties, transactionType, isCommercial, selectedType, selectedDistrict, searchQuery]);
+  }, [properties, transactionType, selectedCategory, selectedType, selectedDistrict, searchQuery]);
+
+  // Pitfall 2: hospitalityProperties derived AFTER transactionType filter — strip count
+  // changes when toggling Rent/Sell. NOT derived from raw properties.
+  const hospitalityProperties = useMemo(
+    () => properties.filter((p) =>
+      propertyTypeToCategory(p.propertyType) === 'Hospitality'
+      && (!p.type || p.type === transactionType)
+    ),
+    [properties, transactionType],
+  );
 
   const handlePressProperty = (property: Property) => {
     onSelectProperty(property);
@@ -365,67 +375,90 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
               </TouchableOpacity>
             </View>
 
-            {/* Dynamic Filter Row */}
-            <View style={styles.filterRow}>
-              <FlatList
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.filterList}
-                data={[
-                  { id: 'commercial_toggle', label: 'Commercial', isToggle: true },
-                  ...(isCommercial ? COMMERCIAL_TYPES : RESIDENTIAL_TYPES).map(t => ({ id: t, label: t, isToggle: false }))
-                ]}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => {
-                  if (item.isToggle) {
-                    return (
-                      <TouchableOpacity
-                        style={[
-                          styles.filterChip,
-                          {
-                            backgroundColor: isCommercial ? colors.accent : (isDark ? '#2C2C2E' : '#F2F2F7'),
-                            borderColor: isCommercial ? colors.accent : (isDark ? '#3A3A3C' : '#E5E5EA'),
-                          },
-                        ]}
-                        onPress={() => {
-                          setIsCommercial(!isCommercial);
-                          setSelectedType(null);
-                        }}
-                      >
-                        <Text style={[
-                          styles.filterText,
-                          { color: isCommercial ? '#FFF' : colors.text }
-                        ]}>
-                          {item.label}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  }
-
-                  const isActive = selectedType === item.label;
-                  return (
-                    <TouchableOpacity
+            {/* Category-toggle Row (D-04 tri-state: Residential / Commercial / Hospitality) */}
+            <View style={styles.categoryToggleRow}>
+              {(['Residential', 'Commercial', 'Hospitality'] as PropertyCategory[]).map((cat) => {
+                const selected = selectedCategory === cat;
+                const keyMap: Record<PropertyCategory, 'category.residential' | 'category.commercial' | 'category.hospitality'> = {
+                  Residential: 'category.residential',
+                  Commercial: 'category.commercial',
+                  Hospitality: 'category.hospitality',
+                };
+                return (
+                  <TouchableOpacity
+                    key={cat}
+                    style={[
+                      styles.categoryChip,
+                      {
+                        backgroundColor: selected ? colors.accent : (isDark ? '#2C2C2E' : '#F2F2F7'),
+                        borderColor: selected ? colors.accent : (isDark ? '#3A3A3C' : '#E5E5EA'),
+                      },
+                    ]}
+                    onPress={() => {
+                      setSelectedCategory(cat);
+                      setSelectedType(null);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={t(keyMap[cat])}
+                    hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                  >
+                    <Text
                       style={[
-                        styles.filterChip,
-                        {
-                          backgroundColor: isActive ? colors.activeChipBackground : (isDark ? '#2C2C2E' : '#F2F2F7'),
-                          borderColor: isDark ? '#3A3A3C' : '#E5E5EA'
-                        },
+                        styles.filterText,
+                        { color: selected ? '#FFFFFF' : colors.text },
                       ]}
-                      onPress={() => togglePropertyType(item.label)}
+                      numberOfLines={1}
                     >
-                      <Text
-                        style={[
-                          styles.filterText,
-                          { color: isActive ? colors.activeChipText : colors.text },
-                        ]}
-                      >
-                        {item.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                }}
-              />
+                      {t(keyMap[cat])}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Dynamic Filter Row — property-type chips, source switches on selectedCategory (D-04) */}
+            <View style={styles.filterRow}>
+              {(() => {
+                const chipTypes = selectedCategory === 'Hospitality'
+                  ? HOSPITALITY_TYPES
+                  : selectedCategory === 'Commercial'
+                    ? COMMERCIAL_TYPES
+                    : RESIDENTIAL_TYPES;
+                return (
+                  <FlatList
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.filterList}
+                    data={chipTypes.map((tname) => ({ id: tname, label: tname }))}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => {
+                      const isActive = selectedType === item.label;
+                      return (
+                        <TouchableOpacity
+                          style={[
+                            styles.filterChip,
+                            {
+                              backgroundColor: isActive ? colors.activeChipBackground : (isDark ? '#2C2C2E' : '#F2F2F7'),
+                              borderColor: isDark ? '#3A3A3C' : '#E5E5EA',
+                            },
+                          ]}
+                          onPress={() => togglePropertyType(item.label)}
+                        >
+                          <Text
+                            style={[
+                              styles.filterText,
+                              { color: isActive ? colors.activeChipText : colors.text },
+                            ]}
+                          >
+                            {item.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    }}
+                  />
+                );
+              })()}
             </View>
         </View>
       )}
@@ -466,16 +499,39 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
           <FlatList
             data={filteredProperties}
             keyExtractor={(item, index) => item.id || item.listingId || `property-${index}`}
+            ListHeaderComponent={
+              selectedCategory !== 'Hospitality' ? (
+                <HospitalitySection
+                  properties={hospitalityProperties}
+                  onPress={handlePressProperty}
+                  onViewTour={handleViewTour}
+                  onFavorite={onFavorite}
+                  favoriteStatuses={favoriteStatuses}
+                  favoriteLoading={favoriteLoading}
+                />
+              ) : null
+            }
             renderItem={({ item }) => (
-              <PropertyCard
-                property={item}
-                onPress={handlePressProperty}
-                onViewTour={handleViewTour}
-                onViewVideo={handleViewVideo}
-                onFavorite={onFavorite}
-                isFavorited={favoriteStatuses[item.id] || false}
-                isLoading={favoriteLoading[item.id] || false}
-              />
+              selectedCategory === 'Hospitality' ? (
+                <HospitalityCard
+                  property={item}
+                  onPress={handlePressProperty}
+                  onViewTour={handleViewTour}
+                  onFavorite={onFavorite}
+                  isFavorited={favoriteStatuses[item.id] || false}
+                  isLoading={favoriteLoading[item.id] || false}
+                />
+              ) : (
+                <PropertyCard
+                  property={item}
+                  onPress={handlePressProperty}
+                  onViewTour={handleViewTour}
+                  onViewVideo={handleViewVideo}
+                  onFavorite={onFavorite}
+                  isFavorited={favoriteStatuses[item.id] || false}
+                  isLoading={favoriteLoading[item.id] || false}
+                />
+              )
             )}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
@@ -641,6 +697,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     marginRight: 10,
+    borderWidth: 1,
+  },
+  // D-04 tri-state category toggle row (Residential / Commercial / Hospitality)
+  categoryToggleRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  categoryChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
     borderWidth: 1,
   },
   filterText: {
