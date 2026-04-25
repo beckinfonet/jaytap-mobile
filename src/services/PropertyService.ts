@@ -79,10 +79,14 @@ export const PropertyService = {
       formData.append('panoramicPhotosUrl', propertyData.panoramicPhotosUrl || '');
       formData.append('instagramUrl', propertyData.instagramUrl || '');
       formData.append('status', propertyData.status || 'draft');
+      // Phase 6 (HOSP-05 / Gap 9.1) — Hospitality fields wired to backend
+      formData.append('rooms', propertyData.rooms?.toString() || '0');
+      formData.append('maxGuests', propertyData.maxGuests?.toString() || '0');
+      formData.append('amenities', JSON.stringify(propertyData.amenities || []));
       if (propertyData.availableDate) {
         formData.append('availableDate', propertyData.availableDate);
       }
-      
+
       // Add Matterport tours if provided
       if (propertyData.tours && propertyData.tours.length > 0) {
         formData.append('tours', JSON.stringify(propertyData.tours));
@@ -146,10 +150,14 @@ export const PropertyService = {
       formData.append('panoramicPhotosUrl', propertyData.panoramicPhotosUrl || '');
       formData.append('instagramUrl', propertyData.instagramUrl || '');
       formData.append('status', propertyData.status || 'draft');
+      // Phase 6 (HOSP-05 / Gap 9.1) — Hospitality fields wired to backend
+      formData.append('rooms', propertyData.rooms?.toString() || '0');
+      formData.append('maxGuests', propertyData.maxGuests?.toString() || '0');
+      formData.append('amenities', JSON.stringify(propertyData.amenities || []));
       if (propertyData.availableDate) {
         formData.append('availableDate', propertyData.availableDate);
       }
-      
+
       // Add Matterport tours if provided
       if (propertyData.tours && propertyData.tours.length > 0) {
         formData.append('tours', JSON.stringify(propertyData.tours));
