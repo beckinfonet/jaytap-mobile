@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,8 @@ import { DeleteListingModal } from '../components/DeleteListingModal';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { PropertyService } from '../services/PropertyService';
+import { propertyTypeToCategory } from '../utils/propertyCategory';
+import { HospitalitySection } from '../components/HospitalitySection';
 
 interface RenterListingsScreenProps {
   onBack: () => void;
@@ -110,6 +112,16 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
     }
   };
 
+  // D-06 + Gap 9.3: split data into hospitality strip + non-hospitality vertical list
+  const hospitalityProperties = useMemo(
+    () => properties.filter((p) => propertyTypeToCategory(p.propertyType) === 'Hospitality'),
+    [properties],
+  );
+  const otherProperties = useMemo(
+    () => properties.filter((p) => propertyTypeToCategory(p.propertyType) !== 'Hospitality'),
+    [properties],
+  );
+
   const formatStatus = (status: string) => {
     switch (status) {
       case 'draft':
@@ -169,10 +181,22 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       <FlatList
-        data={properties}
+        data={otherProperties}
         keyExtractor={(item) => item.id || Math.random().toString()}
         renderItem={renderPropertyItem}
-        ListHeaderComponent={renderHeader}
+        ListHeaderComponent={
+          <>
+            {renderHeader()}
+            <HospitalitySection
+              properties={hospitalityProperties}
+              onPress={handlePressProperty}
+              onViewTour={handleViewTour}
+              onEdit={onEditProperty}
+              onDelete={handleDeleteProperty}
+              showEditButton={true}
+            />
+          </>
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
