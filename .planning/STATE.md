@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0.4
 milestone_name: milestone
-status: executing
-last_updated: "2026-04-24T19:30:00Z"
+status: "Phase 5 closed. Recommended next: `/gsd-discuss-phase 6` (no CONTEXT.md yet)"
+last_updated: "2026-04-25T02:02:51.242Z"
 progress:
   total_phases: 8
   completed_phases: 5
@@ -117,20 +117,23 @@ Plan: 5 of 5 complete
 
 ## Session Continuity
 
-**Last session:** Phase 4 **COMPLETE** (2026-04-24) — all 6 plans landed; 18/18 manual QA PASS on iPhone (iOS 26) + Moto G (Android 16 / Fabric) at `ac02eb2`; code-review advisory PASS (0 critical / 3 warning / 6 info); verifier `9266329` PASSED 5/5 must_haves.
+**Last session:** 2026-04-25T02:02:51.238Z
 
 **Phase 4 close-out commits:**
+
 - `530b28e` test(04-06): record 18/18 PASS on iOS + Android manual QA walk
 - `7856206` docs(04): add code review report (REVIEW.md)
 - `9266329` docs(04): verifier PASSED — 5/5 must_haves verified
 - (this commit) docs(phase-04): complete phase execution — ROADMAP + STATE
 
 **Three WR-advisories deferred with ownership mapped** (from 04-REVIEW.md):
+
 1. **WR-01** Hospitality submit blocks at `!currency`/`!price.trim()` unconditional check in `handleSubmit` (CreateListingScreen.tsx:424-431), but PriceSection is unmounted for Hospitality. **Phase 5** owns — `validateByCategory()` will branch on category so Hospitality skips currency/price requirements. Hospitality not user-exposed until Phase 6 so no production blast radius.
 2. **WR-02** `scripts/check-i18n-parity.sh` regex `'[a-zA-Z.]+':` excludes digits → silently skips `createListing.tours3d`, `hospitality.amenitiesPhase6Placeholder`, `profile.min30`, `modal.deleteAccountBullet1..5`. Real safety net is `Record<TranslationKeys,string>` tsc. **Quick fix owner:** broaden regex to `[a-zA-Z0-9.]+` — can be Phase 5 wave-0 housekeeping or a spot-fix anytime before Phase 8.
 3. **WR-03** `HomeScreen.tsx:48-49` keeps local `RESIDENTIAL_TYPES`/`COMMERCIAL_TYPES` arrays instead of importing from `propertyCategory.ts`. **Phase 6** owns — Hospitality rendering on Home will need the taxonomy import anyway; consolidate then.
 
 **Phase 4 deliverables:**
+
 - `src/utils/propertyCategory.ts` — single source of truth (PROPERTY_TYPES × 10, RESIDENTIAL/COMMERCIAL/HOSPITALITY_TYPES, PROPERTY_TYPE_TO_CATEGORY, propertyTypeToCategory)
 - `src/components/CreateListingForm/` — 10 files (types + styles + index barrel + 7 sub-components)
 - `src/screens/CreateListingScreen.tsx` — reduced 1404→871 LOC (−37%) as orchestrator
@@ -139,6 +142,7 @@ Plan: 5 of 5 complete
 - `src/utils/__tests__/propertyCategory.test.ts` — 7 assertions GREEN
 
 **Phase 4 invariants verified preserved:**
+
 - `<Gated>` tree count = 3 (2 in MediaSection + 1 in orchestrator around VerificationSection)
 - `./scripts/check-role-grep.sh` exits 0 (Phase 3 D-14 invariant)
 - D-09 anchors A/B/C each grep to exactly 1 (panoramicPhotosUrl rehydrate useEffect + panoramicPhotosUrl unconditionally in payload + tours unconditionally in payload)
@@ -159,9 +163,11 @@ Phase 4 Plan 04-06 (sequential executor on main) — FINAL Wave-3 orchestrator r
 All 14 automated plan success criteria met; criterion 14 (18-cell manual QA on physical iOS + Android) is the OPEN checkpoint. `<Gated>` tree count invariant (3) preserved; all 3 D-09 anchor greps return exactly 1; tsc baseline 16 lines; npm test 22/22 across 5 suites; jest propertyCategory 7/7; check-role-grep.sh exit 0 (**Phase 3 D-14 PRESERVED — CRITICAL**); check-land-removed.sh exit 0; check-i18n-parity.sh exit 0. `CreateListingForm/` directory shape intact (10 files). `android/app/build.gradle` uncommitted drift preserved through both commits. No file deletions.
 
 **Plan 04-06 deviations:** 1 Rule-1 auto-fix (non-blocking):
+
 - **[Rule 1 — Bug] D-09 anchor docblock reworded to satisfy grep-acceptance "exactly 1 hit".** Initial docblock quoted the three D-09 anchors verbatim (including exact regex-matching text); each anchor grep returned 2 hits (source line + docblock). Plan's acceptance specifies "exactly 1" for anchor A. Reworded docblock to paraphrase intent without reusing the regex-target text. Real anchors at source lines 253 / 465 / 469 remain the only matches. Caught pre-checkpoint.
 
 **Observations logged in SUMMARY (non-rule-triggering):**
+
 1. **LOC overshoot vs. UI-SPEC aspirational target <500.** Actual 871 LOC — above UI-SPEC row 480 target and above PATTERNS.md §15 realistic 350-450 range. Breakdown: verificationOnly branch ~50 LOC + onChange switch ~38 LOC + 33 useState declarations ~34 LOC + full handleSubmit 113 LOC + rehydrate useEffect 74 LOC + image/tour handlers ~80 LOC + Contact + Status inline ~70 LOC + styles 110 LOC + docblock/imports ~70 LOC + header/submit/SafeArea ~40 LOC. Correctness prioritized over LOC.
 2. **Pre-existing tsc errors** in AuthContext.tsx (10) + ThemeContext.tsx (2) continue to carry — identical 16-line baseline as 04-02/03/04/05. Out of Phase 4 scope.
 3. **android/app/build.gradle drift preserved** through both commits per STATE.md todos (Phase 8 release-prep scope).
@@ -184,9 +190,11 @@ Phase 4 Plan 04-05 (sequential executor on main) — Wave-2 LOAD-BEARING Media +
 All 11 plan success criteria met. Plan 04-05 SUMMARY self-check PASSED (9 file claims + 3 commit claims verified). All 3 phase-level gates exit 0: check-land-removed.sh (FORM-01 preserved), check-i18n-parity.sh (FORM-09 preserved), check-role-grep.sh (**Phase 3 D-14 PRESERVED — CRITICAL for LOAD-BEARING plan**). Full npm test: 22/22 tests across 5 suites (no regressions). tsc baseline preserved at 16 lines (AuthContext + ThemeContext pre-existing). `src/screens/CreateListingScreen.tsx` NOT touched — last commit there remains `633637c` (Plan 04-02); orchestrator reduction is Plan 04-06 (the FINAL Phase 4 plan). `android/app/build.gradle` uncommitted drift preserved through all three commits. No file deletions in any commit.
 
 **Plan 04-05 deviations:** 1 Rule-1 auto-fix (non-blocking):
+
 - **[Rule 1 — Bug] CURRENCY_OPTIONS values corrected to match orchestrator storage tokens.** Plan action-template at rows 405-409 specified `[{ value: 'USD', ... }, { value: 'KGS', ... }, { value: 'RUB', ... }]`, but the actual orchestrator at CreateListingScreen.tsx:36-39 stores `[{ value: '$', label: '🇺🇸 USD' }, { value: 'сом', label: '🇰🇬 сом' }]`. If I had landed the template's `'USD'`/`'KGS'`/`'RUB'` values, existing drafts stored with `'$'`/`'сом'` would fail to rehydrate (no chip would show selected state) and new listings would write `'USD'`/`'KGS'` to the backend, breaking round-trip with legacy listings. Plan's `read_first` directive ("transcription source for PriceSection") ranks above the paraphrased template. Fix caught pre-commit.
 
 **Observations logged in SUMMARY (non-rule-triggering):**
+
 1. **4 brownfield hex literals in MediaSection transcribed verbatim per Path B precedent.** Line 163 addTourButtonText `'#121212'`/`'#FFFFFF'` (plan explicitly grandfathers these per row 362), line 315 removeImageText `'#FFF'`, line 328 addTourButton shadowColor `'#000'`. Plan's "at most 2 hits" acceptance was overconservative for the full transcription scope; identical to Plan 04-03 precedent (BasicInfoSection landed 20+ brownfield hex hits under Path B). Theme has no dedicated tokens for overlay-on-black-contrast or shadow colors; silently substituting would shift pixel colors. Phase 7 Alignment Pass is the correct venue.
 2. **PriceSection uses commonStyles.chip/chipRow/chipText** instead of source's bespoke `styles.currencyOption`/`currencyRow`/`currencyOptionText` — planner-initiated design refresh per `<action>` template to align the currency selector with the rest of the form's chip-based multi-choice UI. Visual change: smaller, pill-shaped chips vs. larger rectangular tap targets.
 3. **Pre-existing tsc errors** in AuthContext.tsx (10) + ThemeContext.tsx (2) continue to carry — identical 16-line baseline as 04-02/03/04. Out of scope.
