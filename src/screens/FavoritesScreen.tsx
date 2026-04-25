@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,8 @@ import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { FavoritesService } from '../services/FavoritesService';
+import { propertyTypeToCategory } from '../utils/propertyCategory';
+import { HospitalitySection } from '../components/HospitalitySection';
 
 interface FavoritesScreenProps {
   onBack: () => void;
@@ -98,6 +100,16 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
     await loadFavorites();
   };
 
+  // D-06: split data into hospitality strip + non-hospitality vertical list
+  const hospitalityProperties = useMemo(
+    () => properties.filter((p) => propertyTypeToCategory(p.propertyType) === 'Hospitality'),
+    [properties],
+  );
+  const otherProperties = useMemo(
+    () => properties.filter((p) => propertyTypeToCategory(p.propertyType) !== 'Hospitality'),
+    [properties],
+  );
+
   const renderHeader = () => (
     <View style={styles.header}>
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
@@ -138,10 +150,22 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
 
       <FlatList
         style={styles.list}
-        data={properties}
+        data={otherProperties}
         keyExtractor={(item) => item.id || Math.random().toString()}
         renderItem={renderPropertyItem}
-        ListHeaderComponent={renderHeader}
+        ListHeaderComponent={
+          <>
+            {renderHeader()}
+            <HospitalitySection
+              properties={hospitalityProperties}
+              onPress={handlePressProperty}
+              onViewTour={handleViewTour}
+              onFavorite={handleFavorite}
+              favoriteStatuses={favoriteStatuses}
+              favoriteLoading={favoriteLoading}
+            />
+          </>
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={[styles.emptyIcon, { color: colors.textSecondary }]}>♡</Text>
