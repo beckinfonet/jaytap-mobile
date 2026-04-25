@@ -1,3 +1,5 @@
+import type { HospitalityAmenity } from '../utils/hospitalityAmenities';
+
 export interface Tour {
   id: string;
   title: string;
@@ -62,4 +64,8 @@ export interface Property {
   verificationUpdatedByUid?: string;
   /** Listing publication state. 'draft' is the author's staging area; 'live' is user-visible. Added Phase 5 D-16 — FORM-08 edit-mode Draft/Publish rule. */
   status?: 'draft' | 'live';
+  // Phase 6 (HOSP-05 / D-20 / Gap 9.1) — Hospitality top-level fields (NOT inside specs)
+  rooms?: number;
+  maxGuests?: number;
+  amenities?: HospitalityAmenity[];
 }
