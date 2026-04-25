@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v1.0.4
 milestone_name: milestone
 status: executing
-last_updated: "2026-04-24T18:00:00Z"
+last_updated: "2026-04-24T19:30:00Z"
 progress:
   total_phases: 8
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 30
-  completed_plans: 25
-  percent: 83
+  completed_plans: 30
+  percent: 100
 ---
 
 # STATE: JayTap
 
-**Last updated:** 2026-04-24 (Phase 5 PLANNED — 5 plans / 12 tasks / 4 waves committed at `95263d5` + revisions `c3d8529`. Plan split: 01 validators-foundation (W1), 02 section-errors-threading + 03 i18n-validation-keys (W2 parallel), 04 orchestrator-integration (W3), 05 nav-wiring-and-qa-matrix (W4). REQ coverage 4/4 (FORM-04/06/07/08). Plan-checker VERIFIED PASSED iteration 2/3 after W1–W4 warning fixes (FORM-07 grep invariant, emoji typo, RESEARCH resolutions, prescriptive as-any cleanup). Research file: 05-RESEARCH.md (824 lines, 12 findings) + 05-PATTERNS.md + 05-VALIDATION.md Nyquist contract. Next: `/gsd-execute-phase 5`.)
+**Last updated:** 2026-04-24 (Phase 5 **COMPLETE** — all 5 plans landed in 4 waves; manual QA walked + approved on iPhone 15 Pro / iOS 26 + Moto G XT2513V / Android 16 Fabric; verifier PASSED 5/5 must_haves at `410186a`; 4 post-QA gap-closure commits resolved bugs surfaced during walk: `2e49852` district label honesty, `bba66fe` Hospitality price guard in PropertyService, `15de7f5` inline-error spacing fix via new `commonStyles.fieldError`, `2a1ad91` listings refetch on draft save. tsc baseline 16; jest 50/50 across 6 suites; all 3 phase-gate scripts exit 0. Phase 6 Hospitality Rendering unblocked.)
 
 ## Project Reference
 
@@ -25,12 +25,12 @@ progress:
 
 ## Current Position
 
-Phase: 04 (listing-form-taxonomy-decomposition) — **COMPLETE** (2026-04-24)
-Plan: 6 of 6 complete
-**Phase:** 5 (listing-form-validation-edit-flow) — PLANNED (2026-04-24)
-**Plan:** 0 of 5 executed
-**Status:** Ready to execute — `/gsd-execute-phase 5`
-**Progress:** [████████░░] 50% (4/8 phases complete; 25/30 plans executed; Phase 5 plans verified PASSED)
+Phase: 05 (listing-form-validation-edit-flow) — **COMPLETE** (2026-04-24)
+Plan: 5 of 5 complete
+**Phase:** 6 (hospitality-rendering) — Not started
+**Plan:** —
+**Status:** Phase 5 closed. Recommended next: `/gsd-discuss-phase 6` (no CONTEXT.md yet)
+**Progress:** [██████░░░░] 62.5% (5/8 phases complete; 30/30 M1 plans executed)
 
 ### Phase pipeline
 
@@ -38,7 +38,7 @@ Plan: 6 of 6 complete
 2. Universal Keyboard Handling — Complete (6/6 plans executed; gap-closure `47a52b7` added `behavior="padding"` after matrix walk disproved RESEARCH §9 A8; 22/22 matrix cells PASS on both devices; verifier PASSED 34/34) — 2026-04-23
 3. Role Gating Precursor — Complete (7/7 plans done 2026-04-23; all 5 GATE reqs PASS; GATE-05 via D-22 Path B accepted risk in PROJECT.md; scripts/check-role-grep.sh CI gate at `fa25b8b`; 03-VERIFICATION.md at `df6561f`)
 4. Listing Form Taxonomy & Decomposition — **Complete** (6/6 plans; CreateListingScreen 1404→871 LOC; 10 files in `src/components/CreateListingForm/`; 18/18 manual QA PASS; verifier 5/5) — 2026-04-24
-5. Listing Form Validation & Edit Flow — Not started
+5. Listing Form Validation & Edit Flow — **Complete** (5/5 plans; pure `validateByCategory` + `buildPayloadByCategory` source of truth; 16 inline error rows; 14 EN+RU validation keys; orchestrator integration with scroll-to-error + D-11 + D-16; App.tsx wired to AccountSettings; 4 post-QA gap-closure commits; verifier 5/5 must_haves PASS at `410186a`) — 2026-04-24
 6. Hospitality Rendering — Not started
 7. Alignment Pass — Not started (blocked on user screenshots)
 8. Release & Store Submission — Not started
