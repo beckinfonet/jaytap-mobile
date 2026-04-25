@@ -66,7 +66,7 @@ export const PropertyService = {
       formData.append('description', propertyData.description || '');
       formData.append('address', propertyData.address);
       formData.append('city', propertyData.city || 'Bishkek');
-      formData.append('price', propertyData.price.toString());
+      formData.append('price', propertyData.price?.toString() || '0');
       formData.append('currency', propertyData.currency || '$');
       formData.append('period', propertyData.period || '');
       formData.append('type', propertyData.type || 'rent');
@@ -133,7 +133,7 @@ export const PropertyService = {
       formData.append('description', propertyData.description || '');
       formData.append('address', propertyData.address);
       formData.append('city', propertyData.city || 'Bishkek');
-      formData.append('price', propertyData.price.toString());
+      formData.append('price', propertyData.price?.toString() || '0');
       formData.append('currency', propertyData.currency || '$');
       formData.append('period', propertyData.period || '');
       formData.append('type', propertyData.type || 'rent');
