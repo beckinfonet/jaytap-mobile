@@ -17,7 +17,7 @@ import {
   Share,
 } from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Send,
   MessageCircle,
@@ -57,6 +57,9 @@ import {
   AlertTriangle,
 } from 'lucide-react-native';
 import { Property } from '../types/Property';
+import { propertyTypeToCategory } from '../utils/propertyCategory';
+import { AMENITY_ICONS, type HospitalityAmenity } from '../utils/hospitalityAmenities';
+import type { TranslationKeys } from '../locales';
 import { TourHeroCard } from '../components/TourHeroCard';
 import { ListingMetaTable } from '../components/ListingMetaTable';
 import { getPropertyShareUrl } from '../constants';
@@ -183,6 +186,11 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isMapFullScreen, setIsMapFullScreen] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
+
+  // Phase 6 (HOSP-04 / D-13) — derive category for in-place conditional renders
+  const category = propertyTypeToCategory(property.propertyType);
+  const isHospitality = category === 'Hospitality';
+  const insets = useSafeAreaInsets();
 
   // Silently refresh property data in the background without blocking the UI.
   // The passed-in initialProperty is shown immediately.
