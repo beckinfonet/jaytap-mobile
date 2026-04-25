@@ -287,6 +287,33 @@ export const en = {
   'hospitality.amenities': 'Amenities',
   'hospitality.amenitiesPhase6Placeholder': 'Amenities list — coming in a future update',
 
+  // Phase 6 (HOSP-05) — 12 amenity labels (canonical token → EN label)
+  'amenity.wifi': 'Wi-Fi',
+  'amenity.aircon': 'Air conditioning',
+  'amenity.heating': 'Heating',
+  'amenity.kitchen': 'Kitchen',
+  'amenity.breakfast': 'Breakfast',
+  'amenity.parking': 'Parking',
+  'amenity.reception24': '24h reception',
+  'amenity.laundry': 'Laundry',
+  'amenity.hotwater': 'Hot water',
+  'amenity.commonarea': 'Common area',
+  'amenity.lockers': 'Lockers',
+  'amenity.ensuite': 'En-suite bathroom',
+
+  // Phase 6 (HOSP-05 / D-22) — amenity validation
+  'createListing.amenitiesRequired': 'Select at least one amenity',
+
+  // Phase 6 (HOSP-01 / D-02) — HospitalitySection strip header on Home/Favorites/Owner/Renter
+  'home.hospitalitySectionTitle': 'Hostels & Hotels',
+
+  // Phase 6 (HOSP-03 / D-09) — HospitalityCard type badge
+  'hospitality.badge.hostel': 'Hostel',
+  'hospitality.badge.hotel': 'Hotel',
+
+  // Phase 6 (HOSP-03 / D-10) — HospitalityCard amenity-preview overflow chip
+  'hospitality.amenitiesMore': '+{count} more',
+
   // Favorites
   'favorites.title': 'Favorites',
   'favorites.empty': 'No favorites yet',

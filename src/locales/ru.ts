@@ -290,6 +290,33 @@ export const ru: Record<TranslationKeys, string> = {
   'hospitality.amenities': 'Удобства',
   'hospitality.amenitiesPhase6Placeholder': 'Список удобств — скоро',
 
+  // Phase 6 (HOSP-05) — 12 amenity labels
+  'amenity.wifi': 'Wi-Fi',
+  'amenity.aircon': 'Кондиционер',
+  'amenity.heating': 'Отопление',
+  'amenity.kitchen': 'Кухня',
+  'amenity.breakfast': 'Завтрак',
+  'amenity.parking': 'Парковка',
+  'amenity.reception24': 'Круглосуточная стойка',
+  'amenity.laundry': 'Прачечная',
+  'amenity.hotwater': 'Горячая вода',
+  'amenity.commonarea': 'Общая зона',
+  'amenity.lockers': 'Камеры хранения',
+  'amenity.ensuite': 'Санузел в номере',
+
+  // Phase 6 (HOSP-05 / D-22)
+  'createListing.amenitiesRequired': 'Выберите хотя бы одно удобство',
+
+  // Phase 6 (HOSP-01 / D-02)
+  'home.hospitalitySectionTitle': 'Хостелы и отели',
+
+  // Phase 6 (HOSP-03 / D-09)
+  'hospitality.badge.hostel': 'Хостел',
+  'hospitality.badge.hotel': 'Отель',
+
+  // Phase 6 (HOSP-03 / D-10)
+  'hospitality.amenitiesMore': 'Ещё +{count}',
+
   // Favorites
   'favorites.title': 'Избранное',
   'favorites.empty': 'Пока нет избранного',
