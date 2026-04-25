@@ -448,6 +448,20 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Phase 6 (HOSP-04 / D-14) — Hospitality: tour promoted ABOVE the image gallery */}
+        {isHospitality && (
+          <View style={{ paddingHorizontal: 20, paddingTop: 12 }}>
+            <TourHeroCard
+              isActive={!!(property.is3DTourAvailable && property.tours.length > 0)}
+              tourCount={property.tours.length}
+              isDark={isDark}
+              inputBackground={colors.inputBackground}
+              textSecondary={colors.textSecondary}
+              borderColor={colors.border}
+              onPress={onOpenTours}
+            />
+          </View>
+        )}
         {/* Image Carousel */}
         <View style={styles.carouselContainer}>
           <FlatList
@@ -483,16 +497,18 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
           {/* Media Buttons - Redesigned: Hero 3D Tour + 2x2 Grid */}
           <View style={styles.mediaButtonsContainer}>
-            {/* Hero 3D Tour Card - platform-specific component */}
-            <TourHeroCard
-              isActive={!!(property.is3DTourAvailable && property.tours.length > 0)}
-              tourCount={property.tours.length}
-              isDark={isDark}
-              inputBackground={colors.inputBackground}
-              textSecondary={colors.textSecondary}
-              borderColor={colors.border}
-              onPress={onOpenTours}
-            />
+            {/* Hero 3D Tour Card - platform-specific component (D-14: suppressed for Hospitality, promoted above gallery) */}
+            {!isHospitality && (
+              <TourHeroCard
+                isActive={!!(property.is3DTourAvailable && property.tours.length > 0)}
+                tourCount={property.tours.length}
+                isDark={isDark}
+                inputBackground={colors.inputBackground}
+                textSecondary={colors.textSecondary}
+                borderColor={colors.border}
+                onPress={onOpenTours}
+              />
+            )}
 
             {/* 2x2 Grid: Instagram, Photos, Videos, Message */}
             <View style={styles.mediaGrid}>
@@ -757,10 +773,13 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
         {/* First Row: Price and Owner Name */}
         <View style={styles.footerTopRow}>
-          <View style={styles.priceContainer}>
-            <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>{t('property.price')}</Text>
-            <Text style={[styles.footerPrice, { color: colors.text }]}>{formatPrice(property, t('property.perMonth'))}</Text>
-          </View>
+          {/* Phase 6 (HOSP-04 / D-15) — Hospitality omits price block entirely (no label, no placeholder) */}
+          {!isHospitality && (
+            <View style={styles.priceContainer}>
+              <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>{t('property.price')}</Text>
+              <Text style={[styles.footerPrice, { color: colors.text }]}>{formatPrice(property, t('property.perMonth'))}</Text>
+            </View>
+          )}
           {(() => {
             const owner = (property as any).owner;
             const ownerName = owner ? `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || 'Owner' : null;
