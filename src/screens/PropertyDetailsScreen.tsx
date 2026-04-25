@@ -192,6 +192,12 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const isHospitality = category === 'Hospitality';
   const insets = useSafeAreaInsets();
 
+  // Phase 6 (HOSP-04 / D-16) — sticky contact bar owner-field availability
+  const owner = (property as any).owner;
+  const hasWhatsApp = !!owner?.whatsapp;
+  const hasTelegram = !!owner?.telegram;
+  const hasPhone = !!owner?.phone;
+
   // Silently refresh property data in the background without blocking the UI.
   // The passed-in initialProperty is shown immediately.
   useEffect(() => {
@@ -1021,6 +1027,66 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           </View>
         </View>
       </Modal>
+
+      {/* Phase 6 (HOSP-04 / D-16) — Hospitality sticky contact bar (3 buttons, disabled-when-empty) */}
+      {isHospitality && (
+        <View
+          style={[
+            styles.hospitalityContactBar,
+            {
+              backgroundColor: colors.surface,
+              borderTopColor: colors.border,
+              paddingBottom: Math.max(insets.bottom, 12),
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={[
+              styles.hospitalityContactBtn,
+              {
+                backgroundColor: hasWhatsApp ? '#25D366' : colors.inputBackground,
+                opacity: hasWhatsApp ? 1 : 0.4,
+              },
+            ]}
+            onPress={hasWhatsApp ? handleWhatsApp : undefined}
+            disabled={!hasWhatsApp}
+            accessibilityRole="button"
+            accessibilityLabel={t('property.whatsapp')}
+          >
+            <MessageCircle size={22} color={hasWhatsApp ? '#FFFFFF' : colors.textSecondary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.hospitalityContactBtn,
+              {
+                backgroundColor: hasTelegram ? '#0088CC' : colors.inputBackground,
+                opacity: hasTelegram ? 1 : 0.4,
+              },
+            ]}
+            onPress={hasTelegram ? handleTelegram : undefined}
+            disabled={!hasTelegram}
+            accessibilityRole="button"
+            accessibilityLabel={t('property.telegram')}
+          >
+            <Send size={22} color={hasTelegram ? '#FFFFFF' : colors.textSecondary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.hospitalityContactBtn,
+              {
+                backgroundColor: hasPhone ? '#10B981' : colors.inputBackground,
+                opacity: hasPhone ? 1 : 0.4,
+              },
+            ]}
+            onPress={hasPhone ? handlePhone : undefined}
+            disabled={!hasPhone}
+            accessibilityRole="button"
+            accessibilityLabel={t('property.phoneCall')}
+          >
+            <Phone size={22} color={hasPhone ? '#FFFFFF' : colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -1707,5 +1773,24 @@ const styles = StyleSheet.create({
   contactModalCancelText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  // Phase 6 (HOSP-04 / D-16) — Hospitality sticky contact bar
+  hospitalityContactBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    borderTopWidth: 1,
+  },
+  hospitalityContactBtn: {
+    flex: 1,
+    height: 56,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
