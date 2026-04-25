@@ -27,8 +27,8 @@ progress:
 
 Phase: 05 (listing-form-validation-edit-flow) — **COMPLETE** (2026-04-24)
 Plan: 5 of 5 complete
-**Phase:** 6 (hospitality-rendering) — Wave 2 complete
-**Plan:** 4 of 7 complete (Wave 0–2 done; HospitalityCard + horizontal strip landed at `6dd7307`)
+**Phase:** 6 (hospitality-rendering) — Wave 3 complete
+**Plan:** 6 of 7 complete (Wave 0–3 done; HomeScreen tri-state + 4-screen strip mount + PropertyDetailsScreen Hospitality branches landed at `c85048b`)
 **Status:** Executing
 **Progress:** [██████░░░░] 62.5% (5/8 phases complete; 30/30 M1 plans executed)
 

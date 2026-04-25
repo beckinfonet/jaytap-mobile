@@ -145,8 +145,8 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   - [x] 06-02-PLAN.md — Wave 1: validator extension (D-22 amenity-required + payload.amenities) + PropertyService FormData wire-up (Gap 9.1 — rooms/maxGuests/amenities on create + update) + CreateListingScreen rehydrate (Gap 9.2 — setRooms/setMaxGuests/setAmenities on edit) + 4 new test assertions + 1 flipped
   - [x] 06-03-PLAN.md — Wave 1: form HospitalitySection 12-chip amenity multi-select grid replacing placeholder hint (D-18); parallel to 06-02 (disjoint files)
   - [x] 06-04-PLAN.md — Wave 2: HospitalityCard.tsx (D-07..D-12 tour-first no-price card) + HospitalitySection.tsx (D-01 hidden-when-empty horizontal strip); zero diff in PropertyCard.tsx (D-07 / Pitfall 7)
-  - [ ] 06-05-PLAN.md — Wave 3: 4 list screens — HomeScreen tri-state (D-04) + WR-03 close (D-24) + strip mount; FavoritesScreen / RenterListingsScreen / OwnerListingsScreen strip mount via ListHeaderComponent (D-06); RenterListings passes showEditButton={true} (Gap 9.3)
-  - [ ] 06-06-PLAN.md — Wave 3: PropertyDetailsScreen in-place branch — tour above gallery (D-14) + price-block omit (D-15) + sticky 3-button contact bar with disabled-when-empty (D-16) + amenity chip grid replaces features.map (D-23); parallel to 06-05 (different file)
+  - [x] 06-05-PLAN.md — Wave 3: 4 list screens — HomeScreen tri-state (D-04) + WR-03 close (D-24) + strip mount; FavoritesScreen / RenterListingsScreen / OwnerListingsScreen strip mount via ListHeaderComponent (D-06); RenterListings passes showEditButton={true} (Gap 9.3)
+  - [x] 06-06-PLAN.md — Wave 3: PropertyDetailsScreen in-place branch — tour above gallery (D-14) + price-block omit (D-15) + sticky 3-button contact bar with disabled-when-empty (D-16) + amenity chip grid replaces features.map (D-23); parallel to 06-05 (different file)
   - [ ] 06-07-PLAN.md — Wave 4: delete hospitality.amenitiesPhase6Placeholder i18n key + 06-VERIFICATION.md regression bundle + 06-QA-MATRIX.md ~80-cell physical-device scaffold + BLOCKING manual QA walk checkpoint
 **UI hint**: yes
 
