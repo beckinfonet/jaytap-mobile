@@ -46,7 +46,7 @@ export function CommercialSection({ values, onChange, errors }: SectionProps) {
             keyboardType="numeric"
           />
           {errors.areaSqm && (
-            <Text style={[commonStyles.hint, { color: colors.error }]}>
+            <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
               {t(errors.areaSqm as TranslationKeys)}
             </Text>
           )}

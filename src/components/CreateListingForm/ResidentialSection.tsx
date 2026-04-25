@@ -45,7 +45,7 @@ export function ResidentialSection({ values, onChange, errors }: SectionProps) {
             keyboardType="numeric"
           />
           {errors.bedrooms && (
-            <Text style={[commonStyles.hint, { color: colors.error }]}>
+            <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
               {t(errors.bedrooms as TranslationKeys)}
             </Text>
           )}
@@ -63,7 +63,7 @@ export function ResidentialSection({ values, onChange, errors }: SectionProps) {
             keyboardType="numeric"
           />
           {errors.bathrooms && (
-            <Text style={[commonStyles.hint, { color: colors.error }]}>
+            <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
               {t(errors.bathrooms as TranslationKeys)}
             </Text>
           )}
@@ -81,7 +81,7 @@ export function ResidentialSection({ values, onChange, errors }: SectionProps) {
             keyboardType="numeric"
           />
           {errors.areaSqm && (
-            <Text style={[commonStyles.hint, { color: colors.error }]}>
+            <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
               {t(errors.areaSqm as TranslationKeys)}
             </Text>
           )}

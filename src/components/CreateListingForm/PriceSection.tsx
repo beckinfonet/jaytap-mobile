@@ -66,7 +66,7 @@ export function PriceSection({ values, onChange, errors }: SectionProps) {
         })}
       </View>
       {errors.currency && (
-        <Text style={[commonStyles.hint, { color: colors.error }]}>
+        <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
           {t(errors.currency as TranslationKeys)}
         </Text>
       )}
@@ -95,7 +95,7 @@ export function PriceSection({ values, onChange, errors }: SectionProps) {
         keyboardType="numeric"
       />
       {errors.price && (
-        <Text style={[commonStyles.hint, { color: colors.error }]}>
+        <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
           {t(errors.price as TranslationKeys)}
         </Text>
       )}

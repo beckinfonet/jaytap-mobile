@@ -90,6 +90,10 @@ export const commonStyles = StyleSheet.create({
     marginTop: 4,
     fontStyle: 'italic',
   },
+  fieldError: {
+    marginTop: -8,
+    marginBottom: 12,
+  },
   featuresContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',

@@ -178,7 +178,7 @@ export function BasicInfoSection({ values, onChange, errors }: SectionProps) {
           onChangeText={(v) => onChange('title', v)}
         />
         {errors.title && (
-          <Text style={[commonStyles.hint, { color: colors.error }]}>
+          <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
             {t(errors.title as TranslationKeys)}
           </Text>
         )}
@@ -199,7 +199,7 @@ export function BasicInfoSection({ values, onChange, errors }: SectionProps) {
           numberOfLines={4}
         />
         {errors.description && (
-          <Text style={[commonStyles.hint, { color: colors.error }]}>
+          <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
             {t(errors.description as TranslationKeys)}
           </Text>
         )}
@@ -228,7 +228,7 @@ export function BasicInfoSection({ values, onChange, errors }: SectionProps) {
           onChangeText={(v) => onChange('address', v)}
         />
         {errors.address && (
-          <Text style={[commonStyles.hint, { color: colors.error }]}>
+          <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
             {t(errors.address as TranslationKeys)}
           </Text>
         )}
@@ -247,7 +247,7 @@ export function BasicInfoSection({ values, onChange, errors }: SectionProps) {
           onChangeText={(v) => onChange('district', v)}
         />
         {errors.district && (
-          <Text style={[commonStyles.hint, { color: colors.error }]}>
+          <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
             {t(errors.district as TranslationKeys)}
           </Text>
         )}
@@ -266,7 +266,7 @@ export function BasicInfoSection({ values, onChange, errors }: SectionProps) {
           onChangeText={(v) => onChange('city', v)}
         />
         {errors.city && (
-          <Text style={[commonStyles.hint, { color: colors.error }]}>
+          <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
             {t(errors.city as TranslationKeys)}
           </Text>
         )}
@@ -421,7 +421,7 @@ export function BasicInfoSection({ values, onChange, errors }: SectionProps) {
           })}
         </View>
         {errors.propertyType && (
-          <Text style={[commonStyles.hint, { color: colors.error }]}>
+          <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
             {t(errors.propertyType as TranslationKeys)}
           </Text>
         )}
@@ -520,7 +520,7 @@ export function BasicInfoSection({ values, onChange, errors }: SectionProps) {
           </TouchableOpacity>
         )}
         {errors.availableDate && (
-          <Text style={[commonStyles.hint, { color: colors.error }]}>
+          <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
             {t(errors.availableDate as TranslationKeys)}
           </Text>
         )}

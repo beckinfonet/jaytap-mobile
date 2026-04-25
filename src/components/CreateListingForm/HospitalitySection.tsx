@@ -55,7 +55,7 @@ export function HospitalitySection({ values, onChange, errors }: SectionProps) {
             keyboardType="numeric"
           />
           {errors.rooms && (
-            <Text style={[commonStyles.hint, { color: colors.error }]}>
+            <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
               {t(errors.rooms as TranslationKeys)}
             </Text>
           )}
@@ -73,7 +73,7 @@ export function HospitalitySection({ values, onChange, errors }: SectionProps) {
             keyboardType="numeric"
           />
           {errors.maxGuests && (
-            <Text style={[commonStyles.hint, { color: colors.error }]}>
+            <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
               {t(errors.maxGuests as TranslationKeys)}
             </Text>
           )}
@@ -91,7 +91,7 @@ export function HospitalitySection({ values, onChange, errors }: SectionProps) {
             keyboardType="numeric"
           />
           {errors.bathrooms && (
-            <Text style={[commonStyles.hint, { color: colors.error }]}>
+            <Text style={[commonStyles.hint, commonStyles.fieldError, { color: colors.error }]}>
               {t(errors.bathrooms as TranslationKeys)}
             </Text>
           )}
