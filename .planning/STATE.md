@@ -27,8 +27,8 @@ progress:
 
 Phase: 05 (listing-form-validation-edit-flow) — **COMPLETE** (2026-04-24)
 Plan: 5 of 5 complete
-**Phase:** 6 (hospitality-rendering) — Wave 0 complete
-**Plan:** 1 of 7 complete (06-01 foundation landed `b90d130`)
+**Phase:** 6 (hospitality-rendering) — Wave 1 complete
+**Plan:** 3 of 7 complete (06-01 foundation + 06-02 validators/payload/rehydrate + 06-03 chip-grid form UI)
 **Status:** Executing
 **Progress:** [██████░░░░] 62.5% (5/8 phases complete; 30/30 M1 plans executed)
 
