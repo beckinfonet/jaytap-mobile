@@ -147,7 +147,7 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   - [x] 06-04-PLAN.md — Wave 2: HospitalityCard.tsx (D-07..D-12 tour-first no-price card) + HospitalitySection.tsx (D-01 hidden-when-empty horizontal strip); zero diff in PropertyCard.tsx (D-07 / Pitfall 7)
   - [x] 06-05-PLAN.md — Wave 3: 4 list screens — HomeScreen tri-state (D-04) + WR-03 close (D-24) + strip mount; FavoritesScreen / RenterListingsScreen / OwnerListingsScreen strip mount via ListHeaderComponent (D-06); RenterListings passes showEditButton={true} (Gap 9.3)
   - [x] 06-06-PLAN.md — Wave 3: PropertyDetailsScreen in-place branch — tour above gallery (D-14) + price-block omit (D-15) + sticky 3-button contact bar with disabled-when-empty (D-16) + amenity chip grid replaces features.map (D-23); parallel to 06-05 (different file)
-  - [ ] 06-07-PLAN.md — Wave 4: delete hospitality.amenitiesPhase6Placeholder i18n key + 06-VERIFICATION.md regression bundle + 06-QA-MATRIX.md ~80-cell physical-device scaffold + BLOCKING manual QA walk checkpoint
+  - [x] 06-07-PLAN.md — Wave 4: delete hospitality.amenitiesPhase6Placeholder i18n key + 06-VERIFICATION.md regression bundle + 06-QA-MATRIX.md ~80-cell physical-device scaffold + BLOCKING manual QA walk checkpoint
 **UI hint**: yes
 
 ### Phase 7: Alignment Pass
@@ -198,7 +198,7 @@ M2 requirements (ROLE-01…04, MOD-01…06, ADMIN-01…04) are tracked in REQUIR
 | 3. Role Gating Precursor | 7/7 | Complete | 2026-04-23 |
 | 4. Listing Form Taxonomy & Decomposition | 6/6 | Complete | 2026-04-24 |
 | 5. Listing Form Validation & Edit Flow | 5/5 | Complete | 2026-04-24 |
-| 6. Hospitality Rendering | 0/7 | Planned | - |
+| 6. Hospitality Rendering | 7/7 | Complete | 2026-04-25 |
 | 7. Alignment Pass | 0/? | Not started | - |
 | 8. Release & Store Submission | 0/? | Not started | - |
 

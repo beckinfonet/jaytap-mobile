@@ -43,12 +43,12 @@ Requirements for v1.0.4 release. Each maps to exactly one roadmap phase.
 
 ### Hospitality Rendering (HOSP)
 
-- [ ] **HOSP-01**: Hostel/Hotel listings appear in their own dedicated section on `HomeScreen`, `FavoritesScreen`, and `OwnerListingsScreen` (separate section, not mixed into the main residential/commercial list) — research ARCHITECTURE recommends `HospitalitySection` as `ListHeaderComponent` with an inner horizontal list
-- [ ] **HOSP-02**: Hostel/Hotel listings are present under both the Rent and Sell filter/toggle views (no price shown in either case)
-- [ ] **HOSP-03**: A `HospitalityCard` component (or prop variant on `PropertyCard`) renders Hostel/Hotel cards without a price chip, emphasizing 3D tour thumbnail and a `Hostel`/`Hotel` badge
-- [ ] **HOSP-04**: `PropertyDetailsScreen` renders a Hostel/Hotel listing without any price block, with 3D tours promoted above the image gallery, panoramic media surfaced, and WhatsApp/Telegram/phone quick-action contact buttons prominent
-- [ ] **HOSP-05**: Hospitality-specific amenities multi-select supports at minimum this 12-item taxonomy: WiFi, Air conditioning, Heating, Kitchen, Breakfast, Parking, 24h reception, Laundry, Hot water, Common area, Lockers, En-suite bathrooms (i18n keys documented in `FEATURES.md`)
-- [ ] **HOSP-06**: Hostel/Hotel listing cards and detail pages render correctly in both EN and RU with all amenity labels translated
+- [x] **HOSP-01**: Hostel/Hotel listings appear in their own dedicated section on `HomeScreen`, `FavoritesScreen`, and `OwnerListingsScreen` (separate section, not mixed into the main residential/commercial list) — research ARCHITECTURE recommends `HospitalitySection` as `ListHeaderComponent` with an inner horizontal list — Phase 6 complete 2026-04-25
+- [x] **HOSP-02**: Hostel/Hotel listings are present under both the Rent and Sell filter/toggle views (no price shown in either case) — Phase 6 complete 2026-04-25 (Pitfall 2: hospitalityProperties derived AFTER transactionType filter)
+- [x] **HOSP-03**: A `HospitalityCard` component (or prop variant on `PropertyCard`) renders Hostel/Hotel cards without a price chip, emphasizing 3D tour thumbnail and a `Hostel`/`Hotel` badge — Phase 6 complete 2026-04-25 (`src/components/HospitalityCard.tsx` 402 LOC; PropertyCard.tsx zero-diff per D-07/Pitfall 7)
+- [x] **HOSP-04**: `PropertyDetailsScreen` renders a Hostel/Hotel listing without any price block, with 3D tours promoted above the image gallery, panoramic media surfaced, and WhatsApp/Telegram/phone quick-action contact buttons prominent — Phase 6 complete 2026-04-25 (D-13/D-14/D-15/D-16/D-23 + HI-01 specs-row gap closed at `b1da946`)
+- [x] **HOSP-05**: Hospitality-specific amenities multi-select supports at minimum this 12-item taxonomy: WiFi, Air conditioning, Heating, Kitchen, Breakfast, Parking, 24h reception, Laundry, Hot water, Common area, Lockers, En-suite bathrooms (i18n keys documented in `FEATURES.md`) — Phase 6 complete 2026-04-25 (`HOSPITALITY_AMENITIES` as-const tuple; D-22 amenity-required validator; chip-grid picker)
+- [x] **HOSP-06**: Hostel/Hotel listing cards and detail pages render correctly in both EN and RU with all amenity labels translated — Phase 6 complete 2026-04-25 (33 EN+RU keys added; placeholder cleanup in Plan 07; `check-i18n-parity.sh` exit 0)
 
 ### Role Gating Precursor (GATE)
 
@@ -138,12 +138,12 @@ Each v1 REQ-ID maps to exactly one phase in ROADMAP.md.
 | FORM-07 | Phase 5: Listing Form Validation & Edit Flow | Pending |
 | FORM-08 | Phase 5: Listing Form Validation & Edit Flow | Pending |
 | FORM-09 | Phase 4: Listing Form Taxonomy & Decomposition | Complete |
-| HOSP-01 | Phase 6: Hospitality Rendering | Pending |
-| HOSP-02 | Phase 6: Hospitality Rendering | Pending |
-| HOSP-03 | Phase 6: Hospitality Rendering | Pending |
-| HOSP-04 | Phase 6: Hospitality Rendering | Pending |
-| HOSP-05 | Phase 6: Hospitality Rendering | Pending |
-| HOSP-06 | Phase 6: Hospitality Rendering | Pending |
+| HOSP-01 | Phase 6: Hospitality Rendering | Complete |
+| HOSP-02 | Phase 6: Hospitality Rendering | Complete |
+| HOSP-03 | Phase 6: Hospitality Rendering | Complete |
+| HOSP-04 | Phase 6: Hospitality Rendering | Complete |
+| HOSP-05 | Phase 6: Hospitality Rendering | Complete |
+| HOSP-06 | Phase 6: Hospitality Rendering | Complete |
 | GATE-01 | Phase 3: Role Gating Precursor | Complete |
 | GATE-02 | Phase 3: Role Gating Precursor | Complete |
 | GATE-03 | Phase 3: Role Gating Precursor | Complete |
