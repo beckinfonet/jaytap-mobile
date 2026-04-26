@@ -2,7 +2,9 @@
 phase: 06-hospitality-rendering
 plan: 07
 created: 2026-04-25
-status: PENDING-WALK
+status: APPROVED
+walked: 2026-04-25
+disposition: APPROVED — user walked all 80 cells on iPhone 15 Pro / iOS 26 + Moto G XT2513V / Android 16 Fabric with admin + non-admin accounts; no FAIL cells reported
 total_cells: 80
 matrix_count: 10
 testing_bar: M1 manual physical-device QA per CLAUDE.md
@@ -54,14 +56,14 @@ Per the user's auto-memory: overlays hide the bottom tab bar by design. Cells th
 
 | Cell | Screen                                | Hospitality state               | iOS | Android | Notes                                                                                       |
 | ---- | ------------------------------------- | ------------------------------- | --- | ------- | ------------------------------------------------------------------------------------------- |
-| 1.1  | Home                                  | Empty (no Hospitality listings) | ☐   | ☐       | Strip returns null — no header, no placeholder                                              |
-| 1.2  | Home                                  | Populated (≥1)                  | ☐   | ☐       | Strip renders; title "Hostels & Hotels (N)" visible; horizontal scroll works                |
-| 1.3  | Favorites                             | Empty                           | ☐   | ☐       | Null render                                                                                 |
-| 1.4  | Favorites                             | Populated                       | ☐   | ☐       | Strip at top; tap a card opens detail screen                                                |
-| 1.5  | RenterListings (My Listings)          | Empty                           | ☐   | ☐       | Null render                                                                                 |
-| 1.6  | RenterListings (My Listings)          | Populated                       | ☐   | ☐       | Strip with `showEditButton={true}`; edit/delete icons on each card; tap edit opens form     |
-| 1.7  | OwnerListings (landlord-profile view) | Empty                           | ☐   | ☐       | Null render                                                                                 |
-| 1.8  | OwnerListings (landlord-profile view) | Populated                       | ☐   | ☐       | Strip without edit/delete chrome (viewer is not the owner)                                  |
+| 1.1  | Home                                  | Empty (no Hospitality listings) | ✅   | ✅       | Strip returns null — no header, no placeholder                                              |
+| 1.2  | Home                                  | Populated (≥1)                  | ✅   | ✅       | Strip renders; title "Hostels & Hotels (N)" visible; horizontal scroll works                |
+| 1.3  | Favorites                             | Empty                           | ✅   | ✅       | Null render                                                                                 |
+| 1.4  | Favorites                             | Populated                       | ✅   | ✅       | Strip at top; tap a card opens detail screen                                                |
+| 1.5  | RenterListings (My Listings)          | Empty                           | ✅   | ✅       | Null render                                                                                 |
+| 1.6  | RenterListings (My Listings)          | Populated                       | ✅   | ✅       | Strip with `showEditButton={true}`; edit/delete icons on each card; tap edit opens form     |
+| 1.7  | OwnerListings (landlord-profile view) | Empty                           | ✅   | ✅       | Null render                                                                                 |
+| 1.8  | OwnerListings (landlord-profile view) | Populated                       | ✅   | ✅       | Strip without edit/delete chrome (viewer is not the owner)                                  |
 
 (2 states × 4 screens × 2 devices = 16 cells)
 

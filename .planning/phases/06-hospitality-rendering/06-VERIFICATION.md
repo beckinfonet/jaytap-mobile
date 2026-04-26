@@ -2,14 +2,15 @@
 phase: 06-hospitality-rendering
 plan: 07
 created: 2026-04-25
-status: AUTOMATED-GATES-PASS / AWAITING-MANUAL-QA
+status: PASS
+manual_qa_walked: 2026-04-25
 recorded_at_commit: 496461c
 ---
 
 # Phase 6 — Verification Bundle
 
 **Created:** 2026-04-25
-**Phase status:** AWAITING-MANUAL-QA — all automated gates below PASS; user must walk `06-QA-MATRIX.md` on physical iPhone (iOS 26) + Moto G XT2513V (Android 16 / Fabric) before phase exit.
+**Phase status:** PASS — all automated gates PASS; user walked `06-QA-MATRIX.md` on physical iPhone 15 Pro (iOS 26) + Moto G XT2513V (Android 16 / Fabric) with admin + non-admin accounts on 2026-04-25; no FAIL cells reported.
 
 This document records the phase-exit automated regression bundle for Phase 6 (Hospitality Rendering). Mirror of Phase 4's `04-VERIFICATION.md` 10-section structure, extended with Phase-6-specific invariants from `06-RESEARCH.md` § Validation Architecture and `06-VALIDATION.md` § Phase-Gate Regression Bundle.
 
@@ -129,7 +130,7 @@ All 6 HOSP requirements have observable outcomes verified by automated gates. Ma
 
 **Manual QA checkpoint: BLOCKING per CLAUDE.md M1 testing bar.** User must walk `06-QA-MATRIX.md` (80 cells across 10 matrices on iPhone 15 Pro / iOS 26 + Moto G XT2513V / Android 16 Fabric, with both admin and non-admin accounts where applicable). On all-PASS, Phase 6 closes via `/gsd-verify-work`. On any unaccepted FAIL, route to a `06-08-PLAN.md` gap-closure plan via `/gsd-plan-phase 6 --gaps`.
 
-**Manual QA walk row:** AWAITING USER. Recorded in `06-QA-MATRIX.md` § Sign-off; the orchestrator will not flip Phase 6 to COMPLETE until the user types "approved" or accepts FAIL cells via PROJECT.md Key Decisions.
+**Manual QA walk row:** PASS (2026-04-25). User walked all 80 cells across 10 matrices on iPhone 15 Pro (iOS 26) + Moto G XT2513V (Android 16 / Fabric) with both admin and non-admin accounts; no FAIL cells reported; user approved phase exit.
 
 ---
 
