@@ -598,26 +598,28 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             </View>
           </View>
 
-          {/* Specs */}
-          <View style={[styles.specsContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={styles.specItem}>
-              <Text style={styles.specIcon}>🛏</Text>
-              <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.beds}</Text>
-              <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.beds')}</Text>
+          {/* Specs (Residential / Commercial only — Hospitality uses rooms/maxGuests/amenities semantics) */}
+          {!isHospitality && (
+            <View style={[styles.specsContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={styles.specItem}>
+                <Text style={styles.specIcon}>🛏</Text>
+                <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.beds}</Text>
+                <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.beds')}</Text>
+              </View>
+              <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
+              <View style={styles.specItem}>
+                <Text style={styles.specIcon}>🚿</Text>
+                <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.baths}</Text>
+                <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.baths')}</Text>
+              </View>
+              <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
+              <View style={styles.specItem}>
+                <Text style={styles.specIcon}>📐</Text>
+                <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.sqft}</Text>
+                <Text style={[styles.specLabel, { color: colors.textSecondary }]}>m²</Text>
+              </View>
             </View>
-            <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
-            <View style={styles.specItem}>
-              <Text style={styles.specIcon}>🚿</Text>
-              <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.baths}</Text>
-              <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.baths')}</Text>
-            </View>
-            <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
-            <View style={styles.specItem}>
-              <Text style={styles.specIcon}>📐</Text>
-              <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.sqft}</Text>
-              <Text style={[styles.specLabel, { color: colors.textSecondary }]}>m²</Text>
-            </View>
-          </View>
+          )}
 
           {/* Description */}
           <View style={styles.section}>
