@@ -64,6 +64,7 @@ import { TourHeroCard } from '../components/TourHeroCard';
 import { ListingMetaTable } from '../components/ListingMetaTable';
 import { getPropertyShareUrl } from '../constants';
 import { formatPrice } from '../utils/formatPrice';
+import { formatAddress } from '../utils/formatAddress';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { PropertyService } from '../services/PropertyService';
@@ -589,12 +590,22 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 availableDate={(property as any).availableDate}
                 showAvailabilityDot
               />
-              <View style={styles.addressRow}>
-                <View style={{ marginRight: 6 }}>
-                  <MapPin size={16} color={colors.textSecondary} />
-                </View>
-                <Text style={[styles.address, { color: colors.textSecondary, flex: 1 }]} numberOfLines={1} ellipsizeMode="tail">{property.address}</Text>
-              </View>
+              {(() => {
+                const formatted = formatAddress(property.address);
+                return (
+                  <View style={styles.addressRow}>
+                    <View style={{ marginRight: 6, marginTop: 2 }}>
+                      <MapPin size={16} color={colors.textSecondary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.address, { color: colors.textSecondary, marginBottom: 0 }]} numberOfLines={1} ellipsizeMode="tail">{formatted.line1}</Text>
+                      {formatted.line2 ? (
+                        <Text style={[styles.address, { color: colors.textSecondary, marginBottom: 0 }]} numberOfLines={1} ellipsizeMode="tail">{formatted.line2}</Text>
+                      ) : null}
+                    </View>
+                  </View>
+                );
+              })()}
             </View>
           </View>
 
@@ -1215,7 +1226,7 @@ const styles = StyleSheet.create({
   },
   addressRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginTop: 8,
   },
   title: {
@@ -1226,6 +1237,7 @@ const styles = StyleSheet.create({
   },
   address: {
     fontSize: 16,
+    lineHeight: 20,
     marginBottom: 8,
   },
   specsContainer: {

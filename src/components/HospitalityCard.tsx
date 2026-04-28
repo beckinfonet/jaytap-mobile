@@ -35,6 +35,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import type { TranslationKeys } from '../locales';
 import { AMENITY_ICONS, type HospitalityAmenity } from '../utils/hospitalityAmenities';
+import { formatAddress } from '../utils/formatAddress';
 
 interface HospitalityCardProps {
   property: Property;
@@ -170,9 +171,21 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
           <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
             {property.title}
           </Text>
-          <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>
-            {property.address}
-          </Text>
+          {(() => {
+            const formatted = formatAddress(property.address);
+            return (
+              <>
+                <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+                  {formatted.line1}
+                </Text>
+                {formatted.line2 ? (
+                  <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+                    {formatted.line2}
+                  </Text>
+                ) : null}
+              </>
+            );
+          })()}
 
           {/* D-10: rooms + maxGuests meta — no price formatter, no beds/baths/sqft meta table */}
           <Text style={[styles.meta, { color: colors.textSecondary }]} numberOfLines={1}>

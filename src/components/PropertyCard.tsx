@@ -14,6 +14,7 @@ import { Heart, Bed, Bath, Pencil, Trash2 } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { getPropertyShareUrl } from '../constants';
 import { formatPrice } from '../utils/formatPrice';
+import { formatAddress } from '../utils/formatAddress';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -156,9 +157,21 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               availableDate={(property as any).availableDate}
               compact
             />
-            <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>
-              {property.address}
-            </Text>
+            {(() => {
+              const formatted = formatAddress(property.address);
+              return (
+                <>
+                  <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+                    {formatted.line1}
+                  </Text>
+                  {formatted.line2 ? (
+                    <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+                      {formatted.line2}
+                    </Text>
+                  ) : null}
+                </>
+              );
+            })()}
           </View>
 
           <View style={styles.footerRow}>

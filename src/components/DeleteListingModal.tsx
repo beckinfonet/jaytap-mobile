@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { Property } from '../types/Property';
+import { formatAddress } from '../utils/formatAddress';
 
 interface DeleteListingModalProps {
   visible: boolean;
@@ -76,9 +77,21 @@ export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
               <Text style={[styles.propertyTitle, { color: themeStyles.text }]} numberOfLines={2}>
                 {property.title}
               </Text>
-              <Text style={[styles.propertyAddress, { color: themeStyles.textSecondary }]} numberOfLines={1}>
-                {property.address}
-              </Text>
+              {(() => {
+                const formatted = formatAddress(property.address);
+                return (
+                  <>
+                    <Text style={[styles.propertyAddress, { color: themeStyles.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+                      {formatted.line1}
+                    </Text>
+                    {formatted.line2 ? (
+                      <Text style={[styles.propertyAddress, { color: themeStyles.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+                        {formatted.line2}
+                      </Text>
+                    ) : null}
+                  </>
+                );
+              })()}
             </View>
           )}
           <Text style={[styles.warningText, { color: themeStyles.textSecondary }]}>
