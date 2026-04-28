@@ -172,7 +172,7 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   6. The `applinks:bizdinkonush.com` legacy entitlement is reviewed (removed if the domain has lapsed, retained only with explicit rationale), and Google Maps Android key restrictions (package + SHA-1) are confirmed in Cloud Console before submission
 **Plans**: 5 plans
   - [x] 08-01-PLAN.md — Wave 0: pre-archive verifications (D-04 Xcode + D-02/D-05 verify-only assertions) + 08-QA-MATRIX.md scaffold creation — Complete 2026-04-28 (`a388104`)
-  - [ ] 08-02-PLAN.md — Wave 1: atomic version bump (package.json + ios pbxproj MARKETING_VERSION 2x) per D-01
+  - [x] 08-02-PLAN.md — Wave 1: atomic version bump (package.json `"version"` 1.0.3 → 1.0.4 + ios pbxproj `MARKETING_VERSION` 1.0.3 → 1.0.4 ×2 Debug+Release) per D-01 — Complete 2026-04-28 (`de4ff0a`); 6/6 D-05 grep assertions PASS; 3/3 Phase-3/4 CI gates exit 0; pbxproj `CURRENT_PROJECT_VERSION = 21` + gradle `versionCode 25` + gradle `versionName "1.0.24"` preserved per D-02; build-identity SHA for Plan 08-05 archive = `de4ff0a`
   - [ ] 08-03-PLAN.md — Wave 2: physical-device regression smoke walk + D-08 bug-fix loop (BLOCKING phase-exit checkpoint)
   - [ ] 08-04-PLAN.md — Wave 3: bilingual EN+RU release notes draft (08-RELEASE-NOTES.md) per D-10/D-11
   - [ ] 08-05-PLAN.md — Wave 4: TestFlight history check (D-03 conditional bump) + Xcode archive + ASC upload + Android .aab + Play Console upload + 08-VERIFICATION.md
