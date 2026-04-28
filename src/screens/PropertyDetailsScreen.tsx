@@ -593,7 +593,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 <View style={{ marginRight: 6 }}>
                   <MapPin size={16} color={colors.textSecondary} />
                 </View>
-                <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1}>{property.address}</Text>
+                <Text style={[styles.address, { color: colors.textSecondary, flex: 1 }]} numberOfLines={1} ellipsizeMode="tail">{property.address}</Text>
               </View>
             </View>
           </View>
