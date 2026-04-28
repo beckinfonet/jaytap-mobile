@@ -4,6 +4,9 @@
 
 .env
 
+# Claude Code internal worktrees / scratch
+.claude/
+
 APP_STORE_SUBMISSION_CHECKLIST.md
 # Xcode
 #
@@ -17,6 +20,7 @@ build/
 *.perspectivev3
 !default.perspectivev3
 xcuserdata
+xcshareddata
 *.xccheckout
 *.moved-aside
 DerivedData
