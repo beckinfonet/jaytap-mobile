@@ -171,7 +171,7 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   5. The build is submitted to App Store Connect and Google Play Console with release notes describing the polish changes (bug fixes + hospitality launch), and App Store Connect App Privacy responses match the privacy manifest exactly
   6. The `applinks:bizdinkonush.com` legacy entitlement is reviewed (removed if the domain has lapsed, retained only with explicit rationale), and Google Maps Android key restrictions (package + SHA-1) are confirmed in Cloud Console before submission
 **Plans**: 5 plans
-  - [ ] 08-01-PLAN.md — Wave 0: pre-archive verifications (D-04 Xcode + D-02/D-05 verify-only assertions) + 08-QA-MATRIX.md scaffold creation
+  - [x] 08-01-PLAN.md — Wave 0: pre-archive verifications (D-04 Xcode + D-02/D-05 verify-only assertions) + 08-QA-MATRIX.md scaffold creation — Complete 2026-04-28 (`a388104`)
   - [ ] 08-02-PLAN.md — Wave 1: atomic version bump (package.json + ios pbxproj MARKETING_VERSION 2x) per D-01
   - [ ] 08-03-PLAN.md — Wave 2: physical-device regression smoke walk + D-08 bug-fix loop (BLOCKING phase-exit checkpoint)
   - [ ] 08-04-PLAN.md — Wave 3: bilingual EN+RU release notes draft (08-RELEASE-NOTES.md) per D-10/D-11
@@ -200,7 +200,7 @@ M2 requirements (ROLE-01…04, MOD-01…06, ADMIN-01…04) are tracked in REQUIR
 | 5. Listing Form Validation & Edit Flow | 5/5 | Complete | 2026-04-24 |
 | 6. Hospitality Rendering | 7/7 | Complete | 2026-04-25 |
 | 7. Alignment Pass | 0/0 | Skipped | 2026-04-28 |
-| 8. Release & Store Submission | 0/5 | Not started | - |
+| 8. Release & Store Submission | 1/5 | In Progress | - |
 
 ## Backlog
 

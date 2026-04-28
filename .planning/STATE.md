@@ -3,18 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.0.4
 milestone_name: milestone
 status: executing
-last_updated: "2026-04-28T20:43:15.180Z"
+last_updated: "2026-04-28T22:00:00.000Z"
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 43
-  completed_plans: 37
-  percent: 86
+  completed_plans: 38
+  percent: 88
 ---
 
 # STATE: JayTap
 
-**Last updated:** 2026-04-28 (Phase 7 **SKIPPED** — user confirmed nothing alignment-related stood out during Phase 1–6 device QA on iPhone 15 Pro Max / iOS 26 + Moto G XT2513V / Android 16 Fabric; ALIGN-01/02 closed implicitly via Phase 1–6 QA matrix evidence; PROJECT.md Key Decisions row 129 captures the skip. Phase 7 retains its slot in ROADMAP.md for traceability with zero plans. Three M1 todos closed in this session: (a) Phase 7 screenshots (closed by skip), (b) Xcode 26 / iOS 26 SDK gate (closed — user reports Xcode 26.4 / build 17E192), (c) `android/app/build.gradle` drift decision (closed — drift was already reverted; working tree at clean baseline `25 / 1.0.24`; Phase 8 bumps fresh). Phase 8 (Release & Store Submission) is the sole remaining M1 phase and is ready for `/gsd-plan-phase 8`. Privacy manifest reconciliation flagged: `NSPrivacyCollectedDataTypes` is empty; must be aligned with ASC App Privacy declarations during Phase 8 plan. Backlog entry 999.1 (archive listings — authors + mod/admin) registered in ROADMAP.md `## Backlog` for M2 promotion.)
+**Last updated:** 2026-04-28 (Phase 8 Plan 01 **COMPLETE** — Wave 0 pre-archive verification gate cleared on six D-05 grep assertions: package.json `"version": "1.0.3"` pre-bump baseline holds; `CURRENT_PROJECT_VERSION = 21` ×2 in pbxproj; `MARKETING_VERSION = 1.0.3` ×2 in pbxproj (pre-bump twin of post-bump assertion); `versionCode 25` + `versionName "1.0.24"` in build.gradle; `xcodebuild -version` reports `Xcode 26.4 / Build 17E192` (D-04 / REL-04 SDK gate cleared). All three Phase-3/4 CI gates exit 0. Wave-0 baseline anchored at SHA `d7370cc` with clean working tree at entry. Created `08-QA-MATRIX.md` 329-line scaffold (status: scaffold) with all four mandatory cell groups per D-07 (Matrix 1 keyboard 22 cells / Matrix 2 nav 80 cells / Matrix 3 listing categories 18 + 10 strip 28 cells / Matrix 4 role gating 8 cells) + optional Matrix 5 UL smoke (1 cell, iOS only); 138 mandatory cells total. Atomic commit `a388104 docs(08-01): create QA matrix scaffold for v1.0.4 release smoke walk` — zero source-tree drift verified. Plan 08-02 (Wave 1 — atomic version bump) unblocked.)
+
+**PRIOR LAST UPDATE** — 2026-04-28 (Phase 7 **SKIPPED** — user confirmed nothing alignment-related stood out during Phase 1–6 device QA on iPhone 15 Pro Max / iOS 26 + Moto G XT2513V / Android 16 Fabric; ALIGN-01/02 closed implicitly via Phase 1–6 QA matrix evidence; PROJECT.md Key Decisions row 129 captures the skip. Phase 7 retains its slot in ROADMAP.md for traceability with zero plans. Three M1 todos closed in this session: (a) Phase 7 screenshots (closed by skip), (b) Xcode 26 / iOS 26 SDK gate (closed — user reports Xcode 26.4 / build 17E192), (c) `android/app/build.gradle` drift decision (closed — drift was already reverted; working tree at clean baseline `25 / 1.0.24`; Phase 8 bumps fresh). Phase 8 (Release & Store Submission) is the sole remaining M1 phase and is ready for `/gsd-plan-phase 8`. Privacy manifest reconciliation flagged: `NSPrivacyCollectedDataTypes` is empty; must be aligned with ASC App Privacy declarations during Phase 8 plan. Backlog entry 999.1 (archive listings — authors + mod/admin) registered in ROADMAP.md `## Backlog` for M2 promotion.)
 
 **PRIOR LAST UPDATE** — 2026-04-25 (Phase 6 **COMPLETE** — all 7 plans landed across 5 waves: foundation/taxonomy + validators+payload+rehydrate + chip-grid form picker + HospitalityCard + horizontal strip + 4-screen mount + PropertyDetailsScreen Hospitality branches + i18n cleanup + 80-cell QA matrix. Manual QA walked + approved on iPhone 15 Pro / iOS 26 + Moto G XT2513V / Android 16 Fabric. Code reviewer surfaced 1 HIGH (HI-01: PropertyDetailsScreen specs row leaked into Hospitality category — fixed at `b1da946` via `{!isHospitality && (...)}` wrap) + 3 MEDIUM + 4 LOW + 4 INFO; verifier PASSED 6/6 must_haves at `c534c0f` after HI-01 closure. tsc baseline 16; jest 100/100 (real count); all 3 phase-gate scripts exit 0; PropertyCard.tsx zero-diff (D-07/Pitfall 7). ME-02 (`as any` casts in CreateListingScreen rehydrate), ME-03 (unguarded `AMENITY_ICONS[token]` lookup) + 8 LOW/INFO findings deferred to post-M1 polish. Phase 7 Alignment Pass (pending user screenshots) and Phase 8 Release & Submission unblocked.)
 
@@ -27,12 +29,12 @@ progress:
 
 ## Current Position
 
-Phase: 8 (Release & Store Submission) — READY TO PLAN
-Plan: —
+Phase: 8 (Release & Store Submission) — IN PROGRESS (1/5 plans complete)
+Plan: 08-01 — COMPLETE; 08-02 next
 **Phase:** 8 (release-and-store-submission)
-**Plan:** —
-**Status:** Ready to execute
-**Progress:** [████████░░] 87.5% (7/8 phases closed — 6 executed + Phase 7 SKIPPED with zero plans; Phase 8 remains; 37/37 M1 plans executed for currently-planned phases)
+**Plan:** 08-02 (Wave 1 — atomic version bump per D-01)
+**Status:** Plan 08-01 complete; Plan 08-02 unblocked
+**Progress:** [████████▌░] 88% (7/8 phases closed — 6 executed + Phase 7 SKIPPED with zero plans; Phase 8 plans: 1/5 complete; 38/43 M1 plans executed for currently-planned phases)
 
 ### Phase pipeline
 
@@ -43,7 +45,7 @@ Plan: —
 5. Listing Form Validation & Edit Flow — **Complete** (5/5 plans; pure `validateByCategory` + `buildPayloadByCategory` source of truth; 16 inline error rows; 14 EN+RU validation keys; orchestrator integration with scroll-to-error + D-11 + D-16; App.tsx wired to AccountSettings; 4 post-QA gap-closure commits; verifier 5/5 must_haves PASS at `410186a`) — 2026-04-24
 6. Hospitality Rendering — **Complete** (7/7 plans across 5 waves; HospitalitySection + HospitalityCard + tour-first PropertyDetailsScreen branches + 12-amenity taxonomy EN+RU; 80-cell QA matrix walked + approved on iPhone 15 Pro / iOS 26 + Moto G XT2513V / Android 16 Fabric; verifier 6/6 must_haves PASS at `c534c0f`) — 2026-04-25
 7. Alignment Pass — **SKIPPED** 2026-04-28 (zero plans; user confirmed no alignment issues stood out during Phase 1–6 device QA; ALIGN-01/02 closed implicitly; PROJECT.md Key Decisions row 129)
-8. Release & Store Submission — Not started — ready for `/gsd-plan-phase 8`. Privacy manifest gap flagged: `ios/JayTap/PrivacyInfo.xcprivacy` has standard Required Reason API entries (FileTimestamp / UserDefaults / SystemBootTime) but `NSPrivacyCollectedDataTypes` is an empty array — must be reconciled against ASC App Privacy declarations during Phase 8 planning. Xcode 26.4 / build 17E192 confirmed on user's machine 2026-04-28 (REL-04 SDK gate cleared); `android/app/build.gradle` already at clean baseline `versionCode 25 / versionName "1.0.24"` (Phase 8 bumps fresh).
+8. Release & Store Submission — IN PROGRESS (1/5 plans complete) — Plan 08-01 (Wave 0 pre-archive verification + QA scaffold) **COMPLETE 2026-04-28 at `a388104`**: six D-05 grep assertions all exit 0 (package.json 1.0.3 pre-bump / pbxproj `CURRENT_PROJECT_VERSION = 21` ×2 / pbxproj `MARKETING_VERSION = 1.0.3` ×2 / build.gradle `versionCode 25` + `versionName "1.0.24"` / `xcodebuild -version` reports `Xcode 26.4 / Build 17E192`); Wave-0 baseline SHA `d7370cc` recorded; all three Phase-3/4 CI gates exit 0; `08-QA-MATRIX.md` 329-line scaffold lands four mandatory cell groups (keyboard 22 / nav 80 / categories 28 / roles 8) + optional UL smoke (1, iOS only) for Plan 08-03's bounded smoke walk. Plan 08-02 (Wave 1 — atomic version bump per D-01) unblocked. **NOTE:** REL-03 privacy manifest expansion was DESCOPED in Phase 8 CONTEXT.md D-13 (live in v1.0.3 production, accepted by Apple — re-touching would be churn without a defect to fix; re-open conditions captured in CONTEXT.md `<deferred>` D-13).
 
 ## Performance Metrics
 
@@ -52,7 +54,8 @@ Plan: —
 | v1 requirements defined | 35 |
 | v1 requirements mapped to phases | 35 |
 | Phases complete | 4/8 |
-| Plans completed | 25 (5 Phase-1 implemented + 1 Phase-1 skipped per D-15 + 6 Phase-2 executed + 7 Phase-3 executed + 6 Phase-4 executed: 04-01 + 04-02 + 04-03 + 04-04 + 04-05 + 04-06) |
+| Plans completed | 38 (5 Phase-1 implemented + 1 Phase-1 skipped per D-15 + 6 Phase-2 executed + 7 Phase-3 executed + 6 Phase-4 executed + 5 Phase-5 executed + 7 Phase-6 executed + 1 Phase-8 executed: 08-01) |
+| Plan 08-01 timing | ~4 min / 2 tasks / 1 file created (08-QA-MATRIX.md 329 LOC) + 0 source-tree modifications / 1 commit (`a388104` QA scaffold) / 6/6 D-05 verify-only grep assertions exit 0 / 3/3 Phase-3/4 CI gates exit 0 / Wave-0 baseline SHA d7370cc with clean working tree / zero deviations |
 | Plan 04-06 timing | ~6.8 min / 2 tasks committed (Task 2 manual QA is the blocking checkpoint — cannot be self-approved) / 3 files created (04-QA-MATRIX.md + 04-VERIFICATION.md + 04-06-SUMMARY.md) + 1 file modified (CreateListingScreen.tsx 1404→871 LOC, −533 / 37% reduction) / 2 commits (`ac02eb2` orchestrator reduction + `a42341c` regression bundle + QA scaffold) / 1 Rule-1 auto-fix (D-09 anchor docblock reword to satisfy "exactly 1 grep hit" acceptance) |
 | Plan 04-01 timing | < 10min / 3 tasks / 3 files created / 3 commits (`2583c7a` RED test + `5ba60e2` land-removed gate + `8453984` i18n-parity gate) |
 | Plan 04-02 timing | ~4 min / 2 tasks + 1 carve-out / 1 file created + 5 modified / 3 commits (`a1539cb` propertyCategory.ts GREEN + `3b24097` carve-out + `633637c` atomic Land removal + Hostel/Hotel + 11 i18n keys + chip UX rework) |
@@ -122,6 +125,12 @@ Plan: —
 - None active. Phase 7 SKIPPED; Phase 8 is the sole remaining M1 phase and is ready for `/gsd-plan-phase 8`. Phase 8 has no external blockers — all user-side decisions captured in todos above (privacy manifest reconciliation is internal scope; Google Maps key check is concurrent with Phase 8 plan execution; signing/store credentials confirmed in prod 2026-04-28).
 
 ## Session Continuity
+
+**Last session:** 2026-04-28T22:00:00Z — Plan 08-01 (Wave 0) executed sequentially on `main` (project `branching_strategy: none` per `.planning/config.json`). Two tasks completed: (1) six D-05 verify-only grep assertions all exit 0 confirming the v1.0.4 baseline state intact (package.json pre-bump 1.0.3, pbxproj `CURRENT_PROJECT_VERSION = 21` already at target, pbxproj `MARKETING_VERSION = 1.0.3` pre-bump twin, gradle `versionCode 25 / versionName "1.0.24"` already at target, Xcode 26.4 / build 17E192) — Wave-0 baseline anchored at SHA `d7370cc` with clean working tree at entry; (2) `.planning/phases/08-release-and-store-submission/08-QA-MATRIX.md` 329-line scaffold created with `status: scaffold` frontmatter, both devices populated (iPhone 15 Pro Max / iOS 26.x + Moto G XT2513V / Android 16), admin allowlist `beckprograms@gmail.com` + non-admin slot in test environment, four mandatory cell groups (Matrix 1 keyboard 22 cells / Matrix 2a main-stack nav 40 cells / Matrix 2b overlay-close nav 40 cells / Matrix 3 listing categories 18 + 10 strip cross-cutting / Matrix 4 role gating 8 cells) + optional Matrix 5 UL smoke (1 cell, iOS only) — 138 mandatory + 1 optional = 139 cells total. Atomic commit `a388104 docs(08-01): create QA matrix scaffold for v1.0.4 release smoke walk` — `git diff --name-only HEAD~1 HEAD` shows exactly one new path (zero source-tree drift). All three Phase-3/4 CI gates re-run post-commit and exit 0 (`check-role-grep.sh` + `check-land-removed.sh` + `check-i18n-parity.sh`). Plan-level verification PASS 6/6. Self-check PASS. Zero deviations (Rule 1/2/3/4 not triggered). 08-01-SUMMARY.md recorded at `.planning/phases/08-release-and-store-submission/08-01-SUMMARY.md`.
+
+**Resume with:** `/gsd-execute-phase 8` to run Plan 08-02 (Wave 1 — atomic version bump per D-01: `package.json` `"version"` `"1.0.3"` → `"1.0.4"` + `ios/JayTap.xcodeproj/project.pbxproj` `MARKETING_VERSION` `1.0.3` → `1.0.4` ×2 occurrences). Plan 08-02 begins from baseline `d7370cc` + `a388104`.
+
+**PRIOR SESSION** (Plan 06-07 — preserved for history):
 
 **Last session:** 2026-04-25T02:02:51.238Z
 
