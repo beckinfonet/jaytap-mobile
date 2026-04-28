@@ -64,7 +64,7 @@ Requirements for v1.0.4 release. Each maps to exactly one roadmap phase.
 - [ ] **REL-02**: Android `versionCode` incremented to 25, `versionName` updated to `1.0.24` (following existing convention in recent commits), iOS `CURRENT_PROJECT_VERSION` incremented to 21, `MARKETING_VERSION` updated to `1.0.4`
 - [ ] **REL-03**: Privacy manifest (`ios/JayTap/PrivacyInfo.xcprivacy`) populated with required declarations for data collected by the app (email, name, phone, photo, location, contact info) per PITFALLS research — currently empty per codebase CONCERNS
 - [ ] **REL-04**: Build verified with Xcode 26 / iOS 26 SDK as required by Apple policy starting April 2026 (confirm/upgrade before archive)
-- [ ] **REL-05**: Manual regression pass completed on at least one physical iOS and one physical Android device covering: keyboard on all input screens, bottom-nav responsiveness across all transitions, all three listing categories (create + edit + view), role-gated fields (admin vs non-admin email)
+- [x] **REL-05**: Manual regression pass completed on at least one physical iOS and one physical Android device covering: keyboard on all input screens, bottom-nav responsiveness across all transitions, all three listing categories (create + edit + view), role-gated fields (admin vs non-admin email) — Closed 2026-04-28 by Plan 08-03 (`f757032`); APPROVED on first pass with 136 walked PASS / 0 FAIL across iPhone 15 Pro Max / iOS 26.x + Moto G XT2513V / Android 16 Fabric against build-identity SHA `de4ff0a`; D-08 bug-fix loop NOT triggered
 - [ ] **REL-06**: Release artifacts submitted to App Store Connect and Google Play Console with release notes describing the polish changes
 
 ## v2 Requirements
@@ -153,7 +153,7 @@ Each v1 REQ-ID maps to exactly one phase in ROADMAP.md.
 | REL-02 | Phase 8: Release & Store Submission | Pending |
 | REL-03 | Phase 8: Release & Store Submission | Pending |
 | REL-04 | Phase 8: Release & Store Submission | Pending |
-| REL-05 | Phase 8: Release & Store Submission | Pending |
+| REL-05 | Phase 8: Release & Store Submission | Complete |
 | REL-06 | Phase 8: Release & Store Submission | Pending |
 
 **Coverage:**
