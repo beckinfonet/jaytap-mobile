@@ -159,6 +159,8 @@ export const ru: Record<TranslationKeys, string> = {
   'accountSettings.deleteAccount': 'Удалить аккаунт',
   'accountSettings.profileUpdated': 'Профиль успешно обновлён',
   'accountSettings.profileUpdateFailed': 'Не удалось обновить профиль',
+  'accountSettings.invalidName': 'Имя может содержать только буквы, пробелы, дефисы и апострофы (например, О’Брайен, Мари-Жан).',
+  'accountSettings.invalidPhone': 'Номер телефона может содержать только цифры, пробелы, +, − и скобки (например, +996 555 123 456).',
 
   // Platform verification (MoveIn / admin only)
   'verification.sectionTitle': 'Проверено MoveIn',

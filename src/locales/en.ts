@@ -157,6 +157,8 @@ export const en = {
   'accountSettings.deleteAccount': 'Delete Account',
   'accountSettings.profileUpdated': 'Profile updated successfully',
   'accountSettings.profileUpdateFailed': 'Failed to update profile',
+  'accountSettings.invalidName': "Names can only contain letters, spaces, hyphens, and apostrophes (e.g., O'Brian, Marie-Jane).",
+  'accountSettings.invalidPhone': 'Phone numbers can only contain digits, spaces, +, -, and parentheses (e.g., +996 555 123 456).',
 
   // Platform verification (MoveIn / admin only)
   'verification.sectionTitle': 'Verified by MoveIn',

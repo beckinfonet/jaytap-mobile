@@ -27,6 +27,16 @@ interface AccountSettingsScreenProps {
 const LANG_TRACK_PADDING = 4;
 const LANG_INNER_GAP = 4;
 
+// Loose name check: any-script letters (Latin, Cyrillic, …), spaces, hyphens, and
+// apostrophes (straight + curly U+2019, since iOS auto-converts '). Empty allowed.
+// Passes: "O'Brian", "Marie-Jane", "Анна". Fails: digits, "." "," "@" etc.
+const isValidName = (v: string): boolean => /^[\p{L}'’\- ]*$/u.test(v.trim());
+
+// Loose phone check: digits, leading/embedded "+", spaces, hyphens, parentheses.
+// Empty allowed. Passes: "+996 555 123 456", "+1 (202) 555-0123", "0555123456".
+// Fails: letters, "@", "#", "$".
+const isValidPhone = (v: string): boolean => /^[0-9+\-() ]*$/.test(v.trim());
+
 export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ onBack, onAccountDeleted }) => {
     const { user, deleteAccount } = useAuth();
     const { language, setLanguage, t } = useLanguage();
@@ -91,6 +101,14 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
 
     const handleSave = async () => {
         if (!user?.localId) return;
+        if (!isValidName(firstName) || !isValidName(lastName)) {
+            Alert.alert(t('common.error'), t('accountSettings.invalidName'));
+            return;
+        }
+        if (!isValidPhone(phone)) {
+            Alert.alert(t('common.error'), t('accountSettings.invalidPhone'));
+            return;
+        }
         setSaving(true);
         try {
             await AuthService.createBackendUser(user.localId, user.email, {
@@ -110,22 +128,27 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
         }
     };
 
-    const renderInfoRow = (label: string, value: string, setValue: (v: string) => void, isEditing: boolean, keyboardType: any = 'default', placeholder = '') => (
-        <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, { color: isDark ? '#FFF' : '#000' }]}>{label}</Text>
-            {isEditing ? (
-                <TextInput
-                    style={[styles.infoInput, { color: themeStyles.text }]}
-                    value={value}
-                    onChangeText={setValue}
-                    placeholder={placeholder}
-                    placeholderTextColor={themeStyles.textSecondary}
-                    textAlign="right"
-                    keyboardType={keyboardType}
-                />
-            ) : (
-                <Text style={[styles.infoValue, { color: themeStyles.textSecondary }]}>{value || '-'}</Text>
-            )}
+    const renderInfoRow = (label: string, value: string, setValue: (v: string) => void, isEditing: boolean, keyboardType: any = 'default', placeholder = '', errorText?: string) => (
+        <View>
+            <View style={styles.infoRow}>
+                <Text style={[styles.infoLabel, { color: isDark ? '#FFF' : '#000' }]}>{label}</Text>
+                {isEditing ? (
+                    <TextInput
+                        style={[styles.infoInput, { color: themeStyles.text }]}
+                        value={value}
+                        onChangeText={setValue}
+                        placeholder={placeholder}
+                        placeholderTextColor={themeStyles.textSecondary}
+                        textAlign="right"
+                        keyboardType={keyboardType}
+                    />
+                ) : (
+                    <Text style={[styles.infoValue, { color: themeStyles.textSecondary }]}>{value || '-'}</Text>
+                )}
+            </View>
+            {isEditing && errorText ? (
+                <Text style={[styles.infoError, { color: themeStyles.danger }]}>{errorText}</Text>
+            ) : null}
         </View>
     );
 
@@ -162,11 +185,11 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                     </View>
 
                     <View style={[styles.infoContainer, { backgroundColor: themeStyles.surface }]}>
-                        {renderInfoRow(t('accountSettings.firstName'), firstName, setFirstName, isEditing)}
+                        {renderInfoRow(t('accountSettings.firstName'), firstName, setFirstName, isEditing, 'default', '', !isValidName(firstName) ? t('accountSettings.invalidName') : undefined)}
                         <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
-                        {renderInfoRow(t('accountSettings.lastName'), lastName, setLastName, isEditing)}
+                        {renderInfoRow(t('accountSettings.lastName'), lastName, setLastName, isEditing, 'default', '', !isValidName(lastName) ? t('accountSettings.invalidName') : undefined)}
                         <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
-                        {renderInfoRow(t('accountSettings.phoneNumber'), phone, setPhone, isEditing, "phone-pad", t('accountSettings.placeholderPhone'))}
+                        {renderInfoRow(t('accountSettings.phoneNumber'), phone, setPhone, isEditing, "phone-pad", t('accountSettings.placeholderPhone'), !isValidPhone(phone) ? t('accountSettings.invalidPhone') : undefined)}
                         <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
                         {renderInfoRow(t('accountSettings.telegram'), telegram, setTelegram, isEditing, "default", t('accountSettings.placeholderTelegram'))}
                     </View>
@@ -385,6 +408,12 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         minWidth: 150,
         padding: 0,
+    },
+    infoError: {
+        fontSize: 13,
+        lineHeight: 18,
+        textAlign: 'right',
+        paddingBottom: 10,
     },
     separator: {
         height: 1,
