@@ -2,7 +2,7 @@ import { Property } from '../types/Property';
 
 /**
  * Formats a property price with currency:
- * - USD (and default): "$USD 1,399" + monthly suffix when applicable
+ * - USD (and default): "$1,399" (symbol prefix, no space) + monthly suffix when applicable
  * - Other currencies: "1,399 сом" (amount first, then currency) + suffix
  */
 export function formatPrice(p: Property, monthlySuffix: string = '/mo'): string {
@@ -10,22 +10,14 @@ export function formatPrice(p: Property, monthlySuffix: string = '/mo'): string 
   const formattedNumber = Number.isFinite(numPrice) ? numPrice.toLocaleString() : String(p.price);
   const currency = (p.currency || '').trim().toLowerCase();
 
-  const isUsd = currency === '$' || currency === 'usd' || currency === '';
-
-  let currencyLabel: string;
-  if (currency === '$' || currency === 'usd') {
-    currencyLabel = '$USD';
+  let priceDisplay: string;
+  if (currency === '$' || currency === 'usd' || currency === '') {
+    priceDisplay = `$${formattedNumber}`;
   } else if (currency === 'сом' || currency === 'som' || currency === 'kgs') {
-    currencyLabel = 'сом';
-  } else if (currency) {
-    currencyLabel = (p.currency || '').trim();
+    priceDisplay = `${formattedNumber} сом`;
   } else {
-    currencyLabel = '$USD';
+    priceDisplay = `${formattedNumber} ${(p.currency || '').trim()}`;
   }
-
-  let priceDisplay = isUsd
-    ? `${currencyLabel} ${formattedNumber}`
-    : `${formattedNumber} ${currencyLabel}`;
   if (p.period === 'month' && !priceDisplay.includes('/') && !priceDisplay.includes('мес')) {
     priceDisplay += monthlySuffix;
   }
