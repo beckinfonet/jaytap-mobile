@@ -13,8 +13,10 @@ import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Send, Flag, Calendar } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { ChatService, Conversation, Message } from '../services/ChatService';
+import type { TranslationKeys } from '../locales';
 
 interface ChatThreadScreenProps {
   conversation: Conversation;
@@ -23,12 +25,12 @@ interface ChatThreadScreenProps {
   onScheduleViewing?: () => void;
 }
 
-const REPORT_REASONS = [
-  { value: 'profanity' as const, label: 'Profanity or offensive language' },
-  { value: 'banned_words' as const, label: 'Banned words' },
-  { value: 'violence' as const, label: 'Violence or threats' },
-  { value: 'threat' as const, label: 'Threatening behavior' },
-  { value: 'other' as const, label: 'Other' },
+const REPORT_REASONS: Array<{ value: 'profanity' | 'banned_words' | 'violence' | 'threat' | 'other'; labelKey: TranslationKeys }> = [
+  { value: 'profanity', labelKey: 'chat.reportProfanity' },
+  { value: 'banned_words', labelKey: 'chat.reportBanned' },
+  { value: 'violence', labelKey: 'chat.reportViolence' },
+  { value: 'threat', labelKey: 'chat.reportThreatening' },
+  { value: 'other', labelKey: 'chat.reportOther' },
 ];
 
 export const ChatThreadScreen: React.FC<ChatThreadScreenProps> = ({
@@ -38,6 +40,7 @@ export const ChatThreadScreen: React.FC<ChatThreadScreenProps> = ({
   onScheduleViewing,
 }) => {
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,7 +58,7 @@ export const ChatThreadScreen: React.FC<ChatThreadScreenProps> = ({
       await ChatService.markAsRead(conversation.id);
       onConversationUpdate();
     } catch (error: any) {
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to load messages');
+      Alert.alert(t('common.error'), error?.response?.data?.message || t('chat.loadMessagesFailed'));
     } finally {
       setLoading(false);
     }
@@ -92,7 +95,7 @@ export const ChatThreadScreen: React.FC<ChatThreadScreenProps> = ({
       setMessages((prev) => [...prev, newMsg]);
       onConversationUpdate();
     } catch (error: any) {
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to send message');
+      Alert.alert(t('common.error'), error?.response?.data?.message || t('chat.sendFailed'));
       setInputText(text);
     } finally {
       setSending(false);
@@ -101,14 +104,14 @@ export const ChatThreadScreen: React.FC<ChatThreadScreenProps> = ({
 
   const handleReport = () => {
     Alert.alert(
-      'Report conversation',
-      'Select a reason for reporting this conversation. Our team will review it.',
+      t('chat.reportTitle'),
+      t('chat.reportReason'),
       [
         ...REPORT_REASONS.map((r) => ({
-          text: r.label,
+          text: t(r.labelKey),
           onPress: () => submitReport(r.value),
         })),
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
       ]
     );
   };
@@ -116,27 +119,27 @@ export const ChatThreadScreen: React.FC<ChatThreadScreenProps> = ({
   const submitReport = async (reason: 'profanity' | 'banned_words' | 'violence' | 'threat' | 'other') => {
     try {
       await ChatService.reportConversation(conversation.id, reason);
-      Alert.alert('Thank you', 'Your report has been submitted. We will review it shortly.');
+      Alert.alert(t('common.thankYou'), t('chat.reportSubmitted'));
     } catch (error: any) {
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to submit report');
+      Alert.alert(t('common.error'), error?.response?.data?.message || t('chat.reportFailed'));
     }
   };
 
   const renderHeader = () => (
     <View style={[styles.header, { borderBottomColor: colors.border }]}>
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <Text style={[styles.backButtonText, { color: colors.text }]}>← Back</Text>
+        <Text style={[styles.backButtonText, { color: colors.text }]}>← {t('common.back')}</Text>
       </TouchableOpacity>
       <View style={styles.headerCenter}>
         <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
-          {conversation.property?.title || 'Chat'}
+          {conversation.property?.title || t('chat.title')}
         </Text>
         <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]} numberOfLines={1}>
           {conversation.otherUser
             ? [conversation.otherUser.firstName, conversation.otherUser.lastName].filter(Boolean).join(' ') ||
               conversation.otherUser.email ||
-              'User'
-            : 'User'}
+              t('chat.user')
+            : t('chat.user')}
         </Text>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
@@ -191,7 +194,7 @@ export const ChatThreadScreen: React.FC<ChatThreadScreenProps> = ({
           <View style={[styles.inputRow, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
             <TextInput
               style={[styles.input, { color: colors.text, backgroundColor: colors.inputBackground }]}
-              placeholder="Type a message..."
+              placeholder={t('chat.typeMessageThread')}
               placeholderTextColor={colors.textSecondary}
               value={inputText}
               onChangeText={setInputText}

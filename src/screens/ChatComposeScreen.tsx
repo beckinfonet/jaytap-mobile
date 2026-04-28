@@ -13,6 +13,7 @@ import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Send, Calendar } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { ChatService, Conversation } from '../services/ChatService';
 import { Property } from '../types/Property';
@@ -35,14 +36,15 @@ export const ChatComposeScreen: React.FC<ChatComposeScreenProps> = ({
   onScheduleViewing,
 }) => {
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
 
   const owner = (property as any).owner;
   const ownerName = owner
-    ? [owner.firstName, owner.lastName].filter(Boolean).join(' ').trim() || owner.email || 'Listing owner'
-    : 'Listing owner';
+    ? [owner.firstName, owner.lastName].filter(Boolean).join(' ').trim() || owner.email || t('chat.listingOwner')
+    : t('chat.listingOwner');
   const imageUrl = property.imageUrl || (property.images && property.images[0]);
 
   const handleSend = async () => {
@@ -57,7 +59,7 @@ export const ChatComposeScreen: React.FC<ChatComposeScreenProps> = ({
       await ChatService.sendMessage(conv.id, text);
       onConversationCreated(conv);
     } catch (error: any) {
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to send message');
+      Alert.alert(t('common.error'), error?.response?.data?.message || t('chat.sendFailed'));
       setInputText(text);
     } finally {
       setSending(false);
@@ -67,11 +69,11 @@ export const ChatComposeScreen: React.FC<ChatComposeScreenProps> = ({
   const renderHeader = () => (
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <Text style={[styles.backButtonText, { color: colors.text }]}>← Back</Text>
+        <Text style={[styles.backButtonText, { color: colors.text }]}>← {t('common.back')}</Text>
       </TouchableOpacity>
       <View style={styles.headerCenter}>
         <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
-          {property.title || 'Listing'}
+          {property.title || t('chat.listing')}
         </Text>
         <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]} numberOfLines={1}>
           {ownerName}
@@ -106,7 +108,7 @@ export const ChatComposeScreen: React.FC<ChatComposeScreenProps> = ({
               {property.title}
             </Text>
             <Text style={[styles.previewSubtitle, { color: colors.textSecondary }]}>
-              Message {ownerName} about this listing
+              {t('chat.messageAbout', { name: ownerName })}
             </Text>
           </View>
         </View>
@@ -114,7 +116,7 @@ export const ChatComposeScreen: React.FC<ChatComposeScreenProps> = ({
           <View style={[styles.inputRow, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
             <TextInput
               style={[styles.input, { color: colors.text, backgroundColor: colors.inputBackground }]}
-              placeholder="Type your message..."
+              placeholder={t('chat.typeMessage')}
               placeholderTextColor={colors.textSecondary}
               value={inputText}
               onChangeText={setInputText}

@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { ChatService, Conversation } from '../services/ChatService';
 import { Property } from '../types/Property';
@@ -46,6 +47,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   onScheduleViewing,
 }) => {
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +69,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       onUnreadCountChange?.(total);
     } catch (error: any) {
       console.error('Error loading conversations:', error);
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to load chats');
+      Alert.alert(t('common.error'), error?.response?.data?.message || t('chat.loadFailed'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -177,9 +179,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const renderHeader = () => (
     <View style={[styles.header, { borderBottomColor: colors.border }]}>
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <Text style={[styles.backButtonText, { color: colors.text }]}>← Back</Text>
+        <Text style={[styles.backButtonText, { color: colors.text }]}>← {t('common.back')}</Text>
       </TouchableOpacity>
-      <Text style={[styles.headerTitle, { color: colors.text }]}>Chat</Text>
+      <Text style={[styles.headerTitle, { color: colors.text }]}>{t('chat.title')}</Text>
       <View style={{ width: 60 }} />
     </View>
   );
@@ -237,7 +239,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
         {renderHeader()}
         <View style={styles.emptyState}>
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Please sign in to view your chats.</Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('auth.pleaseSignInToViewChats')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -252,9 +254,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         </View>
       ) : conversations.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No conversations yet.</Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('chat.empty')}</Text>
           <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
-            Message a listing owner from a property to start a chat.
+            {t('chat.emptyHint')}
           </Text>
         </View>
       ) : (
