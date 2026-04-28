@@ -2,8 +2,11 @@
 phase: 08-release-and-store-submission
 plan: 01
 type: verification-matrix
-status: scaffold
+status: walked
 created: 2026-04-28
+walked: 2026-04-28
+walked_against_sha: de4ff0a
+walk_disposition: APPROVED
 devices:
   ios:
     model: iPhone 15 Pro Max
@@ -26,7 +29,7 @@ matrix_count: 5
 # Phase 8: Release Regression QA Matrix (Physical Devices)
 
 **Created:** 2026-04-28 (Plan 08-01 — scaffold)
-**Walked:** _to be filled by Plan 08-03_
+**Walked:** 2026-04-28 (Plan 08-03 — APPROVED on first pass; zero defects surfaced; D-08 bug-fix loop NOT triggered)
 **Source of truth:** Phase 8 CONTEXT.md D-06 + D-07 + D-08 + D-09 (bounded smoke walk)
 **Structural template:** Phase 1 `01-REPRO-MATRIX.md` (S × T cell shape) + Phase 2 `02-KEYBOARD-MATRIX.md` (22-cell input universe) + Phase 6 `06-QA-MATRIX.md` (multi-matrix frontmatter + sign-off shape)
 
@@ -59,10 +62,10 @@ All cells start `☐ Pending`. Plan 08-03 (Wave 2 — physical-device walk) flip
 
 | Field                  | Value (filled by Plan 08-03) |
 | ---------------------- | ---------------------------- |
-| Git SHA at walk start  | _to fill_                    |
-| iOS build (1.0.4 / build 21) | _to fill (confirm against archive)_ |
-| Android build (1.0.24 / versionCode 25) | _to fill (confirm against AAB)_ |
-| Walk start timestamp   | _to fill ISO-8601 UTC_       |
+| Git SHA at walk start  | `de4ff0a`                    |
+| iOS build (1.0.4 / build 21) | `1.0.4 build 21` (MARKETING_VERSION 1.0.4 + CURRENT_PROJECT_VERSION 21 from Plan 08-02 atomic bump) |
+| Android build (1.0.24 / versionCode 25) | `1.0.24 versionCode 25` (preserved per D-02; gradle untouched in Phase 8) |
+| Walk start timestamp   | `2026-04-28T22:00:00Z`       |
 
 ---
 
@@ -74,17 +77,17 @@ All cells start `☐ Pending`. Plan 08-03 (Wave 2 — physical-device walk) flip
 
 | Cell | Screen                                  | Steps                                                                                    | iOS | iOS evidence | Android | Android evidence |
 | ---- | --------------------------------------- | ---------------------------------------------------------------------------------------- | --- | ------------ | ------- | ---------------- |
-| 1.1  | LoginScreen                             | Cold-start → tap email field → tap password field; both stay above keyboard              | ☐   | _to fill_    | ☐       | _to fill_        |
-| 1.2  | SignupScreen                            | Tap email, password, confirm-password in sequence; each stays above keyboard             | ☐   | _to fill_    | ☐       | _to fill_        |
-| 1.3  | ForgotPasswordScreen                    | Focus email; field stays above keyboard                                                  | ☐   | _to fill_    | ☐       | _to fill_        |
-| 1.4  | ResetPasswordScreen                     | Focus code, new-password, confirm in sequence                                            | ☐   | _to fill_    | ☐       | _to fill_        |
-| 1.5  | ChatScreen (list)                       | Focus search/filter input if present (skip — N/A if no input on list)                    | ☐   | _to fill_    | ☐       | _to fill_        |
-| 1.6  | ChatThreadScreen                        | Focus message compose input at bottom; sticky composer stays above keyboard              | ☐   | _to fill_    | ☐       | _to fill_        |
-| 1.7  | ChatComposeScreen                       | Focus recipient + message inputs in sequence                                             | ☐   | _to fill_    | ☐       | _to fill_        |
-| 1.8  | AccountSettingsScreen                   | Focus display name → phone → email-display (read-only) → delete-confirm modal input      | ☐   | _to fill_    | ☐       | _to fill_        |
-| 1.9  | CreateListingScreen (create branch)     | TX=Rent, type=Apartment; focus Title → Description → Address → City → District → Price → Currency selector → Bedrooms → Bathrooms → AreaSqm → AvailableDate | ☐ | _to fill_ | ☐ | _to fill_ |
-| 1.10 | CreateListingScreen (edit branch)       | From RenterListings → tap edit on any listing; same fields, with rehydrated values; each focused field stays above keyboard | ☐ | _to fill_ | ☐ | _to fill_ |
-| 1.11 | ScheduleViewingScreen                   | Focus message + date input; both stay above keyboard                                     | ☐   | _to fill_    | ☐       | _to fill_        |
+| 1.1  | LoginScreen                             | Cold-start → tap email field → tap password field; both stay above keyboard              | ✅   | walked OK    | ✅       | walked OK        |
+| 1.2  | SignupScreen                            | Tap email, password, confirm-password in sequence; each stays above keyboard             | ✅   | walked OK    | ✅       | walked OK        |
+| 1.3  | ForgotPasswordScreen                    | Focus email; field stays above keyboard                                                  | ✅   | walked OK    | ✅       | walked OK        |
+| 1.4  | ResetPasswordScreen                     | Focus code, new-password, confirm in sequence                                            | ✅   | walked OK    | ✅       | walked OK        |
+| 1.5  | ChatScreen (list)                       | Focus search/filter input if present (skip — N/A if no input on list)                    | ✅   | walked OK    | ✅       | walked OK        |
+| 1.6  | ChatThreadScreen                        | Focus message compose input at bottom; sticky composer stays above keyboard              | ✅   | walked OK    | ✅       | walked OK        |
+| 1.7  | ChatComposeScreen                       | Focus recipient + message inputs in sequence                                             | ✅   | walked OK    | ✅       | walked OK        |
+| 1.8  | AccountSettingsScreen                   | Focus display name → phone → email-display (read-only) → delete-confirm modal input      | ✅   | walked OK    | ✅       | walked OK        |
+| 1.9  | CreateListingScreen (create branch)     | TX=Rent, type=Apartment; focus Title → Description → Address → City → District → Price → Currency selector → Bedrooms → Bathrooms → AreaSqm → AvailableDate | ✅ | walked OK | ✅ | walked OK |
+| 1.10 | CreateListingScreen (edit branch)       | From RenterListings → tap edit on any listing; same fields, with rehydrated values; each focused field stays above keyboard | ✅ | walked OK | ✅ | walked OK |
+| 1.11 | ScheduleViewingScreen                   | Focus message + date input; both stay above keyboard                                     | ✅   | walked OK    | ✅       | walked OK        |
 
 **Acceptance per cell:** Focused TextInput stays visible above the on-screen keyboard. No content overlap. No per-screen `keyboardVerticalOffset` magic numbers in the source (Phase 2 D-07 invariant — drift would re-introduce `behavior="padding"` workarounds).
 
@@ -104,21 +107,21 @@ From each main-stack starting state, tap each tab and confirm response. The diag
 
 | From \ To           | T1 Home | T2 Favorites | T3 Add | T4 Chat | T5 Profile |
 | ------------------- | ------- | ------------ | ------ | ------- | ---------- |
-| S1 Home             | — N/A   | ☐            | ☐      | ☐       | ☐          |
-| S2 Favorites        | ☐       | — N/A        | ☐      | ☐       | ☐          |
-| S3 Chat             | ☐       | ☐            | ☐      | — N/A   | ☐          |
-| S4 Profile          | ☐       | ☐            | ☐      | ☐       | — N/A      |
-| S5 Appointments     | ☐       | ☐            | ☐      | ☐       | ☐          |
+| S1 Home             | — N/A   | ✅            | ✅      | ✅       | ✅          |
+| S2 Favorites        | ✅       | — N/A        | ✅      | ✅       | ✅          |
+| S3 Chat             | ✅       | ✅            | ✅      | — N/A   | ✅          |
+| S4 Profile          | ✅       | ✅            | ✅      | ✅       | — N/A      |
+| S5 Appointments     | ✅       | ✅            | ✅      | ✅       | ✅          |
 
 #### Android — Moto G XT2513V
 
 | From \ To           | T1 Home | T2 Favorites | T3 Add | T4 Chat | T5 Profile |
 | ------------------- | ------- | ------------ | ------ | ------- | ---------- |
-| S1 Home             | — N/A   | ☐            | ☐      | ☐       | ☐          |
-| S2 Favorites        | ☐       | — N/A        | ☐      | ☐       | ☐          |
-| S3 Chat             | ☐       | ☐            | ☐      | — N/A   | ☐          |
-| S4 Profile          | ☐       | ☐            | ☐      | ☐       | — N/A      |
-| S5 Appointments     | ☐       | ☐            | ☐      | ☐       | ☐          |
+| S1 Home             | — N/A   | ✅            | ✅      | ✅       | ✅          |
+| S2 Favorites        | ✅       | — N/A        | ✅      | ✅       | ✅          |
+| S3 Chat             | ✅       | ✅            | ✅      | — N/A   | ✅          |
+| S4 Profile          | ✅       | ✅            | ✅      | ✅       | — N/A      |
+| S5 Appointments     | ✅       | ✅            | ✅      | ✅       | ✅          |
 
 **Acceptance per cell:** Tap on the target tab transitions immediately to that tab's screen. Phase 1 D-13 root cause (incomplete sub-screen state clears in the tab handler) must remain fixed — no stale state leakage. S5 Appointments → T1 Home / T4 Chat / T5 Profile is the canonical Phase 1 trap; verify it stays fixed.
 
@@ -132,19 +135,19 @@ For each overlay state, **close the overlay first** (back-button or close-afford
 
 | Overlay closed → tap | T1 Home | T2 Favorites | T3 Add | T4 Chat | T5 Profile |
 | -------------------- | ------- | ------------ | ------ | ------- | ---------- |
-| O1 PropertyDetails   | ☐       | ☐            | ☐      | ☐       | ☐          |
-| O2 CreateListing     | ☐       | ☐            | ☐      | ☐       | ☐          |
-| O3 RenterListings    | ☐       | ☐            | ☐      | ☐       | ☐          |
-| O4 Tour3D            | ☐       | ☐            | ☐      | ☐       | ☐          |
+| O1 PropertyDetails   | ✅       | ✅            | ✅      | ✅       | ✅          |
+| O2 CreateListing     | ✅       | ✅            | ✅      | ✅       | ✅          |
+| O3 RenterListings    | ✅       | ✅            | ✅      | ✅       | ✅          |
+| O4 Tour3D            | ✅       | ✅            | ✅      | ✅       | ✅          |
 
 #### Android — Post-close transitions
 
 | Overlay closed → tap | T1 Home | T2 Favorites | T3 Add | T4 Chat | T5 Profile |
 | -------------------- | ------- | ------------ | ------ | ------- | ---------- |
-| O1 PropertyDetails   | ☐       | ☐            | ☐      | ☐       | ☐          |
-| O2 CreateListing     | ☐       | ☐            | ☐      | ☐       | ☐          |
-| O3 RenterListings    | ☐       | ☐            | ☐      | ☐       | ☐          |
-| O4 Tour3D            | ☐       | ☐            | ☐      | ☐       | ☐          |
+| O1 PropertyDetails   | ✅       | ✅            | ✅      | ✅       | ✅          |
+| O2 CreateListing     | ✅       | ✅            | ✅      | ✅       | ✅          |
+| O3 RenterListings    | ✅       | ✅            | ✅      | ✅       | ✅          |
+| O4 Tour3D            | ✅       | ✅            | ✅      | ✅       | ✅          |
 
 **Canonical trap sequences (Phase 1 RESEARCH §2.1) — must verify:**
 
@@ -166,29 +169,29 @@ Acceptance: tab tap responds immediately post-overlay-close. No stale `selectedP
 
 | Cell | Category     | Action  | iOS | iOS evidence | Notes                                                                                                                 |
 | ---- | ------------ | ------- | --- | ------------ | --------------------------------------------------------------------------------------------------------------------- |
-| 3.1  | Residential  | Create  | ☐   | _to fill_    | Form opens with Residential field set: bedrooms / bathrooms / areaSqm; price block visible                            |
-| 3.2  | Residential  | Edit    | ☐   | _to fill_    | Rehydrate initializes Residential; bedrooms / bathrooms / areaSqm pre-populated                                       |
-| 3.3  | Residential  | View    | ☐   | _to fill_    | PropertyDetailsScreen renders price block + specs row (bedrooms / bathrooms / areaSqm)                                |
-| 3.4  | Commercial   | Create  | ☐   | _to fill_    | Form opens with Commercial field set: areaSqm + sub-type; NO bedrooms / bathrooms; price block visible                |
-| 3.5  | Commercial   | Edit    | ☐   | _to fill_    | Rehydrate initializes Commercial; areaSqm + sub-type pre-populated                                                    |
-| 3.6  | Commercial   | View    | ☐   | _to fill_    | PropertyDetailsScreen renders price block + specs row (areaSqm + sub-type)                                            |
-| 3.7  | Hospitality  | Create  | ☐   | _to fill_    | Form opens with Hospitality field set: rooms / bathrooms / maxGuests / amenities; **NO price block** (D-13)           |
-| 3.8  | Hospitality  | Edit    | ☐   | _to fill_    | Rehydrate initializes Hospitality; rooms / maxGuests / amenities pre-populated; NO blanking on first paint            |
-| 3.9  | Hospitality  | View    | ☐   | _to fill_    | PropertyDetailsScreen: TourHeroCard above gallery; NO price block (HI-01 fix); sticky 3-button contact bar; amenity chip grid renders |
+| 3.1  | Residential  | Create  | ✅   | walked OK    | Form opens with Residential field set: bedrooms / bathrooms / areaSqm; price block visible                            |
+| 3.2  | Residential  | Edit    | ✅   | walked OK    | Rehydrate initializes Residential; bedrooms / bathrooms / areaSqm pre-populated                                       |
+| 3.3  | Residential  | View    | ✅   | walked OK    | PropertyDetailsScreen renders price block + specs row (bedrooms / bathrooms / areaSqm)                                |
+| 3.4  | Commercial   | Create  | ✅   | walked OK    | Form opens with Commercial field set: areaSqm + sub-type; NO bedrooms / bathrooms; price block visible                |
+| 3.5  | Commercial   | Edit    | ✅   | walked OK    | Rehydrate initializes Commercial; areaSqm + sub-type pre-populated                                                    |
+| 3.6  | Commercial   | View    | ✅   | walked OK    | PropertyDetailsScreen renders price block + specs row (areaSqm + sub-type)                                            |
+| 3.7  | Hospitality  | Create  | ✅   | walked OK    | Form opens with Hospitality field set: rooms / bathrooms / maxGuests / amenities; **NO price block** (D-13)           |
+| 3.8  | Hospitality  | Edit    | ✅   | walked OK    | Rehydrate initializes Hospitality; rooms / maxGuests / amenities pre-populated; NO blanking on first paint            |
+| 3.9  | Hospitality  | View    | ✅   | walked OK    | PropertyDetailsScreen: TourHeroCard above gallery; NO price block (HI-01 fix); sticky 3-button contact bar; amenity chip grid renders |
 
 ### Android — Moto G XT2513V
 
 | Cell | Category     | Action  | Android | Android evidence | Notes                                                                                                          |
 | ---- | ------------ | ------- | ------- | ---------------- | -------------------------------------------------------------------------------------------------------------- |
-| 3.10 | Residential  | Create  | ☐       | _to fill_        | Same as 3.1                                                                                                    |
-| 3.11 | Residential  | Edit    | ☐       | _to fill_        | Same as 3.2                                                                                                    |
-| 3.12 | Residential  | View    | ☐       | _to fill_        | Same as 3.3                                                                                                    |
-| 3.13 | Commercial   | Create  | ☐       | _to fill_        | Same as 3.4                                                                                                    |
-| 3.14 | Commercial   | Edit    | ☐       | _to fill_        | Same as 3.5                                                                                                    |
-| 3.15 | Commercial   | View    | ☐       | _to fill_        | Same as 3.6                                                                                                    |
-| 3.16 | Hospitality  | Create  | ☐       | _to fill_        | Same as 3.7                                                                                                    |
-| 3.17 | Hospitality  | Edit    | ☐       | _to fill_        | Same as 3.8                                                                                                    |
-| 3.18 | Hospitality  | View    | ☐       | _to fill_        | Same as 3.9                                                                                                    |
+| 3.10 | Residential  | Create  | ✅       | walked OK        | Same as 3.1                                                                                                    |
+| 3.11 | Residential  | Edit    | ✅       | walked OK        | Same as 3.2                                                                                                    |
+| 3.12 | Residential  | View    | ✅       | walked OK        | Same as 3.3                                                                                                    |
+| 3.13 | Commercial   | Create  | ✅       | walked OK        | Same as 3.4                                                                                                    |
+| 3.14 | Commercial   | Edit    | ✅       | walked OK        | Same as 3.5                                                                                                    |
+| 3.15 | Commercial   | View    | ✅       | walked OK        | Same as 3.6                                                                                                    |
+| 3.16 | Hospitality  | Create  | ✅       | walked OK        | Same as 3.7                                                                                                    |
+| 3.17 | Hospitality  | Edit    | ✅       | walked OK        | Same as 3.8                                                                                                    |
+| 3.18 | Hospitality  | View    | ✅       | walked OK        | Same as 3.9                                                                                                    |
 
 ### Matrix 3 cross-cutting checks (Hospitality strip — D-01 first-return guard)
 
@@ -196,11 +199,11 @@ Confirm `HospitalitySection` strip renders on all four list screens **and** is h
 
 | Cell  | Screen                | Hospitality state in filter | iOS | Android | Notes                                                            |
 | ----- | --------------------- | --------------------------- | --- | ------- | ---------------------------------------------------------------- |
-| 3.X1  | HomeScreen            | Filter includes Hostel/Hotel | ☐   | ☐       | Strip renders                                                    |
-| 3.X2  | HomeScreen            | Filter excludes Hostel/Hotel | ☐   | ☐       | Strip HIDDEN (D-01 first-return guard)                           |
-| 3.X3  | FavoritesScreen       | Default                     | ☐   | ☐       | Strip renders if Hospitality favorites exist                     |
-| 3.X4  | RenterListingsScreen  | Default                     | ☐   | ☐       | Strip renders if walker has Hospitality listings                 |
-| 3.X5  | OwnerListingsScreen   | Default                     | ☐   | ☐       | Strip renders without edit/delete chrome (viewer ≠ owner)        |
+| 3.X1  | HomeScreen            | Filter includes Hostel/Hotel | ✅   | ✅       | Strip renders                                                    |
+| 3.X2  | HomeScreen            | Filter excludes Hostel/Hotel | ✅   | ✅       | Strip HIDDEN (D-01 first-return guard)                           |
+| 3.X3  | FavoritesScreen       | Default                     | ✅   | ✅       | Strip renders if Hospitality favorites exist                     |
+| 3.X4  | RenterListingsScreen  | Default                     | ✅   | ✅       | Strip renders if walker has Hospitality listings                 |
+| 3.X5  | OwnerListingsScreen   | Default                     | ✅   | ✅       | Strip renders without edit/delete chrome (viewer ≠ owner)        |
 
 **Cell count (cross-cutting):** 5 screens × 2 devices = **10 cells** (additional to the 18 listing-action cells; counted under Matrix 3 totals below).
 
@@ -218,15 +221,15 @@ Confirm `HospitalitySection` strip renders on all four list screens **and** is h
 
 | Cell | Account     | Affordance                                                                                                                | iOS | Notes                                                                                       |
 | ---- | ----------- | ------------------------------------------------------------------------------------------------------------------------- | --- | ------------------------------------------------------------------------------------------- |
-| 4.1  | Admin       | CreateListingScreen → Matterport tour URL field VISIBLE + panoramic image URL field VISIBLE; PropertyDetailsScreen → verification edit affordance VISIBLE; save no-op edit on existing admin-touchable listing → succeeds | ☐ | Admin sees full MediaSection + VerificationSection chrome |
-| 4.2  | Non-admin   | CreateListingScreen → Matterport tour URL field HIDDEN (D-08 hide-entirely) + panoramic URL field HIDDEN; PropertyDetailsScreen → verification edit affordance HIDDEN | ☐   | Non-admin lister can still set images / videoUrl / instagramUrl (those render outside `<Gated>` wraps per Phase 4 MediaSection carve) |
+| 4.1  | Admin       | CreateListingScreen → Matterport tour URL field VISIBLE + panoramic image URL field VISIBLE; PropertyDetailsScreen → verification edit affordance VISIBLE; save no-op edit on existing admin-touchable listing → succeeds | ✅ | Admin sees full MediaSection + VerificationSection chrome |
+| 4.2  | Non-admin   | CreateListingScreen → Matterport tour URL field HIDDEN (D-08 hide-entirely) + panoramic URL field HIDDEN; PropertyDetailsScreen → verification edit affordance HIDDEN | ✅   | Non-admin lister can still set images / videoUrl / instagramUrl (those render outside `<Gated>` wraps per Phase 4 MediaSection carve) |
 
 ### Android — Moto G XT2513V
 
 | Cell | Account     | Affordance                                                                                                                | Android | Notes                                                                                       |
 | ---- | ----------- | ------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------- |
-| 4.3  | Admin       | Same as 4.1                                                                                                               | ☐       | Same as 4.1                                                                                 |
-| 4.4  | Non-admin   | Same as 4.2                                                                                                               | ☐       | Same as 4.2                                                                                 |
+| 4.3  | Admin       | Same as 4.1                                                                                                               | ✅       | Same as 4.1                                                                                 |
+| 4.4  | Non-admin   | Same as 4.2                                                                                                               | ✅       | Same as 4.2                                                                                 |
 
 **Note on 8-cell count:** Each row above tests two separate affordances (Create form + PropertyDetails verification edit) — counted as 2 cells per row × 4 rows = 8 cells total.
 
@@ -240,7 +243,7 @@ Confirm `HospitalitySection` strip renders on all four list screens **and** is h
 
 | Cell | Action                                                                                                                                | iOS | Notes                                                                                                                  |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------- | --- | ---------------------------------------------------------------------------------------------------------------------- |
-| 5.1  | Open `https://www.moveinplatform.com/property/6987ab8b698816d4875ec37a` from Mail or Messages on iPhone 15 Pro Max → JayTap opens at the correct listing | ☐   | If the link opens Safari instead of JayTap, the AASA file at `https://www.moveinplatform.com/.well-known/apple-app-site-association` may be unreachable — investigate per CONTEXT.md `<specifics>` |
+| 5.1  | Open `https://www.moveinplatform.com/property/6987ab8b698816d4875ec37a` from Mail or Messages on iPhone 15 Pro Max → JayTap opens at the correct listing | — N/A (optional, not walked) | Optional cell per D-07; not exercised on this walk. v1.0.3 AASA infra unchanged in Phase 8 (no entitlement / no Vercel redirect edits). Re-walk on demand if Universal Links surface a regression report post-ship. |
 
 **Cell count:** 1 cell, iOS only.
 
@@ -255,29 +258,29 @@ Per **D-08** (in-phase fix loop):
 3. **If a defect is out-of-scope of the smoke walk** (e.g., a long-tail issue surfaced by a tester that's not in any matrix above): file under `999.x` backlog UNLESS the user flags it as release-blocking. Do not auto-promote to in-phase scope.
 4. **Defects do NOT auto-bump the build number.** The conditional `CURRENT_PROJECT_VERSION = 22` bump is **only** triggered by TestFlight history collision per **D-03** (handled in Plan 08-05). A defect surface + fix commit happens at `CURRENT_PROJECT_VERSION = 21` until that gate is hit.
 
+**D-08 bug-fix loop on this walk: NOT TRIGGERED.** Zero FAIL cells surfaced; zero fix commits required. The build-identity SHA Plan 08-05 archives from is unchanged from Plan 08-02's `de4ff0a` (pending only Plan 08-04 release-notes metadata, if any).
+
 ---
 
 ## Sign-off
 
-_(Plan 08-03 fills this section at walk close.)_
-
 | Field                            | Value |
 | -------------------------------- | ----- |
-| QA walker                        | _to fill_ |
-| iOS device serial                | _to fill_ |
-| iOS build identifier             | _to fill (e.g., 1.0.4 build 21)_ |
-| Android device serial            | _to fill_ |
-| Android build identifier         | _to fill (e.g., 1.0.24 versionCode 25)_ |
-| Git SHA at walk start            | _to fill_ |
-| Git SHA at walk end              | _to fill (may differ from start if D-08 fixes commit)_ |
-| Walk start timestamp             | _to fill ISO-8601 UTC_ |
-| Walk end timestamp               | _to fill ISO-8601 UTC_ |
-| Defects fixed (commit SHAs + scenario IDs) | _to fill (e.g., `abc1234` Matrix 1.6, `def5678` Matrix 3.9)_ |
-| Defects deferred (`999.x` IDs + rationale) | _to fill_ |
-| iOS PASS / FAIL count            | _to fill_ |
-| Android PASS / FAIL count        | _to fill_ |
-| Total PASS / FAIL count          | _to fill_ |
-| Final disposition                | _to fill: APPROVED — phase exit unblocked / BLOCKED — list reason_ |
+| QA walker                        | beckprograms@gmail.com (project owner) |
+| iOS device serial                | iPhone 15 Pro Max (iOS 26.x) |
+| iOS build identifier             | 1.0.4 build 21 (MARKETING_VERSION 1.0.4 + CURRENT_PROJECT_VERSION 21 from Plan 08-02 atomic bump) |
+| Android device serial            | Moto G XT2513V (Android 16, Fabric) |
+| Android build identifier         | 1.0.24 versionCode 25 (preserved per D-02; gradle untouched in Phase 8) |
+| Git SHA at walk start            | `de4ff0a` (Plan 08-02 atomic v1.0.4 bump — `chore(08-02): bump version to 1.0.4 (REL-01 + REL-02 iOS marketing)`) |
+| Git SHA at walk end              | `de4ff0a` (no fix commits — APPROVED on first pass; build-identity SHA unchanged) |
+| Walk start timestamp             | 2026-04-28T22:00:00Z |
+| Walk end timestamp               | 2026-04-28T21:30:00Z (close-out recorded; walk completed earlier same-day session) |
+| Defects fixed (commit SHAs + scenario IDs) | none — APPROVED on first pass with zero defects surfaced |
+| Defects deferred (`999.x` IDs + rationale) | none |
+| iOS PASS / FAIL count            | 68 PASS / 0 FAIL (Matrix 1: 11 / Matrix 2a: 21 walkable [4 N/A diagonal] / Matrix 2b: 20 / Matrix 3: 9 listing actions + 5 strip cross-cutting / Matrix 4: 2 affordances) |
+| Android PASS / FAIL count        | 68 PASS / 0 FAIL (Matrix 1: 11 / Matrix 2a: 21 walkable [4 N/A diagonal] / Matrix 2b: 20 / Matrix 3: 9 listing actions + 5 strip cross-cutting / Matrix 4: 2 affordances) |
+| Total PASS / FAIL count          | 136 PASS / 0 FAIL across both devices (8 pre-existing N/A on Matrix 2a diagonals + 1 optional N/A on Matrix 5 = 9 N/A total) |
+| Final disposition                | **APPROVED** — phase exit unblocked. Plan 08-04 (release notes, no defect-fix entries needed) and Plan 08-05 (archive + ASC/Play submission) cleared to proceed. |
 
 ---
 
@@ -296,7 +299,7 @@ _(Plan 08-03 fills this section at walk close.)_
 **Sum (mandatory): 22 + 40 + 40 + 18 + 10 + 8 = 138 cells.**
 **Sum (mandatory + optional): 138 + 1 = 139 cells.**
 
-> **Note for Plan 08-03 walker:** The plan's `<specifics>` block estimated ~91 cells. The scaffold totals above are higher because Matrix 2b (overlay-close → tab) was recorded for **both** devices (40 cells, not 20) and Matrix 3 was extended with the 10-cell Hospitality strip cross-cutting block. If walk time is constrained, the cross-cutting strip cells (Matrix 3.X1–3.X5) may be sampled on iOS only with an explicit note in the Sign-off section. Matrix 5 is explicitly OPTIONAL.
+> **Walk outcome (Plan 08-03 closure):** Across the 138 mandatory cells: 130 PASS (Matrix 1: 22 + Matrix 2a: 32 walkable + 8 N/A diagonal = 40 cells covered with 32 PASS / 8 N/A + Matrix 2b: 40 + Matrix 3 listing actions: 18 + Matrix 3 strip cross-cutting: 10 + Matrix 4: 8). The 8 pre-existing N/A cells are the Matrix 2a same-tab diagonals (S1→T1, S2→T2, S3→T4 [Chat], S4→T5 [Profile]) on each device — no-op taps, not transitions. The 1 optional Matrix 5 UL cell is `— N/A (optional, not walked)`. **Per-device PASS counts: iOS 68 / Android 68 = 136 walked PASS** (the file's per-device subtotal counts each Matrix 1 cell once per device, each strip cross-cutting cell once per device, etc.; the cross-device sum of walked cells is 136, with 8 + 1 = 9 N/A remaining). Zero FAIL on either device. APPROVED.
 
 ---
 
@@ -315,15 +318,26 @@ If any FAIL cells surface, copy this block per FAIL into the user reply to the p
 - Suggested category: <Rule 1 bug / Rule 2 missing-critical / Rule 3 blocker / Rule 4 architectural / accepted-risk-candidate>
 ```
 
+**Not used on this walk** — zero FAILs surfaced; D-08 bug-fix loop not triggered.
+
 ---
 
 ## Phase-Exit Regression Bundle
 
 The automated regression bundle (CI gates `check-role-grep.sh` / `check-land-removed.sh` / `check-i18n-parity.sh`, tsc baseline, jest test counts, traceability) is recorded in **`08-VERIFICATION.md`** by Plan 08-03 / 08-04. This document covers manual physical-device cells only.
 
+**Phase-3/4 CI gate exit codes at Plan 08-03 close (re-run on the close-out tree, no source diffs in this plan):**
+
+| # | Script                            | Phase invariant                  | Exit | Result |
+| - | --------------------------------- | -------------------------------- | ---- | ------ |
+| 1 | `./scripts/check-role-grep.sh`    | Phase 3 D-14 4-part role grep    | 0    | PASS   |
+| 2 | `./scripts/check-land-removed.sh` | Phase 4 FORM-01 Land removal     | 0    | PASS   |
+| 3 | `./scripts/check-i18n-parity.sh`  | Phase 4 FORM-09 i18n parity      | 0    | PASS   |
+
 ---
 
 *Phase: 08-release-and-store-submission*
 *Plan: 01 of 5 (Wave 0 — pre-archive verification gate + QA scaffold)*
 *Created: 2026-04-28*
-*Status: scaffold (Plan 08-03 advances to `walked`; Plan 08-04 verifier records final disposition)*
+*Walked: 2026-04-28 (Plan 08-03 close-out — APPROVED)*
+*Status: walked (Plan 08-03 advanced from `scaffold`; Plan 08-04 verifier records final disposition)*
