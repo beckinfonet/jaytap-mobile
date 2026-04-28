@@ -27,7 +27,7 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
 - [x] **Phase 4: Listing Form Taxonomy & Decomposition** (2026-04-24) — Removed `Land` atomically; added Hostel/Hotel under Hospitality; decomposed `CreateListingScreen` 1404→871 LOC (−37%) into 7 `CreateListingForm/` sub-components; EN+RU parity at 365 keys; 18/18 manual QA PASS on iPhone (iOS 26) + Moto G (Android 16 / Fabric); verifier 5/5 must_haves PASS
 - [x] **Phase 5: Listing Form Validation & Edit Flow** (2026-04-24) — Pure `validateByCategory()` + `buildPayloadByCategory()` source of truth; 16 inline error rows across 5 sub-components; 14 EN+RU validation/status keys; orchestrator integration with scroll-to-first-error + D-11 hybrid contact + D-16 draft/publish toggle; App.tsx wiring of `onNavigateToAccountSettings`; verifier 5/5 must_haves PASS; 4 post-QA gap-closure commits (district label, Hospitality price guard, error spacing, listings refetch)
 - [ ] **Phase 6: Hospitality Rendering** — `HospitalitySection` + `HospitalityCard` on Home/Favorites/OwnerListings; Hospitality-aware `PropertyDetailsScreen`; 12-item amenity taxonomy in EN+RU
-- [ ] **Phase 7: Alignment Pass** — Screenshot-driven fixes across flagged screens, respecting existing theme tokens and dark/light parity
+- [x] **Phase 7: Alignment Pass** (2026-04-28, SKIPPED) — Closed with zero plans. User confirmed nothing alignment-related stood out during Phase 1–6 physical-device QA walks; ALIGN-01/02 satisfied implicitly. See PROJECT.md Key Decisions row 129.
 - [ ] **Phase 8: Release & Store Submission** — Privacy manifest, Xcode 26 / iOS 26 SDK, 4-file version bump, physical-device QA, App Store Connect + Play Console submission
 
 ## Phase Details
@@ -150,18 +150,13 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   - [x] 06-07-PLAN.md — Wave 4: delete hospitality.amenitiesPhase6Placeholder i18n key + 06-VERIFICATION.md regression bundle + 06-QA-MATRIX.md ~80-cell physical-device scaffold + BLOCKING manual QA walk checkpoint
 **UI hint**: yes
 
-### Phase 7: Alignment Pass
+### Phase 7: Alignment Pass — SKIPPED 2026-04-28
 
-**Goal**: Visual alignment issues flagged by the user via screenshots are fixed across the specified screens, with dark/light parity and existing theme tokens preserved.
-**Depends on**: User-provided screenshots (pending); parallelizable with any prior phase once screenshots arrive
-**Requirements**: ALIGN-01, ALIGN-02
-**Success Criteria** (what must be TRUE):
-  1. Each screen flagged in the user-provided screenshots matches the intended layout on both physical iOS and physical Android devices in both portrait and (where supported) landscape
-  2. All alignment fixes use existing `useTheme()` color tokens and existing spacing conventions from `.planning/codebase/CONVENTIONS.md` — no new hardcoded colors or one-off magic spacing values are introduced
-  3. Dark and light modes both render correctly on every fixed screen (no dark-mode-only or light-mode-only regressions)
-  4. When the user's screenshots arrive, the phase plan is concretized into per-screen sub-tasks before execution begins (plan-phase will surface this gap at planning time if screenshots are still missing)
-**Plans**: TBD
-**UI hint**: yes
+**Status**: SKIPPED with zero plans. User reviewed Phase 1–6 physical-device QA outcomes on 2026-04-28 and confirmed no alignment issues stood out across iPhone 15 Pro Max / iOS 26 + Moto G XT2513V / Android 16 in dark/light mode. ALIGN-01 and ALIGN-02 are satisfied implicitly: every Phase-1–6 walk PASSED on both devices using existing `useTheme()` tokens — no out-of-spec layouts surfaced to flag.
+**Decision record**: PROJECT.md Key Decisions row 129 ("Phase 7 Alignment Pass skipped — no screenshots needed").
+**Requirements closed**: ALIGN-01, ALIGN-02 (implicit pass via Phase 1–6 QA matrix evidence; not separately verified by a Phase-7 walk).
+**Plans**: 0 — phase intentionally has no plans.
+**UI hint**: yes (preserved for traceability)
 
 ### Phase 8: Release & Store Submission
 
@@ -199,7 +194,7 @@ M2 requirements (ROLE-01…04, MOD-01…06, ADMIN-01…04) are tracked in REQUIR
 | 4. Listing Form Taxonomy & Decomposition | 6/6 | Complete | 2026-04-24 |
 | 5. Listing Form Validation & Edit Flow | 5/5 | Complete | 2026-04-24 |
 | 6. Hospitality Rendering | 7/7 | Complete | 2026-04-25 |
-| 7. Alignment Pass | 0/? | Not started | - |
+| 7. Alignment Pass | 0/0 | Skipped | 2026-04-28 |
 | 8. Release & Store Submission | 0/? | Not started | - |
 
 ## Backlog
