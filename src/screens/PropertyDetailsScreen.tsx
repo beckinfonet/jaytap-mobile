@@ -669,7 +669,13 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                     return (
                       <View key={index} style={styles.featureItem}>
                         <IconComponent size={20} color={colors.textSecondary} />
-                        <Text style={[styles.featureItemText, { color: colors.text }]}>{feature}</Text>
+                        <Text
+                          style={[styles.featureItemText, { color: colors.text }]}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {feature}
+                        </Text>
                       </View>
                     );
                   })}
@@ -1347,7 +1353,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   featureItemText: {
+    flex: 1,
     fontSize: 15,
+    lineHeight: 20,
     marginLeft: 12,
   },
   mediaButtonsContainer: {
