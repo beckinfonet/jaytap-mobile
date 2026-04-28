@@ -202,6 +202,29 @@ M2 requirements (ROLE-01…04, MOD-01…06, ADMIN-01…04) are tracked in REQUIR
 | 7. Alignment Pass | 0/? | Not started | - |
 | 8. Release & Store Submission | 0/? | Not started | - |
 
+## Backlog
+
+### Phase 999.1: Archive listings — authors + mod/admin (BACKLOG)
+
+**Goal:** [Captured for future planning]
+**Requirements:** TBD (proposed MOD-07 author archive + MOD-08 admin/mod archive)
+**Plans:** 0 plans
+
+Belongs to **M2 "Roles & Moderation"** — not M1. Reuses MOD-01 listing status lifecycle by adding an `archived` value alongside `pending` / `live` / `rejected`. Authors can archive their own listings; admins/moderators can archive any listing.
+
+Open questions to resolve at planning time:
+1. Coexist with the existing hard-delete (`PropertyCard.onDelete` / `modal.deleteListing`) or replace it?
+2. Require a reason field for mod/admin archive (parallel to MOD-01 `rejectionReason`, for audit trail and owner-side messaging)?
+3. Restore/unarchive flow in scope, and where does the author see their archived listings?
+4. Railway backend contract — needs `status='archived'` support + endpoint coordination, same dynamic as the D-22 Path B deferred outreach.
+
+UI surfaces (proposed):
+- Author entry: `PropertyCard` menu (next to Delete) + `PropertyDetailsScreen` action
+- Admin/moderator entry: `PropertyDetailsScreen` (gated via `can('archiveAnyListing')`) + future `ModerationQueueScreen` (MOD-04)
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
 ---
 
 *Roadmap created: 2026-04-22*
