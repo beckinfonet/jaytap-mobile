@@ -31,38 +31,50 @@ Prospective renters and buyers can reliably browse, filter, and inquire about Bi
 - ✓ English/Russian localization — existing (`@jaytap_language` AsyncStorage key)
 - ✓ Admin-only verification flag editing (`user.backendProfile.userType === 'admin'`) — partial, one screen only
 
+<!-- M1 v1.0.4 "Polish + Hospitality" — shipped 2026-04-28 to TestFlight + Play Console processing -->
+
+- ✓ NAV-01 Bottom navigation responds across all main-stack screens — v1.0.4 (Phase 1)
+- ✓ NAV-02 Screens push over the tab bar release touch capture on return — v1.0.4 (Phase 1)
+- ✓ NAV-03 Reproduction matrix recorded — v1.0.4 (Phase 1)
+- ✓ KBD-01 Keyboard never covers focused inputs on any screen — v1.0.4 (Phase 2)
+- ✓ KBD-02 Universal root-level keyboard solution (`react-native-keyboard-controller@1.21.6`) — v1.0.4 (Phase 2)
+- ✓ KBD-03 `react-native-reanimated@4.3.0` peer installed with Babel plugin LAST — v1.0.4 (Phase 2)
+- ✓ KBD-04 Fabric (New Architecture) compatibility verified on physical devices — v1.0.4 (Phase 2)
+- ✓ ALIGN-01/02 Visual alignment respects design tokens — v1.0.4 (Phase 7 SKIPPED, satisfied implicitly via Phase 1–6 device QA per Key Decisions row 129)
+- ✓ FORM-01 `Land` property type removed atomically (`scripts/check-land-removed.sh` exit 0) — v1.0.4 (Phase 4)
+- ✓ FORM-02 `Hostel` + `Hotel` added under `Hospitality` category — v1.0.4 (Phase 4)
+- ✓ FORM-03 Three-category grouping (Residential / Commercial / Hospitality) — v1.0.4 (Phase 4)
+- ✓ FORM-04 Required-field set branches by category — v1.0.4 (Phase 5)
+- ✓ FORM-05 `CreateListingScreen` decomposed 1404→871 LOC into 7 sub-components — v1.0.4 (Phase 4)
+- ✓ FORM-06 `validateByCategory()` single source of truth — v1.0.4 (Phase 5)
+- ✓ FORM-07 Switching category preserves shared fields — v1.0.4 (Phase 5)
+- ✓ FORM-08 Editing existing listing initializes into correct category — v1.0.4 (Phase 5)
+- ✓ FORM-09 EN+RU locale parity at 365 keys — v1.0.4 (Phase 4)
+- ✓ HOSP-01 `HospitalitySection` strip on Home/Favorites/Owner+RenterListings — v1.0.4 (Phase 6)
+- ✓ HOSP-02 Hospitality listings under both Rent + Sell, no price — v1.0.4 (Phase 6)
+- ✓ HOSP-03 `HospitalityCard` tour-first, no price chip — v1.0.4 (Phase 6)
+- ✓ HOSP-04 Tour-first `PropertyDetailsScreen` Hospitality branch — v1.0.4 (Phase 6)
+- ✓ HOSP-05 12-amenity taxonomy with chip multi-select picker — v1.0.4 (Phase 6)
+- ✓ HOSP-06 Bilingual EN+RU amenity rendering — v1.0.4 (Phase 6)
+- ✓ GATE-01 `useRole()` / `can(action)` / `<Gated>` over hardcoded allowlist — v1.0.4 (Phase 3)
+- ✓ GATE-02 Matterport + panoramic URL fields gated — v1.0.4 (Phase 3)
+- ✓ GATE-03 `userType === 'admin'` migrated to `useRole()` — v1.0.4 (Phase 3)
+- ✓ GATE-04 Forward-compatible API shape (no call-site changes for M2 swap) — v1.0.4 (Phase 3)
+- ✓ GATE-05 Backend enforcement — D-22 Path B accepted-risk for v1.0.4; closes via M2 ROLE-04 — v1.0.4 (Phase 3)
+- ✓ REL-01 `package.json` bumped to `1.0.4` — v1.0.4 (Phase 8)
+- ✓ REL-02 iOS `MARKETING_VERSION 1.0.4` + `CURRENT_PROJECT_VERSION 22` + Android `versionCode 28` / `versionName "1.0.28"` — v1.0.4 (Phase 8)
+- ✓ REL-05 Manual regression on physical iOS + Android devices APPROVED on first pass — v1.0.4 (Phase 8)
+- ✓ REL-06 Bilingual EN+RU release notes pasted on ASC + Play Console — v1.0.4 (Phase 8)
+
 ### Active
 
-<!-- Milestone 1 — v1.0.4 "Polish + Hospitality". Ship ASAP to stores. -->
+<!-- M1 v1.0.4 "Polish + Hospitality" SHIPPED 2026-04-28 to TestFlight + Play Console processing. All M1 active items moved to ## Validated. M2 "Roles & Moderation" requirements will be defined fresh via /gsd-new-milestone — sketch below for visibility. -->
 
-**Bug-fix workstream:**
-- [x] Keyboard no longer covers inputs on any screen (iOS + Android, universal solution) — Validated in Phase 2 (2026-04-23): `react-native-keyboard-controller@1.21.6` + reanimated v4 + worklets; `<KeyboardProvider>` at App.tsx root; KASV on 7 screens; library KAV with `behavior="padding"` on 2 chat screens; 22/22 physical-device matrix cells PASS
-- [x] Bottom nav responds from any screen (Chat, Profile, Favorites, etc.) — Validated in Phase 1 (2026-04-22): `pointerEvents` belt-and-suspenders + overlay-flag derivation; reproduction matrix captured
-- [ ] Alignment issues addressed across app (specific screens to be provided via screenshots) — Phase 7
+**Active workstreams:** *None.* M1 closed; M2 planning unblocked but not yet started. Fresh REQUIREMENTS.md to be created at `/gsd-new-milestone` invocation.
 
-**Listing form overhaul:**
-- [x] `Land` property type removed everywhere (chips, filters, i18n keys, type definitions) — Validated in Phase 4 (2026-04-24): atomic removal confirmed by `scripts/check-land-removed.sh` (exit 0) + verifier 5/5 must_haves PASS
-- [x] `Hostel` and `Hotel` added under new `Hospitality` category — Validated in Phase 4 (2026-04-24): `src/utils/propertyCategory.ts` single source of truth (PROPERTY_TYPE_TO_CATEGORY Record)
-- [x] Property types grouped into three categories: Residential / Commercial / Hospitality — Validated in Phase 4 (2026-04-24): three stacked chipRows with group labels; `propertyTypeToCategory()` derived, never stored in FormBag
-- [ ] Required fields branch by category (Residential: bedrooms/bathrooms/area; Commercial: area + no bedrooms/bathrooms; Hospitality: rooms + bathrooms + amenities, no price) — **Phase 5** owns (`validateByCategory()`)
-- [x] Hospitality listings appear under both Rent and Sell toggles, with price hidden in both — Validated in Phase 6 (2026-04-25): HOSP-02 — `hospitalityProperties` derived AFTER `transactionType` filter (Pitfall 2); strip count toggles with Rent/Sell; `HospitalityCard` ships zero `formatPrice` import
-- [x] Hospitality listings render in a separate section on Home / Favorites / OwnerListings (not mixed with residential/commercial) — Validated in Phase 6 (2026-04-25): HOSP-01 — `HospitalitySection` mounts via `ListHeaderComponent` on Home + Favorites + RenterListings + OwnerListings; first-return guard `if (properties.length === 0) return null` enforces hidden-when-empty (D-01)
-- [x] `PropertyDetailsScreen` renders hospitality listings without price, surfacing 3D tours and panoramic media — Validated in Phase 6 (2026-04-25): HOSP-04 — `isHospitality` derivation (D-13) gates 5 in-place branches (D-14 tour above gallery, D-15 price block omitted, D-16 sticky 3-button contact bar with disabled-when-empty + SafeArea-aware padding, D-23 amenity grid replaces features.map, plus HI-01 fix `b1da946` suppressing the residential beds/baths/sqft specs row)
+### M2 Sketch (will be fully planned at /gsd-new-milestone)
 
-**Phase 4 decomposition (structural enablement for Phases 5 + 6):**
-- [x] `CreateListingScreen.tsx` reduced to orchestrator (1404→871 LOC / −37%) composing 7 sub-components — Validated in Phase 4 (2026-04-24): `src/components/CreateListingForm/` directory with BasicInfoSection + ResidentialSection + CommercialSection + HospitalitySection + MediaSection + PriceSection + VerificationSection + types + styles + barrel; `SectionProps` / `FormBag` contract in place for Phase 5 validation work
-- [x] EN+RU locale parity (`src/locales/en.ts` ↔ `ru.ts` at 365 keys each) — Validated in Phase 4 (2026-04-24): `Record<TranslationKeys,string>` tsc compile-gate + `scripts/check-i18n-parity.sh` script
-
-**Minimal-roles precursor (supports Hospitality URL gating in M1):**
-- [x] Hardcoded admin email allowlist gates Matterport URL + panoramic image URL edit fields (all other listing fields remain user-editable) — Validated in Phase 3 (2026-04-24): `src/constants/adminAllowlist.ts` + `src/hooks/useRole.ts` (`canFromUser`, `PermissionDeniedError`, D-03 priority ladder) + `src/components/Gated.tsx`; PropertyService guard throws `E_PERMISSION_DENIED`; 3 screens migrated (CreateListing + PropertyDetails + Profile); D-14 4-part grep-invariant CI gate `scripts/check-role-grep.sh`; 15/15 Jest tests GREEN; GATE-05 backend enforcement via D-22 Path B accepted-risk (unconfirmed at ship — revisit in M2)
-
-**Release:**
-- [ ] Version bump to 1.0.4 (Android versionCode → 25, iOS CURRENT_PROJECT_VERSION → 21)
-- [ ] Manual verification on physical iOS + Android devices before submission
-
-### Active — Milestone 2 (captured for roadmap visibility)
-
-<!-- Milestone 2 — "Roles & Moderation". Separate future milestone/release. Captured here per user request so the roadmap shows both. -->
+<!-- M2 "Roles & Moderation". Sketch carried forward from prior REQUIREMENTS.md v2 section for visibility. -->
 
 - [ ] Formal three-role system: `admin` / `moderator` / `user` (replaces M1 hardcoded email gate)
 - [ ] Moderator can: approve listings, flag/remove content, edit any user's listing
@@ -70,6 +82,12 @@ Prospective renters and buyers can reliably browse, filter, and inquire about Bi
 - [ ] Role-aware UI gating across CreateListing, PropertyDetails, and any other surfaces that expose restricted actions
 - [ ] Admin-facing UIs for moderation queue and role promotion
 - [ ] Backend changes to make `userType` trustworthy (custom claims, authenticated role source)
+- [ ] Backlog 999.1: Archive listings (authors + mod/admin) — promote at /gsd-review-backlog when M2 planning starts
+
+### Descoped (M1 v1.0.4)
+
+- — REL-03 Privacy manifest (`ios/JayTap/PrivacyInfo.xcprivacy`) population — descoped v1.0.4 per Phase 8 D-13. v1.0.3 production manifest (FileTimestamp / UserDefaults / SystemBootTime Required Reason API entries; empty `NSPrivacyCollectedDataTypes`) accepted by Apple under v1.0.3 review and inherited unchanged by v1.0.4 update submission. Re-open conditions: Apple flags missing `NSPrivacyCollectedDataTypes` at a future submission, OR a future phase introduces a new data-collecting SDK or authentication provider.
+- — REL-04 Xcode 26 / iOS 26 SDK gate — descoped v1.0.4 per Phase 8 D-13 (verification-only at archive time). SDK gate cleared 2026-04-28 (Xcode 26.4 / build 17E192). Re-open if Apple deprecates Xcode 26.4 / iOS 26 SDK.
 
 ### Out of Scope
 
@@ -83,7 +101,9 @@ Prospective renters and buyers can reliably browse, filter, and inquire about Bi
 
 ## Context
 
-**Project stage:** Pre-launch, brownfield. Current public version is 1.0.3 (Android versionCode 24, iOS build 20). No production listings; all content is mock data. Working toward v1.0.4 polish release to app stores.
+**Project stage:** Shipped v1.0.4 (M1 "Polish + Hospitality") on 2026-04-28 to TestFlight + Play Console processing. iOS shipped at `1.0.4 build 22`; Android shipped at `1.0.28 versionCode 28`. No production listings; all content remains mock data. M2 "Roles & Moderation" planning unblocked.
+
+**Tech stack (v1.0.4):** React Native 0.84.0 New Architecture (Hermes + Fabric on both platforms); custom `App.tsx` state-machine navigation (no react-navigation); React Context state (`ThemeProvider` → `LanguageProvider` → `AuthProvider`); `axios` to Railway backend + Firebase Identity Toolkit REST; `react-native-keyboard-controller@1.21.6` + `reanimated@4.3.0` + `worklets@0.8.1` for universal keyboard handling; `useRole()` / `can(action)` / `<Gated>` abstraction over hardcoded admin-email allowlist (M2 swaps to server-verified roles). Build toolchain: Xcode 26.4 / Build 17E192.
 
 **Target users:** Property listers (landlords, sellers, hostel/hotel operators) and prospective renters/buyers in Bishkek, Kyrgyzstan. EN/RU bilingual.
 
@@ -114,19 +134,22 @@ Prospective renters and buyers can reliably browse, filter, and inquire about Bi
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Split roles into Milestone 2 | Full role system is material work; would delay the store-critical polish release | — Pending |
-| Hardcoded admin email allowlist in M1 | Needed to gate Matterport/panoramic URL editing on Hospitality listings before M2 ships real roles; minimal implementation that doesn't block release | — Pending |
-| Remove `Land` entirely | User decision — not part of the product's target use cases for Bishkek | — Pending |
-| Hospitality (Hostel/Hotel) is showcase-only, no price | Daily dynamic pricing can't be reliably tracked; contact info drives offline booking | — Pending |
-| Hospitality listings appear under both Rent and Sell (no price in either) | An owner renting out hostel rooms vs. selling the whole hostel are both valid listing intents | — Pending |
-| Hospitality rendered in a separate section on list screens | Different information density (tours-first, no price) warrants visual separation | — Pending |
-| Required-field sets branch by category, not individual type | 9 chips → 3 categories is easier to maintain and explain than per-chip conditionals | — Pending |
+| Split roles into Milestone 2 | Full role system is material work; would delay the store-critical polish release | — Validated 2026-04-28 (M1 shipped without M2 work; M2 planning unblocked) |
+| Hardcoded admin email allowlist in M1 | Needed to gate Matterport/panoramic URL editing on Hospitality listings before M2 ships real roles; minimal implementation that doesn't block release | — Validated 2026-04-23 (Phase 3); GATE-05 backend enforcement via D-22 Path B accepted-risk; closes via M2 ROLE-04 |
+| Remove `Land` entirely | User decision — not part of the product's target use cases for Bishkek | — Validated 2026-04-24 (Phase 4); `scripts/check-land-removed.sh` CI gate exit 0 |
+| Hospitality (Hostel/Hotel) is showcase-only, no price | Daily dynamic pricing can't be reliably tracked; contact info drives offline booking | — Validated 2026-04-25 (Phase 6); HospitalityCard ships zero `formatPrice` import |
+| Hospitality listings appear under both Rent and Sell (no price in either) | An owner renting out hostel rooms vs. selling the whole hostel are both valid listing intents | — Validated 2026-04-25 (Phase 6); `hospitalityProperties` derived AFTER `transactionType` filter |
+| Hospitality rendered in a separate section on list screens | Different information density (tours-first, no price) warrants visual separation | — Validated 2026-04-25 (Phase 6); `HospitalitySection` mounts via `ListHeaderComponent` on 4 list screens |
+| Required-field sets branch by category, not individual type | 9 chips → 3 categories is easier to maintain and explain than per-chip conditionals | — Validated 2026-04-24 (Phase 5); pure `validateByCategory()` single source of truth |
 | Universal keyboard solution, library choice deferred to planner | User wants robustness over any specific library; research phase will pick (likely `react-native-keyboard-controller`, `KeyboardAvoidingView`, or similar) | — Validated 2026-04-23 in Phase 2: chose `react-native-keyboard-controller@1.21.6` + reanimated@4.3.0 + worklets@0.8.1 under Fabric. Key load-bearing findings — (a) v4 Babel plugin is `'react-native-worklets/plugin'`, NOT the legacy `'react-native-reanimated/plugin'` which silently no-ops; (b) library `KeyboardAvoidingView` requires explicit `behavior` prop (has no default — disproves RESEARCH §9 A8); (c) `KeyboardProvider` slots between `SafeAreaProvider` and `ThemeProvider` as the single root-level solution — zero `keyboardVerticalOffset` remains in `src/` |
 | Bottom-nav fix starts with reproduction + root-cause, not a guess | Bug location is "unknown — need to investigate"; suspected in `App.tsx` boolean state machine | — Validated 2026-04-22 in Phase 1: root-caused to stale `hideMainStackUnderOverlay` flag + keep-alive screens retaining touch responders; derived overlay state from current overlay rather than storing flag; applied `pointerEvents` belt-and-suspenders |
 | 2GIS native map bridge excluded from this milestone | Separate multi-week effort; plan already drafted in `2GIS_BRIDGE_PLAN.md` | — Pending |
 | Phase 1 pre-fix device-matrix baseline deferred (accepted risk, 2026-04-22) | User time-constrained; full 45-cell × 2-platform device matrix not feasible before Plan 03 code fix lands. Routes through RESEARCH §9 A6 / §10 Q2 zero-FAIL branch upfront. Plan 04 gate semantics change from "FAILs→0" to "no regression + primary trap sequence visibly fixed"; D-04 pause-and-reassess trigger likelihood is higher. | — Accepted |
 | Backend enforcement of admin endpoints (PATCH /properties/:id/verifications, PUT /properties/:id tours/panoramicPhotosUrl writes) — Role Gating Precursor (v1.0.4) Phase 3 | Accepted as known risk — not confirmed by Railway team by release cut. Release proceeds per D-22. Client-side gating (useRole + Gated + D-08 hide-entirely + Plan 04 service-layer canFromUser guard) reduces in-app blast radius but does NOT close raw-HTTP / non-admin-with-valid-Firebase-uid bypass. Rolls into pre-existing CONCERNS.md "Firebase uid used as sole auth" — Phase 3 does NOT regress that posture, only surfaces it. M2 ROLE-04 ships firebase-admin SDK + signed-ID-token verification to close the gap. See `.planning/phases/03-role-gating-precursor/03-BACKEND-COORDINATION.md` (Status: UNCONFIRMED-AT-SHIP) + `03-VERIFICATION.md` GATE-05 outcome section. | — Accepted risk 2026-04-23 (Phase 3) |
 | Phase 7 Alignment Pass skipped (no screenshots needed) | User confirmed 2026-04-28 nothing alignment-related stood out during Phase 1–6 physical-device QA walks (iOS 26 / iPhone 15 Pro Max + Android 16 / Moto G XT2513V). ALIGN-01/02 satisfied implicitly: every Phase-1–6 manual QA walk PASSED on both devices in dark/light mode using existing `useTheme()` tokens — no out-of-spec layouts surfaced. Phase 7 retains its slot in ROADMAP.md for traceability but is closed with zero plans. | — Accepted skip 2026-04-28 (Phase 7) |
+| Phase 8 D-13 descope-by-inheritance for v1.0.4 update submission | v1.0.4 is a polish/feature update on top of already-approved v1.0.3, not a fresh submission. Privacy manifest (`PrivacyInfo.xcprivacy`), ASC App Privacy responses, Play Data Safety questionnaire, `applinks:bizdinkonush.com` legacy entitlement, and Google Maps Android key restrictions were all live and unchanged in v1.0.3 production. v1.0.4 codebase scan confirmed no new data-collecting SDKs added. Re-touching live declarations would be churn without a defect to fix. REL-03 + REL-04 marked DESCOPED with re-open conditions documented inline. | — Validated 2026-04-28 (Phase 8); both stores accepted v1.0.4 update submission without privacy/entitlement flags |
+| D-02 baseline trusted local `build.gradle` without Play Console version-code history check | Phase 8 CONTEXT.md D-02 anchored on local Android `versionCode 25 / versionName "1.0.24"` baseline. Play Console had already accepted versionCode 25 from a prior submission; bump-to-25 plan would have been rejected. User authored out-of-band commit `63f3b72` at archive time bumping versionCode 25 → 28 + iOS `CURRENT_PROJECT_VERSION` 21 → 22. Both stores accepted post-bump values. Lesson for M2+: pre-archive Wave-0 should query Play Console + TestFlight for highest-accepted version-code per track BEFORE setting baseline. | — Lesson recorded 2026-04-28 (M1 close); applied as RETROSPECTIVE.md key lesson 1 |
+| M1 v1.0.4 milestone shipped to both stores | 8/8 ROADMAP phases resolved (7 executed + Phase 7 SKIPPED); 33/35 v1 requirements COMPLETE + 2 DESCOPED (REL-03 + REL-04 per D-13); iOS in TestFlight (build 22) + Android submitted/processing (versionCode 28). | — Shipped 2026-04-28 |
 
 ## Evolution
 
@@ -146,4 +169,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-24 after Phase 4 completion (listing-form-taxonomy-decomposition)*
+*Last updated: 2026-04-28 after v1.0.4 (M1) milestone close*
