@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0.4
-milestone_name: M1 Polish + Hospitality
-status: complete
-last_updated: "2026-04-28T23:59:00.000Z"
+milestone: v2.0
+milestone_name: M2 Roles & Moderation
+status: defining_requirements
+last_updated: "2026-04-29T00:00:00.000Z"
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 42
-  completed_plans: 42
-  percent: 100
-m1_disposition: shipped — iOS in TestFlight + Android submitted to Play Console; M1 milestone CLOSED 2026-04-28 via /gsd-complete-milestone
-m2_state: planning unblocked — fresh REQUIREMENTS.md + new milestone via /gsd-new-milestone when ready; PROJECT.md § M2 Sketch carries forward the prior v2 scope
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
+m1_disposition: shipped — iOS in TestFlight + Android submitted to Play Console; M1 milestone CLOSED 2026-04-28 via /gsd-complete-milestone; archived to .planning/milestones/v1.0.4-*
+m2_state: started 2026-04-29 — three-role system + moderation lifecycle + queue UI + admin UIs + archive listings (999.1 promoted); phase numbering restarts at 1
 ---
 
 # STATE: JayTap
@@ -41,12 +41,19 @@ m2_state: planning unblocked — fresh REQUIREMENTS.md + new milestone via /gsd-
 
 ## Current Position
 
-Milestone: **M1 v1.0.4 "Polish + Hospitality" — SHIPPED 2026-04-28 + ARCHIVED 2026-04-28**
-**Archive locations:** `.planning/milestones/v1.0.4-ROADMAP.md` (full phase details preserved) + `.planning/milestones/v1.0.4-REQUIREMENTS.md` (35 v1 reqs: 33 complete + 2 descoped) + `.planning/milestones/v1.0.4-phases/` (8 phase directories moved here from `.planning/phases/`) + `.planning/MILESTONES.md` (M1 entry) + `.planning/RETROSPECTIVE.md` (v1.0.4 section)
-**Active milestone:** *None.* M2 planning unblocked.
-**Status:** All 8 ROADMAP phases resolved (Phases 1-6 + 8 executed; Phase 7 SKIPPED 2026-04-28 per PROJECT.md row 129). 33/35 v1 requirements COMPLETE + 2 DESCOPED (REL-03 privacy manifest + REL-04 SDK gate; both inherited from v1.0.3 production per Phase 8 D-13 with re-open conditions documented in archived `08-VERIFICATION.md` Section F + archived REQUIREMENTS.md). Ship binaries: iOS 1.0.4 build 22 in TestFlight; Android 1.0.28 versionCode 28 submitted/processing.
-**Progress:** [██████████] 100% (M1 closed)
-**Recommended next action:** `/gsd-new-milestone` to start M2 "Roles & Moderation" discovery, OR `git push origin v1.0.4` to push the local annotated tag.
+Milestone: **M2 v2.0 "Roles & Moderation" — STARTED 2026-04-29**
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements (REQUIREMENTS.md being drafted via /gsd-new-milestone)
+Last activity: 2026-04-29 — Milestone v2.0 started; PROJECT.md updated with Current Milestone section; STATE.md reset; M1 v1.0.4 archived under `.planning/milestones/v1.0.4-*`
+**Recommended next action:** Continue /gsd-new-milestone flow → research decision → REQUIREMENTS.md → ROADMAP.md → `/gsd-discuss-phase 1` once roadmap approved
+**Phase numbering:** Restarts at 1 for M2 (M1 phase dirs already at `.planning/milestones/v1.0.4-phases/`)
+
+### Prior position (M1 close, archived for context)
+
+Milestone: M1 v1.0.4 "Polish + Hospitality" — SHIPPED 2026-04-28 + ARCHIVED 2026-04-28
+Archive locations: `.planning/milestones/v1.0.4-ROADMAP.md` + `.planning/milestones/v1.0.4-REQUIREMENTS.md` + `.planning/milestones/v1.0.4-phases/` + `.planning/MILESTONES.md` + `.planning/RETROSPECTIVE.md`
+Status: 33/35 v1 reqs COMPLETE + 2 DESCOPED (REL-03 + REL-04 per Phase 8 D-13 inheritance from v1.0.3 production). iOS 1.0.4 build 22 in TestFlight; Android 1.0.28 versionCode 28 submitted/processing.
 
 ### Phase pipeline
 

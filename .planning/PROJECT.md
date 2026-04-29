@@ -8,6 +8,27 @@ JayTap is a mobile real-estate app for Bishkek where users rent, sell, and brows
 
 Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
+## Current Milestone: v2.0 M2 "Roles & Moderation"
+
+**Goal:** Replace M1's hardcoded admin email gate with a real three-role permission system, give moderators + admins a workflow to review listings before they go public, and let owners + mods/admins archive listings.
+
+**Target features:**
+
+- Three-role permission system (`admin` / `moderator` / `user`) backed by **MongoDB as the role authority** (the `userType` field on the enriched user record). Railway backend verifies the Firebase ID token via JWKS, then looks up `userType` in MongoDB. Closes M1 GATE-05 D-22 Path B accepted risk **without adding any Firebase SDK to this repo** (REST-only stays the rule).
+- Listing moderation lifecycle — status field on listings: `pending` / `live` / `rejected` / `archived` (replaces today's "post = instantly live" model); owner-side messaging on rejection.
+- Moderator actions + Moderation Queue UI — approve / reject / flag / edit-on-behalf-of-owner from a dedicated queue screen; available to admins + moderators.
+- Admin-only UIs — promote-user-to-moderator, add-admin, role management screens (mutate MongoDB user record, never Firebase).
+- Archive listings — owner-driven (author archives own listing) + mod/admin-driven (any listing); promoted from backlog 999.1.
+
+**Key context:**
+
+- **Auth split:** Firebase Identity Toolkit REST = identity proof (uid). MongoDB user record = enriched profile + role authority. Role changes touch Mongo, never Firebase.
+- **No Firebase SDK** in this repo. ID-token signature verification on Railway uses standard JWT/JWKS (Firebase public x509 endpoint), not firebase-admin SDK. Previous SDK addition attempt caused issues — REST-only is a hard rule.
+- **Forward-compat shim already in place.** M1 shipped `useRole()` / `can(action)` / `<Gated>` over a hardcoded email allowlist. M2 swaps the *source* (now: backend endpoint returning Mongo-resolved role for the authenticated uid) without touching call sites.
+- **Backend coordination is the gating dependency.** Same Railway-team conversation GATE-05 D-22 Path B deferred — pre-archive Wave-0 of any backend-touching phase needs endpoint shape + Mongo schema confirmed first.
+- **Phase numbering restarts at 1** for M2 (M1 dirs already moved to `.planning/milestones/v1.0.4-phases/`).
+- **Out of scope (carried from M1):** chat moderation tooling, react-navigation migration, payment/booking, per-night pricing, migration tooling for existing listings (clean-slate data still holds).
+
 ## Requirements
 
 ### Validated
@@ -68,21 +89,9 @@ Prospective renters and buyers can reliably browse, filter, and inquire about Bi
 
 ### Active
 
-<!-- M1 v1.0.4 "Polish + Hospitality" SHIPPED 2026-04-28 to TestFlight + Play Console processing. All M1 active items moved to ## Validated. M2 "Roles & Moderation" requirements will be defined fresh via /gsd-new-milestone — sketch below for visibility. -->
+<!-- M2 v2.0 "Roles & Moderation" started 2026-04-29 via /gsd-new-milestone. REQUIREMENTS.md and ROADMAP.md being defined; M2 phase numbering restarts at 1. M1 v1.0.4 archived to .planning/milestones/v1.0.4-*. -->
 
-**Active workstreams:** *None.* M1 closed; M2 planning unblocked but not yet started. Fresh REQUIREMENTS.md to be created at `/gsd-new-milestone` invocation.
-
-### M2 Sketch (will be fully planned at /gsd-new-milestone)
-
-<!-- M2 "Roles & Moderation". Sketch carried forward from prior REQUIREMENTS.md v2 section for visibility. -->
-
-- [ ] Formal three-role system: `admin` / `moderator` / `user` (replaces M1 hardcoded email gate)
-- [ ] Moderator can: approve listings, flag/remove content, edit any user's listing
-- [ ] Admin can: all moderator actions + edit Matterport/panoramic URLs + set verification badges + promote-to-moderator + add new admins + full backend access
-- [ ] Role-aware UI gating across CreateListing, PropertyDetails, and any other surfaces that expose restricted actions
-- [ ] Admin-facing UIs for moderation queue and role promotion
-- [ ] Backend changes to make `userType` trustworthy (custom claims, authenticated role source)
-- [ ] Backlog 999.1: Archive listings (authors + mod/admin) — promote at /gsd-review-backlog when M2 planning starts
+**Active workstreams:** M2 "Roles & Moderation" — see `## Current Milestone` above and `.planning/REQUIREMENTS.md` (in progress).
 
 ### Descoped (M1 v1.0.4)
 
@@ -169,4 +178,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-28 after v1.0.4 (M1) milestone close*
+*Last updated: 2026-04-29 — M2 v2.0 "Roles & Moderation" milestone started via /gsd-new-milestone*
