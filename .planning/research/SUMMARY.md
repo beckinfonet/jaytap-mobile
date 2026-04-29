@@ -1,17 +1,19 @@
-# Project Research Summary
+# Project Research Summary — M2 "Roles & Moderation"
 
-**Project:** JayTap — M1 Polish + Hospitality / M2 Roles & Moderation
-**Domain:** React Native 0.84 (New Architecture + Hermes) brownfield mobile real-estate marketplace
-**Researched:** 2026-04-22
-**Confidence:** HIGH overall; MEDIUM on bottom-nav root-cause hypothesis (requires reproduction confirmation)
+**Project:** JayTap (Bishkek real-estate, RN 0.84 brownfield, iOS + Android)
+**Domain:** Three-role permission system + listing moderation lifecycle + Moderation Queue UI + admin role-management + listing archive on top of an existing app whose nav is a custom `App.tsx` state machine and whose auth is Firebase Identity Toolkit REST + MongoDB role authority on Railway.
+**Researched:** 2026-04-29
+**Confidence:** HIGH (architectural placement + stack picks); MEDIUM on the parts gated by Railway endpoint shapes Q1–Q12 (collapses to HIGH once Wave-0 sign-off lands).
+
+---
 
 ## Executive Summary
 
-JayTap is a brownfield RN 0.84 real-estate app shipping a polish release (v1.0.4) that combines UI bug fixes, a three-category listing taxonomy (Residential / Commercial / Hospitality), and a minimal role gate for admin-curated Hospitality media URLs. The research is unanimous on one sequencing constraint: the bug-fix foundation (bottom-nav reliability + universal keyboard handling) must land before any listing-form work begins. These two workstreams share screens and share the keyboard library — debugging them in parallel makes failures ambiguous. All four research documents agree on this build order, making it the single highest-confidence recommendation in this synthesis.
+M2 closes M1's GATE-05 D-22 Path B accepted-risk row by replacing the hardcoded admin-email allowlist with a server-resolved three-role system (`admin` / `moderator` / `user`) backed by **MongoDB as the role authority** and **Firebase Identity Toolkit REST as identity proof only** — never both. Railway verifies the Firebase ID token via standard JWT/JWKS (`jose@^6.2.3`, no firebase-admin SDK), then looks up `userType` in Mongo. The M1 Phase 3 forward-compat shim (`useRole()` / `can(action)` / `<Gated>`) was deliberately built for this milestone — M2 swaps the **source** of role data (Mongo lookup via verified token) without touching call sites. **Zero new dependencies on the RN client.** Backend adds exactly one runtime dep (`jose`).
 
-The recommended library additions are narrow and deliberate. `react-native-keyboard-controller` (v1.21.6) is the only viable cross-platform keyboard solution for RN 0.84 + New Architecture — both the built-in `KeyboardAvoidingView` (broken on Android targetSdk 35+ and New Arch unmount/remount) and the APSL `keyboard-aware-scroll-view` (unmaintained since November 2021) are disqualified. This library requires `react-native-reanimated` as a peer, which is not currently in the JayTap `package.json`. That single transitive dependency is the biggest install-time risk in M1 and must be verified and resolved as the first engineering task. For form state, the architecture research recommends against introducing `react-hook-form`+`zod` in M1 (brownfield ship-ASAP, no prior form-library convention) in favor of `useState` with extracted category-section sub-components and a single `validateByCategory()` source of truth. STACK.md catalogues both options in full; if the listing form migration proves larger than expected, switching to RHF+zod in Phase 3 remains viable.
+Beyond roles, M2 introduces a 4-state listing lifecycle (`pending` / `live` / `rejected` / `archived`) — replacing today's "post = instantly live" model — plus a Moderation Queue, edit-on-behalf-of-owner (reusing the M1-decomposed `CreateListingScreen`), canned rejection reasons with bilingual EN+RU enum codes, and dual-track archive (owner-driven + mod/admin-driven) that coexists with hard-delete (now admin-only). RU-market terminology anchors to Avito/Cian (`На модерации` / `Активно` / `Отклонено` / `Снято с публикации`) for direct user mental-model match.
 
-The two dominant security risks cut across all four research documents and both must be addressed before the milestone closes: (1) client-side role/email-allowlist gating is UX, not security — the Railway backend must independently verify Firebase ID tokens and reject unauthorized writes to Matterport/panoramic URLs regardless of what the client claims; (2) the current architecture sends `x-firebase-uid` as a plain header instead of a verified `Authorization: Bearer <idToken>` — any caller knowing a UID can impersonate that user to the backend. M1 does not need to fix the broader auth transport, but it must confirm that the specific admin-only endpoints (`PATCH /properties/:id/verifications`, `/tours`) reject non-admin requests server-side. Without that confirmation, the M1 admin gate is cosmetic.
+The single largest schedule risk is the same Railway-team coordination that gated M1: Phase 1 of M2 is dead-on-arrival without a written endpoint-shape sign-off (Q1 + Q2 + Q5 minimum). Mitigation is a hard Wave-0 gate before Phase 1 plans land — same channel as M1's GATE-05 ticket, this time non-deferrable. Top technical risks are JWT verification defects that ship dev-mode bypass, permissive `PATCH /users/me` that lets any user self-promote to admin, and stale role caches that keep demoted moderators with active UI for hours; all three have concrete prevention specs grounded in Firebase official docs.
 
 ---
 
@@ -19,215 +21,194 @@ The two dominant security risks cut across all four research documents and both 
 
 ### Recommended Stack
 
-The existing stack (RN 0.84, React 19, TypeScript 5.8, Hermes, custom `App.tsx` state-machine navigation) is not re-researched. All additions are scoped to the four M1 problems.
+[Detail: `STACK.md`]
 
-**For universal keyboard handling — `react-native-keyboard-controller@1.21.6`:**
-The only actively-maintained, New-Arch-compatible, cross-platform keyboard library. `KeyboardProvider` goes at the root (inside `SafeAreaProvider`, outside all domain providers). Screens use `KeyboardAwareScrollView` as a drop-in for any screen with `TextInput` in a scroll context. Requires `react-native-reanimated` (verify in `package.json` before planning — likely absent, 1-2 hours of install setup if so). Full rebuild required on both platforms after installation; Metro-only hot reload will not pick up native modules.
+**Core additions (backend only — Railway/Express):**
+- `jose@^6.2.3` — Firebase ID-token verification via `createRemoteJWKSet` + `jwtVerify`. Zero runtime deps; cache + rotation handled automatically. **The only new runtime dep M2 strictly requires anywhere in the stack.**
+- `zod@^3.24.x` (optional) — Runtime payload validation for moderation/role mutation endpoints. Use only if Railway isn't already validating; pin to v3 (NOT v4 — RHF/RN bug from M1 still applies if shared schemas).
 
-**For conditional form validation — `useState` + extracted sub-components (M1 default); `react-hook-form@7.73.1` + `zod@^3.24` (viable alternative if scope allows):**
-The architecture research explicitly recommends staying with the codebase's `useState` convention for M1. If RHF+zod are adopted, the critical constraint is `zod@^3.24` — zod v4 has an open bug (colinhacks/zod#4989) that prevents form submission with RHF on React Native. Do not use zod v4 under any circumstances until that bug is resolved.
+**Core additions (RN client):** **None.** `axios`, `FlatList`, `useState`, `useRole()`, existing modal pattern, `lucide-react-native` icons (`Shield`, `ShieldCheck`, `UserCog`, `Archive`, `Check`, `X` — already available), and existing `<Gated>` shim cover every M2 UI surface.
 
-**For role gating — zero libraries; a single `useRole()` hook:**
-No role library is warranted for 3 roles and ~5 gated actions. The hook shape must be designed for M2 forward-compat from day one: call sites use `can(action)` not `isAdmin`, so the M2 migration swaps the hook's internals without touching consumers.
-
-**Core technology additions:**
-
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| `react-native-keyboard-controller` | 1.21.6 | Universal keyboard overlap fix — `KeyboardProvider` + `KeyboardAwareScrollView` |
-| `react-native-reanimated` | `>=3.0.0` (peer) | Required peer for keyboard-controller; install first if absent |
-| `react-hook-form` | 7.73.1 | Form state + conditional required-field validation (M1 optional, M2+ recommended) |
-| `zod` | `^3.24` (NOT v4) | Schema for category-branched required fields; discriminated union on `propertyCategory` |
-| `@hookform/resolvers` | latest 3.x | RHF + Zod bridge (only if RHF is adopted) |
-
-See `.planning/research/STACK.md` for full version compatibility matrix and installation order.
-
----
+**Explicit anti-recommendations** (do NOT introduce — REQUIREMENTS.md must list these as out-of-scope guardrails):
+- `firebase-admin`, `@react-native-firebase/*`, `firebase` web SDK — **REPO RULE: no Firebase SDK anywhere**. REST/JWKS substitute table is in PITFALLS.md Pitfall 15.
+- Firebase **custom claims as role source** — Mongo `userType` is authoritative; custom claims would split source-of-truth.
+- `react-navigation` — `App.tsx` boolean state machine stays.
+- `react-native-gesture-handler` / `react-native-swipe-list-view` for queue swipe actions — explicit per-row buttons instead; native-module install would risk regressing the M1 Fabric/reanimated/keyboard-controller stack.
+- `xstate` / `@xstate/react` — 4-state machine is too small; hand-roll a 30-LOC `canTransition()` pure function in `src/utils/listingStatus.ts`.
+- `@tanstack/react-query`, `zustand`, `redux-toolkit` — none in the codebase today; M2 doesn't change that.
+- `react-hook-form` + `zod@v4` — RHF/RN bug; reject-reason input is one-field, `useState<string>` is sufficient.
+- `passport` / `passport-firebase-jwt` / `express-jwt` / `jsonwebtoken+jwks-rsa` — all worse than `jose` (which `jwks-rsa@4` itself depends on).
 
 ### Expected Features
 
-The three-category listing taxonomy (Residential / Commercial / Hospitality) is the structural core of M1. Every other M1 feature depends on it being in place first.
+[Detail: `FEATURES.md`]
 
-**Must have — M1 table stakes:**
-- Three-category taxonomy (Residential / Commercial / Hospitality) — gates all category-branched behavior; must land first in M1
-- Remove `Land` from chips, filters, i18n tables, type definitions (do it atomically — grep confirms zero `propertyType.land` references remain)
-- Category-branched required fields: Residential = bedrooms/bathrooms/area/price; Commercial = area/sub-type/price; Hospitality = rooms/bathrooms/amenities/contact — no price in either Rent or Sell mode
-- Hospitality amenities multi-select with 12-item curated taxonomy (WiFi, AC, heating, kitchen, breakfast, parking, 24h reception, laundry, hot water, common area, lockers, en-suite)
-- Separate Hospitality section on Home / Favorites / OwnerListings as a horizontal FlatList via `ListHeaderComponent`
-- `PropertyDetailsScreen` renders Hospitality: no price, tours-first, contact-method quick actions (WhatsApp/Telegram/phone) promoted visibly
-- Hardcoded admin email allowlist (`src/constants/adminAllowlist.ts`) gates Matterport URL + panoramic URL inputs via `useRole().can('editVerifications')` — single source of truth, consumed only through the hook
+**Must have (table stakes — all user-locked in PROJECT.md "Current Milestone v2.0"):**
+- Server-resolved role on `AuthContext` (closes GATE-05) + foreground re-fetch + 403-retry interceptor (handles demotion mid-session)
+- Listing `status` field with 4 states (`pending` / `live` / `rejected` / `archived`); `POST /properties` defaults to `pending`
+- Owner sees status pill + rejection reason on My Listings + listing detail; rejected listings show `Ожидает действия` / "Edit & resubmit" CTA (Avito anchor)
+- Moderation Queue screen (mod + admin) with FIFO-default sort, per-item Approve / Reject / Edit-on-behalf
+- Reject **requires** a reason; canned chips + free-form override; reason is a `reasonCode` enum (translated EN+RU server-side, NOT free-text)
+- Edit-on-behalf reuses M1's `CreateListingScreen` with a `moderatorContext` prop (no new editor surface)
+- Owner-initiated archive + mod/admin-initiated archive; unarchive routes to `pending` (NOT `live` — prevents post-rejection bypass)
+- Admin-only Role Management screen: search users, set `userType` in Mongo (never Firebase); promote-to-moderator, add-admin
+- Last-admin lockout protection (server-side rule)
+- EN+RU locale parity for ~50–100 new keys (365-key M1 baseline grows accordingly; CI gate enforces)
+- Theme/dark-mode parity via `useTheme()` tokens; new status colors derived from existing semantic palette
 
-**Should have — M1 differentiators:**
-- Admin trust badge "Curated 3D tour" on Hospitality cards (LOW cost, extends existing `PlatformVerifications`)
-- Price-unit field for Commercial listings (total / per-m2-per-month — common in post-Soviet markets)
-- WhatsApp/Telegram deep-link quick-action buttons on Hospitality detail pages (infrastructure already present in `Info.plist`; just surface in UI)
+**Should have (differentiators — recommended for M2 ship, low cost):**
+- Foreground role-refresh banner ("Your role changed — tap to reload") — prevents support tickets on demotion
+- Owner-side rejection banner on app open + listing-detail "View rejection" CTA
+- Pending/rejected/archived deep-link guard on `PropertyDetailsScreen` (one conditional render)
+- Optimistic 409 conflict handling for two-mods-on-same-listing (server `findOneAndUpdate({ status: 'pending' })`; client toast + queue refetch)
+- `moderationLog` audit collection (append-only, 8 lines of schema, no UI in M2 — data forward-fits future audit screen)
 
-**Must have — M2 (next milestone):**
-- Formal three-role system (admin / moderator / user) with server-side trust: Firebase custom claims set via Railway backend Admin SDK
-- Listing approval lifecycle: `pending → live → rejected` with rejection reason surfaced to owner
-- Moderation queue screen (admin + moderator only)
-- Flag/report listing flow
-- Moderator edit-on-behalf-of (reuse `CreateListingScreen` with `isModerating` flag)
-- `AuthContext.refreshProfile()` to propagate role changes without logout
-- Backend token verification middleware (`Authorization: Bearer <idToken>` replacing `x-firebase-uid` header)
-
-**Defer to v2+:**
-- Per-room listings for hostels (anti-feature for showcase-only model)
-- Automated/AI content moderation
-- Per-permission matrix beyond coarse 3-role model
-- Chat moderation tooling
-- Booking calendar / per-night pricing for Hospitality (explicit anti-feature — destroys trust with stale data)
-
-See `.planning/research/FEATURES.md` for full competitor analysis and prioritization matrix.
-
----
+**Defer (M3+ — explicit anti-features, document in REQUIREMENTS.md "Out of Scope"):**
+- Automated/AI moderation (image/text classifiers) — Bishkek scale doesn't justify dependency surface
+- Full audit log UI (data persisted in M2; UI deferred)
+- Formal appeal flow — edit + resubmit covers 95% of cases
+- Bulk moderation actions — foot-gun risk at small mod team
+- Flag action (5th lifecycle state) — implicit Slack coordination suffices for ≤3 mods
+- Email/push notifications on rejection/approval — no push infrastructure exists; in-app banner sufficient
+- In-app moderation messaging thread / chat moderation tooling
+- Lease-based pessimistic locking — optimistic 409 suffices
+- Self-promotion path ("apply to be a moderator")
+- Hierarchical permission inheritance — flat `can(action)` predicates from M1 stay flat
 
 ### Architecture Approach
 
-Preserve the `App.tsx` state machine, the nested Context stack, and the `display:none` keep-alive pattern verbatim. Add exactly three new seams: a `KeyboardProvider` at the root of the provider tree, a pure `useRole()` hook over `AuthContext` (no new Provider), and a `useCategory(propertyType)` domain helper. Extract `CreateListingScreen.tsx` (currently 1300 LOC) into category sub-components. Render Hospitality as `ListHeaderComponent` on list screens, not `SectionList`.
+[Detail: `ARCHITECTURE.md`]
 
-**Updated provider tree:**
-
-```
-SafeAreaProvider
-└── KeyboardProvider         (NEW — must be outermost; installs one native listener covering all keep-alive screens)
-    └── ThemeProvider
-        └── LanguageProvider
-            └── AuthProvider
-                └── AppContent  (navigation state machine — shape unchanged)
-```
+**Provider tree unchanged.** No new Context for roles — `useRole()` keeps reading from `useAuth().user.backendProfile`; M1's Branch 1 (`customClaims.role` from Mongo lookup) finally gets a real value, and the M1 hardcoded-allowlist branch (`useRole.ts:64-65`) is deleted along with `src/constants/adminAllowlist.ts`.
 
 **Major components:**
-
-1. `KeyboardProvider` (root) — single native keyboard listener; all `KeyboardAwareScrollView` instances in keep-alive screens share it safely (library scopes to the focused input)
-2. `useRole()` hook (`src/hooks/useRole.ts`) — derives `role: 'admin'|'moderator'|'user'|'guest'` with priority: M2 custom claims → existing `backendProfile.userType` → M1 email allowlist → guest; exposes `can(action)` for M1→M2 forward-compat
-3. `<Gated action="…">` component (`src/components/Gated.tsx`) — declarative UI guard; renders `null` when `can(action)` is false; makes gated surfaces greppable
-4. `CreateListingForm/` sub-components — `BasicInfoSection`, `ResidentialSection`, `CommercialSection`, `HospitalitySection`, `PriceSection`, `MediaSection`, `VerificationSection`; single `validators.ts` owns the category-to-required-field map
-5. `HospitalitySection` component — horizontal `FlatList` rendered via `ListHeaderComponent` on Home / Favorites / OwnerListings; returns `null` when empty
-6. `HospitalityCard` component — tour-first variant of `PropertyCard`; no price; rooms + amenities summary line
-
-**Bottom-nav bug — four candidate causes ranked by probability:**
-- C1 (highest): `hideMainStackUnderOverlay` state flag goes stale on overlay teardown → main stack stays `display:none` → taps fall through. Fix: derive it (`useMemo`) from the other show-flags rather than storing it.
-- C2 (high): Back-handler's 23-dependency `useEffect` creates stale closures that capture tab taps. Fix: ref-based handler, single `addEventListener` at mount.
-- C3 (medium): Absolute-positioned overlay wrapper captures touches silently. Fix: `pointerEvents="box-none"` on all wrapper `View`s not intended to receive input.
-- C4 (lower): Keep-alive touchables stop firing `onPress` over time. Fix: `removeClippedSubviews={true}` + bounded keep-alive lifetime.
-
-The `display:none` + `pointerEvents="none"` belt-and-suspenders fix (C3) should be applied universally regardless of which cause proves primary — it costs nothing and prevents this class of bug recurring on any new screen added in M2.
-
-See `.planning/research/ARCHITECTURE.md` for full component boundaries, data-flow diagrams, and anti-patterns specific to this codebase.
-
----
+1. **`AuthService.getBackendUser()` / `AuthContext`** — Modified additively. New `refreshRole()` callable; bumps `user` reference. No new state. New axios response interceptor: `401 → refresh idToken + retry`, `403 + E_PERMISSION_DENIED → refreshRole() + retry once`.
+2. **Shared `apiClient.ts`** — Consolidates the 5 services' `getHeaders()` boilerplate (CONCERNS.md "Duplicated service boilerplate" — Phase 1 is the moment). Switches `x-firebase-uid` → `Authorization: Bearer <idToken>`. Adds Firebase REST refresh-token flow (`securetoken.googleapis.com/v1/token`) with `refreshToken` cached in AsyncStorage.
+3. **`ModerationQueueScreen` + `RoleManagementScreen` (+ optional `PromoteUserScreen`)** — New overlay-pattern screens, registered in `OVERLAY_FLAGS` array (M1 Phase 1 derived-overlay pattern), reached via Profile-screen entry-point gated by `<Gated action="viewModerationQueue">` / `<Gated action="manageRoles">`. **Not** added as 6th BottomNav tab (gating churn cost too high; rare-use surface).
+4. **`PropertyService` extensions** — `getModerationQueue`, `approveListing`, `rejectListing`, `archiveListing`, `unarchiveListing`, `editAsModerator`. All carry `canFromUser` service-layer guards mirroring M1 Plan 03-04 pattern (defense-in-depth, NOT primary gate).
+5. **`propertyStatus.ts` helper** — Single `filterByStatus(props, ['live'])` callsite-shared by Home/Favorites/Renter/Owner list screens. Defensive default `(p.status ?? 'live')` until Q12 confirms server-side migration approach.
+6. **`OwnerListingsScreen`** — Heavier modification: 4-tab segmented control (Live / Pending / Rejected / Archived) + per-tab empty states + rejection banner component.
+7. **`CreateListingScreen` edit-on-behalf** — New optional `moderatorContext: { editingOwnerUid, reason? }` prop. When set, save dispatches `editAsModerator(propertyId, payload)` instead of `updateProperty`. **No new editor surface.**
+8. **`App.tsx` extensions** — 3 new boolean flags added to `OVERLAY_FLAGS` (`isModerationQueueOpen`, `isRoleManagementOpen`, optional `isPromoteUserOpen`). LOC budget: ≤1100 hard ceiling, ≤1050 soft. If approached, carve `ModerationOverlayHost` sub-component.
 
 ### Critical Pitfalls
 
-1. **Patching `BottomNavigator.tsx` instead of the `App.tsx` state machine** — The nav component is where the symptom appears, not where the bug lives. A partial fix reduces repro rate from 100% to 80% and ships a trap. Require zero-repro across all 32+ state×tab transition combinations before marking this done. Log `hideMainStackUnderOverlay` first; if it stays `false` after overlay close, derive it instead of storing it.
+[Detail: `PITFALLS.md` — 15 pitfalls + phase mapping]
 
-2. **`react-native-reanimated` install as an afterthought** — keyboard-controller silently no-ops without Reanimated. If Reanimated is not already in `package.json` (verify before planning begins), installing it requires: npm install, Babel plugin as the LAST entry in `babel.config.js`, `pod install`, and full clean builds on both platforms. Budget 1-2 hours. Missing this blocks all keyboard work.
+Top pitfalls paired with the phase that addresses them:
 
-3. **Client-only admin gating without backend verification** — The Matterport/panoramic URL restriction is UX if the Railway backend accepts PATCH requests from any authenticated user. Confirm with the backend team that admin-only endpoints verify the Firebase `idToken` and reject non-admin UIDs before M1 ships. This is a coordination task, not a code task, but it is release-blocking from a security standpoint.
-
-4. **Category-change data loss in the listing form** — Resetting form state on category change silently destroys user-entered data. Never destroy state on category change; filter the submit payload by the active category's required-field set at submission time only. One `listingCategorySchema.ts` file owns the mapping — validation, rendering, and payload filtering all read from it.
-
-5. **iOS Privacy Manifest mismatch + Xcode 26 SDK requirement blocking store submission** — `PrivacyInfo.xcprivacy` has an empty `NSPrivacyCollectedDataTypes` array despite collecting email, name, phone, photos, and location. App Store Connect's automated scanner will reject the submission. Additionally, as of April 2026 all new iOS submissions require the iOS 26 SDK (Xcode 26). Both blockers can be caught in Phase 6 release prep if the checklist is thorough, but the privacy manifest audit should start at the beginning of Phase 6, not the end.
+1. **JWT/JWKS verification defects ship dev-mode bypass to production** (Pitfall 2) — Pin `algorithms: ['RS256']`, `issuer: https://securetoken.google.com/<PROJECT_ID>`, `audience: <PROJECT_ID>`, `clockTolerance: 60`, JWKS cache 6h + rate-limit 5/min, `kid` lookup fail-closed, `auth_time < disabled_at` enforced, **NO `process.env.NODE_ENV` runtime branches near auth code**. Acceptance: 9-case golden-token matrix `(valid|expired|tampered) × (admin|moderator|user)`. **Phase 1.**
+2. **Privilege escalation via permissive `PATCH /users/me`** (Pitfall 3) — Field allowlist `pick(body, ['name','phone','preferredLanguage','avatarUrl'])`. Role mutation lives ONLY on `PATCH /users/:id/role` — admin-only AND rejects self-edits AND blocks last-admin demotion. **Phase 1.**
+3. **Stale role cache — demoted moderator keeps moderator UI for hours** (Pitfall 4) — Server: 60s in-memory LRU keyed by uid; `roleRevokedAt` timestamp on user record; reject tokens with `iat < roleRevokedAt`. Client: `AppState 'active'` → `refreshProfile()`; 403 with `code: 'role-revoked'` → logout + toast. **Phase 1 (server) + Phase 2 (client).**
+4. **App.tsx state-machine god-file regression** (Pitfall 8) — M1 ended at ~941 LOC; M2 spec sets ≤1100 hard ceiling. Every new overlay registered in `OVERLAY_FLAGS` (derive don't store); `pointerEvents` belt-and-suspenders; back-handler dep array ≤25 (refactor to refs/`useReducer` if larger); discrete `moderationOverlay: 'closed'|'queue'|'detail'|'rejecting'|'editing'` discriminated union beats 5 booleans. **Cross-cutting — every phase that touches App.tsx.**
+5. **Migration miss — M1 hardcoded admins lose admin access at M2 cut** (Pitfall 9) — `db.users.updateMany({ email: { $in: <M1 hardcoded allowlist> } }, { $set: { userType: 'admin' } })` MUST run as Wave-0 of Phase 1 BEFORE M2 ships. PROJECT.md "clean slate" claim covers listings only; users existed in TestFlight + Play Console populations. **Phase 1 Wave-0 (single Mongo update).**
+6. **Race conditions in moderation queue** (Pitfall 5) — Server `findOneAndUpdate({ _id, status: 'pending' }, ...)` returns null on race → 409 Conflict. Client: localized EN+RU "already moderated by another reviewer" toast + queue refetch. No optimistic remove-from-queue. **Phase 3 (paired actions + queue UI).**
+7. **Owner-side communication failure — rejected listing has no clear reason in user's language** (Pitfall 7) — Reason is a structured `reasonCode` enum (`not-bishkek` / `incomplete-info` / `prohibited-content` / `duplicate` / `policy-violation` / `other`) translated server-side to the **owner's locale** at view time, NOT moderator's locale at action time. Three rendering surfaces: Listing Detail banner + Owner Listings status chip + persistent Home banner until viewed. Moderator identity NEVER exposed to owner ("JayTap moderator" generic). **Phase 2 (display) + Phase 3 (action).**
+8. **Firebase-SDK temptation** (Pitfall 15) — Tutorials default to `firebase-admin.auth().verifyIdToken()` and `setCustomUserClaims()`. PROJECT.md REPO RULE: NO Firebase SDK. Wave-0 invariant grep gates: `! grep -r 'firebase-admin' backend/` and `! grep -r '@react-native-firebase' src/`. Substitution table reproduced into Phase 1 CONTEXT.md. **Wave-0 of every backend phase.**
 
 ---
 
 ## Implications for Roadmap
 
-All four research documents agree on a 6-phase structure with the same ordering rationale: fix what is broken before building what is new, and nail the role API shape before using it.
+Build order is load-bearing — same lesson as M1. **Wave-0 backend coordination is non-deferrable.**
 
-### Phase 1: Nav Reliability (Bottom-Nav Bug Fix)
+### Phase 0 (Wave-0) — Railway endpoint sign-off
+**NOT a numbered phase** — a hard gate before Phase 1 plans land. Railway team confirms Q1–Q12 (see "Backend Coordination Unknowns" below). Spec the endpoint shapes ourselves; send to Railway for approval rather than ask them to author. Mitigation decision-tree if Railway is unresponsive >5 days late: ship UI complete with explicit "Backend role enforcement pending — honor-system" banner (better than M1 D-22's silent accepted risk); >10 days late: descope `edit-on-behalf` + `flag`, ship `approve`/`reject`/`archive` only.
 
-**Rationale:** The bottom-nav bug is the highest-risk unknown in M1. Its root cause is unconfirmed and the reproduction matrix spans 32+ state×tab transitions. Fixing it first means all subsequent QA has a reliable navigation surface. This phase also applies the `pointerEvents="none"` belt-and-suspenders fix globally, which protects M2 from the same class of bug on new screens.
+### Phase 1 — Backend role-resolution + axios auth migration (FOUNDATION)
+**Rationale:** Every M2 phase needs working server-resolved roles. Smallest reversible change set — pure infrastructure migration, no UI. Closes M1 GATE-05 D-22 Path B accepted-risk row.
+**Delivers:** `jose` JWKS verifier middleware on Railway; `Authorization: Bearer <idToken>` migration on all 5 services via shared `apiClient.ts`; Firebase REST refresh-token flow in `AuthService`; 401/403 axios interceptors; `AuthContext.refreshRole()`; M1 hardcoded-allowlist branch deleted along with `src/constants/adminAllowlist.ts`; M1-allowlist-to-Mongo migration script run.
+**Addresses (FEATURES):** ROLE-01/02/03; ADMIN-03 server-side last-admin guard.
+**Avoids (PITFALLS):** 1, 2, 3, 4 (server side), 9, 15.
+**Dependencies:** Q1 + Q2 + Q5 + Q12 confirmed.
 
-**Delivers:** Bottom-nav responds correctly from every screen; `hideMainStackUnderOverlay` derived not stored; back-handler refactored to ref-based pattern; all keep-alive screens wrapped with `pointerEvents={isVisible ? 'auto' : 'none'}`; video-recorded 32+ transition matrix showing zero regressions.
+### Phase 2 — Listing lifecycle status field (CLIENT-SIDE ABSORPTION)
+**Rationale:** Pure client-side rendering migration. Doesn't need queue UI yet. Owner-side rejection messaging reads naturally once OwnerListings supports the tab grouping.
+**Delivers:** `Property.status` type extension + moderation/rejection timestamp fields; `propertyStatus.ts` helper; Home/Favorites/RenterListings filter to `live` (3 × 2-line edits); OwnerListings 4-tab segmented control + per-tab empty states + rejection banner; `PropertyCard` status-badge slot + rejection-banner slot; deep-link guard on `PropertyDetailsScreen` for non-live statuses; client `AppState 'active'` role-refresh hook.
+**Addresses (FEATURES):** MOD-01/02/03; ROLE-03 client side; foreground role-refresh banner; owner-side rejection banner.
+**Avoids (PITFALLS):** 4 (client), 7, 12 (locale parity for status labels — Avito-anchored RU).
+**Dependencies:** Q2 + Q3 confirmed; Phase 1 shipped.
 
-**Addresses:** PITFALLS Pitfall 1 (symptom-patch trap), Pitfall 3 (`display:none` touch capture)
+### Phase 3 — Moderation Queue + actions (NEW UI MASS)
+**Rationale:** Largest UI net-add. Builds on Phase 2's status field landing.
+**Delivers:** `ModerationQueueScreen` overlay; `RejectListingModal` (canned chips + free-text); `PropertyService.getModerationQueue/approveListing/rejectListing` with `canFromUser` guards + 409 conflict handling; profile-screen entry-point gated by `<Gated action="viewModerationQueue">`; `App.tsx` `OVERLAY_FLAGS` extension + back-handler branch; edit-on-behalf via `moderatorContext` prop on `CreateListingScreen` (queue-pop + queue-restore on close); `Action` union extends with `approveListings`/`rejectListing`/`viewModerationQueue`/`editAnyListing`; **`moderationLog` collection** (append-only audit, no UI).
+**Addresses (FEATURES):** MOD-04/05/06/09; canned rejection reasons enum; FIFO sort; tour-first hospitality preserved (queue reuses existing `PropertyCard` / `HospitalityCard`).
+**Avoids (PITFALLS):** 5, 6, 10, 14 (idempotency + axios timeouts).
+**Dependencies:** Q3 + Q4 + Q6 + Q8 + Q10 confirmed; Phase 2 shipped.
 
-**Research flag:** HIGH — root cause is unknown before reproduction. Phase spec must include a diagnostic-first step with explicit go/no-go decision points for each candidate cause (C1 → C2 → C3 → C4).
+### Phase 4 — Archive lifecycle (OWNER + ADMIN)
+**Rationale:** Builds on Phase 2 status + Phase 3 endpoint patterns. Optional from a "does moderation work" standpoint but PROJECT.md scopes it in.
+**Delivers:** `ArchiveListingModal` (confirm with reversibility note); `PropertyService.archiveListing/unarchiveListing` (owner self vs. mod/admin force variants); `PropertyCard` Archive (owner) + Restore (archived-tab) actions; `PropertyDetailsScreen` Archive CTA in owner-footer; hard-delete `Action: 'hardDeleteListing'` becomes admin-only; `useRole.ts` adds `archiveOwnListing`/`archiveAnyListing`/`hardDeleteListing`; OwnerListings Archived tab + Restore action. **Unarchive routes to `pending`, not `live`** (prevents post-rejection bypass).
+**Addresses (FEATURES):** ARCH-01/02/03.
+**Avoids (PITFALLS):** 11.
+**Dependencies:** Q7 + Q8 confirmed; Phases 2 + 3 shipped.
 
----
+### Phase 5 — Role management (ADMIN UIs)
+**Rationale:** Useful but doesn't gate any other phase. Roles can be assigned via direct Mongo writes for a 1-2 moderator wave (analogous to M1's hardcoded allowlist mechanism).
+**Delivers:** `RoleManagementScreen` (search/list users, change `userType`, view current role); `UserService.ts` (`searchUsers`, `setUserRole`, optional `getRoleAuditLog`); profile entry-point gated by `<Gated action="manageRoles">`; `Action: 'promoteToModerator'` / `'addAdmin'` activated; `App.tsx` flag + `OVERLAY_FLAGS` extension; **last-admin lockout enforced server-side**; **PROMOTE-self / DEMOTE-self prevented server-side**.
+**Addresses (FEATURES):** ADMIN-01/02; ADMIN-03 client surface.
+**Avoids (PITFALLS):** 3 (client surface for `PATCH /users/:id/role`).
+**Dependencies:** Q9 + Q11 confirmed; Phase 1 shipped. Can parallel Phase 4.
 
-### Phase 2: Universal Keyboard Handling
-
-**Rationale:** Keyboard fixes depend on stable navigation (keyboard issues on a flaky-nav screen produce ambiguous failures). Reanimated install is the biggest install-time risk in M1 and must be resolved before any screen work begins. Installing and validating the library at its own phase boundary contains the blast radius.
-
-**Delivers:** `react-native-reanimated` installed and verified; `react-native-keyboard-controller@1.21.6` installed; `KeyboardProvider` at root of `App.tsx` provider tree; `KeyboardAwareScrollView` adopted on all input-bearing screens (auth, chat, listing form, schedule viewing, account settings); keyboard no longer covers inputs on iOS or Android in any orientation or modal context.
-
-**Uses:** `react-native-keyboard-controller@1.21.6`, `react-native-reanimated` (peer)
-
-**Addresses:** PITFALLS Pitfall 2 (per-screen KAV as "universal" fix)
-
-**Research flag:** MEDIUM — library is well-documented and actively maintained, but RN 0.84 compatibility relies on `+`-semantics peer range and active maintainer engagement rather than an explicit 0.84 matrix entry. Physical device testing on both platforms is mandatory exit criteria.
-
----
-
-### Phase 3: Listing Form Overhaul
-
-**Rationale:** This is the largest M1 feature workstream and it depends on both Phase 1 (stable nav for QA) and Phase 2 (keyboard library installed, since `CreateListingScreen` is its biggest consumer). It can begin development in parallel with Phase 2 but must not merge until Phase 2's `KeyboardAwareScrollView` adoption is verified.
-
-**Delivers:** `Land` property type removed atomically (types, chips, filters, i18n EN+RU in one commit); three-category taxonomy (Residential / Commercial / Hospitality) with `useCategory()` helper; `CreateListingScreen.tsx` decomposed into `CreateListingForm/` sub-components; single `validators.ts` source of truth for category-to-required-field map; category-branched rendering (sections mounted/unmounted, never CSS-hidden); price field hidden for Hospitality in both Rent and Sell modes; `VerificationSection` admin-gated via `<Gated action="editVerifications">`.
-
-**Addresses:** PITFALLS Pitfall 4 (category-change data loss), i18n drift on Land removal
-
-**Research flag:** LOW-MEDIUM — category branching and sub-component decomposition are well-understood patterns. Main risk is i18n key fan-out (EN+RU parity check required at merge) and ensuring the submit payload filters stale category fields correctly.
-
----
-
-### Phase 4: Role Gating Precursor
-
-**Rationale:** `useRole()` and `<Gated>` are consumed in Phase 3's `VerificationSection`, but the hook itself is a small standalone unit with zero UI and zero user-visible change. Building it cleanly as its own phase, before it is consumed, ensures the M1→M2 forward-compat contract is locked before call sites accumulate. This phase also includes the backend coordination checkpoint.
-
-**Delivers:** `src/hooks/useRole.ts` with `can(action)` API; `src/constants/adminAllowlist.ts` with lowercased email comparison; `<Gated>` component; all three existing `userType === 'admin'` call sites migrated to `can(action)`; M2 migration `// TODO(M2)` comment at allowlist definition; confirmed with Railway backend team that admin-only endpoints reject non-admin requests server-side.
-
-**Addresses:** PITFALLS Pitfall 5 (allowlist VCS leakage and backend enforcement gap); cross-cutting theme: backend verification is the real security boundary; cross-cutting theme: M1→M2 forward-compat `useRole()`/`can(action)` API shape
-
-**Research flag:** LOW (client implementation) / HIGH (backend coordination) — the hook is a ~30-line pure function. The release-blocking risk is the backend verification confirmation. If backend cannot enforce this by M1 ship, that must be flagged as an explicit accepted risk, not silently left unaddressed.
-
----
-
-### Phase 5: Hospitality Section on List Screens + PropertyDetails Adaptation
-
-**Rationale:** Largely additive and low-risk, but needs the category taxonomy from Phase 3 before `useCategory()` filtering can be applied to list data. Can run as a parallel track with Phase 4 if resourcing allows.
-
-**Delivers:** `HospitalitySection` component with horizontal `FlatList`; `HospitalityCard` component (tour-first, no price); `ListHeaderComponent` integration on Home / Favorites / OwnerListings; `PropertyDetailsScreen` renders Hospitality without price, 3D tour and panoramic media prominent, contact quick-actions (WhatsApp/Telegram/phone) surfaced; i18n keys `home.hospitalitySection`, `hospitalityCard.rooms`, `hospitalityCard.amenities` in EN+RU.
-
-**Research flag:** LOW — `ListHeaderComponent` + horizontal `FlatList` is a standard RN pattern; heterogeneous cell rendering handled cleanly by not using `SectionList`.
-
----
-
-### Phase 6: Release Prep + Store Submission
-
-**Rationale:** Release prep is not a version bump. At least 6 distinct categories of submission blocker require dedicated time. Budget a minimum of 2 days. Start the iOS Privacy Manifest audit at the beginning of this phase, not the end, because manifest fixes may require rebuild cycles.
-
-**Delivers:** `PrivacyInfo.xcprivacy` populated with all collected data types and Required Reason API entries; Xcode 26 / iOS 26 SDK confirmed on build machine; version numbers consistent across `package.json`, `android/app/build.gradle`, `ios/JayTap.xcodeproj/project.pbxproj` (1.0.4, versionCode 25, CURRENT_PROJECT_VERSION 21); App Store Connect App Privacy responses match manifest; `applinks:bizdinkonush.com` entitlement reviewed (remove if domain lapsed); Google Maps Android key restrictions confirmed in Cloud Console; readiness docs updated; App Store Connect screenshots refreshed to show Hospitality UI; demo account credentials in review notes; manual QA pass on physical iOS + Android devices (not simulators).
-
-**Addresses:** PITFALLS Pitfall 6 (privacy manifest rejection), release checklist drift documented in CONCERNS.md
-
-**Research flag:** MEDIUM — Apple's April 2026 iOS 26 SDK mandate is confirmed from multiple 2026-current sources. Privacy manifest audit is well-documented. Main uncertainty is whether any third-party library added during M1 introduces additional Required Reason API usage that must be declared.
-
----
+### Phase 6 — Hardening + manual QA + release
+**Rationale:** Standard release-prep. Mirrors M1 Phase 8.
+**Delivers:** 401/403 interceptor stress-tests; mod-revoked-mid-session UX validation (queue auto-pops); owner-edits-rejected → resubmits → mod approves end-to-end on physical iOS + Android; admin-promotes-mod → mod's open app picks up new role on next 403; archived → restore → re-enters pending; rejected listing edit-on-behalf; release version bumps. **Apply M1 D-02 lesson: query Play Console + TestFlight for highest-accepted versionCode BEFORE setting baseline** (Key Decisions row added 2026-04-28); App.tsx LOC budget verification ≤1100; locale-parity CI green; "Looks Done But Isn't" 20-item checklist (PITFALLS.md).
+**Addresses:** Cross-cutting validation.
+**Avoids (PITFALLS):** 8 (LOC budget enforcement), 12 (per-screen EN+RU walks), 13 (seed users documented), 14 (airplane-mode recovery).
+**Dependencies:** Phases 1–5 shipped.
 
 ### Phase Ordering Rationale
 
-- **Build order is load-bearing (all four docs agree).** Nav bug fix precedes keyboard fix because keyboard debugging on unreliable navigation produces ambiguous failures. Both precede listing-form work because the listing form is the primary consumer of both fixes.
-- **Role primitive before form UI that consumes it.** Phase 4 can begin mid-Phase 3 since the hook takes hours to write, but it must merge before `VerificationSection` is enabled.
-- **Hospitality section on list screens (Phase 5) is the most independent workstream.** It depends only on the category taxonomy from Phase 3, not on nav or keyboard fixes. Can run in parallel if resourcing allows.
-- **Release prep is its own phase, not a task in the last feature phase.** Privacy manifest, Xcode SDK, and entitlement checks have non-trivial remediation tails that can consume 1-3 days if a blocker surfaces.
+- **Backend MUST lead.** Lesson from M1 GATE-05 D-22: do NOT proceed past Phase 1 without Railway endpoint sign-off, because every later phase compounds the risk.
+- **Status field absorption (Phase 2) before Queue UI (Phase 3)** — Phase 2 is pure client filter migration; Phase 3 depends on the field existing AND on Phase 1's role-aware endpoints.
+- **Archive (Phase 4) and Role Management (Phase 5) can parallel** — different surface areas, different services. Recommend serial for small-team test-surface bounding.
+- **Hardening last** — same as M1 Phase 8.
+
+### Skipped from M1 build order
+- Nav reliability — already shipped M1 Phase 1; M2 just extends `OVERLAY_FLAGS`.
+- Universal keyboard — already shipped M1 Phase 2; reuse for any new inputs (RoleManagement search box, RejectListing textarea).
+- Form taxonomy + validation — already shipped M1 Phase 4+5; edit-on-behalf reuses verbatim.
+- Hospitality rendering — orthogonal to M2.
+- Alignment pass — only run if QA surfaces issues (M1 Phase 7 was SKIPPED for the same reason).
 
 ### Research Flags
 
-**Phases requiring deeper research or careful diagnosis during planning:**
+**Likely needs deeper research during planning:**
+- **Phase 1** — `jose` Firebase JWKS verifier reference is in STACK.md but Railway-team's existing express middleware patterns are unknown; may need a brief `/gsd-research-phase` on backend test fixture setup (golden token capture).
+- **Phase 3** — Concurrent-mod 409 + reason-draft-AsyncStorage-persistence is novel surface; manual-QA matrix needs design (single-device vs two-device).
 
-- **Phase 1 (Nav):** HIGH flag — root cause is unconfirmed; phase plan must specify the C1→C2→C3→C4 diagnostic sequence as explicit steps with go/no-go gates, not "investigate and fix."
-- **Phase 2 (Keyboard):** MEDIUM flag — `react-native-keyboard-controller` + RN 0.84 New Arch compatibility is MEDIUM-HIGH confidence (maintainer-engaged but no explicit 0.84 matrix entry). Physical device testing is the only true validator.
-- **Phase 6 (Release):** MEDIUM flag — iOS 26 SDK requirement is a process/toolchain dependency external to the codebase. Verify build machine Xcode version before writing the phase plan.
+**Standard patterns (skip phase research):**
+- **Phase 2** — Pure client filter migration; M1 patterns sufficient.
+- **Phase 4** — Modal + status transition; M1 `DeleteListingModal` is template.
+- **Phase 5** — `FlatList` + search; M1 `OwnerListingsScreen` is template.
+- **Phase 6** — Release-prep mirror of M1 Phase 8.
 
-**Phases with well-established patterns (skip research phase):**
+---
 
-- **Phase 3 (Listing form):** Sub-component decomposition + category-branched rendering is a standard React pattern. Schema source-of-truth approach is well-documented.
-- **Phase 4 (Role gating):** `useRole()` hook pattern is canonical React RBAC. Backend coordination is a communication task, not a research task.
-- **Phase 5 (Hospitality section):** `ListHeaderComponent` + horizontal `FlatList` is well-documented standard RN.
+## Backend Coordination Unknowns (Wave-0 gate)
+
+**Route via existing `03-BACKEND-COORDINATION.md` channel that GATE-05 D-22 deferred.** Phase 1 is dead-on-arrival without Q1, Q2, Q5 minimum.
+
+| Q | Question | Phase that needs it |
+|---|----------|---------------------|
+| Q1 | Role authority + customClaims contract — does `GET /auth/users/:uid` populate both `userType` and `customClaims.role`, or only one? When admin promotes via `PUT /users/:uid/role`, which field does Railway write? | Phase 1 |
+| Q2 | `Property.status` schema + defaults — confirm `status` / `rejectionReason` / `rejectedAt` / `rejectedBy` / `moderatedAt` / `moderatedBy` / `archivedAt` / `archivedBy` shape; existing-listings default approach (server `default: 'live'` vs. client `?? 'live'` belt-and-suspenders); is `rejectedBy` exposed to listing owner or admin-only? | Phase 1 + 2 |
+| Q3 | `POST /properties` becomes "submit for review" — confirm backend sets `status: 'pending'` going forward; does `GET /properties` filter `status: 'live'` server-side for renters and full-set for mod/admin, or does client send `?status=live` explicitly? Does `GET /properties/user/:uid` return all statuses for owner? | Phase 2 + 3 |
+| Q4 | Moderation Queue endpoint — `GET /properties?status=pending` vs. dedicated `GET /moderation/queue`? Preference: dedicated for cleaner role-gating + future flag-state metadata. | Phase 3 |
+| Q5 | idToken refresh + token expiry contract — Railway verifies via JWKS (no firebase-admin) confirmed? Refreshed idToken accepted without handshake? Token-expiry returns `401 token-expired` (refresh+retry) vs. `403 forbidden` (semantic mismatch)? | Phase 1 |
+| Q6 | Edit-on-behalf endpoint — dedicated `PUT /moderation/listings/:id` (clarity) vs. shared `PUT /properties/:id` with header/flag? Does NOT mutate `ownerUid`. Server-side audit row required (moderatorUid, fieldsChanged, optional reason). | Phase 3 |
+| Q7 | Archive transitions — `POST /properties/:id/archive` + `POST /properties/:id/unarchive` (or `restore`)? **Critical UX:** unarchive returns to `pending` (re-moderated) vs. prior status — recommended `pending`. Hard-delete `DELETE /properties/:id` admin-only post-M2? | Phase 4 |
+| Q8 | Audit trail visibility — `GET /admin/audit?type=role_change&uid=:uid` + `GET /admin/audit?type=moderation&propertyId=:id` exposed? Or DB-inspection only? | Phase 3 + 5 |
+| Q9 | User search for role management — `GET /admin/users?query=email_or_name&limit=50` + `GET /admin/users?role=moderator` + `PUT /admin/users/:uid/role`? Admin-only prefix `/admin/*`? Foreseeable user count (pagination vs. simple search-50)? | Phase 5 |
+| Q10 | Rate limits + abuse prevention — server-side rate limits per uid (e.g., 100 approvals/min)? `429` response shape? Server-side dedup or client-side debounce? | Phase 3 |
+| Q11 | Notification of role change to affected user — Railway has no socket-pushed `role_changed` plans (confirm)? 403-retry interceptor is the implicit notification. If Railway wants push, piggyback existing `ChatService.connectSocket`? | Phase 1 + 5 |
+| Q12 | Migration of existing dev-environment listings — Railway plans one-time `status: 'live'` script vs. read-time default? Plus: **users without `userType`** (NOT clean-slate per Pitfall 9) — Wave-0 Mongo update setting M1 hardcoded admins to `userType: 'admin'`. | Phase 1 Wave-0 |
+
+---
+
+## RU-Market Anchor
+
+Bishkek users almost certainly have prior Avito/Cian exposure. Use established Russian terminology to eliminate translation-friction bugs where moderator UI says one thing and owner banner says another. **State labels:** `pending` → «На модерации» (Avito/Cian shared), `live` → «Активно» (both), `rejected` → «Отклонено» (both), `archived` → «Снято с публикации» (preferred — Avito's archive-vs-delete distinction; better than Cian's bare «Архив»). Borrow Avito's `Ожидает действия` ("Awaiting action") badge on rejected cards with «Исправить» ("Fix") CTA — this is the same UX as the Drupal-grounded "Edit & resubmit" pattern; citing Avito anchors it for RU users. Action verbs: archive button = «Снять с публикации»; delete button (admin only) = «Удалить»; canned rejection reasons rendered as translated enum keys. EN labels stay flexible — EN-speaking landlord/agent segment doesn't have a fixed lexicon. (Detail: `FEATURES.md` § "RU-Market Reference Anchor".)
 
 ---
 
@@ -235,54 +216,49 @@ All four research documents agree on a 6-phase structure with the same ordering 
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Library choices verified against official docs, GitHub releases, and active maintainer engagement. One MEDIUM-HIGH exception: explicit RN 0.84 compatibility entry for keyboard-controller is absent; mitigated by `+` peer semantics and active 0.83.x maintenance. |
-| Features | MEDIUM-HIGH | Required-field contracts for Residential/Commercial confirmed from multiple portals. Hospitality amenity taxonomy derived from Schema.org + Airbnb/Booking. Role system patterns well-sourced from Firebase docs. Minor gap: Rightmove's exact required-field spec is not machine-readable; industry convention used. |
-| Architecture | HIGH (placement decisions) / MEDIUM (bottom-nav root cause) | Provider placement, role hook pattern, and FlatList section pattern confirmed from official docs and canonical React patterns. Bottom-nav root cause (C1 hypothesis) matches codebase symptoms precisely but must be verified by reproduction — research explicitly flags this. |
-| Pitfalls | HIGH | Store submission pitfalls sourced from 2026-current Apple/Google guidance. Keyboard ecosystem pitfalls sourced from official RN issue tracker and KC docs. Nav and form pitfalls sourced directly from the existing codebase map. |
+| Stack | HIGH | `jose` over alternatives — Firebase official docs + jose docs + jwks-rsa@4 itself depending on jose all converge. RN-side zero-deps grounded in M1 forward-compat shim direct repo evidence. |
+| Features | HIGH | Moderation/RBAC/lifecycle patterns mature across Drupal/Reddit/Vrbo/Rentec; RU-market anchor verified against Avito/Cian official + complaint-thread sources. MEDIUM only on mobile-specific gesture choices (swipe vs buttons) — defer to existing JayTap conventions where ecosystem is silent. |
+| Architecture | HIGH for placement (Context tree, OVERLAY_FLAGS, useRole shape, PropertyService HTTP shape — all follow M1 patterns); MEDIUM for endpoint contracts (collapses to HIGH once Q1–Q12 land). |
+| Pitfalls | HIGH — most grounded in this codebase's CONCERNS.md, RETROSPECTIVE.md, and M1 D-22 record; JWKS specifics verified against Firebase official + Auth0 jwks-rsa docs. |
 
-**Overall confidence:** HIGH
+**Overall confidence:** HIGH (with one MEDIUM dependency: Railway-team Wave-0 sign-off — this is the single largest schedule risk for M2, mitigated by spec'd decision-tree).
 
 ### Gaps to Address
 
-- **Reanimated presence in `package.json`:** Must be checked before Phase 2 planning. If absent, Phase 2's timeline expands by 1-2 hours and the install order (Reanimated before keyboard-controller) must be explicit in the phase plan.
-- **Bottom-nav root cause:** Remains a hypothesis (C1: stale `hideMainStackUnderOverlay`) until reproduction confirms it. Phase 1 must be planned with diagnostic steps, not a predetermined fix.
-- **Backend admin endpoint enforcement:** Whether the Railway backend currently rejects non-admin `PATCH /properties/:id/verifications` requests is unknown from the mobile codebase alone. Must be confirmed with the backend team in Phase 4. If it does not, the scope of Phase 4 expands to include a backend change.
-- **Xcode version on build machine:** The April 2026 iOS 26 SDK submission requirement is confirmed, but whether the current Xcode installation satisfies it is unknown. Must be checked before Phase 6 begins — not the day of submission.
-- **`LayoutAnimation` global flag in `HomeScreen.tsx:20-23`:** CONCERNS.md flags this as a latent conflict with Fabric/New Arch. May manifest as animation jank during keyboard transitions in Phase 2. If it does, fix is replacing it with Reanimated layout animations (which Phase 2 installs anyway).
+- **Railway endpoint sign-off** — All 12 Q's must close at Wave-0 of Phase 1. Decision-tree spec'd for >5-day and >10-day late scenarios so crisis decisions are made cold.
+- **Mongo ODM not specified** — Railway repo's choice (mongoose vs. native driver vs. Prisma) is unknown to JayTap repo; backend recommendations deliberately scoped to "what's strictly new" (`jose`, optional `zod@v3`).
+- **Test-account seed strategy** — Pitfall 13 — needs documented seed users (qa-admin@jaytap.test / qa-mod@jaytap.test / qa-user@jaytap.test) in TESTING.md before Phase 1 close, so cross-role manual QA is repeatable.
+- **App.tsx LOC budget** — Hard ceiling 1100 / soft 1050. If approached mid-phase, carve `ModerationOverlayHost` sub-component rather than blow the budget.
+- **`reasonNote` free-text language hint** — UX-only nudge ("Owner's preferred language: RU. Write in Russian for clarity"). Server doesn't translate; M2 acceptance: 80% of rejections use enum-only.
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-
-- `.planning/research/STACK.md` — library selection rationale, version pins, RN 0.84 New Arch compatibility matrix
-- `.planning/research/FEATURES.md` — category required-field contracts, hospitality amenity taxonomy, moderation lifecycle patterns, role assignment patterns
-- `.planning/research/ARCHITECTURE.md` — provider tree placement, bottom-nav bug candidates, role hook shape, sub-component decomposition, FlatList section pattern
-- `.planning/research/PITFALLS.md` — ranked pitfalls mapped to phases, store submission checklist, security mistakes, technical debt patterns
-- `.planning/PROJECT.md` — M1/M2 scope, constraints, out-of-scope decisions, key decisions log
-- `.planning/codebase/` — full codebase map (ARCHITECTURE, STACK, CONCERNS, INTEGRATIONS, CONVENTIONS) providing the brownfield context all research is grounded in
-- [react-native-keyboard-controller compatibility docs](https://kirillzyusko.github.io/react-native-keyboard-controller/docs/guides/compatibility)
-- [Firebase custom claims documentation](https://firebase.google.com/docs/auth/admin/custom-claims)
-- [React Navigation Issue #12824](https://github.com/react-navigation/react-navigation/issues/12824) — confirms `display:none` touch-capture failure mode
-- [Apple Privacy Manifest Files official docs](https://developer.apple.com/documentation/bundleresources/privacy-manifest-files)
+- `.planning/research/STACK.md` — Stack picks + anti-recommendations
+- `.planning/research/FEATURES.md` — Table stakes / differentiators / anti-features + RU-market anchor
+- `.planning/research/ARCHITECTURE.md` — §8 Build Order + §9 Backend Coordination Q1–Q12
+- `.planning/research/PITFALLS.md` — 15 critical pitfalls + pitfall-to-phase mapping
+- `.planning/PROJECT.md` § "Current Milestone v2.0 M2 Roles & Moderation" — user-locked scope + hard rules
+- `.planning/codebase/CONCERNS.md` — "Firebase uid used as sole auth", "App.tsx god-file (941 lines)", "Duplicated service boilerplate", "No push notifications", "Effectively zero tests"
+- `.planning/RETROSPECTIVE.md` — Lesson 1 generalized: verify backend dependency state in Wave-0
+- [Firebase: Verify ID Tokens (REST/JWKS path)](https://firebase.google.com/docs/auth/admin/verify-id-tokens)
+- [jose docs / panva GitHub](https://github.com/panva/jose) + Discussion #626 (Firebase JWT verification example)
 
 ### Secondary (MEDIUM confidence)
+- Drupal Workflow Moderation docs — closest shape to JayTap M2 (states + role-gated transitions + canned reasons + edit-on-behalf)
+- Reddit modqueue research (arxiv 2509.07314) — concurrent-mod collision behavior; FIFO/middle/reverse-order self-organization
+- Vrbo / Rentec Direct / CommercialRealEstate.com.au — real-world property-listing archive UX
+- Avito / Cian RU-market state names + complaint-thread sources (vc.ru, elama.ru, ppc.world, support.cian.ru)
+- WCVendors / Logic.inc — vendor-facing review suggestions inline on edit; canned rejection reason throughput wins
 
-- [colinhacks/zod#4989](https://github.com/colinhacks/zod/issues/4989) — zod v4 + RHF + React Native submit failure; v3 workaround confirmed
-- [keyboard-controller issue #1411](https://github.com/kirillzyusko/react-native-keyboard-controller/issues/1411) — active RN 0.83.x maintainer engagement
-- [Forge: Top 10 App Store Rejection Reasons in 2026](https://forgeasc.com/blog/app-store-rejection-reasons) — iOS 26 SDK requirement
-- [Oso — How to Build RBAC](https://www.osohq.com/learn/rbac-role-based-access-control) — coarse roles vs. fine-grained permissions guidance
-- Schema.org `LodgingBusiness.amenityFeature` — hospitality amenity taxonomy
-- [CommercialSearch](https://www.commercialsearch.com/) / [CBRE](https://www.cbre.com/properties) — commercial required-field conventions
-- [OLX Trust Group](https://www.olxgroup.com/trust/) — marketplace moderation patterns
-
-### Tertiary (LOW confidence, validation required)
-
-- [Formisch 2026 form library comparison](https://formisch.dev/blog/react-form-library-comparison/) — RHF vs. Formik relative performance on RN; single source, directionally consistent with other evidence
-- Rightmove required-field list — no machine-readable public spec; industry convention inferred from portal survey
+### Tertiary (LOW confidence — needs validation during planning)
+- Mobile-specific moderation queue UX (swipe vs. buttons) — Western platforms documented for web admin dashboards, less codified for mobile mod UIs; chose buttons-per-row for native-module avoidance
+- Self-moderation prevention server rule — recommended but not user-locked; Phase 3 may need explicit confirmation
 
 ---
 
-*Research completed: 2026-04-22*
-*Ready for roadmap: yes*
+*Research synthesized: 2026-04-29 — M2 v2.0 "Roles & Moderation"*
+*Replaces M1-era SUMMARY.md (2026-04-22, archived implicitly via M1 milestone close)*
+*Ready for REQUIREMENTS.md + ROADMAP.md: yes (pending Wave-0 Railway sign-off for Phase 1 plans)*
