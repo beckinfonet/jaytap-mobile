@@ -1,10 +1,12 @@
 # Roadmap: JayTap — M1 "Polish + Hospitality" (v1.0.4)
 
 **Created:** 2026-04-22
-**Milestone:** M1 — v1.0.4, ship ASAP to iOS App Store + Google Play
-**Granularity:** Fine (8 phases)
-**Coverage:** 35/35 v1 requirements mapped
+**Milestone:** M1 — v1.0.4 — **SHIPPED 2026-04-28** (iOS in TestFlight; Android submitted/processing in Google Play Console)
+**Granularity:** Fine (8 phases — 7 executed + Phase 7 SKIPPED with zero plans)
+**Coverage:** 35/35 v1 requirements addressed (33 COMPLETE + 2 DESCOPED per Phase 8 D-13: REL-03 privacy manifest + REL-04 SDK gate inherited from v1.0.3 production)
 **Core Value:** Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek properties on a phone without UI blockers.
+
+**M1 close:** all 8 ROADMAP phases resolved (Phases 1-6 + 8 executed; Phase 7 SKIPPED 2026-04-28 per PROJECT.md Key Decisions row 129); v1.0.4 binaries on both stores' submission queues. M2 "Roles & Moderation" planning unblocked.
 
 ## Build-Order Rationale
 
@@ -28,7 +30,7 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
 - [x] **Phase 5: Listing Form Validation & Edit Flow** (2026-04-24) — Pure `validateByCategory()` + `buildPayloadByCategory()` source of truth; 16 inline error rows across 5 sub-components; 14 EN+RU validation/status keys; orchestrator integration with scroll-to-first-error + D-11 hybrid contact + D-16 draft/publish toggle; App.tsx wiring of `onNavigateToAccountSettings`; verifier 5/5 must_haves PASS; 4 post-QA gap-closure commits (district label, Hospitality price guard, error spacing, listings refetch)
 - [ ] **Phase 6: Hospitality Rendering** — `HospitalitySection` + `HospitalityCard` on Home/Favorites/OwnerListings; Hospitality-aware `PropertyDetailsScreen`; 12-item amenity taxonomy in EN+RU
 - [x] **Phase 7: Alignment Pass** (2026-04-28, SKIPPED) — Closed with zero plans. User confirmed nothing alignment-related stood out during Phase 1–6 physical-device QA walks; ALIGN-01/02 satisfied implicitly. See PROJECT.md Key Decisions row 129.
-- [ ] **Phase 8: Release & Store Submission** — Privacy manifest, Xcode 26 / iOS 26 SDK, 4-file version bump, physical-device QA, App Store Connect + Play Console submission
+- [x] **Phase 8: Release & Store Submission** (2026-04-28) — Atomic v1.0.4 version bump (`de4ff0a`); 138-cell physical-device QA matrix walked APPROVED on iPhone 15 Pro Max + Moto G XT2513V (136 PASS / 0 FAIL); bilingual EN+RU release notes drafted (EN 465 / RU 454 chars, both within Play Console's 500-char binding limit); iOS archive uploaded to App Store Connect under Xcode 26.4, available in TestFlight; Android `.aab` uploaded to Google Play Console under existing keystore, submitted/processing; release notes pasted EN + RU on both stores. REL-01/02/05/06 COMPLETE; REL-03 (privacy manifest) + REL-04 (SDK gate) DESCOPED per CONTEXT.md D-13 (inherited from v1.0.3 production; re-open conditions documented in `08-VERIFICATION.md` Section F)
 
 ## Phase Details
 
@@ -175,7 +177,7 @@ All four research docs (STACK, FEATURES, ARCHITECTURE, PITFALLS) agree the seque
   - [x] 08-02-PLAN.md — Wave 1: atomic version bump (package.json `"version"` 1.0.3 → 1.0.4 + ios pbxproj `MARKETING_VERSION` 1.0.3 → 1.0.4 ×2 Debug+Release) per D-01 — Complete 2026-04-28 (`de4ff0a`); 6/6 D-05 grep assertions PASS; 3/3 Phase-3/4 CI gates exit 0; pbxproj `CURRENT_PROJECT_VERSION = 21` + gradle `versionCode 25` + gradle `versionName "1.0.24"` preserved per D-02; build-identity SHA for Plan 08-05 archive = `de4ff0a`
   - [x] 08-03-PLAN.md — Wave 2: physical-device regression smoke walk + D-08 bug-fix loop (BLOCKING phase-exit checkpoint) — Complete 2026-04-28 (`f757032`); APPROVED on first pass; 136 walked PASS / 0 FAIL across iPhone 15 Pro Max / iOS 26.x + Moto G XT2513V / Android 16 Fabric (iOS 68 + Android 68); 8 pre-existing N/A on Matrix 2a same-tab diagonals + 1 optional N/A on Matrix 5 UL smoke; D-08 bug-fix loop NOT triggered (zero defects, zero `999.x` deferrals); build-identity SHA preserved at `de4ff0a` (no fix commits); 3/3 Phase-3/4 CI gates exit 0 on close-out tree
   - [x] 08-04-PLAN.md — Wave 3: bilingual EN+RU release notes draft (`08-RELEASE-NOTES.md`) per D-10/D-11/REL-06 — Complete 2026-04-28 (`ad55782`); 93-line artifact with frontmatter + EN body 465 chars (`wc -m`) + RU body 454 chars (`wc -m`) — both fit Play Console's binding 500-char-per-locale limit; ASC's 4000-char limit non-binding; D-10 content order honored — What's new (Hospitality + tour-first cards + 3D tour discovery) → Improvements (keyboard + nav + three-category form) → Bug fixes (single "minor refinements" closer because Plan 08-03's D-08 loop was NOT triggered); user-facing voice only per Threat T-08-09 mitigation; D-11 paste-only disposition (`paste_only: true` in frontmatter); submission instructions block + character-counts table prepared for Plan 08-05 paste workflow; build-identity SHA preserved at `de4ff0a` (release notes are paste-only and do not affect build identity); 3/3 Phase-3/4 CI gates exit 0 on close-out tree
-  - [ ] 08-05-PLAN.md — Wave 4: TestFlight history check (D-03 conditional bump) + Xcode archive + ASC upload + Android .aab + Play Console upload + 08-VERIFICATION.md
+  - [x] 08-05-PLAN.md — Wave 4: TestFlight history check (D-03 conditional bump) + Xcode archive + ASC upload + Android .aab + Play Console upload + 08-VERIFICATION.md — Complete 2026-04-28; iOS archive built under Xcode 26.4 (build 17E192) and uploaded to App Store Connect, available in TestFlight (build identifier 1.0.4 / 22 — `CURRENT_PROJECT_VERSION` 21 → 22 + Android `versionCode` 25 → 28 + `versionName` "1.0.24" → "1.0.28" applied via out-of-band commit `63f3b72` ahead of archive, recorded as Deviation 1 in `08-VERIFICATION.md` Section H); Android `.aab` produced via `./gradlew bundleRelease` under existing keystore, uploaded to Play Console (no signature mismatch), submitted/processing; EN body (465 chars) + RU body (454 chars) pasted into ASC "What's New in This Version" + Play Console "Release notes per language" per `08-RELEASE-NOTES.md`. No new App Privacy questionnaire submitted (D-12 + D-13 inheritance from v1.0.3). 218-line `08-VERIFICATION.md` records all 6 D-05 grep assertions + 3 Phase-3/4 CI gate exits + 136-cell QA disposition + dual-store submission state + REL-01/02/05/06 traceability + REL-03/04 descope record + final disposition `APPROVED — v1.0.4 submitted to App Store Connect + Google Play Console`
 
 ## Milestone 2 (Future) — "Roles & Moderation"
 
@@ -200,7 +202,7 @@ M2 requirements (ROLE-01…04, MOD-01…06, ADMIN-01…04) are tracked in REQUIR
 | 5. Listing Form Validation & Edit Flow | 5/5 | Complete | 2026-04-24 |
 | 6. Hospitality Rendering | 7/7 | Complete | 2026-04-25 |
 | 7. Alignment Pass | 0/0 | Skipped | 2026-04-28 |
-| 8. Release & Store Submission | 4/5 | In Progress | - |
+| 8. Release & Store Submission | 5/5 | Complete | 2026-04-28 |
 
 ## Backlog
 
@@ -231,3 +233,4 @@ Plans:
 *Derived from REQUIREMENTS.md (35 v1 REQ-IDs) and research/ synthesis*
 *Phase 1 planned: 2026-04-22 (6 plans, 5 waves — Wave 0 / Wave 0.5 / Wave 1 / Wave 2 / [Wave 3 conditional] / Wave 4)*
 *Phase 6 planned: 2026-04-24 (7 plans, 5 waves — Wave 0 / Wave 1 / Wave 2 / Wave 3 / Wave 4)*
+*M1 milestone CLOSED 2026-04-28 — Phase 8 close-out at `08-VERIFICATION.md`; v1.0.4 in TestFlight + Play Console submission queues; M2 planning unblocked*

@@ -60,12 +60,12 @@ Requirements for v1.0.4 release. Each maps to exactly one roadmap phase.
 
 ### Release (REL)
 
-- [ ] **REL-01**: `package.json` version bumped to `1.0.4`
-- [ ] **REL-02**: Android `versionCode` incremented to 25, `versionName` updated to `1.0.24` (following existing convention in recent commits), iOS `CURRENT_PROJECT_VERSION` incremented to 21, `MARKETING_VERSION` updated to `1.0.4`
-- [ ] **REL-03**: Privacy manifest (`ios/JayTap/PrivacyInfo.xcprivacy`) populated with required declarations for data collected by the app (email, name, phone, photo, location, contact info) per PITFALLS research — currently empty per codebase CONCERNS
-- [ ] **REL-04**: Build verified with Xcode 26 / iOS 26 SDK as required by Apple policy starting April 2026 (confirm/upgrade before archive)
+- [x] **REL-01**: `package.json` version bumped to `1.0.4` — Closed 2026-04-28 by Plan 08-02 (`de4ff0a`); atomic single commit modifying `package.json` line 3 `"version": "1.0.3"` → `"1.0.4"`
+- [x] **REL-02**: iOS `MARKETING_VERSION` updated to `1.0.4` (×2 in pbxproj, Debug + Release) and iOS `CURRENT_PROJECT_VERSION` at `22` (×2; bumped 21 → 22 via out-of-band commit `63f3b72` ahead of archive — recorded in `08-VERIFICATION.md` Section H Deviation 1); Android `versionCode 28` and `versionName "1.0.28"` (also via `63f3b72`; supersedes original 25 / `1.0.24` D-02 baseline) — Closed 2026-04-28 by Plan 08-02 (`de4ff0a` for iOS marketing) + commit `63f3b72` (Android + iOS build numbers); shipped binaries accepted by both stores without `ITMS-90060` collision or Play Console signature/version-code rejection
+- [DESCOPED] **REL-03**: Privacy manifest (`ios/JayTap/PrivacyInfo.xcprivacy`) population — DESCOPED 2026-04-28 per Phase 8 CONTEXT.md decision **D-13**; v1.0.3 production manifest (FileTimestamp / UserDefaults / SystemBootTime Required Reason API entries; empty `NSPrivacyCollectedDataTypes`) accepted by Apple under v1.0.3 review and inherited by v1.0.4 update submission; Phase 1–6 codebase scan confirmed no new data-collecting SDKs added. **Re-open conditions:** Apple flags missing `NSPrivacyCollectedDataTypes` at a future submission, OR a future phase introduces a new data-collecting SDK or authentication provider
+- [DESCOPED] **REL-04**: Xcode 26 / iOS 26 SDK gate — DESCOPED 2026-04-28 per Phase 8 CONTEXT.md decision **D-13**; SDK gate cleared 2026-04-28 per PROJECT.md Key Decisions row 129 (Xcode 26.4 / build 17E192 confirmed on user's machine). Verification-only at archive time per D-04 — Plans 08-01 + 08-05 both confirmed `xcodebuild -version | grep '^Xcode 26'` exits 0. **Re-open conditions:** Apple deprecates Xcode 26.4 / iOS 26 SDK
 - [x] **REL-05**: Manual regression pass completed on at least one physical iOS and one physical Android device covering: keyboard on all input screens, bottom-nav responsiveness across all transitions, all three listing categories (create + edit + view), role-gated fields (admin vs non-admin email) — Closed 2026-04-28 by Plan 08-03 (`f757032`); APPROVED on first pass with 136 walked PASS / 0 FAIL across iPhone 15 Pro Max / iOS 26.x + Moto G XT2513V / Android 16 Fabric against build-identity SHA `de4ff0a`; D-08 bug-fix loop NOT triggered
-- [ ] **REL-06**: Release artifacts submitted to App Store Connect and Google Play Console with release notes describing the polish changes
+- [x] **REL-06**: Release artifacts submitted to App Store Connect and Google Play Console with release notes describing the polish changes — Closed 2026-04-28 by Plan 08-04 (`ad55782`; bilingual EN+RU draft `08-RELEASE-NOTES.md`, EN 465 chars + RU 454 chars both fitting Play Console's binding 500-char-per-locale limit) + Plan 08-05 (Xcode 26.4 archive uploaded to ASC and available in TestFlight; Android `.aab` uploaded to Play Console under existing keystore, submitted/processing; release notes pasted EN + RU on both stores per Submission Instructions block)
 
 ## v2 Requirements
 
@@ -149,12 +149,12 @@ Each v1 REQ-ID maps to exactly one phase in ROADMAP.md.
 | GATE-03 | Phase 3: Role Gating Precursor | Complete |
 | GATE-04 | Phase 3: Role Gating Precursor | Complete |
 | GATE-05 | Phase 3: Role Gating Precursor | Complete |
-| REL-01 | Phase 8: Release & Store Submission | Pending |
-| REL-02 | Phase 8: Release & Store Submission | Pending |
-| REL-03 | Phase 8: Release & Store Submission | Pending |
-| REL-04 | Phase 8: Release & Store Submission | Pending |
+| REL-01 | Phase 8: Release & Store Submission | Complete |
+| REL-02 | Phase 8: Release & Store Submission | Complete |
+| REL-03 | Phase 8: Release & Store Submission | Descoped (D-13) |
+| REL-04 | Phase 8: Release & Store Submission | Descoped (D-13) |
 | REL-05 | Phase 8: Release & Store Submission | Complete |
-| REL-06 | Phase 8: Release & Store Submission | Pending |
+| REL-06 | Phase 8: Release & Store Submission | Complete |
 
 **Coverage:**
 - v1 requirements: 35 total
@@ -164,4 +164,4 @@ Each v1 REQ-ID maps to exactly one phase in ROADMAP.md.
 ---
 
 *Requirements defined: 2026-04-22*
-*Last updated: 2026-04-22 after roadmap creation (phase mappings populated)*
+*Last updated: 2026-04-28 after Phase 8 close — REL-01/02/05/06 marked COMPLETE; REL-03/04 marked DESCOPED per Phase 8 CONTEXT.md D-13 (re-open conditions documented inline + in `08-VERIFICATION.md` Section F)*
