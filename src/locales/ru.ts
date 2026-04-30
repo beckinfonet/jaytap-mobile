@@ -79,6 +79,13 @@ export const ru: Record<TranslationKeys, string> = {
   'auth.couldNotParseResetLink': 'Не удалось распознать код. Вставьте полную ссылку из письма.',
   'auth.resetConfirmFailed': 'Не удалось обновить пароль. Попробуйте снова.',
 
+  // Phase 1 (ROLE-09 / ROLE-10 / D-11 / D-13) — role-change banner + session-expired + access-changed toasts
+  'auth.roleChanged.banner': 'Ваша роль изменилась — нажмите для перезагрузки',
+  'auth.session.expired.title': 'Сеанс истёк',
+  'auth.session.expired.body': 'Пожалуйста, войдите снова.',
+  'auth.accessChanged.title': 'Ваш доступ изменился',
+  'auth.accessChanged.body': 'Пожалуйста, войдите снова.',
+
   // Home
   'home.searchPlaceholder': 'Поиск по городу, адресу или ID',
   'home.rent': 'Аренда',

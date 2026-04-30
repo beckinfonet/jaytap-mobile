@@ -16,6 +16,8 @@ export const colors = {
     activeChipText: '#FFFFFF',
     success: '#4CAF50',
     error: '#F44336',
+    warning: '#F59E0B', // amber-500 — banner background (Phase 1 ROLE-10 / D-13)
+    onWarning: '#FFFFFF', // text on warning bg
     cardShadow: '#1A1A1A',
     buttonText: '#5D5045',
   },
@@ -36,6 +38,8 @@ export const colors = {
     activeChipText: '#121212',
     success: '#66BB6A',
     error: '#EF5350',
+    warning: '#F59E0B', // amber-500 (same hue, dark mode)
+    onWarning: '#0F172A', // dark slate text on warning bg in dark mode
     cardShadow: '#000000',
     buttonText: '#E0E0E0',
   },

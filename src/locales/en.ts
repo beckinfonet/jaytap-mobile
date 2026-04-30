@@ -77,6 +77,13 @@ export const en = {
   'auth.couldNotParseResetLink': 'We could not read a reset code from that text. Paste the full link from your email.',
   'auth.resetConfirmFailed': 'Could not update password. Please try again.',
 
+  // Phase 1 (ROLE-09 / ROLE-10 / D-11 / D-13) — role-change banner + session-expired + access-changed toasts
+  'auth.roleChanged.banner': 'Your role changed — tap to reload',
+  'auth.session.expired.title': 'Session expired',
+  'auth.session.expired.body': 'Please sign in again.',
+  'auth.accessChanged.title': 'Your access changed',
+  'auth.accessChanged.body': 'Please sign in again.',
+
   // Home
   'home.searchPlaceholder': 'Search city, address, or listing ID',
   'home.rent': 'Rent',
