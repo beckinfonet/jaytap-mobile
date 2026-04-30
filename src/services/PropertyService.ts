@@ -1,21 +1,16 @@
-import axios from 'axios';
-import { Platform } from 'react-native';
+import { apiClient } from './apiClient';
 import { AuthService } from './AuthService';
 import { canFromUser, PermissionDeniedError } from '../hooks/useRole';
 
-// Use deployed backend URL for production, or fallback to localhost for dev if needed.
-// Ideally, use environment variables (react-native-config or similar).
-const PRODUCTION_URL = 'https://jaytap-services-production.up.railway.app/api';
-const LOCAL_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000/api' : 'http://localhost:5000/api';
-
-// Simple toggle for now. In a real app, use __DEV__ check.
-const API_URL = PRODUCTION_URL;
+// Phase 1 Plan 11 (ROLE-05): all backend HTTP migrated to the shared apiClient.
+// baseURL + Authorization: Bearer header are owned by `apiClient` (see Plan 10).
+// Per plan: AuthService stays on direct axios because it talks to Firebase
+// Identity Toolkit, not the JayTap backend.
 
 export const PropertyService = {
   getAllProperties: async () => {
-    const url = `${API_URL}/properties`;
     try {
-      const response = await axios.get(url);
+      const response = await apiClient.get('/properties');
       // Map _id to id for frontend compatibility
       const mapped = response.data.map((p: any) => ({ ...p, id: p._id }));
       return mapped;
@@ -26,9 +21,8 @@ export const PropertyService = {
   },
 
   getPropertyById: async (id: string) => {
-    const url = `${API_URL}/properties/${id}`;
     try {
-      const response = await axios.get(url);
+      const response = await apiClient.get(`/properties/${id}`);
       return { ...response.data, id: response.data._id };
     } catch (error: any) {
       console.error('Error fetching property:', error?.message);
@@ -37,9 +31,8 @@ export const PropertyService = {
   },
 
   getUserProperties: async (firebaseUid: string) => {
-    const url = `${API_URL}/properties/user/${firebaseUid}`;
     try {
-      const response = await axios.get(url);
+      const response = await apiClient.get(`/properties/user/${firebaseUid}`);
       // Map _id to id for frontend compatibility
       return response.data.map((p: any) => ({ ...p, id: p._id }));
     } catch (error: any) {
@@ -57,10 +50,12 @@ export const PropertyService = {
 
       // Create FormData for multipart/form-data
       const formData = new FormData();
-      
-      // Add firebaseUid for authentication
+
+      // Legacy body field — backend (Plan 06) now derives uid from the
+      // JWKS-verified Bearer (req.user.uid). Kept for the dual-accept window
+      // (D-04) and removed when the backend cuts over in Phase 6 (D-05).
       formData.append('firebaseUid', userData.localId);
-      
+
       // Add property fields
       formData.append('title', propertyData.title);
       formData.append('description', propertyData.description || '');
@@ -105,12 +100,10 @@ export const PropertyService = {
         } as any);
       });
 
-      const response = await axios.post(`${API_URL}/properties`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'x-firebase-uid': userData.localId, // Send in headers for auth middleware
-        },
-      });
+      // No manual Content-Type header — axios auto-detects FormData and sets
+      // multipart/form-data with the correct boundary. Setting it manually
+      // strips the boundary and breaks the upload.
+      const response = await apiClient.post('/properties', formData);
 
       return { ...response.data, id: response.data._id };
     } catch (error: any) {
@@ -128,10 +121,10 @@ export const PropertyService = {
 
       // Create FormData for multipart/form-data
       const formData = new FormData();
-      
-      // Add firebaseUid for authentication
+
+      // Legacy body field — see createProperty note above.
       formData.append('firebaseUid', userData.localId);
-      
+
       // Add property fields
       formData.append('title', propertyData.title);
       formData.append('description', propertyData.description || '');
@@ -181,12 +174,8 @@ export const PropertyService = {
         } as any);
       });
 
-      const response = await axios.put(`${API_URL}/properties/${propertyId}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'x-firebase-uid': userData.localId, // Send in headers for auth middleware
-        },
-      });
+      // No manual Content-Type header — see createProperty note above.
+      const response = await apiClient.put(`/properties/${propertyId}`, formData);
 
       return { ...response.data, id: response.data._id };
     } catch (error: any) {
@@ -212,15 +201,10 @@ export const PropertyService = {
       console.error('[PropertyService.patchPlatformVerifications] permission denied', { userId: userData?.localId });
       throw new PermissionDeniedError();
     }
-    const response = await axios.patch(
-      `${API_URL}/properties/${propertyId}/verifications`,
-      { firebaseUid: userData.localId, platformVerifications },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-firebase-uid': userData.localId,
-        },
-      }
+    const response = await apiClient.patch(
+      `/properties/${propertyId}/verifications`,
+      // Legacy body field — see createProperty note. Backend dual-accepts.
+      { firebaseUid: userData.localId, platformVerifications }
     );
     return { ...response.data, id: response.data._id };
   },
@@ -232,11 +216,9 @@ export const PropertyService = {
         throw new Error('User not authenticated');
       }
 
-      const response = await axios.delete(`${API_URL}/properties/${propertyId}`, {
+      const response = await apiClient.delete(`/properties/${propertyId}`, {
+        // Legacy body field — see createProperty note.
         data: { firebaseUid: userData.localId },
-        headers: {
-          'x-firebase-uid': userData.localId,
-        },
       });
 
       return response.data;
@@ -249,4 +231,3 @@ export const PropertyService = {
     }
   },
 };
-

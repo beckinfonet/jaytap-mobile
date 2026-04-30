@@ -1,13 +1,14 @@
-import axios from 'axios';
-import { Platform } from 'react-native';
+import { apiClient } from './apiClient';
 import { AuthService } from './AuthService';
 
-// Use deployed backend URL for production, or fallback to localhost for dev if needed.
-const PRODUCTION_URL = 'https://jaytap-services-production.up.railway.app/api';
-const LOCAL_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000/api' : 'http://localhost:5000/api';
-
-// Simple toggle for now. In a real app, use __DEV__ check.
-const API_URL = PRODUCTION_URL;
+// Phase 1 Plan 11 (ROLE-05): all backend HTTP migrated to the shared apiClient.
+// baseURL + Authorization: Bearer header are owned by `apiClient` (see Plan 10).
+//
+// Soft-auth GET pattern preserved: when there is no userToken, the GET routes
+// return [] / false locally without round-tripping. The backend GET /favorites
+// route is also soft-auth (Plan 06 mounted Bearer middleware on writes only),
+// so a no-token request would still succeed — but we keep the client-side
+// short-circuit to avoid an unnecessary network call.
 
 export const FavoritesService = {
   /**
@@ -17,34 +18,31 @@ export const FavoritesService = {
     try {
       const userData = await AuthService.getUserData();
       if (!userData?.localId) {
+        // Anonymous shortcut — skip the round-trip.
         return [];
       }
 
-      const response = await axios.get(`${API_URL}/favorites`, {
-        headers: {
-          'x-firebase-uid': userData.localId,
-        },
-      });
-      
+      const response = await apiClient.get('/favorites');
+
       if (!response.data) {
         return [];
       }
-      
+
       if (!Array.isArray(response.data)) {
         return [];
       }
-      
+
       const mapped = response.data.map((p: any) => {
         const property = { ...p, id: p._id || p.id };
         return property;
       });
-      
+
       return mapped;
     } catch (error: any) {
       if (error?.response?.status === 404 || error?.response?.status === 500) {
         return [];
       }
-      
+
       return [];
     }
   },
@@ -59,12 +57,8 @@ export const FavoritesService = {
         return false;
       }
 
-      const response = await axios.get(`${API_URL}/favorites/check/${propertyId}`, {
-        headers: {
-          'x-firebase-uid': userData.localId,
-        },
-      });
-      
+      const response = await apiClient.get(`/favorites/check/${propertyId}`);
+
       return response.data.isFavorited;
     } catch (error: any) {
       console.error('Error checking favorite:', error);
@@ -82,16 +76,8 @@ export const FavoritesService = {
         throw new Error('User not authenticated');
       }
 
-      const response = await axios.post(
-        `${API_URL}/favorites/${propertyId}`,
-        {},
-        {
-          headers: {
-            'x-firebase-uid': userData.localId,
-          },
-        }
-      );
-      
+      const response = await apiClient.post(`/favorites/${propertyId}`, {});
+
       return response.data;
     } catch (error: any) {
       console.error('Error adding favorite:', error);
@@ -109,12 +95,8 @@ export const FavoritesService = {
         throw new Error('User not authenticated');
       }
 
-      const response = await axios.delete(`${API_URL}/favorites/${propertyId}`, {
-        headers: {
-          'x-firebase-uid': userData.localId,
-        },
-      });
-      
+      const response = await apiClient.delete(`/favorites/${propertyId}`);
+
       return response.data;
     } catch (error: any) {
       console.error('Error removing favorite:', error);
@@ -132,16 +114,8 @@ export const FavoritesService = {
         throw new Error('User not authenticated');
       }
 
-      const response = await axios.post(
-        `${API_URL}/favorites/toggle/${propertyId}`,
-        {},
-        {
-          headers: {
-            'x-firebase-uid': userData.localId,
-          },
-        }
-      );
-      
+      const response = await apiClient.post(`/favorites/toggle/${propertyId}`, {});
+
       return response.data;
     } catch (error: any) {
       console.error('Error toggling favorite:', error);
@@ -149,4 +123,3 @@ export const FavoritesService = {
     }
   },
 };
-
