@@ -61,9 +61,34 @@ export const AuthService = {
     }
   },
 
-  saveToken: async (token: string, userData: any) => {
+  /**
+   * Exchange a Firebase refresh token for a fresh id_token via the Identity
+   * Toolkit secure-token endpoint. Persists BOTH the new id_token (under
+   * `userToken`) and the new refresh_token (under `refreshToken`) — Firebase
+   * may rotate the refresh token, so always overwrite.
+   *
+   * Phase 1 / ROLE-06 / D-10: closes the latent M1 60-min session-death bug.
+   * Consumed by `apiClient.ts` 401 token-expired interceptor (single-flight).
+   */
+  refreshIdToken: async (refreshToken: string): Promise<string> => {
+    const formBody = `grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}`;
+    const response = await axios.post(
+      `https://securetoken.googleapis.com/v1/token?key=${API_KEY}`,
+      formBody,
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    );
+    const { id_token, refresh_token } = response.data;
+    await AsyncStorage.setItem('userToken', id_token);
+    await AsyncStorage.setItem('refreshToken', refresh_token);
+    return id_token;
+  },
+
+  saveToken: async (token: string, userData: any, refreshToken?: string) => {
     await AsyncStorage.setItem('userToken', token);
     await AsyncStorage.setItem('userData', JSON.stringify(userData));
+    if (refreshToken) {
+      await AsyncStorage.setItem('refreshToken', refreshToken);
+    }
   },
 
   getToken: async () => {
@@ -78,6 +103,7 @@ export const AuthService = {
   logout: async () => {
     await AsyncStorage.removeItem('userToken');
     await AsyncStorage.removeItem('userData');
+    await AsyncStorage.removeItem('refreshToken');
   },
 
   // Backend User Methods
