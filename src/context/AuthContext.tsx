@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback, ReactNode } from 'react';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthService } from '../services/AuthService';
@@ -139,7 +139,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
    * `silent=true` is used by user-initiated logouts (Profile screen) to
    * avoid showing a "Session expired" toast on a deliberate sign-out.
    */
-  const logout = async (silent: boolean = false) => {
+  // MD-01: useCallback so the registered apiClient hook reflects the current `language`
+  // closure. Without this, a session that started in EN and switched to RU mid-flight
+  // would still fire the EN session-expired alert (and vice-versa) because the registered
+  // closure was captured once at mount.
+  const logout = useCallback(async (silent: boolean = false) => {
     if (!silent) {
       Alert.alert(
         t(language, 'auth.session.expired.title'),
@@ -148,7 +152,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     await AuthService.logout();
     setUser(null);
-  };
+  }, [language]);
 
   /**
    * Re-fetch the backend user profile and merge into AuthUser. Called by:
@@ -156,7 +160,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
    * (b) the role-refresh banner tap handler (Plan 12, D-12),
    * (c) the AppState 'active' listener (Phase 2 placement).
    */
-  const refreshRole = async () => {
+  // MD-01: useCallback with [user?.localId, language]. The early-return guard reads
+  // user?.localId, so the registered closure must update whenever localId changes
+  // (especially null → realId after first login) — otherwise the apiClient 403
+  // role-revoked retry path silently no-ops post-login. `language` is included for
+  // future-proofing in case any toast/error path inside refreshRole reads `t(language)`.
+  const refreshRole = useCallback(async () => {
     if (!user?.localId) return;
     setIsLoadingRole(true);
     try {
@@ -169,7 +178,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoadingRole(false);
     }
-  };
+  }, [user?.localId, language]);
 
   /**
    * Toast hook fired by `apiClient`'s 403 final-fallback branch. Takes a
@@ -185,20 +194,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
    * interim behavior per Plan 10 Task 3 item 12. The cast to TranslationKeys
    * silences the strict-union check; runtime is safe.
    */
-  const toast = (localeKeyPrefix: string) => {
+  // MD-01: useCallback so the registered toast hook reflects the current language.
+  // Without this, an apiClient interceptor toast fired after a mid-session language
+  // switch would render in the original mount-time language.
+  const toast = useCallback((localeKeyPrefix: string) => {
     Alert.alert(
       t(language, `${localeKeyPrefix}.title` as TranslationKeys),
       t(language, `${localeKeyPrefix}.body` as TranslationKeys)
     );
-  };
+  }, [language]);
 
-  // Register the THREE hooks (refreshRole, logout, toast) with apiClient on
-  // mount. Avoids the services-import-context circular and keeps the
-  // interceptor decoupled from React's render cycle.
+  // Register the THREE hooks (refreshRole, logout, toast) with apiClient.
+  // MD-01: deps are `[refreshRole, logout, toast]` so the registered closures
+  // refresh whenever the underlying user / language changes — not just on mount.
+  // Each hook is useCallback-stable, so this effect only re-runs when something
+  // material changes (login/logout for refreshRole, language switch for logout/toast).
+  // Avoids the services-import-context circular and keeps the interceptor decoupled
+  // from React's render cycle.
   useEffect(() => {
     registerAuthHooks({ refreshRole, logout, toast });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refreshRole, logout, toast]);
 
   const deleteAccount = async () => {
     if (!user?.localId) {
