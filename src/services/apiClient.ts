@@ -92,13 +92,19 @@ async function refreshRoleSingleflight(): Promise<void> {
 
 // Three hooks: refreshRole, logout, toast. Toast accepts a locale-key prefix
 // (e.g. 'auth.accessChanged') and AuthContext expands it to title + body.
+//
+// HI-01: logout accepts an optional `silent` flag. AuthContext.logout(silent=false)
+// fires the bilingual "Session expired" Alert.alert (D-11 path); silent=true skips
+// it. Branch 3 below (post-retry 403, ROLE-09 final fallback) passes silent=true
+// so only the 'auth.accessChanged' toast surfaces — without this, the user gets
+// two stacked alerts ("Session expired" THEN "Your access changed").
 let refreshRoleHook: (() => Promise<void>) | null = null;
-let logoutHook: (() => Promise<void>) | null = null;
+let logoutHook: ((silent?: boolean) => Promise<void>) | null = null;
 let toastHook: ((localeKeyPrefix: string) => void) | null = null;
 
 export function registerAuthHooks(hooks: {
   refreshRole: () => Promise<void>;
-  logout: () => Promise<void>;
+  logout: (silent?: boolean) => Promise<void>;
   toast: (localeKeyPrefix: string) => void;
 }) {
   refreshRoleHook = hooks.refreshRole;
@@ -159,7 +165,11 @@ apiClient.interceptors.response.use(
         const retryStatus = (retryErr as AxiosError | undefined)?.response?.status;
         if (retryStatus === 403) {
           // Role really was revoked (not stale-cache). Force re-auth.
-          await logoutHook?.();
+          // HI-01: silent=true so AuthContext.logout skips the 'auth.session.expired'
+          // Alert.alert — we surface 'auth.accessChanged' immediately below as the
+          // single, correct toast for ROLE-09's final fallback. Branch 1 (above) keeps
+          // silent=false (default) because that path IS the D-11 session-expired path.
+          await logoutHook?.(true);
           toastHook?.('auth.accessChanged');
         }
         throw retryErr;
