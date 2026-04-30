@@ -454,21 +454,13 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Phase 6 (HOSP-04 / D-14) — Hospitality: tour promoted ABOVE the image gallery */}
-        {isHospitality && (
-          <View style={{ paddingHorizontal: 20, paddingTop: 12 }}>
-            <TourHeroCard
-              isActive={!!(property.is3DTourAvailable && property.tours.length > 0)}
-              tourCount={property.tours.length}
-              isDark={isDark}
-              inputBackground={colors.inputBackground}
-              textSecondary={colors.textSecondary}
-              borderColor={colors.border}
-              onPress={onOpenTours}
-            />
-          </View>
-        )}
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          isHospitality && { paddingBottom: 80 + insets.bottom },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Image Carousel */}
         <View style={styles.carouselContainer}>
           <FlatList
@@ -504,18 +496,16 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
           {/* Media Buttons - Redesigned: Hero 3D Tour + 2x2 Grid */}
           <View style={styles.mediaButtonsContainer}>
-            {/* Hero 3D Tour Card - platform-specific component (D-14: suppressed for Hospitality, promoted above gallery) */}
-            {!isHospitality && (
-              <TourHeroCard
-                isActive={!!(property.is3DTourAvailable && property.tours.length > 0)}
-                tourCount={property.tours.length}
-                isDark={isDark}
-                inputBackground={colors.inputBackground}
-                textSecondary={colors.textSecondary}
-                borderColor={colors.border}
-                onPress={onOpenTours}
-              />
-            )}
+            {/* Hero 3D Tour Card - platform-specific component */}
+            <TourHeroCard
+              isActive={!!(property.is3DTourAvailable && property.tours.length > 0)}
+              tourCount={property.tours.length}
+              isDark={isDark}
+              inputBackground={colors.inputBackground}
+              textSecondary={colors.textSecondary}
+              borderColor={colors.border}
+              onPress={onOpenTours}
+            />
 
             {/* 2x2 Grid: Instagram, Photos, Videos, Message */}
             <View style={styles.mediaGrid}>
@@ -823,59 +813,58 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         </View>
       </ScrollView>
 
-      {/* Footer Action */}
-      <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-        {/* First Row: Price and Owner Name */}
-        <View style={styles.footerTopRow}>
-          {/* Phase 6 (HOSP-04 / D-15) — Hospitality omits price block entirely (no label, no placeholder) */}
-          {!isHospitality && (
+      {/* Footer Action — suppressed for Hospitality; replaced by hospitalityContactBar below */}
+      {!isHospitality && (
+        <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+          {/* First Row: Price and Owner Name */}
+          <View style={styles.footerTopRow}>
             <View style={styles.priceContainer}>
               <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>{t('property.price')}</Text>
               <Text style={[styles.footerPrice, { color: colors.text }]}>{formatPrice(property, t('property.perMonth'))}</Text>
             </View>
-          )}
-          {(() => {
-            const owner = (property as any).owner;
-            const ownerName = owner ? `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || 'Owner' : null;
-            const ownerUid = owner?.uid;
-            const canViewListings = ownerName && ownerUid && onLandlordPress;
-            if (!ownerName) return null;
-            return canViewListings ? (
-              <TouchableOpacity
-                onPress={() => onLandlordPress(ownerUid, ownerName)}
-                activeOpacity={0.7}
-                style={styles.ownerContainer}
-              >
-                <Text style={[styles.ownerLabel, { color: colors.textSecondary }]}>{t('property.landlord')}</Text>
-                <Text style={[styles.ownerName, { color: colors.text, textDecorationLine: 'underline' }]}>{ownerName}</Text>
-              </TouchableOpacity>
-            ) : (
-              <View style={styles.ownerContainer}>
-                <Text style={[styles.ownerLabel, { color: colors.textSecondary }]}>{t('property.landlord')}</Text>
-                <Text style={[styles.ownerName, { color: colors.text }]}>{ownerName}</Text>
-              </View>
-            );
-          })()}
-        </View>
+            {(() => {
+              const owner = (property as any).owner;
+              const ownerName = owner ? `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || 'Owner' : null;
+              const ownerUid = owner?.uid;
+              const canViewListings = ownerName && ownerUid && onLandlordPress;
+              if (!ownerName) return null;
+              return canViewListings ? (
+                <TouchableOpacity
+                  onPress={() => onLandlordPress(ownerUid, ownerName)}
+                  activeOpacity={0.7}
+                  style={styles.ownerContainer}
+                >
+                  <Text style={[styles.ownerLabel, { color: colors.textSecondary }]}>{t('property.landlord')}</Text>
+                  <Text style={[styles.ownerName, { color: colors.text, textDecorationLine: 'underline' }]}>{ownerName}</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.ownerContainer}>
+                  <Text style={[styles.ownerLabel, { color: colors.textSecondary }]}>{t('property.landlord')}</Text>
+                  <Text style={[styles.ownerName, { color: colors.text }]}>{ownerName}</Text>
+                </View>
+              );
+            })()}
+          </View>
 
-        {/* Contact Agent Button - opens modal with all available channels */}
-        <TouchableOpacity
-          style={[styles.contactButton, { backgroundColor: colors.primary }]}
-          onPress={() => setShowContactModal(true)}
-        >
-          <MessageCircle size={20} color={isDark ? '#121212' : '#FFFFFF'} />
-          <Text
-            style={{
-              marginLeft: 8,
-              fontSize: 14,
-              fontWeight: '600',
-              color: isDark ? '#121212' : '#FFFFFF',
-            }}
+          {/* Contact Agent Button - opens modal with all available channels */}
+          <TouchableOpacity
+            style={[styles.contactButton, { backgroundColor: colors.primary }]}
+            onPress={() => setShowContactModal(true)}
           >
-            {t('property.contactNow')}
-          </Text>
-        </TouchableOpacity>
-      </View>
+            <MessageCircle size={20} color={isDark ? '#121212' : '#FFFFFF'} />
+            <Text
+              style={{
+                marginLeft: 8,
+                fontSize: 14,
+                fontWeight: '600',
+                color: isDark ? '#121212' : '#FFFFFF',
+              }}
+            >
+              {t('property.contactNow')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Full Screen Image Modal */}
       <Modal visible={isFullScreen} transparent={true} animationType="fade" onRequestClose={() => setIsFullScreen(false)}>
@@ -1076,7 +1065,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         </View>
       </Modal>
 
-      {/* Phase 6 (HOSP-04 / D-16) — Hospitality sticky contact bar (3 buttons, disabled-when-empty) */}
+      {/* Phase 6 (HOSP-04 / D-16) — Hospitality sticky contact bar (landlord row + 3 buttons, disabled-when-empty) */}
       {isHospitality && (
         <View
           style={[
@@ -1088,51 +1077,74 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             },
           ]}
         >
-          <TouchableOpacity
-            style={[
-              styles.hospitalityContactBtn,
-              {
-                backgroundColor: hasWhatsApp ? '#25D366' : colors.inputBackground,
-                opacity: hasWhatsApp ? 1 : 0.4,
-              },
-            ]}
-            onPress={hasWhatsApp ? handleWhatsApp : undefined}
-            disabled={!hasWhatsApp}
-            accessibilityRole="button"
-            accessibilityLabel={t('property.whatsapp')}
-          >
-            <MessageCircle size={22} color={hasWhatsApp ? '#FFFFFF' : colors.textSecondary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.hospitalityContactBtn,
-              {
-                backgroundColor: hasTelegram ? '#0088CC' : colors.inputBackground,
-                opacity: hasTelegram ? 1 : 0.4,
-              },
-            ]}
-            onPress={hasTelegram ? handleTelegram : undefined}
-            disabled={!hasTelegram}
-            accessibilityRole="button"
-            accessibilityLabel={t('property.telegram')}
-          >
-            <Send size={22} color={hasTelegram ? '#FFFFFF' : colors.textSecondary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.hospitalityContactBtn,
-              {
-                backgroundColor: hasPhone ? '#10B981' : colors.inputBackground,
-                opacity: hasPhone ? 1 : 0.4,
-              },
-            ]}
-            onPress={hasPhone ? handlePhone : undefined}
-            disabled={!hasPhone}
-            accessibilityRole="button"
-            accessibilityLabel={t('property.phoneCall')}
-          >
-            <Phone size={22} color={hasPhone ? '#FFFFFF' : colors.textSecondary} />
-          </TouchableOpacity>
+          {(() => {
+            const ownerName = owner ? `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || 'Owner' : null;
+            const ownerUid = owner?.uid;
+            const canViewListings = ownerName && ownerUid && onLandlordPress;
+            if (!ownerName) return null;
+            return canViewListings ? (
+              <TouchableOpacity
+                onPress={() => onLandlordPress(ownerUid, ownerName)}
+                activeOpacity={0.7}
+                style={styles.hospitalityLandlordRow}
+              >
+                <Text style={[styles.ownerLabel, { color: colors.textSecondary }]}>{t('property.landlord')}</Text>
+                <Text style={[styles.ownerName, { color: colors.text, textDecorationLine: 'underline' }]}>{ownerName}</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.hospitalityLandlordRow}>
+                <Text style={[styles.ownerLabel, { color: colors.textSecondary }]}>{t('property.landlord')}</Text>
+                <Text style={[styles.ownerName, { color: colors.text }]}>{ownerName}</Text>
+              </View>
+            );
+          })()}
+          <View style={styles.hospitalityContactBtnRow}>
+            <TouchableOpacity
+              style={[
+                styles.hospitalityContactBtn,
+                {
+                  backgroundColor: hasWhatsApp ? '#25D366' : colors.inputBackground,
+                  opacity: hasWhatsApp ? 1 : 0.4,
+                },
+              ]}
+              onPress={hasWhatsApp ? handleWhatsApp : undefined}
+              disabled={!hasWhatsApp}
+              accessibilityRole="button"
+              accessibilityLabel={t('property.whatsapp')}
+            >
+              <MessageCircle size={22} color={hasWhatsApp ? '#FFFFFF' : colors.textSecondary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.hospitalityContactBtn,
+                {
+                  backgroundColor: hasTelegram ? '#0088CC' : colors.inputBackground,
+                  opacity: hasTelegram ? 1 : 0.4,
+                },
+              ]}
+              onPress={hasTelegram ? handleTelegram : undefined}
+              disabled={!hasTelegram}
+              accessibilityRole="button"
+              accessibilityLabel={t('property.telegram')}
+            >
+              <Send size={22} color={hasTelegram ? '#FFFFFF' : colors.textSecondary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.hospitalityContactBtn,
+                {
+                  backgroundColor: hasPhone ? '#10B981' : colors.inputBackground,
+                  opacity: hasPhone ? 1 : 0.4,
+                },
+              ]}
+              onPress={hasPhone ? handlePhone : undefined}
+              disabled={!hasPhone}
+              accessibilityRole="button"
+              accessibilityLabel={t('property.phoneCall')}
+            >
+              <Phone size={22} color={hasPhone ? '#FFFFFF' : colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </SafeAreaView>
@@ -1831,11 +1843,20 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: 12,
     paddingHorizontal: 20,
     paddingTop: 12,
     borderTopWidth: 1,
+  },
+  hospitalityLandlordRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  hospitalityContactBtnRow: {
+    flexDirection: 'row',
+    gap: 12,
   },
   hospitalityContactBtn: {
     flex: 1,
