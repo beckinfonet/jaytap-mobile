@@ -2,7 +2,7 @@
 
 ## What This Is
 
-JayTap is a mobile real-estate app for Bishkek where users rent, sell, and browse properties — with curated 3D Matterport tours and panoramic imagery as a differentiator for hostels, hotels, and premium listings. Built as a React Native 0.84 app (iOS + Android) with a Railway-hosted backend and Firebase Identity Toolkit for auth, serving landlords, sellers, hospitality owners, and prospective renters/buyers.
+JayTap is a mobile real-estate app for Central Asia (current launch market: Bishkek, Kyrgyzstan; planned expansion: Almaty, Kazakhstan + Tashkent, Uzbekistan + smaller cities across all three countries) where users rent, sell, and browse properties — with curated 3D Matterport tours and panoramic imagery as a differentiator for hostels, hotels, and premium listings. Built as a React Native 0.84 app (iOS + Android) with a Node/MongoDB backend deployed on Railway (`JayTap-services` repo at `/Users/beckmaldinVL/development/mobileApps/backend-services/JayTap-services`, owned by the same maintainer as the RN client) and Firebase Identity Toolkit REST for auth, serving landlords, sellers, hospitality owners, and prospective renters/buyers.
 
 ## Core Value
 
