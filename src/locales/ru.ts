@@ -174,7 +174,7 @@ export const ru: Record<TranslationKeys, string> = {
   'verification.sectionTitle': 'Проверено MoveIn',
   'verification.subtitle':
     'Наша команда проверила следующее по этому объявлению. Отметки ставят только сотрудники платформы.',
-  'verification.ownershipDocuments': 'Документы права собственности / титул проверены',
+  'verification.ownershipDocuments': 'Документы о владении/праве собственности проверены',
   'verification.ownerIdentity': 'Удостоверение личности владельца проверено',
   'verification.stateIssued': 'Государственные документы по объекту проверены',
   'verification.adminSectionTitle': 'Проверка документов MoveIn',
