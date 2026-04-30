@@ -49,7 +49,7 @@
   - [ ] 01-03-PLAN.md — Wave-1 backend test infra (jest+supertest+mongo-memory) + jose install + shared firebase.js JWKS singleton
   - [ ] 01-04-PLAN.md — Wave-2 User schema additive roleRevokedAt (enum cutover deferred to Plan 09)
   - [ ] 01-05-PLAN.md — Wave-3 verifyFirebaseToken middleware (TDD: 9-case golden token matrix + ROLE-11 + requireMinRole)
-  - [ ] 01-06-PLAN.md — Wave-4 5-service auth migration: HF-03 lockdown on POST /users + GET /me + propertyRoutes/favoriteRoutes/chatRoutes/appointmentRoutes mount + chatAuthMiddleware deletion
+  - [x] 01-06-PLAN.md — Wave-4 5-service auth migration: HF-03 lockdown on POST /users + GET /me + propertyRoutes/favoriteRoutes/chatRoutes/appointmentRoutes mount + chatAuthMiddleware deletion — completed 2026-04-30 (4 commits: c08b5d8 RED, 6f90f6d GREEN HF-03+ROLE-08, 8edd68e property+favorite, 03b382a chat+appointment+chatAuthMiddleware delete; 39/39 tests green; 5 inline auth blocks removed; 2 Rule-1 + 1 Rule-2 deviations documented)
   - [ ] 01-07-PLAN.md — Wave-4 HF-04 socket.io io.use() handshake (verified-only user room join)
   - [ ] 01-08-PLAN.md — Wave-5 [BLOCKING] migrate-roles-m2.js + production migration --verify=PASS
   - [ ] 01-09-PLAN.md — Wave-6 User.js enum cutover ['user','moderator','admin'] + tests update
