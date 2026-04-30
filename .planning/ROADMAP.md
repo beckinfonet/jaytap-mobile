@@ -43,7 +43,20 @@
   3. The `src/constants/adminAllowlist.ts` file is deleted from the RN client and `useRole.ts:64-65` no longer references the email-allowlist branch — yet M1 hardcoded admins (currently `beckprograms@gmail.com`) still resolve as `userType: 'admin'` via the Mongo migration that ran BEFORE the allowlist file was removed
   4. A Hospitality listing roundtrip preserves all of `rooms`, `maxGuests`, and the 12-amenity selections after a save→fetch cycle (HF-01 schema patch verified empirically — `Property` Mongoose schema no longer silently drops these fields)
   5. Backend `.env` is no longer git-tracked, MongoDB Atlas password + AWS IAM credentials are rotated and old keys revoked, `.env.example` is checked in, and Railway deploys via Railway-set env vars (no committed secrets remain in the repo at `/Users/beckmaldinVL/development/mobileApps/backend-services/JayTap-services`)
-**Plans**: TBD
+**Plans**: 13 plans
+  - [ ] 01-01-PLAN.md — Wave-0 HF-02 secret rotation runbook + .env.example
+  - [ ] 01-02-PLAN.md — Wave-0 HF-01 Property schema + route patch (rooms, maxGuests, amenities)
+  - [ ] 01-03-PLAN.md — Wave-1 backend test infra (jest+supertest+mongo-memory) + jose install + shared firebase.js JWKS singleton
+  - [ ] 01-04-PLAN.md — Wave-2 User schema additive roleRevokedAt (enum cutover deferred to Plan 09)
+  - [ ] 01-05-PLAN.md — Wave-3 verifyFirebaseToken middleware (TDD: 9-case golden token matrix + ROLE-11 + requireMinRole)
+  - [ ] 01-06-PLAN.md — Wave-4 5-service auth migration: HF-03 lockdown on POST /users + GET /me + propertyRoutes/favoriteRoutes/chatRoutes/appointmentRoutes mount + chatAuthMiddleware deletion
+  - [ ] 01-07-PLAN.md — Wave-4 HF-04 socket.io io.use() handshake (verified-only user room join)
+  - [ ] 01-08-PLAN.md — Wave-5 [BLOCKING] migrate-roles-m2.js + production migration --verify=PASS
+  - [ ] 01-09-PLAN.md — Wave-6 User.js enum cutover ['user','moderator','admin'] + tests update
+  - [ ] 01-10-PLAN.md — Wave-7 Client types (AuthUser) + apiClient.ts (Bearer + 401/403 single-flight) + AuthService.refreshIdToken + AuthContext.refreshRole
+  - [ ] 01-11-PLAN.md — Wave-8 5-service Bearer migration + ChatService socket auth.token (HF-04 client side)
+  - [ ] 01-12-PLAN.md — Wave-8 RoleRefreshBanner + locale keys + theme palette extension + App.tsx mount + hard-logout toast
+  - [ ] 01-13-PLAN.md — Wave-9 useRole.ts allowlist branch deletion + adminAllowlist.ts deletion (LAST step of phase per Pitfall 5)
 
 ### Phase 2: Listing Lifecycle Status Field Absorption
 
