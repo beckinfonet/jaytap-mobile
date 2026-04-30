@@ -15,6 +15,7 @@ import { Send, Flag, Calendar } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import type { Socket } from 'socket.io-client';
 import { ChatService, Conversation, Message } from '../services/ChatService';
 import type { TranslationKeys } from '../locales';
 
@@ -47,7 +48,7 @@ export const ChatThreadScreen: React.FC<ChatThreadScreenProps> = ({
   const [sending, setSending] = useState(false);
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef<FlatList>(null);
-  const socketRef = useRef<ReturnType<typeof ChatService.connectSocket> | null>(null);
+  const socketRef = useRef<Socket | null>(null);
 
   const isOwnMessage = (m: Message) => m.senderUid === user?.localId;
 
@@ -69,19 +70,36 @@ export const ChatThreadScreen: React.FC<ChatThreadScreenProps> = ({
   }, [loadMessages]);
 
   useEffect(() => {
-    if (user?.localId) {
-      const socket = ChatService.connectSocket(user.localId, (data) => {
+    if (!user?.localId) return;
+
+    // ChatService.connectSocket is async (HF-04: it reads the Firebase ID
+    // token from AsyncStorage and sends it as `auth: { token }`). Wrap in an
+    // inner async IIFE so the useEffect cleanup function can still run
+    // synchronously even if the socket isn't connected yet.
+    let cancelled = false;
+    let socket: Socket | null = null;
+
+    (async () => {
+      const s = await ChatService.connectSocket((data) => {
         if (data.conversationId === conversation.id) {
           setMessages((prev) => [...prev, data.message]);
           onConversationUpdate();
         }
       });
-      socketRef.current = socket;
-      return () => {
-        socket.disconnect();
-        socketRef.current = null;
-      };
-    }
+      if (cancelled) {
+        // The effect was cleaned up while we were awaiting the connection.
+        s.disconnect();
+        return;
+      }
+      socket = s;
+      socketRef.current = s;
+    })();
+
+    return () => {
+      cancelled = true;
+      socket?.disconnect();
+      socketRef.current = null;
+    };
   }, [user?.localId, conversation.id, onConversationUpdate]);
 
   const handleSend = async () => {

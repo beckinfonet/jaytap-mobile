@@ -1,22 +1,13 @@
-import axios from 'axios';
-import { Platform } from 'react-native';
-import { AuthService } from './AuthService';
+import { apiClient } from './apiClient';
 import type { Appointment, AvailabilityResponse, OwnerSettings, TimeSlot } from '../types/Appointment';
 
-const PRODUCTION_URL = 'https://jaytap-services-production.up.railway.app/api';
-const LOCAL_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000/api' : 'http://localhost:5000/api';
-const API_URL = PRODUCTION_URL;
-
-const getHeaders = async () => {
-  const userData = await AuthService.getUserData();
-  const uid = userData?.localId;
-  return uid ? { 'x-firebase-uid': uid } : {};
-};
+// Phase 1 Plan 11 (ROLE-05): all backend HTTP migrated to the shared apiClient.
+// baseURL + Authorization: Bearer header are owned by `apiClient` (see Plan 10).
+// AuthService stays on direct axios (Firebase Identity Toolkit, not backend).
 
 export const AppointmentService = {
   getAppointments: async (): Promise<Appointment[]> => {
-    const headers = await getHeaders();
-    const response = await axios.get(`${API_URL}/appointments`, { headers });
+    const response = await apiClient.get('/appointments');
     return response.data.map((a: any) => ({ ...a, id: a._id || a.id }));
   },
 
@@ -25,28 +16,23 @@ export const AppointmentService = {
     from: string,
     to: string
   ): Promise<AvailabilityResponse> => {
-    const headers = await getHeaders();
-    const response = await axios.get(
-      `${API_URL}/appointments/availability/${propertyId}?from=${from}&to=${to}`,
-      { headers }
+    const response = await apiClient.get(
+      `/appointments/availability/${propertyId}?from=${from}&to=${to}`
     );
     return response.data;
   },
 
   getOwnerSettings: async (): Promise<OwnerSettings> => {
-    const headers = await getHeaders();
-    const response = await axios.get(`${API_URL}/appointments/owner-settings`, { headers });
+    const response = await apiClient.get('/appointments/owner-settings');
     return response.data;
   },
 
   updateOwnerSettings: async (
     settings: Partial<OwnerSettings>
   ): Promise<OwnerSettings> => {
-    const headers = await getHeaders();
-    const response = await axios.put(
-      `${API_URL}/appointments/owner-settings`,
-      settings,
-      { headers }
+    const response = await apiClient.put(
+      '/appointments/owner-settings',
+      settings
     );
     return response.data;
   },
@@ -56,7 +42,6 @@ export const AppointmentService = {
     slot: TimeSlot,
     participantUid?: string
   ): Promise<Appointment> => {
-    const headers = await getHeaders();
     const body: Record<string, string> = {
       propertyId,
       date: slot.date,
@@ -64,7 +49,7 @@ export const AppointmentService = {
       endTime: slot.endTime,
     };
     if (participantUid) body.participantUid = participantUid;
-    const response = await axios.post(`${API_URL}/appointments`, body, { headers });
+    const response = await apiClient.post('/appointments', body);
     return { ...response.data, id: response.data._id || response.data.id };
   },
 
@@ -72,21 +57,17 @@ export const AppointmentService = {
     appointmentId: string,
     useSuggested: boolean = false
   ): Promise<Appointment> => {
-    const headers = await getHeaders();
-    const response = await axios.put(
-      `${API_URL}/appointments/${appointmentId}/confirm`,
-      { useSuggested },
-      { headers }
+    const response = await apiClient.put(
+      `/appointments/${appointmentId}/confirm`,
+      { useSuggested }
     );
     return { ...response.data, id: response.data._id || response.data.id };
   },
 
   declineAppointment: async (appointmentId: string): Promise<void> => {
-    const headers = await getHeaders();
-    await axios.put(
-      `${API_URL}/appointments/${appointmentId}/decline`,
-      {},
-      { headers }
+    await apiClient.put(
+      `/appointments/${appointmentId}/decline`,
+      {}
     );
   },
 
@@ -94,11 +75,9 @@ export const AppointmentService = {
     appointmentId: string,
     slot: TimeSlot
   ): Promise<Appointment> => {
-    const headers = await getHeaders();
-    const response = await axios.put(
-      `${API_URL}/appointments/${appointmentId}/suggest`,
-      slot,
-      { headers }
+    const response = await apiClient.put(
+      `/appointments/${appointmentId}/suggest`,
+      slot
     );
     return { ...response.data, id: response.data._id || response.data.id };
   },
