@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: "Roles & Moderation"
 status: executing
-last_updated: "2026-04-30T09:05:38.000Z"
-last_activity: 2026-04-30 -- Phase 1 Plan 11 complete (Wave-8 5-service Bearer migration + HF-04 ChatService socket auth.token; Property/Favorites/Chat/Appointment routed through shared apiClient; ChatService.connectSocket signature now async + drops firebaseUid arg; ChatThreadScreen.tsx call site updated; AuthService intentionally unchanged — Firebase REST direct; tsc baseline preserved at 2 deferred ThemeContext errors; 2 atomic commits; ROLE-05 5-service collapse complete, HF-04 client side complete)
+last_updated: "2026-04-29T00:00:00.000Z"
+last_activity: 2026-04-29 -- Phase 1 Plan 12 complete (Wave-8 client UI; RoleRefreshBanner.tsx new component with optimistic-dismiss + useEffect rebase fixing the W2 stale-closure regression; 5 EN+RU locale keys for D-13 banner + D-11 hard-logout + ROLE-09 access-changed final-fallback; warning + onWarning theme tokens added to BOTH light and dark palettes; App.tsx +5 LOC mounting <RoleRefreshBanner /> above OVERLAY_FLAGS branch; AuthContext.logout(silent?) signature widened with bilingual Alert.alert when not silent; ProfileScreen handleLogout updated to logout(true); tsc baseline preserved at 2 pre-existing ThemeContext errors; 3 atomic commits 08ae964 + 20810a8 + c66f481; ROLE-09 + ROLE-10 closed)
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 13
-  completed_plans: 11
-  percent: 14
+  completed_plans: 12
+  percent: 15
 ---
 
 # STATE: JayTap
@@ -52,10 +52,10 @@ progress:
 
 Milestone: **M2 v2.0 "Roles & Moderation" — ROADMAP CREATED 2026-04-29**
 Phase: 1 (backend-role-foundation-auth-migration-hotfix-bundle) — EXECUTING
-Plan: 12 of 13 (Plans 01-01..01-11 complete; Plan 01-12 next — Wave-9 locale keys + RoleRefreshBanner + D-11 hard-logout toast inside AuthContext.logout + theme/colors.ts warning palette)
+Plan: 13 of 13 (Plans 01-01..01-12 complete; Plan 01-13 next — delete `useRole.ts:64-65` allowlist branch + `src/constants/adminAllowlist.ts` per Pitfall 5)
 Status: Executing Phase 1
-Last activity: 2026-04-30 -- Phase 1 Plan 11 complete (Wave-8 5-service Bearer migration + HF-04 ChatService socket auth.token; 4 services routed through shared apiClient; AuthService intentionally unchanged; ChatThreadScreen call site updated for new async connectSocket signature; tsc baseline preserved; 2 atomic commits)
-**Recommended next action:** Execute Plan 01-12 (Wave-9 locale keys + RoleRefreshBanner + D-11 hard-logout toast surface + theme/colors.ts warning palette additions). Adds the four locale keys the apiClient toast hook expands (`auth.accessChanged.title` / `auth.accessChanged.body` for the 403 post-retry final-fallback per ROLE-09; `auth.session.expired.title` / `auth.session.expired.body` for the D-11 hard-logout path that AuthContext.logout will fire when refreshIdToken returns null) in EN+RU + RoleRefreshBanner component mounted at App.tsx layer above OVERLAY_FLAGS per D-12/D-13 (sticky until tap or race-resolution; tap calls `refreshRole()`; banner copy "Your role changed — tap to reload" / «Ваша роль изменилась — нажмите для перезагрузки» symmetric for promotion/demotion) + theme/colors.ts warning palette (warning + warningOnContrast tokens for both light + dark schemes) for banner styling. Plan 13 (delete `useRole.ts:64-65` allowlist branch + `src/constants/adminAllowlist.ts` per Pitfall 5) closes the phase last — must run after admin emails resolve from Mongo via Plan 11's apiClient + `GET /api/auth/me`.
+Last activity: 2026-04-29 -- Phase 1 Plan 12 complete (Wave-8 client UI; RoleRefreshBanner.tsx new component with optimistic-dismiss + useEffect rebase fixing W2 stale-closure regression; 5 EN+RU locale keys + warning/onWarning theme tokens; App.tsx mounts <RoleRefreshBanner />; AuthContext.logout(silent?) bilingual D-11 toast; 3 atomic commits 08ae964 + 20810a8 + c66f481)
+**Recommended next action:** Execute Plan 01-13 (Pitfall 5 cleanup — delete `src/hooks/useRole.ts:64-65` allowlist branch + `src/constants/adminAllowlist.ts`). Pre-condition: admin emails (currently `beckprograms@gmail.com`) must resolve from Mongo via Plan 11's apiClient + `GET /api/auth/me` (Plan 10 already wired refreshRole on mount + 403 interceptor). Plan 13 closes Phase 1 by removing the library-free allowlist fallback that was the M1 bridge — server-confirmed `userType: 'admin'` from the backend now becomes the sole source of admin-affordance gating. Smoke test post-deletion: sign in as admin, confirm admin-gated UI still appears (proves Mongo-backed userType resolves correctly via the apiClient interceptor flow).
 **Phase numbering:** Restarts at 1 for M2 (M1 phase dirs at `.planning/milestones/v1.0.4-phases/`); M2 phase dirs will be created with kebab-case slugs (`01-backend-role-foundation`, `02-listing-lifecycle-absorption`, `03-moderation-queue-and-actions`, `04-archive-lifecycle`, `05-admin-role-management`, `06-hardening-and-release`) at `/gsd-discuss-phase` / `/gsd-plan-phase` time
 
 ### Prior position (M1 close, archived for context)
