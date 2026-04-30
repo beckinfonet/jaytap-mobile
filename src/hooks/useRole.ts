@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { isAllowlistedAdmin } from '../constants/adminAllowlist';
 
 /**
  * The set of roles a JayTap user can have.
@@ -16,7 +15,7 @@ export type Action =
   | 'editVerifications'      // M1 — admin only
   | 'editMatterportUrl'      // M1 — admin only
   | 'editPanoramicUrl'       // M1 — admin only
-  | 'manageListings'         // M1 — admin OR renter userType (D-12)
+  | 'manageListings'         // any authenticated user (post ROLE-07 cutover; ownership enforced server-side)
   | 'editAnyListing'         // M2 forward-compat — moderator + admin
   | 'approveListings'        // M2 forward-compat — moderator + admin
   | 'promoteToModerator';    // M2 forward-compat — admin only
@@ -34,25 +33,26 @@ export class PermissionDeniedError extends Error {
 }
 
 /**
- * Derive the current user's role using the D-03 priority ladder:
- *   1. customClaims.role (M2 — server-verified; undefined today)
- *   2. backendProfile.userType === 'admin' | 'moderator'
- *   3. M1 email allowlist override
- *   4. authenticated → 'user'; else 'guest'
+ * Derive the current user's role using the D-03 priority ladder
+ * (post Plan 01-13 / ROLE-07 — M1 email allowlist branch removed):
+ *   1. customClaims.role (M2 forward-compat — server-verified; undefined today)
+ *   2. backendProfile.userType === 'admin' | 'moderator' (Mongo-resolved; SOLE source of truth)
+ *   3. authenticated → 'user'; else 'guest'
  */
 function deriveRole(user: any): Role {
   if (!user) {
     return 'guest';
   }
 
-  // Branch 1 (M2): server-verified custom claim. Currently undefined.
+  // Branch 1 (M2 forward-compat): server-verified custom claim. Currently undefined.
   // TODO(M2): activate once ROLE-01 ships (custom claims on Firebase token).
   const claimRole = user?.backendProfile?.customClaims?.role as Role | undefined;
   if (claimRole === 'admin' || claimRole === 'moderator' || claimRole === 'user') {
     return claimRole;
   }
 
-  // Branch 2: backend userType. Existing pattern.
+  // Branch 2: backend userType (Mongo-resolved). Sole authority post Plan 08 migration
+  // (`migrate-roles-m2.js --verify=PASS` upserted M1 admins to userType='admin').
   if (user?.backendProfile?.userType === 'admin') {
     return 'admin';
   }
@@ -60,13 +60,7 @@ function deriveRole(user: any): Role {
     return 'moderator';
   }
 
-  // Branch 3 (M1 override): email allowlist.
-  // TODO(M2): remove M1 allowlist branch from useRole role-priority ladder
-  if (isAllowlistedAdmin(user?.email)) {
-    return 'admin';
-  }
-
-  // Branch 4: authenticated but unprivileged.
+  // Branch 3: authenticated but unprivileged.
   return 'user';
 }
 
@@ -88,9 +82,12 @@ export function canFromUser(user: any, action: Action): boolean {
     case 'approveListings':
       return role === 'admin' || role === 'moderator';
     case 'manageListings':
-      // D-12: admin OR renter userType. Encapsulates the "renter sees listing tools" rule
-      // without leaking userType reads to call sites (D-14 invariant #2).
-      return role === 'admin' || user?.backendProfile?.userType === 'renter';
+      // Post Plan 09 enum cutover + Plan 06 backend cleanup: legacy `userType === 'renter'`
+      // no longer exists in Mongo, and propertyRoutes.js no longer gates this action by
+      // role. Mirror the backend on the client: any authenticated user with a
+      // backendProfile may manage listings; ownership is enforced separately at the
+      // service layer + server. (ROLE-07 closes the M1 D-12 'renter' carve-out.)
+      return role !== 'guest' && !!user?.backendProfile;
   }
 }
 
