@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: M2 Roles & Moderation
-status: defining_requirements
-last_updated: "2026-04-29T00:00:00.000Z"
+status: ready_to_plan
+last_updated: "2026-04-29T12:00:00.000Z"
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
   percent: 0
 m1_disposition: shipped — iOS in TestFlight + Android submitted to Play Console; M1 milestone CLOSED 2026-04-28 via /gsd-complete-milestone; archived to .planning/milestones/v1.0.4-*
-m2_state: started 2026-04-29 — three-role system + moderation lifecycle + queue UI + admin UIs + archive listings (999.1 promoted); phase numbering restarts at 1
+m2_state: roadmap created 2026-04-29 — 6 phases (1 backend role foundation + auth migration + hotfix bundle / 2 listing lifecycle status field absorption / 3 moderation queue + actions + edit-on-behalf / 4 archive lifecycle / 5 admin role management UI / 6 hardening + manual QA + release); 51/51 v1 reqs mapped (HF-01..04 + ROLE-01..11 + MOD-01..18 + ARCH-01..05 + ADMIN-01..07 + REL-01..06); phase numbering restarts at 1; phase dirs created at /gsd-discuss-phase or /gsd-plan-phase time
 ---
 
 # STATE: JayTap
@@ -41,13 +41,13 @@ m2_state: started 2026-04-29 — three-role system + moderation lifecycle + queu
 
 ## Current Position
 
-Milestone: **M2 v2.0 "Roles & Moderation" — STARTED 2026-04-29**
-Phase: Not started (defining requirements)
+Milestone: **M2 v2.0 "Roles & Moderation" — ROADMAP CREATED 2026-04-29**
+Phase: 1 (Backend Role Foundation + Auth Migration + Hotfix Bundle) — not yet discussed
 Plan: —
-Status: Defining requirements (REQUIREMENTS.md being drafted via /gsd-new-milestone)
-Last activity: 2026-04-29 — Milestone v2.0 started; PROJECT.md updated with Current Milestone section; STATE.md reset; M1 v1.0.4 archived under `.planning/milestones/v1.0.4-*`
-**Recommended next action:** Continue /gsd-new-milestone flow → research decision → REQUIREMENTS.md → ROADMAP.md → `/gsd-discuss-phase 1` once roadmap approved
-**Phase numbering:** Restarts at 1 for M2 (M1 phase dirs already at `.planning/milestones/v1.0.4-phases/`)
+Status: Ready to plan — ROADMAP.md created; 6 phases sketched; 51/51 v1 reqs mapped; phase directories not yet created
+Last activity: 2026-04-29 — /gsd-roadmapper authored ROADMAP.md (6 M2 phases inserted between M1 archived block and Backlog); REQUIREMENTS.md traceability table populated; M2 v1 req count corrected to 51 (was mistakenly stated as 47 in REQUIREMENTS.md footer)
+**Recommended next action:** `/gsd-discuss-phase 1` to discuss Phase 1 (Backend Role Foundation + Auth Migration + Hotfix Bundle); the 12 backend coordination questions Q1–Q12 from research/SUMMARY.md become Phase 1 design discussion topics (NOT third-party gating chase, since the user owns the backend repo at `/Users/beckmaldinVL/development/mobileApps/backend-services/JayTap-services`)
+**Phase numbering:** Restarts at 1 for M2 (M1 phase dirs at `.planning/milestones/v1.0.4-phases/`); M2 phase dirs will be created with kebab-case slugs (`01-backend-role-foundation`, `02-listing-lifecycle-absorption`, `03-moderation-queue-and-actions`, `04-archive-lifecycle`, `05-admin-role-management`, `06-hardening-and-release`) at `/gsd-discuss-phase` / `/gsd-plan-phase` time
 
 ### Prior position (M1 close, archived for context)
 

@@ -129,15 +129,20 @@ Explicit exclusions, with reasoning:
 
 ## Traceability
 
-*Filled by `/gsd-roadmapper` when ROADMAP.md is created.*
+*Filled by `/gsd-roadmapper` when ROADMAP.md is created. Last updated 2026-04-29.*
 
 | Phase | Requirements |
 |-------|--------------|
-| 1. _TBD_ | _TBD_ |
-| 2. _TBD_ | _TBD_ |
-| ... | ... |
+| 1. Backend Role Foundation + Auth Migration + Hotfix Bundle | HF-01, HF-02, HF-03, HF-04, ROLE-01, ROLE-02, ROLE-03, ROLE-04, ROLE-05, ROLE-06, ROLE-07, ROLE-08, ROLE-09, ROLE-10, ROLE-11 |
+| 2. Listing Lifecycle Status Field Absorption | MOD-01, MOD-02, MOD-03, MOD-04, MOD-05, MOD-06, MOD-07, MOD-08, MOD-09 |
+| 3. Moderation Queue + Actions + Edit-on-Behalf | MOD-10, MOD-11, MOD-12, MOD-13, MOD-14, MOD-15, MOD-16, MOD-17, MOD-18 |
+| 4. Archive Lifecycle (Owner + Mod/Admin) | ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05 |
+| 5. Admin Role Management UI | ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, ADMIN-05, ADMIN-06, ADMIN-07 |
+| 6. Hardening + Manual Physical-Device QA + Release | REL-01, REL-02, REL-03, REL-04, REL-05, REL-06 |
+
+**Coverage:** 51/51 ✓ (every M2 v1 requirement maps to exactly one phase; no orphans, no duplicates)
 
 ---
 
 *Requirements drafted: 2026-04-29*
-*Total v1 (M2) requirements: 47 (4 hotfix + 11 role + 18 moderation + 5 archive + 7 admin + 6 release-and-submission. ~12% larger than M1's 35 v1 reqs; reflects M2's cross-cutting scope.)*
+*Total v1 (M2) requirements: 51 (4 hotfix + 11 role + 18 moderation + 5 archive + 7 admin + 6 release-and-submission). ~46% larger than M1's 35 v1 reqs; reflects M2's cross-cutting scope (frontend + backend + 4 hotfix bundle).*
