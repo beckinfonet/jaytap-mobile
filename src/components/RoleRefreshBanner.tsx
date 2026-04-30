@@ -36,10 +36,21 @@ export const RoleRefreshBanner: React.FC = () => {
   const { language } = useLanguage();
 
   const currentRole = user?.backendProfile?.userType;
+  const localId = user?.localId;
   const [lastSeenRole, setLastSeenRole] = useState<string | undefined>(currentRole);
 
-  // Rebase: when lastSeenRole is undefined (post-tap optimistic dismiss OR
-  // initial mount before currentRole is hydrated) and currentRole becomes
+  // MD-02: Reset baseline on user-swap. RoleRefreshBanner is mounted at App.tsx
+  // root and never unmounts on logout, so a previous account's lastSeenRole would
+  // survive the sign-out and falsely flash the "your role changed" banner the moment
+  // a different account signed in (e.g. user A admin → logout → user B 'user' triggers
+  // 'admin' !== 'user' on User B's first hydration). Resetting on localId change gives
+  // a clean per-account baseline; the rebase effect below catches up to currentRole.
+  useEffect(() => {
+    setLastSeenRole(undefined);
+  }, [localId]);
+
+  // Rebase: when lastSeenRole is undefined (post-tap optimistic dismiss, post-user-swap
+  // reset, OR initial mount before currentRole is hydrated) and currentRole becomes
   // available, catch up so the banner doesn't re-show.
   useEffect(() => {
     if (lastSeenRole === undefined && currentRole) {
