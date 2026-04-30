@@ -13,7 +13,13 @@ interface AuthContextType {
   isLoadingRole: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
+  /**
+   * Sign the user out. When `silent` is true, no toast is fired — used for
+   * user-initiated logouts (e.g. Profile screen "Sign out"). When omitted /
+   * false, a bilingual "Session expired" Alert is shown — D-11 hard-logout
+   * path triggered by apiClient's 401 refresh-token-revoked branch.
+   */
+  logout: (silent?: boolean) => Promise<void>;
   refreshRole: () => Promise<void>;
   deleteAccount: () => Promise<void>;
 }
@@ -120,7 +126,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(userData);
   };
 
-  const logout = async () => {
+  /**
+   * Sign the user out.
+   *
+   * D-11 hard-logout toast (Phase 1 / Plan 12):
+   * The apiClient 401 silent-refresh interceptor calls `logoutHook?.()`
+   * (no arg) when refreshIdTokenSingleflight returns null (refresh token
+   * revoked / expired). Surfacing a bilingual Alert.alert BEFORE the state
+   * reset gives the user context — they're then routed to the login screen
+   * by App.tsx's state machine when `user === null`.
+   *
+   * `silent=true` is used by user-initiated logouts (Profile screen) to
+   * avoid showing a "Session expired" toast on a deliberate sign-out.
+   */
+  const logout = async (silent: boolean = false) => {
+    if (!silent) {
+      Alert.alert(
+        t(language, 'auth.session.expired.title'),
+        t(language, 'auth.session.expired.body')
+      );
+    }
     await AuthService.logout();
     setUser(null);
   };

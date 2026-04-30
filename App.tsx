@@ -29,6 +29,7 @@ import { PropertyService } from './src/services/PropertyService';
 import { FavoritesService } from './src/services/FavoritesService';
 import { ChatService } from './src/services/ChatService';
 import { AuthPromptModal } from './src/components/AuthPromptModal';
+import { RoleRefreshBanner } from './src/components/RoleRefreshBanner';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -551,6 +552,10 @@ function AppContent() {
   return (
     <>
       <View style={{ flex: 1 }}>
+        {/* Phase 1 ROLE-10 / D-13: sticky role-refresh banner mounted ABOVE the
+            hideMainStackUnderOverlay branch so it persists across screen changes.
+            DO NOT add this to OVERLAY_FLAGS — it's a top-level slot, not an overlay. */}
+        <RoleRefreshBanner />
         {/* Keep main stack mounted under full-screen flows so Profile / Home are not torn down */}
         <View style={{ flex: 1, display: hideMainStackUnderOverlay ? 'none' : 'flex' }}>
           {(tabEverMounted.favorites || showFavorites) && (

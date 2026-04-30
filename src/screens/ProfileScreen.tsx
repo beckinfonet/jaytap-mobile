@@ -98,7 +98,10 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
                     onPress: async () => {
                         try {
                             setLoggingOut(true);
-                            await logout();
+                            // silent=true: user-initiated sign-out should not show the
+                            // D-11 "Session expired" toast (that's reserved for forced
+                            // hard-logout via apiClient interceptor).
+                            await logout(true);
                             onBack(); // Close profile and return to main/home screen
                         } catch (error) {
                             console.error('Logout failed', error);
