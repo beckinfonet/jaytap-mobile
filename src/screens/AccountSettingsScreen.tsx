@@ -112,6 +112,10 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
             Alert.alert(t('common.error'), t('accountSettings.invalidPhone'));
             return;
         }
+        if (!isValidPhone(whatsapp)) {
+            Alert.alert(t('common.error'), t('accountSettings.invalidPhone'));
+            return;
+        }
         setSaving(true);
         try {
             // canListProperties is intentionally NOT passed — it's admin-controlled (Phase 4.5).
@@ -193,6 +197,8 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                         {renderInfoRow(t('accountSettings.lastName'), lastName, setLastName, isEditing, 'default', '', !isValidName(lastName) ? t('accountSettings.invalidName') : undefined)}
                         <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
                         {renderInfoRow(t('accountSettings.phoneNumber'), phone, setPhone, isEditing, "phone-pad", t('accountSettings.placeholderPhone'), !isValidPhone(phone) ? t('accountSettings.invalidPhone') : undefined)}
+                        <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
+                        {renderInfoRow(t('accountSettings.whatsapp'), whatsapp, setWhatsapp, isEditing, "phone-pad", t('accountSettings.placeholderWhatsapp'), !isValidPhone(whatsapp) ? t('accountSettings.invalidPhone') : undefined)}
                         <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
                         {renderInfoRow(t('accountSettings.telegram'), telegram, setTelegram, isEditing, "default", t('accountSettings.placeholderTelegram'))}
                     </View>
