@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: "Roles & Moderation"
 status: phase-complete
-last_updated: "2026-04-30T15:40:31Z"
-last_activity: 2026-04-30 -- Phase 1 Plan 13 complete (Wave-9 FINAL; M1 admin email allowlist DELETED — `src/constants/adminAllowlist.ts` removed via `git rm`; `src/hooks/useRole.ts` Branch 3 + `isAllowlistedAdmin` import deleted; `canFromUser('manageListings')` post-cutover gate flipped from `=== 'renter'` carve-out to `role !== 'guest' && !!user?.backendProfile` mirroring Plan 06 backend cleanup; useRole.test.ts rewritten 8→14 tests covering allowlist-removed regression + Branch 1 customClaims forward-compat + post-cutover manageListings; 1 atomic commit `2470def feat(role): delete M1 allowlist branch + adminAllowlist.ts (server-resolved roles only) [ROLE-07]`; tsc baseline preserved at 2 pre-existing ThemeContext errors; whole-client grep `adminAllowlist|isAllowlistedAdmin|ALLOWLIST` returns 0 matches; ROLE-07 closed; M1 GATE-05 D-22 Path B accepted-risk row CLOSED. Phase 1 (13/13 plans, 9 waves) COMPLETE — ready for /gsd-verify-work + /gsd-uat)
+last_updated: "2026-05-01T00:00:00Z"
+last_activity: 2026-05-01 -- Phase 2 context captured via /gsd-discuss-phase. 16 decisions (D-01..D-17 + Claude's Discretion) across 4 areas: Schema/migration (enum cutover ['pending','live','rejected','archived'] + belt-and-suspenders fallback + standalone migrate-listings-m2.js + all-existing→live backfill); Mod/admin read scope (role-aware filter no escape hatch + mods see same shape + client coalesce + strict Phase 3 boundary); OwnerListings UX (Pending landing tab + per-tab Hospitality strip ListHeaderComponent + status-specific empty states + single-fetch client-filter); Rejection messaging (per-session dismiss banner + auto-dismiss-on-zero Home banner + split CTA routing + EN labels Pending review/Rejected/Unpublished). AppState 'active' role-refresh hook with 60s cooldown lands here per Phase 1 D-12 deferral. Artifacts: 02-CONTEXT.md (293 lines) + 02-DISCUSSION-LOG.md committed `c1a460d docs(02): capture phase context`. Next: /gsd-plan-phase 2.
 progress:
   total_phases: 6
   completed_phases: 0
