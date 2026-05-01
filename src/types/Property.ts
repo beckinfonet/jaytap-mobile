@@ -62,8 +62,21 @@ export interface Property {
   platformVerifications?: PlatformVerifications;
   verificationUpdatedAt?: string;
   verificationUpdatedByUid?: string;
-  /** Listing publication state. 'draft' is the author's staging area; 'live' is user-visible; 'archived' is soft-deleted (hidden from browse, restorable to draft). */
-  status?: 'draft' | 'live' | 'archived';
+  /** Listing publication state. 4-state moderation lifecycle (M2):
+   *   pending  — submitted, awaiting moderator review (default for new submissions)
+   *   live     — approved and publicly browsable
+   *   rejected — moderator rejected with a reasonCode/reasonNote (owner sees rejection banner)
+   *   archived — soft-deleted (hidden from browse). Phase 4 reintroduces archive actions.
+   * `status?:` (optional) is preserved during the cutover window — defensive `?? 'live'` coalesce
+   * (D-07) at every read site absorbs any legacy null until backend migration completes.
+   */
+  status?: 'pending' | 'live' | 'rejected' | 'archived';
+  // D-21: audit fields. Phase 2 only reads submittedAt + rejectionReasonCode + rejectionReasonNote.
+  // approvedAt / rejectedAt / archivedAt + *ByUid are Phase 3/4 reads — adding them now would
+  // tempt premature client surface area.
+  submittedAt?: string;
+  rejectionReasonCode?: string | null;
+  rejectionReasonNote?: string | null;
   // Phase 6 (HOSP-05 / D-20 / Gap 9.1) — Hospitality top-level fields (NOT inside specs)
   rooms?: number;
   maxGuests?: number;
