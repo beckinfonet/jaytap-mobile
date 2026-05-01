@@ -15,6 +15,8 @@ export const ru: Record<TranslationKeys, string> = {
   'common.thankYou': 'Спасибо',
   'common.ok': 'ОК',
   'common.no': 'Нет',
+  // Phase 2 (D-13) — banner dismiss icon label (RejectionBanner "X" button)
+  'common.dismiss': 'Скрыть',
 
   // Auth
   'auth.signInRequired': 'Требуется вход',
@@ -95,6 +97,9 @@ export const ru: Record<TranslationKeys, string> = {
   'home.onMap': 'На карте',
   'home.bishkekAll': 'Бишкек (все)',
   'home.district': 'Район',
+  // Phase 2 (D-14, MOD-09) — HomeRejectionBanner singular/plural copy (auto-dismisses on count→0)
+  'home.rejection.banner.singular': 'У вас 1 объявление требует исправления.',
+  'home.rejection.banner.plural': 'У вас {N} объявлений требуют исправления.',
 
   // Property
   'property.forRent': 'АРЕНДА',
@@ -134,11 +139,25 @@ export const ru: Record<TranslationKeys, string> = {
   'property.unarchive': 'Из архива',
   'property.archived': 'В архиве',
   'property.noLongerAvailable': 'Больше недоступно',
-  // Status badge labels (RenterListingsScreen)
-  'property.statusDraft': '📝 Черновик',
-  'property.statusPending': '⏳ На проверке',
-  'property.statusLive': '✅ Опубликовано',
-  'property.statusArchived': '🗄 В архиве',
+  // Phase 2 (D-16, MOD-07) — status pills on PropertyCard / RenterListings (live = no pill rendered)
+  'listings.status.pending': 'На модерации',
+  'listings.status.rejected': 'Отклонено',
+  'listings.status.archived': 'Снято с публикации',
+  // Phase 2 (D-13, MOD-08) — RejectionBanner on PropertyDetailsScreen for owner of rejected listing
+  'listings.rejection.title': 'Объявление отклонено',
+  'listings.rejection.bodyFallback': 'Причина: {reasonCode}. Отредактируйте объявление и отправьте на повторную проверку.',
+  'listings.rejection.cta': 'Исправить',
+  // Phase 2 (D-09, MOD-06) — RenterListings 4-tab segmented control labels
+  'owner.listings.tab.live': 'Опубликовано',
+  'owner.listings.tab.pending': 'На модерации',
+  'owner.listings.tab.rejected': 'Отклонено',
+  'owner.listings.tab.archived': 'Снято',
+  // Phase 2 (D-11, MOD-06) — per-tab empty-state copy + shared CTA
+  'owner.listings.empty.live': 'Пока ничего не опубликовано — одобренные объявления появятся здесь.',
+  'owner.listings.empty.pending': 'Объявлений на модерации нет.',
+  'owner.listings.empty.rejected': 'Отклонённых объявлений нет.',
+  'owner.listings.empty.archived': 'Снятых объявлений нет.',
+  'owner.listings.empty.cta': 'Создать объявление',
   // Archive / unarchive / permanent-delete dialogs
   'property.archiveDialogTitle': 'Архивировать объявление',
   'property.archiveDialogMessage': 'Архивировать это объявление? Оно будет скрыто из поиска, но останется в вашей библиотеке, и вы сможете восстановить его в любой момент.',
@@ -219,7 +238,10 @@ export const ru: Record<TranslationKeys, string> = {
   // Create Listing
   'createListing.cancel': 'Отмена',
   'createListing.editListing': 'Редактировать объявление',
-  'createListing.createListing': 'Создать объявление',
+  // Phase 2 (D-20, MOD-03) — submit copy reflects new "post = pending" semantics; resubmit
+  // distinguishes the rejected→pending edit-resubmit path from a fresh new-listing submit
+  'createListing.submitForReview': 'Отправить на модерацию',
+  'createListing.resubmit': 'Отправить повторно',
   'createListing.transactionType': 'Тип сделки',
   'createListing.basicInfo': 'Основная информация',
   'createListing.location': 'Местоположение',
@@ -281,13 +303,11 @@ export const ru: Record<TranslationKeys, string> = {
   'createListing.contactMissingMessage': 'Для объявлений размещения необходимы телефон и WhatsApp или Telegram. Добавьте их в настройках аккаунта.',
   'createListing.contactMissingCta': 'Заполнить профиль',
   'createListing.contactMissingInline': 'Добавьте телефон + WhatsApp или Telegram в профиле, чтобы опубликовать это объявление.',
-  'createListing.publishListing': 'Опубликовать объявление',
   'createListing.createFailed': 'Не удалось создать объявление',
   'createListing.updatedSuccess': 'Объявление успешно обновлено!',
   'createListing.draftSuccess': 'Объявление сохранено как черновик!',
   'createListing.createdSuccess': 'Объявление успешно создано!',
   'createListing.updateListing': 'Обновить объявление',
-  'createListing.saveAsDraft': 'Сохранить как черновик',
   'createListing.statusHint':
     'Черновик: сохранить позже. Отправить: опубликовать объявление (изображения добавит платформа).',
   'createListing.addImagesHintCount': 'Добавьте до 40 изображений ({current}/40)',

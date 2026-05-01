@@ -13,6 +13,8 @@ export const en = {
   'common.thankYou': 'Thank you',
   'common.ok': 'OK',
   'common.no': 'No',
+  // Phase 2 (D-13) — banner dismiss icon label (RejectionBanner "X" button)
+  'common.dismiss': 'Dismiss',
 
   // Auth
   'auth.signInRequired': 'Sign In Required',
@@ -93,6 +95,9 @@ export const en = {
   'home.onMap': 'On map',
   'home.bishkekAll': 'Bishkek (All)',
   'home.district': 'District',
+  // Phase 2 (D-14, MOD-09) — HomeRejectionBanner singular/plural copy (auto-dismisses on count→0)
+  'home.rejection.banner.singular': 'You have 1 listing that needs edits.',
+  'home.rejection.banner.plural': 'You have {N} listings that need edits.',
 
   // Property
   'property.forRent': 'FOR RENT',
@@ -132,11 +137,25 @@ export const en = {
   'property.unarchive': 'Unarchive',
   'property.archived': 'Archived',
   'property.noLongerAvailable': 'No longer available',
-  // Status badge labels (RenterListingsScreen)
-  'property.statusDraft': '📝 Draft',
-  'property.statusPending': '⏳ Pending Review',
-  'property.statusLive': '✅ Live',
-  'property.statusArchived': '🗄 Archived',
+  // Phase 2 (D-16, MOD-07) — status pills on PropertyCard / RenterListings (live = no pill rendered)
+  'listings.status.pending': 'Pending review',
+  'listings.status.rejected': 'Rejected',
+  'listings.status.archived': 'Unpublished',
+  // Phase 2 (D-13, MOD-08) — RejectionBanner on PropertyDetailsScreen for owner of rejected listing
+  'listings.rejection.title': 'Listing rejected',
+  'listings.rejection.bodyFallback': 'Reason: {reasonCode}. Edit your listing and resubmit for review.',
+  'listings.rejection.cta': 'Edit & resubmit',
+  // Phase 2 (D-09, MOD-06) — RenterListings 4-tab segmented control labels
+  'owner.listings.tab.live': 'Live',
+  'owner.listings.tab.pending': 'Pending',
+  'owner.listings.tab.rejected': 'Rejected',
+  'owner.listings.tab.archived': 'Archived',
+  // Phase 2 (D-11, MOD-06) — per-tab empty-state copy + shared CTA
+  'owner.listings.empty.live': 'Nothing live yet — your approved listings will appear here.',
+  'owner.listings.empty.pending': 'No listings under review.',
+  'owner.listings.empty.rejected': 'No rejected listings.',
+  'owner.listings.empty.archived': 'Nothing archived.',
+  'owner.listings.empty.cta': 'Create listing',
   // Archive / unarchive / permanent-delete dialogs
   'property.archiveDialogTitle': 'Archive Listing',
   'property.archiveDialogMessage': 'Archive this listing? It will be hidden from search but stays in your library, and you can restore it any time.',
@@ -217,7 +236,10 @@ export const en = {
   // Create Listing
   'createListing.cancel': 'Cancel',
   'createListing.editListing': 'Edit Listing',
-  'createListing.createListing': 'Create Listing',
+  // Phase 2 (D-20, MOD-03) — submit copy reflects new "post = pending" semantics; resubmit
+  // distinguishes the rejected→pending edit-resubmit path from a fresh new-listing submit
+  'createListing.submitForReview': 'Submit for review',
+  'createListing.resubmit': 'Resubmit for review',
   'createListing.transactionType': 'Transaction Type',
   'createListing.basicInfo': 'Basic Information',
   'createListing.location': 'Location',
@@ -279,13 +301,11 @@ export const en = {
   'createListing.contactMissingMessage': 'Phone and either WhatsApp or Telegram are required for hospitality listings. Add them in Account Settings.',
   'createListing.contactMissingCta': 'Complete profile',
   'createListing.contactMissingInline': 'Add phone + WhatsApp or Telegram in your profile to publish this listing.',
-  'createListing.publishListing': 'Publish Listing',
   'createListing.createFailed': 'Failed to create listing',
   'createListing.updatedSuccess': 'Listing updated successfully!',
   'createListing.draftSuccess': 'Listing saved as draft!',
   'createListing.createdSuccess': 'Listing created successfully!',
   'createListing.updateListing': 'Update Listing',
-  'createListing.saveAsDraft': 'Save as Draft',
   'createListing.statusHint': 'Draft: Save for later. Submit: Publish listing (images will be added by platform).',
   'createListing.addImagesHintCount': 'Add up to 40 images ({current}/40)',
   'createListing.matterportUrlExample': 'Matterport URL (e.g., https://my.matterport.com/show/?m=...)',
