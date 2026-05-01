@@ -243,8 +243,7 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
           {showEditButton && (onEdit || onDelete || onArchive || onUnarchive) && (() => {
             const status = property.status;
             const isArchived = status === 'archived';
-            const isDraft = status === 'draft';
-            const canArchive = !isArchived; // live, legacy, or draft
+            const canArchive = !isArchived; // live, legacy, pending, or rejected
             return (
               <View style={styles.ownerActionsRow}>
                 {onEdit && (
@@ -287,7 +286,7 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
                     <ArchiveRestore size={19} color="#FFFFFF" strokeWidth={2} />
                   </TouchableOpacity>
                 )}
-                {(isArchived || isDraft) && onDelete && (
+                {isArchived && onDelete && (
                   <TouchableOpacity
                     accessibilityRole="button"
                     accessibilityLabel={t('common.delete')}

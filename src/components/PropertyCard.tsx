@@ -194,13 +194,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             {showEditButton ? (
               (() => {
                 // Status-driven owner actions:
-                //   live (or legacy untyped) → Edit + Archive
-                //   draft                    → Edit + Archive + Delete
-                //   archived                 → Edit + Unarchive + Delete (permanent)
+                //   live / pending / rejected (or legacy untyped) → Edit + Archive
+                //   archived                                      → Edit + Unarchive + Delete (permanent)
                 const status = property.status;
                 const isArchived = status === 'archived';
-                const isDraft = status === 'draft';
-                const canArchive = !isArchived; // live, legacy, or draft
+                const canArchive = !isArchived; // live, legacy, pending, or rejected
                 return (
                   <View style={styles.ownerActionsRow}>
                     {onEdit && (
@@ -243,7 +241,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                         <ArchiveRestore size={19} color="#FFFFFF" strokeWidth={2} />
                       </TouchableOpacity>
                     )}
-                    {(isArchived || isDraft) && onDelete && (
+                    {isArchived && onDelete && (
                       <TouchableOpacity
                         accessibilityRole="button"
                         accessibilityLabel={t('common.delete')}
