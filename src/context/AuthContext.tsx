@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, useCallback, ReactNode } from 'react';
-import { Alert } from 'react-native';
+import { Alert, AppState, AppStateStatus } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthService } from '../services/AuthService';
 import { apiClient, registerAuthHooks } from '../services/apiClient';
@@ -25,6 +25,16 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Phase 2 D-17: Module-scope cooldown timestamp for AppState 'active' role-refresh
+// debounce (60s). NOT shared with apiClient.ts's 403 interceptor refresh path — the
+// interceptor has its own single-flight refreshRolePromise so concurrent refreshes
+// are already coalesced. This cooldown only prevents wasteful refreshes on rapid
+// foreground/background cycles in iOS multitasking. Module-scope (not inside the
+// component) so it survives component re-renders; resets on full app reload — which
+// is correct: a fresh launch should refresh.
+let lastRefreshAt: number | null = null;
+const REFRESH_COOLDOWN_MS = 60_000;
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -217,6 +227,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     registerAuthHooks({ refreshRole, logout, toast });
   }, [refreshRole, logout, toast]);
+
+  // Phase 2 D-17: AppState 'active' role-refresh hook (Phase 1 D-12 deferral landed
+  // here). Subscribes to RN AppState 'change' events; on foreground transitions
+  // (`nextState === 'active'`), if the user is signed in AND the last refresh was
+  // more than REFRESH_COOLDOWN_MS (60s) ago, calls AuthContext.refreshRole(). The
+  // cooldown is module-scope (`lastRefreshAt`) so it persists across re-subscriptions
+  // when the deps array changes (login/logout). Cleanup via `sub.remove()` (RN 0.84
+  // API). Logout-while-backgrounded race is guarded by reading `user?.localId` at
+  // handler-call time (closure captures the current user state on each subscribe).
+  useEffect(() => {
+    const onChange = (nextState: AppStateStatus) => {
+      if (nextState !== 'active') return;
+      const now = Date.now();
+      if (lastRefreshAt && now - lastRefreshAt < REFRESH_COOLDOWN_MS) {
+        return;
+      }
+      if (!user?.localId) return;
+      lastRefreshAt = now;
+      refreshRole().catch(() => {/* non-fatal; refreshRole already warns */});
+    };
+    const sub = AppState.addEventListener('change', onChange);
+    return () => sub.remove();
+  }, [refreshRole, user?.localId]);
 
   const deleteAccount = async () => {
     if (!user?.localId) {
