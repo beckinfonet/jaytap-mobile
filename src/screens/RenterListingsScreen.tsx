@@ -21,6 +21,11 @@ import { PropertyService } from '../services/PropertyService';
 import { propertyTypeToCategory } from '../utils/propertyCategory';
 import { HospitalitySection } from '../components/HospitalitySection';
 
+// Phase 2 D-09: 4-tab segmented control on RenterListingsScreen (the owner's own-listings UI).
+// Tab order is locked Live / Pending / Rejected / Archived; default-tab override comes from the
+// Home rejection banner CTA path (D-15 — defaultTab='rejected').
+type ListingTab = 'live' | 'pending' | 'rejected' | 'archived';
+
 interface RenterListingsScreenProps {
   onBack: () => void;
   onSelectProperty: (property: Property) => void;
@@ -29,6 +34,10 @@ interface RenterListingsScreenProps {
   refreshKey?: number;
   /** Notify parent so screens like Home can refetch (visibility of a listing changed). */
   onListingMutated?: () => void;
+  /** Phase 2 D-15: Home rejection-banner CTA opens this screen with defaultTab='rejected'. */
+  defaultTab?: ListingTab;
+  /** Phase 2 D-11: Empty-state CTA on Live + Pending tabs routes to CreateListingScreen. */
+  onCreateListing?: () => void;
 }
 
 export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
@@ -38,6 +47,8 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
   onEditProperty,
   refreshKey,
   onListingMutated,
+  defaultTab,
+  onCreateListing,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -46,6 +57,9 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
   const [loading, setLoading] = useState(true);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
+  // Phase 2 D-09: default selected tab is Pending (bridges M1 "post=instantly live" → M2 "post=pending").
+  // Parent may pass defaultTab='rejected' from the Home rejection-banner CTA path (D-15).
+  const [activeTab, setActiveTab] = useState<ListingTab>(defaultTab ?? 'pending');
 
   useEffect(() => {
     loadProperties();
@@ -119,6 +133,10 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
     }
   };
 
+  // TODO(Phase 4): handleArchiveProperty + handleUnarchiveProperty are kept in source for Phase 4
+  // ARCH-01..ARCH-04 reuse. The archive UI affordances (button props on PropertyCard + HospitalitySection)
+  // are stripped in Phase 2 per CONTEXT.md D-08 boundary; Phase 4 re-mounts the affordances.
+
   // Soft delete — moves a live or draft listing to 'archived'. Hidden from public browse, restorable.
   const handleArchiveProperty = (property: Property) => {
     if (!property.id) return;
@@ -148,7 +166,8 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
     );
   };
 
-  // Restore archived → draft. User must re-publish from the edit screen (intentional gating).
+  // Restore archived → pending. M2 lifecycle: unarchived listings re-enter moderation queue
+  // (D-01 dropped 'draft'; Phase 4 ARCH-04 will own the final restore-flow design).
   const handleUnarchiveProperty = (property: Property) => {
     if (!property.id) return;
     Alert.alert(
@@ -163,7 +182,7 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
             try {
               await PropertyService.unarchiveProperty(property.id!);
               setProperties(prev =>
-                prev.map(p => (p.id === property.id ? { ...p, status: 'draft' as const } : p))
+                prev.map(p => (p.id === property.id ? { ...p, status: 'pending' as const } : p))
               );
               onListingMutated?.();
               Alert.alert(t('property.unarchivedToastTitle'), t('property.unarchivedToastMessage'));
@@ -177,30 +196,25 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
     );
   };
 
-  // D-06 + Gap 9.3: split data into hospitality strip + non-hospitality vertical list
-  const hospitalityProperties = useMemo(
-    () => properties.filter((p) => propertyTypeToCategory(p.propertyType) === 'Hospitality'),
-    [properties],
-  );
-  const otherProperties = useMemo(
-    () => properties.filter((p) => propertyTypeToCategory(p.propertyType) !== 'Hospitality'),
-    [properties],
+  // Phase 2 D-12: single fetch on mount returns ALL owner statuses (backend D-12 role-aware
+  // branch in Plan 03 returns pending + live + rejected + archived to ownerSelf). Per-tab
+  // filter is purely client-side cosmetic — no additional fetches per tab switch.
+  // D-07 defensive coalesce: legacy listings without a status field absorb to 'live'.
+  const tabFilteredProperties = useMemo(
+    () => properties.filter((p) => (p.status ?? 'live') === activeTab),
+    [properties, activeTab],
   );
 
-  const formatStatus = (status: string) => {
-    switch (status) {
-      case 'draft':
-        return t('property.statusDraft');
-      case 'pending':
-        return t('property.statusPending');
-      case 'live':
-        return t('property.statusLive');
-      case 'archived':
-        return t('property.statusArchived');
-      default:
-        return status;
-    }
-  };
+  // D-10: HospitalitySection mounts inside each tab's FlatList ListHeaderComponent,
+  // filtered to that tab's status (so Pending tab shows pending Hospitality only, etc.).
+  const hospitalityProperties = useMemo(
+    () => tabFilteredProperties.filter((p) => propertyTypeToCategory(p.propertyType) === 'Hospitality'),
+    [tabFilteredProperties],
+  );
+  const otherProperties = useMemo(
+    () => tabFilteredProperties.filter((p) => propertyTypeToCategory(p.propertyType) !== 'Hospitality'),
+    [tabFilteredProperties],
+  );
 
   const renderHeader = () => (
     <View style={styles.header}>
@@ -212,13 +226,87 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
     </View>
   );
 
+  // Phase 2 D-09 lock: Live / Pending / Rejected / Archived (left-to-right order).
+  const TABS: ListingTab[] = ['live', 'pending', 'rejected', 'archived'];
+
+  const renderTabs = () => (
+    <View style={[styles.tabsRow, { backgroundColor: colors.surface }]}>
+      {TABS.map((tab) => {
+        const selected = activeTab === tab;
+        return (
+          <TouchableOpacity
+            key={tab}
+            onPress={() => setActiveTab(tab)}
+            activeOpacity={0.8}
+            style={[
+              styles.tabButton,
+              selected && { borderBottomColor: colors.accent, borderBottomWidth: 2 },
+            ]}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityState={{ selected }}
+          >
+            <Text
+              style={[
+                styles.tabLabel,
+                {
+                  color: selected ? colors.text : colors.textSecondary,
+                  fontWeight: selected ? '600' : '500',
+                },
+              ]}
+            >
+              {t(`owner.listings.tab.${tab}` as any)}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+
+  // D-11: per-tab empty-state copy from Plan 04 locale keys; CTA renders only on Live + Pending.
+  const renderEmpty = () => (
+    <View style={styles.emptyContainer}>
+      <Text style={[styles.emptyHeading, { color: colors.text }]}>
+        {t(`owner.listings.empty.${activeTab}` as any)}
+      </Text>
+      {(activeTab === 'live' || activeTab === 'pending') && onCreateListing && (
+        <TouchableOpacity
+          onPress={onCreateListing}
+          style={[styles.cta, { backgroundColor: colors.accent }]}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.ctaText}>{t('owner.listings.empty.cta' as any)}</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
+  // ---------------------------------------------------------------------------------
+  // Phase 2 row renderer notes (see 02-CONTEXT.md / 02-PATTERNS.md / 02-UI-SPEC.md)
+  // ---------------------------------------------------------------------------------
+  // The M1 inline status badge that used to live above PropertyCard rows on this screen
+  // (the rounded "Draft / Pending Review / Live / Archived" chip rendered inside the
+  // <View style={styles.propertyWrapper}> wrapper) has been REMOVED per PATTERN F.
+  //
+  //   - StatusPill now renders INSIDE PropertyCard at top-LEFT below the rent/sale type
+  //     badge per D-19 (mount landed in Plan 05). Live listings render no pill — live
+  //     IS the absence of a pill per D-16. Pending / Rejected / Archived all get the
+  //     bilingual Avito-anchored RU labels («На модерации», «Отклонено», «Снято с
+  //     публикации»). Locale keys: listings.status.{pending,rejected,archived}.
+  //
+  //   - Archive UI affordances (onArchive / onUnarchive props passed down to
+  //     PropertyCard + HospitalitySection) are intentionally stripped on this screen
+  //     per CONTEXT.md D-08 boundary. Phase 4 (ARCH-01..ARCH-04) re-mounts the archive
+  //     button on PropertyCard's action footer + the bulk archive flow on the Archived
+  //     tab. The handlers `handleArchiveProperty` and `handleUnarchiveProperty` stay
+  //     resident in this file (see TODO(Phase 4) above) so Phase 4's diff is purely
+  //     additive.
+  //
+  //   - Per-tab filtering happens in `tabFilteredProperties` BEFORE the Hospitality /
+  //     non-Hospitality split — a single fetch on mount (D-12) feeds all 4 tabs.
+  // ---------------------------------------------------------------------------------
   const renderPropertyItem = ({ item }: { item: Property }) => (
     <View style={styles.propertyWrapper}>
-      <View style={[styles.statusBadge, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <Text style={[styles.statusText, { color: colors.text }]}>
-          {formatStatus((item as any).status || 'draft')}
-        </Text>
-      </View>
       <PropertyCard
         property={item}
         onPress={handlePressProperty}
@@ -226,8 +314,6 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
         onViewVideo={handleViewVideo}
         onEdit={onEditProperty}
         onDelete={handleDeleteProperty}
-        onArchive={handleArchiveProperty}
-        onUnarchive={handleUnarchiveProperty}
         showEditButton={true}
       />
     </View>
@@ -245,39 +331,33 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
     );
   }
 
+  // Phase 2 D-09/D-10/D-11: header pinned above the segmented control; the segmented control
+  // pinned above the FlatList; HospitalitySection mounts inside each tab's FlatList header
+  // (filtered to that tab's status); per-tab empty state from Plan 04 locale keys.
+  // Archive UI props (onArchive/onUnarchive) are intentionally stripped from HospitalitySection
+  // here per PATTERN F — Phase 4 re-mounts them.
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+
+      {renderHeader()}
+      {renderTabs()}
 
       <FlatList
         data={otherProperties}
         keyExtractor={(item) => item.id || Math.random().toString()}
         renderItem={renderPropertyItem}
         ListHeaderComponent={
-          <>
-            {renderHeader()}
-            <HospitalitySection
-              properties={hospitalityProperties}
-              onPress={handlePressProperty}
-              onViewTour={handleViewTour}
-              onEdit={onEditProperty}
-              onDelete={handleDeleteProperty}
-              onArchive={handleArchiveProperty}
-              onUnarchive={handleUnarchiveProperty}
-              showEditButton={true}
-            />
-          </>
+          <HospitalitySection
+            properties={hospitalityProperties}
+            onPress={handlePressProperty}
+            onViewTour={handleViewTour}
+            onEdit={onEditProperty}
+            onDelete={handleDeleteProperty}
+            showEditButton={true}
+          />
         }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              You haven't created any listings yet.
-            </Text>
-            <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
-              Create your first listing to get started!
-            </Text>
-          </View>
-        }
+        ListEmptyComponent={renderEmpty()}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
@@ -331,38 +411,48 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     position: 'relative',
   },
-  statusBadge: {
-    position: 'absolute',
-    top: 27, // Same as "FOR RENT" badge
-    left: 130, // Position to the right of "FOR RENT" badge (16 left + ~94px width + 10px gap)
-    zIndex: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  // Phase 2 D-09: 4-tab segmented control row pinned above the FlatList; the underlying
+  // 2px accent underline marks the selected tab (PATTERN E).
+  tabsRow: {
+    flexDirection: 'row',
+    height: 40,
+    marginHorizontal: 16,
+    marginBottom: 16,
   },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '700',
+  tabButton: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabLabel: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 60,
+    paddingHorizontal: 24,
   },
-  emptyText: {
-    fontSize: 18,
+  emptyHeading: {
+    fontSize: 15,
     fontWeight: '600',
-    marginBottom: 8,
+    lineHeight: 20,
+    textAlign: 'center',
+    marginBottom: 16,
   },
-  emptySubtext: {
+  cta: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+  },
+  ctaText: {
+    color: '#FFFFFF',
     fontSize: 14,
+    fontWeight: '600',
   },
 });
 
