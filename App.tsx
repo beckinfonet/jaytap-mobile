@@ -52,6 +52,12 @@ function AppContent() {
   const [isAdminVerificationMode, setIsAdminVerificationMode] = useState(false);
   const skipRenterListingsReopenRef = useRef(false);
   const [isRenterListingsOpen, setIsRenterListingsOpen] = useState(false);
+  // Phase 2 D-09 / D-15: default tab for RenterListings ('My Listings'). Undefined means
+  // "use the screen's own default" (Pending per D-09). 'rejected' is set by the Home
+  // rejection-banner CTA path (D-15 — onOpenMyListingsRejectedTab below). Reset to
+  // undefined on close so the next open lands on Pending again.
+  const [renterListingsDefaultTab, setRenterListingsDefaultTab] =
+    useState<'live' | 'pending' | 'rejected' | 'archived' | undefined>(undefined);
   const [renterListingsRefreshKey, setRenterListingsRefreshKey] = useState(0);
   const [homeRefreshKey, setHomeRefreshKey] = useState(0);
   const [homeViewMode, setHomeViewMode] = useState<'list' | 'map'>('list'); // Track view mode to restore after details
@@ -492,6 +498,19 @@ function AppContent() {
     setIsLandlordApplicationQueueOpen(true);
   }, []);
   const onProfileViewListings = useCallback(() => setIsRenterListingsOpen(true), []);
+  // Phase 2 D-15 / MOD-09: HomeRejectionBanner CTA target. Opens RenterListings
+  // ('My Listings') with the Rejected tab pre-selected so the owner lands on the
+  // listings that need their attention. Plan 06 reads `defaultTab` on mount.
+  const onOpenMyListingsRejectedTab = useCallback(() => {
+    setRenterListingsDefaultTab('rejected');
+    setIsRenterListingsOpen(true);
+  }, []);
+  // Phase 2 D-09: closing RenterListings resets the default-tab override so a
+  // subsequent profile-tap (or any other open path) lands on Pending again.
+  const onCloseRenterListings = useCallback(() => {
+    setIsRenterListingsOpen(false);
+    setRenterListingsDefaultTab(undefined);
+  }, []);
   const onProfileViewFavorites = useCallback(() => {
     setReturnToProfileAfterFavorites(true);
     setIsProfileOpen(false);
@@ -749,6 +768,7 @@ function AppContent() {
               favoriteStatuses={favoriteStatuses}
               favoriteLoading={favoriteLoading}
               refreshKey={homeRefreshKey}
+              onOpenMyListingsRejectedTab={onOpenMyListingsRejectedTab}
             />
           </View>
           <BottomNavigator
@@ -876,6 +896,18 @@ function AppContent() {
                 setIsCreateListingOpen(true);
                 setSelectedProperty(null);
               }}
+              // Phase 2 D-15 / MOD-08: RejectionBanner "Edit & resubmit" CTA. Routes
+              // the rejected listing into the existing CreateListingScreen edit-mode
+              // entry the M1 Phase 5 decomposition wired up (mirrors the
+              // onEditProperty path used from RenterListingsScreen). On submit, the
+              // backend Plan 03 D-22 sanitizer auto-flips status 'rejected' →
+              // 'pending' and re-stamps submittedAt.
+              onEditListing={(property) => {
+                setIsAdminVerificationMode(false);
+                setPropertyToEdit(property);
+                setSelectedProperty(null);
+                setIsCreateListingOpen(true);
+              }}
             />
           </View>
         )}
@@ -886,7 +918,8 @@ function AppContent() {
             { pointerEvents: isRenterListingsOpen ? 'auto' : 'none' },
           ]}>
             <RenterListingsScreen
-              onBack={() => setIsRenterListingsOpen(false)}
+              onBack={onCloseRenterListings}
+              defaultTab={renterListingsDefaultTab}
               onSelectProperty={(property) => {
                 setSelectedProperty(property);
                 setIsRenterListingsOpen(false);
