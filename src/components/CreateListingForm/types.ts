@@ -23,7 +23,9 @@ export interface FormBag {
   district: string;
   type: 'rent' | 'sale';
   propertyType: string; // intentionally `string` not PropertyType — brownfield tolerance
-  status: 'draft' | 'live' | 'archived';
+  // M2 D-01 / D-22: user-facing draft state removed. Backend schema default ('pending')
+  // + Plan 03 sanitizer + Plan 04 service-layer cleanup form a 3-layer defense — body
+  // status is no longer sent from owner POST/PUT. This field is intentionally absent.
   features: string[];
   featureInput: string;
   selectedImages: any[];

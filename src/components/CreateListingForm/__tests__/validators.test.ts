@@ -18,7 +18,6 @@ function makeBase(): FormBag {
     district: 'X',
     type: 'rent',
     propertyType: 'Apartment',
-    status: 'draft',
     features: [],
     featureInput: '',
     selectedImages: [],

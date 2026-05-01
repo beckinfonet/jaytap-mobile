@@ -116,7 +116,10 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
   const [panoramicPhotosUrl, setPanoramicPhotosUrl] = useState('');
   const [instagramUrl, setInstagramUrl] = useState('');
   const [availableDate, setAvailableDate] = useState('');
-  const [status, setStatus] = useState<'draft' | 'live' | 'archived'>('draft');
+  // M2 D-01: user-facing draft state removed. Status is owned server-side
+  // (schema default 'pending' + Plan 03 sanitizer). The form no longer carries
+  // a `status` state hook — Plan 07 dropped the segmented control + the body-status
+  // write path was already removed by Plan 04 (PropertyService).
 
   // Images state
   const [selectedImages, setSelectedImages] = useState<any[]>([]);
@@ -183,7 +186,8 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
       case 'featureInput': setFeatureInput(value as string); break;
       case 'selectedImages': setSelectedImages(value as any[]); break;
       case 'availableDate': setAvailableDate(value as string); break;
-      case 'status': setStatus(value as 'draft' | 'live' | 'archived'); break;
+      // 'status' case removed — D-01 dropped the user-facing draft state; FormBag no
+      // longer declares a `status` field, so the dispatcher has nothing to route.
       case 'tours': setTours(value as FormBag['tours']); break;
       case 'tourTitle': setTourTitle(value as string); break;
       case 'tourUrl': setTourUrl(value as string); break;
@@ -289,7 +293,9 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
           setAvailableDate(d.toISOString().slice(0, 10));
         }
       }
-      setStatus((propertyToEdit as any).status || 'draft');
+      // D-01: status is no longer a form field. The edit-resubmit / update-listing
+      // distinction is computed at the submit-button render via propertyToEdit?.status
+      // (D-20 three-branch IIFE).
 
       // Load existing images (if editing and images exist)
       if (propertyToEdit.images && propertyToEdit.images.length > 0) {
@@ -523,9 +529,11 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
         ]);
       } else {
         await PropertyService.createProperty(propertyData, newImages);
+        // D-01 / D-20: new submissions land in 'pending' server-side. Single success
+        // message — no draft/live branch (the user-facing draft state is gone).
         Alert.alert(
           t('common.success'),
-          status === 'draft' ? t('createListing.draftSuccess') : t('createListing.createdSuccess'),
+          t('createListing.createdSuccess'),
           [{ text: t('common.ok'), onPress: onSuccess }]
         );
       }
@@ -554,7 +562,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
     district,
     type,
     propertyType,
-    status,
+    // D-01: status removed from FormBag — see types.ts comment.
     features,
     featureInput,
     selectedImages,
@@ -662,7 +670,10 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
           <Text style={[styles.backButtonText, { color: colors.text }]}>{`← ${t('createListing.cancel')}`}</Text>
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {isEditMode ? t('createListing.editListing') : t('createListing.createListing')}
+          {/* D-20: header reads 'Edit Listing' on edit path, 'Submit for review' on
+              new path. The legacy `createListing.createListing` key is orphaned and
+              should be removed in a future locale-cleanup pass (Plan 04 SUMMARY note). */}
+          {isEditMode ? t('createListing.editListing') : t('createListing.submitForReview')}
         </Text>
         <View style={{ width: 80 }} />
       </View>
@@ -751,43 +762,10 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
           </View>
         </View>
 
-        {/* D-16: Status toggle visible on create OR editing a draft; hidden only when editing a live listing */}
-        {(!isEditMode || propertyToEdit?.status === 'draft') && (
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('createListing.status')}</Text>
-            <View style={[styles.segmentedControl, { backgroundColor: isDark ? '#2C2C2E' : '#E5E5EA' }]}>
-              <TouchableOpacity
-                style={[
-                  styles.segmentButton,
-                  status === 'draft' && { backgroundColor: isDark ? '#000000' : '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }
-                ]}
-                onPress={() => setStatus('draft')}
-              >
-                <View style={styles.segmentContent}>
-                  <Text style={styles.segmentIcon}>📄</Text>
-                  <Text style={[styles.segmentText, { color: status === 'draft' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }]}>
-                    {t('createListing.draft')}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.segmentButton,
-                  status === 'live' && { backgroundColor: isDark ? '#000000' : '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }
-                ]}
-                onPress={() => setStatus('live')}
-              >
-                <View style={styles.segmentContent}>
-                  <Text style={styles.segmentIcon}>🚀</Text>
-                  <Text style={[styles.segmentText, { color: status === 'live' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }]}>
-                    {t('createListing.submit')}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-            <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('createListing.statusHint')}</Text>
-          </View>
-        )}
+        {/* D-01 / Plan 07: user-facing 'Draft / Submit' segmented control REMOVED.
+            New submissions land in 'pending' server-side; edit-on-rejected auto-flips
+            to 'pending' via the Plan 03 D-22 PUT sanitizer. The form no longer carries
+            a status toggle; the submit button copy alone signals intent (D-20). */}
 
         {/* VerificationSection — call-site wrap via editVerifications guard per
             UI-SPEC Component Inventory row 40 + Phase 3 Site 4 (03-05-SUMMARY).
@@ -807,15 +785,18 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
             <ActivityIndicator color="#FFF" />
           ) : (
             <Text style={[styles.submitButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>
-              {isEditMode
-                ? (propertyToEdit?.status === 'draft'
-                    ? (status === 'draft'
-                        ? t('createListing.saveAsDraft')
-                        : t('createListing.publishListing'))
-                    : t('createListing.updateListing'))
-                : (status === 'draft'
-                    ? t('createListing.saveAsDraft')
-                    : t('createListing.createListing'))}
+              {/* D-20: three-branch submit copy.
+                  - new submission       → 'Submit for review' / «Отправить на модерацию»
+                  - edit on rejected     → 'Resubmit for review' / «Отправить повторно» (D-15)
+                  - edit on live/pending → 'Update listing' / «Обновить» (D-22 PUT in-place,
+                                          no re-moderation; sanitizer drops body status). */}
+              {(() => {
+                if (isEditMode) {
+                  if (propertyToEdit?.status === 'rejected') return t('createListing.resubmit');
+                  return t('createListing.updateListing');
+                }
+                return t('createListing.submitForReview');
+              })()}
             </Text>
           )}
         </TouchableOpacity>

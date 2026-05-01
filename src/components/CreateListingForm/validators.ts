@@ -168,7 +168,9 @@ export function buildPayloadByCategory(
     panoramicPhotosUrl: values.panoramicPhotosUrl.trim(),
     instagramUrl: values.instagramUrl.trim(),
     availableDate: values.availableDate.trim() || undefined,
-    status: values.status,
+    // D-01 / D-22: status is NOT sent from owner POST/PUT — schema default ('pending') +
+    // Plan 03 sanitizer + Plan 04 service-layer cleanup own the field. Removing here closes
+    // the loop on the 3-layer defense.
     tours: values.tours.length > 0 ? values.tours : undefined,
   };
 
