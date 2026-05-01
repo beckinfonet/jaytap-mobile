@@ -16,8 +16,8 @@ Wave 1 wiring **complete**. `<KeyboardProvider>` is now live at the App root on 
 
 ## Commits
 
-| SHA | Message | Files |
-|-----|---------|-------|
+| SHA       | Message                                                                                      | Files                                                                                                                             |
+| --------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `935697a` | feat(02-02): wire KeyboardProvider between SafeAreaProvider and ThemeProvider (KBD-02, D-03) | `App.tsx` (10 insertions, 7 deletions — net +3 lines: 1 import + 1 open tag + 1 close tag; 6 indent shifts on existing providers) |
 
 ## What changed in App.tsx
@@ -38,10 +38,10 @@ The existing CLAUDE.md-locked sub-tree (`ThemeProvider` → `LanguageProvider` �
 
 ## Device verification (Task 3 — human gate)
 
-| Platform | Device | OS | Result |
-|----------|--------|-----|--------|
-| iOS | iPhone 15 Pro Max | iOS 26.4 | ✓ app launched cleanly; home screen unchanged; no red box; Metro clean of Reanimated errors; bottom nav works (Phase 1 preserved) |
-| Android | Moto G XT2513V | Android 16 | ✓ app launched cleanly; home screen unchanged; no red box; logcat clean; bottom nav works |
+| Platform | Device            | OS         | Result                                                                                                                             |
+| -------- | ----------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| iOS      | iPhone 15 Pro Max | iOS 26.4   | ✓ app launched cleanly; home screen unchanged; no red box; Metro clean of Reanimated errors; bottom nav works (Phase 1 preserved) |
+| Android  | Moto G XT2513V    | Android 16 | ✓ app launched cleanly; home screen unchanged; no red box; logcat clean; bottom nav works                                         |
 
 Visual regression check: PASS on both — Wave 1 added zero render output (`KeyboardProvider` is a context-only wrapper).
 
@@ -49,15 +49,15 @@ Expected not-yet-fixed behaviour (confirmed present; the per-screen wrappers lan
 
 ## Mechanical gates
 
-| Gate | Result |
-|------|--------|
-| `grep -c "from 'react-native-keyboard-controller'" App.tsx` | 1 ✓ |
-| `grep -c "KeyboardProvider" App.tsx` | ≥ 3 ✓ (import + open + close) |
-| Provider tree slot (grep) | `<SafeAreaProvider>` → `<KeyboardProvider>` → `<ThemeProvider>` ✓ (exact D-03 shape) |
-| Existing sub-order preserved | ThemeProvider → LanguageProvider → AuthProvider ✓ (verbatim per CLAUDE.md) |
-| `git diff --name-only HEAD~1 HEAD` | `App.tsx` only ✓ (single-file atomic commit) |
-| iOS physical-device boot | ✓ |
-| Android physical-device boot | ✓ |
+| Gate                                                        | Result                                                                                |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `grep -c "from 'react-native-keyboard-controller'" App.tsx` | 1 ✓                                                                                  |
+| `grep -c "KeyboardProvider" App.tsx`                        | ≥ 3 ✓ (import + open + close)                                                        |
+| Provider tree slot (grep)                                   | `<SafeAreaProvider>` → `<KeyboardProvider>` → `<ThemeProvider>` ✓ (exact D-03 shape) |
+| Existing sub-order preserved                                | ThemeProvider → LanguageProvider → AuthProvider ✓ (verbatim per CLAUDE.md)           |
+| `git diff --name-only HEAD~1 HEAD`                          | `App.tsx` only ✓ (single-file atomic commit)                                         |
+| iOS physical-device boot                                    | ✓                                                                                    |
+| Android physical-device boot                                | ✓                                                                                    |
 
 ## Deviations
 
