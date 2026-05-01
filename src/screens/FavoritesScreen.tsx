@@ -55,12 +55,13 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
 
     try {
       const data = await FavoritesService.getFavorites();
-      
-      if (data && Array.isArray(data) && data.length > 0) {
-        setProperties(data);
-      } else {
-        setProperties([]);
-      }
+      const list = (data && Array.isArray(data)) ? data : [];
+      // D-07: defense in depth — even if a favorited listing transitions out of 'live'
+      // server-side (moderator archive/reject), hide it from the renter-facing favorites
+      // list. The Hospitality split memo derives from `properties`, so filtering at the
+      // SOURCE (here) keeps both downstream views (hospitality strip + main list) consistent.
+      const liveOnly = list.filter((p: Property) => (p.status ?? 'live') === 'live');
+      setProperties(liveOnly);
     } catch (error: any) {
       console.error('Error loading favorites:', error);
       console.error('Error details:', error?.response?.data || error?.message);
