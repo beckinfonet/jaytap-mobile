@@ -247,6 +247,9 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
             accessibilityState={{ selected }}
           >
             <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
               style={[
                 styles.tabLabel,
                 {
@@ -423,12 +426,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 4,
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
   tabLabel: {
     fontSize: 14,
     lineHeight: 20,
+    textAlign: 'center',
   },
   emptyContainer: {
     flex: 1,
