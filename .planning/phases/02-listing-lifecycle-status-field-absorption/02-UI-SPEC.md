@@ -46,7 +46,7 @@ Declared values (multiples of 4; matches existing JayTap convention sampled from
 **Pill geometry (status badges on PropertyCard, MOD-07):**
 - Border radius: `12px` (capsule-feel; consistent with the existing `borderRadius: 8/12/18` cluster on PropertyCard chips)
 - Internal padding: `paddingVertical: 4, paddingHorizontal: 8`
-- Position: top-right of the PropertyCard image area, inset `8px` from each corner — matches the existing favorite-button positioning convention on PropertyCard
+- Position: top-LEFT of the PropertyCard image area, vertically below the existing rent/sale type badge, with `6px` gap between the badges (D-19 supersedes UI-SPEC original — top-right collides with the existing share + heart actions cluster on PropertyCard at the top-right)
 
 **Segmented control geometry (OwnerListings 4-tab control, MOD-06):**
 - Total height: `40px` (touch-target minimum honored; renders inside a parent ScrollView header)

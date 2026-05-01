@@ -19,6 +19,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { ListingMetaTable } from './ListingMetaTable';
+import { StatusPill } from './StatusPill';
 
 interface PropertyCardProps {
   property: Property;
@@ -101,6 +102,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 {property.type === 'rent' ? t('property.forRent') : t('property.forSale')}
               </Text>
             </View>
+            {/* D-19: status pill stacked below rent/sale badge (top-left), avoids collision with top-right share+heart actions */}
+            {(property.status ?? 'live') !== 'live' && (
+              <StatusPill status={property.status} style={{ marginTop: 6 }} />
+            )}
           </View>
 
           <View style={styles.topRightActions}>
