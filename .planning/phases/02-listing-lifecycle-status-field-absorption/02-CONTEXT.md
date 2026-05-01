@@ -89,6 +89,31 @@ Surface a 4-state listing lifecycle (`pending` / `live` / `rejected` / `archived
 - **AppState refresh hook unit-test coverage** — Phase 1's CONVENTIONS.md notes "Effectively zero tests"; planner has discretion on whether to add jest tests for the cooldown logic. Not required.
 - **Pre-Phase-3 endpoint that owner-scoped fetch hits** — if `GET /api/properties?ownerUid=<self>` doesn't exist as an owner-scoped path today, planner may add it under the existing `propertyRoutes.js` rather than under any moderation-prefixed namespace.
 
+### Amendments — 2026-05-01 (locked from research findings + plan-phase Q&A)
+
+These supersede ambiguities in D-01 through D-17 wherever they overlap.
+
+- **D-18 (Schema default reconciliation — supersedes D-02 sub-clause (a)):** Mongoose `Property.status` ships a single `default: 'pending'` (per D-01). The "null-status absorbs to 'live'" goal from D-02 is achieved by **migration backfill alone** (D-04 operation b) plus the client-side `?? 'live'` defensive coalesce (D-07). The migration runs BEFORE the schema cutover deploys; once it completes, no status-less rows exist in the dataset. The schema's only default is `'pending'`, applied to NEW writes. D-02's sub-clause (a) ("schema patch ships `default: 'live'`") is RETRACTED — Mongoose allows only one default; we keep the one that matches new-submission semantics. D-02's sub-clauses (b) migration backfill and (c) client `?? 'live'` REMAIN in force.
+- **D-19 (PropertyCard pill position — supersedes UI-SPEC.md "top-right 8px inset"):** Status pill renders at the **top-left of the card image area**, vertically below the existing rent/sale type badge. This avoids the collision with PropertyCard's existing top-right share + heart action buttons. Visual order top-to-bottom in the top-left stack: rent/sale type badge → status pill (Pending/Rejected/Unpublished only; live = no pill per D-16). Planner UPDATES `02-UI-SPEC.md` accordingly during plan execution (NOT a separate UI-SPEC revision phase).
+- **D-20 (CreateListingScreen submit-button copy — closes `<specifics>` open question):** The submit button copy on `CreateListingScreen` (NEW listing path only — NOT the edit-resubmit path from D-15) changes to **EN "Submit for review" / RU «Отправить на модерацию»**. Sets owner expectation correctly under D-01: a fresh post lands in `'pending'`, not `'live'`. The edit-resubmit path from D-15 keeps a distinct CTA copy (planner discretion — recommend EN "Resubmit for review" / RU «Отправить повторно» to disambiguate). Adds 2 locale keys (or 4 if planner separates new vs resubmit). Does NOT touch the EDIT-existing-LIVE-listing path's button copy (that's an in-place edit, no re-moderation, see D-22).
+- **D-21 (Audit fields on Property schema — Phase 2 adds definitions; Phase 3 writes most):** Phase 2 adds these nullable fields to the `Property` Mongoose schema:
+  - `submittedAt: Date` — populated by Phase 2 on POST `/api/properties` (set to `new Date()` at insert time) and on `PUT /api/properties/:id` from owner where current status is `'rejected'` (the rejected→pending auto-flip per D-15). Used by D-09's "FIFO sort by submittedAt" on the OwnerListings Pending tab. Falls back to `createdAt` if null (legacy backfilled rows have no `submittedAt`).
+  - `approvedAt: Date | null` — schema-only in Phase 2; written by Phase 3 moderator-approve action.
+  - `approvedByUid: String | null` — schema-only in Phase 2; written by Phase 3.
+  - `rejectedAt: Date | null` — schema-only in Phase 2; written by Phase 3 moderator-reject action.
+  - `rejectedByUid: String | null` — schema-only in Phase 2; written by Phase 3.
+  - `rejectionReasonCode: String | null` — schema-only in Phase 2 (no enum constraint yet — Phase 3 adds it). The `<RejectionBanner>` from D-13 reads this field; in Phase 2 it will always be null on real data, but the banner code path is wired for Phase 3 data to flow through unmodified.
+  - `rejectionReasonNote: String | null` — schema-only in Phase 2; written by Phase 3.
+  - `archivedAt: Date | null` + `archivedByUid: String | null` — schema-only in Phase 2; written by Phase 4 archive action.
+
+  Avoids a Phase 3 schema migration. Migration script (D-03) does NOT backfill these fields on legacy rows — they stay null/missing per the existing audit-field rule under "Audit-field population for legacy backfill" above.
+
+- **D-22 (Rejected→pending auto-flip on edit-resubmit — server-side route logic, supersedes implicit D-15 wording):** `PUT /api/properties/:id` from owner where the listing's current `status === 'rejected'` MUST atomically: (a) apply the owner's edits, (b) set `status = 'pending'`, (c) set `submittedAt = new Date()` (re-stamping for FIFO re-queue), (d) clear `rejectionReasonCode`, `rejectionReasonNote`, `rejectedAt`, `rejectedByUid` to null (so the rejected listing leaves Phase 3's queue cleanly when re-queued). PUT from owner where current status is `'live'` or `'pending'` does NOT re-flip status (in-place edit only, no re-moderation in Phase 2 — Phase 3+ may add a "material edit re-queues to pending" rule but it's out of Phase 2 scope). PUT from owner where current status is `'archived'` is rejected with 409 (archive lifecycle is Phase 4).
+
+### Critical implementation fact (NOT a decision — research finding to honor)
+
+**RenterListingsScreen.tsx is the self-listings screen. OwnerListingsScreen.tsx is the passive viewer of OTHER owners' listings.** CONTEXT.md and UI-SPEC.md throughout refer to "OwnerListings" when they mean the **owner's own listings UI** — which is `src/screens/RenterListingsScreen.tsx` (369 LOC, header reads "My Listings", calls `getUserProperties(user.localId)`). `src/screens/OwnerListingsScreen.tsx` (216 LOC) is the renter-facing browse-other-owners view and is NOT the surface where the 4-tab segmented control lands. Every plan task that says "OwnerListings" in this CONTEXT.md or UI-SPEC.md MUST be re-read by the executor as targeting `RenterListingsScreen.tsx`. Planner: produce file paths in plan tasks that explicitly reference `src/screens/RenterListingsScreen.tsx` to prevent any executor confusion. The user-facing copy + screen header may need a label review separately (the header reads "My Listings" today — that stays, this is just clarifying the FILE the work happens in).
+
 </decisions>
 
 <canonical_refs>
@@ -189,7 +214,12 @@ Surface a 4-state listing lifecycle (`pending` / `live` / `rejected` / `archived
 - **Migration verification command** (D-03): `db.properties.countDocuments({status: {$nin: ['pending', 'live', 'rejected', 'archived']}})` returns 0 — verbatim post-condition for `--verify` subcommand.
 - **AppState cooldown** (D-17): 60-second window; matches ROADMAP success criteria #2 ("new role within 60s of their next protected request").
 - **OwnerListings tab order** (D-09): Live / Pending / Rejected / Archived; default selection lands on Pending (second tab).
-- **Submit-button copy on CreateListingScreen** — open question for planner: does MOD-03 ("submit for review, not publish immediately") imply a copy change from "Publish"/«Опубликовать» to "Submit for review"/«Отправить на модерацию»? If yes, +2 locale keys + scope hint.
+- **Submit-button copy on CreateListingScreen** — RESOLVED via D-20: copy changes to EN "Submit for review" / RU «Отправить на модерацию» on the new-listing path; edit-resubmit path (D-15) gets a distinct CTA at planner discretion (recommended EN "Resubmit for review" / RU «Отправить повторно»).
+- **PropertyCard pill position** — RESOLVED via D-19: top-left of card image area, vertically below rent/sale type badge (NOT top-right per UI-SPEC original — collides with share/heart actions). Planner updates `02-UI-SPEC.md` accordingly.
+- **Schema default reconciliation** — RESOLVED via D-18: single `default: 'pending'` on Mongoose schema; null-status absorbed by migration backfill (D-04 op b) + client `?? 'live'` (D-07). D-02 sub-clause (a) RETRACTED.
+- **Audit-field schema scope** — RESOLVED via D-21: Phase 2 adds full nullable definitions (`submittedAt`, `approvedAt`, `approvedByUid`, `rejectedAt`, `rejectedByUid`, `rejectionReasonCode`, `rejectionReasonNote`, `archivedAt`, `archivedByUid`); Phase 2 only writes `submittedAt` (POST + edit-resubmit PUT); Phase 3+ writes the rest.
+- **`PUT /api/properties/:id` rejected→pending auto-flip semantics** — RESOLVED via D-22: atomic edit + status flip + submittedAt re-stamp + reason-fields clear; PUT on `'live'` or `'pending'` is in-place edit (no re-moderation in Phase 2); PUT on `'archived'` returns 409.
+- **Self-listings screen file path** — Per the "Critical implementation fact" block: every plan task MUST target `src/screens/RenterListingsScreen.tsx` (NOT `OwnerListingsScreen.tsx`) for the 4-tab segmented control + per-tab Hospitality + empty states. CONTEXT.md / UI-SPEC.md "OwnerListings" naming is a historical mislabel; the file is `RenterListingsScreen.tsx` (369 LOC, header reads "My Listings", calls `getUserProperties(user.localId)`). `OwnerListingsScreen.tsx` (216 LOC) is a passive viewer of OTHER owners' listings and is NOT touched by Phase 2's tab work.
 
 </specifics>
 
