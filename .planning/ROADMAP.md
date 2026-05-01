@@ -74,7 +74,7 @@
   - [ ] 02-01-PLAN.md — Wave-0 backend test scaffolds (Property.test.js + propertyRoutes.test.js Phase 2 block) + migrate-listings-m2.js + package.json registration
   - [ ] 02-02-PLAN.md — Wave-1 [BLOCKING] production Mongo migration `--dry-run` + live + `--verify=PASS` (operator-supervised checkpoint)
   - [ ] 02-03-PLAN.md — Wave-2 backend code: Property.js enum cutover + 9 audit fields (D-21) + verifyFirebaseToken optionalAuth + propertyRoutes D-05/D-06/D-12/D-15/D-22 + body-status sanitizer + 409 archived + DELETE guard cleanup
-  - [ ] 02-04-PLAN.md — Wave-3 client foundation: Property.ts type cutover + PropertyService.ts body-status removal + locale bundle (18 new keys EN+RU, 4 deprecated keys removed, parity gate)
+  - [x] 02-04-PLAN.md — Wave-3 client foundation: Property.ts type cutover + PropertyService.ts body-status removal + locale bundle (18 new keys EN+RU, 7 deprecated keys removed, parity gate exit 0) — completed 2026-05-01 (3 RN-client commits: d40e856 Property.ts D-01 enum + 3 audit fields, ea445c5 PropertyService createListing/updateListing body-status removal + archive/unarchive TODO(Phase 4), 7ea8349 locale bundle 18 added / 7 deleted; en.ts + ru.ts both at 497 keys parity; 1 Rule-2 deviation documented (archiveProperty given symmetric TODO treatment to unarchiveProperty); 14 stale tsc references in Plan 05/06/07 territory enumerated in SUMMARY for downstream cleanup)
   - [ ] 02-05-PLAN.md — Wave-4 client components: <StatusPill> + <RejectionBanner> + <HomeRejectionBanner> + PropertyCard top-LEFT mount (D-19) + UI-SPEC.md inline correction
   - [ ] 02-06-PLAN.md — Wave-4 RenterListingsScreen 4-tab segmented control + per-tab Hospitality + per-tab empty states + M1 inline status badge removal + archive UI hidden (parallel with 02-05)
   - [ ] 02-07-PLAN.md — Wave-5 screen mounts: PropertyDetailsScreen RejectionBanner+StatusPill + HomeScreen D-07 source filter + HomeRejectionBanner mount + lazy fetch; FavoritesScreen D-07 filter; CreateListingScreen D-20 submit copy + Draft toggle removal
@@ -146,8 +146,8 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Backend Role Foundation + Auth Migration + Hotfix Bundle | 12/13 | Executing (Plan 13 left) | — |
-| 2. Listing Lifecycle Status Field Absorption | 0/0 | Not started | — |
+| 1. Backend Role Foundation + Auth Migration + Hotfix Bundle | 13/13 | ✅ Complete | 2026-04-30 |
+| 2. Listing Lifecycle Status Field Absorption | 4/9 | Executing (Plans 5–9 left) | — |
 | 3. Moderation Queue + Actions + Edit-on-Behalf | 0/0 | Not started | — |
 | 4. Archive Lifecycle (Owner + Mod/Admin) | 0/0 | Not started | — |
 | 5. Admin Role Management UI | 0/0 | Not started | — |
