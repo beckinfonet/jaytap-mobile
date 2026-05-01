@@ -70,7 +70,16 @@
   3. A non-live listing returns 404 to a non-owner-non-mod via `GET /api/properties/:id` deep-link (preventing pending/rejected/archived bypass), but is visible to its owner and to any moderator/admin
   4. A rejected listing shows an `<RejectionBanner>` on PropertyDetailsScreen (localized `reasonCode` + optional `reasonNote` + "Edit & resubmit" / «Исправить» CTA, dismissible per-session); a persistent rejection banner shows on Home when the owner has any rejected listings, auto-dismissing once all rejected listings are edited or archived
   5. Status pill labels render correctly in EN+RU on PropertyCard for non-live statuses (`pending` → «На модерации»; `rejected` → «Отклонено»; `archived` → «Снято с публикации»; pill colors derive from `useTheme()` semantic palette); `serviceAreas` config is in place defaulting to `['Bishkek']` for the M2 launch market
-**Plans**: TBD
+**Plans**: 9 plans
+  - [ ] 02-01-PLAN.md — Wave-0 backend test scaffolds (Property.test.js + propertyRoutes.test.js Phase 2 block) + migrate-listings-m2.js + package.json registration
+  - [ ] 02-02-PLAN.md — Wave-1 [BLOCKING] production Mongo migration `--dry-run` + live + `--verify=PASS` (operator-supervised checkpoint)
+  - [ ] 02-03-PLAN.md — Wave-2 backend code: Property.js enum cutover + 9 audit fields (D-21) + verifyFirebaseToken optionalAuth + propertyRoutes D-05/D-06/D-12/D-15/D-22 + body-status sanitizer + 409 archived + DELETE guard cleanup
+  - [ ] 02-04-PLAN.md — Wave-3 client foundation: Property.ts type cutover + PropertyService.ts body-status removal + locale bundle (18 new keys EN+RU, 4 deprecated keys removed, parity gate)
+  - [ ] 02-05-PLAN.md — Wave-4 client components: <StatusPill> + <RejectionBanner> + <HomeRejectionBanner> + PropertyCard top-LEFT mount (D-19) + UI-SPEC.md inline correction
+  - [ ] 02-06-PLAN.md — Wave-4 RenterListingsScreen 4-tab segmented control + per-tab Hospitality + per-tab empty states + M1 inline status badge removal + archive UI hidden (parallel with 02-05)
+  - [ ] 02-07-PLAN.md — Wave-5 screen mounts: PropertyDetailsScreen RejectionBanner+StatusPill + HomeScreen D-07 source filter + HomeRejectionBanner mount + lazy fetch; FavoritesScreen D-07 filter; CreateListingScreen D-20 submit copy + Draft toggle removal
+  - [ ] 02-08-PLAN.md — Wave-6 App.tsx wire-up (renterListingsDefaultTab + onOpenMyListingsRejectedTab + onEditListing) + AuthContext AppState 'active' role-refresh hook with 60s cooldown (D-17 closes Phase 1 D-12 deferral)
+  - [ ] 02-09-PLAN.md — Wave-7 phase-exit gate: backend full suite + client tsc baseline + i18n parity + manual physical-device QA matrix (9 rows × iPhone+Moto G) + code review pass + ROADMAP update
 **UI hint**: yes
 
 ### Phase 3: Moderation Queue + Actions + Edit-on-Behalf
