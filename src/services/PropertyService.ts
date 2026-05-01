@@ -73,7 +73,9 @@ export const PropertyService = {
       formData.append('videoUrl', propertyData.videoUrl || '');
       formData.append('panoramicPhotosUrl', propertyData.panoramicPhotosUrl || '');
       formData.append('instagramUrl', propertyData.instagramUrl || '');
-      formData.append('status', propertyData.status || 'draft');
+      // Body-status removed (D-01 + D-22): backend schema default 'pending' drives status for new
+      // submissions; Plan 03's PUT/POST sanitizer strips any body-supplied status from non-mod/admin
+      // owners anyway. Sending it is wasted bytes + a contract-leak risk.
       // Phase 6 (HOSP-05 / Gap 9.1) — Hospitality fields wired to backend
       formData.append('rooms', propertyData.rooms?.toString() || '0');
       formData.append('maxGuests', propertyData.maxGuests?.toString() || '0');
@@ -142,7 +144,10 @@ export const PropertyService = {
       formData.append('videoUrl', propertyData.videoUrl || '');
       formData.append('panoramicPhotosUrl', propertyData.panoramicPhotosUrl || '');
       formData.append('instagramUrl', propertyData.instagramUrl || '');
-      formData.append('status', propertyData.status || 'draft');
+      // Body-status removed (D-01 + D-22): in-place owner edits do NOT re-flip status in Phase 2
+      // (Plan 03's PUT route applies an atomic rejected→pending auto-flip server-side; non-rejected
+      // PUTs are in-place edits, no re-moderation). The server-side sanitizer strips body-status
+      // from non-mod/admin owners regardless. Sending it is wasted bytes + a contract-leak risk.
       // Phase 6 (HOSP-05 / Gap 9.1) — Hospitality fields wired to backend
       formData.append('rooms', propertyData.rooms?.toString() || '0');
       formData.append('maxGuests', propertyData.maxGuests?.toString() || '0');
@@ -219,6 +224,11 @@ export const PropertyService = {
 
       const formData = new FormData();
       formData.append('firebaseUid', userData.localId);
+      // TODO(Phase 4): archive UI is hidden in Phase 2; Plan 03's D-22 sanitizer strips body-status
+      // from owner PUTs (ALLOWED_OWNER_STATUS_TRANSITIONS = []), so this write is now a server-side
+      // no-op. Phase 4 reintroduces archive actions via a dedicated route or carve-out (planner's
+      // discretion). The method stays in source for shape symmetry — its single call site in
+      // RenterListingsScreen will go inactive in Phase 2.
       formData.append('status', 'archived');
 
       const response = await apiClient.put(`/properties/${propertyId}`, formData);
@@ -239,6 +249,10 @@ export const PropertyService = {
 
       const formData = new FormData();
       formData.append('firebaseUid', userData.localId);
+      // TODO(Phase 4): unarchive UI is hidden in Phase 2 (RenterListings hides the unarchive
+      // affordance per RESEARCH.md Topic 8); this method's status:'draft' will fail post-D-01
+      // enum cutover. Phase 4 redesigns to status:'pending'. The method stays in source for
+      // shape symmetry — its single call site in RenterListingsScreen will go inactive.
       formData.append('status', 'draft');
 
       const response = await apiClient.put(`/properties/${propertyId}`, formData);
