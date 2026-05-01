@@ -74,6 +74,11 @@ function AppContent() {
   const [isAppointmentsOpen, setIsAppointmentsOpen] = useState(false);
   const [returnToProfileAfterFavorites, setReturnToProfileAfterFavorites] = useState(false);
   const [returnToProfileAfterAppointments, setReturnToProfileAfterAppointments] = useState(false);
+  // Phase 4.5 nav fix: Landlord Application screens are launched from Profile and
+  // must hop back to Profile on close (not collapse to Home). Mirrors the
+  // returnToProfileAfterFavorites / returnToProfileAfterAppointments pattern above.
+  const [returnToProfileAfterLandlordApplication, setReturnToProfileAfterLandlordApplication] = useState(false);
+  const [returnToProfileAfterLandlordApplicationQueue, setReturnToProfileAfterLandlordApplicationQueue] = useState(false);
   const [ownerListingsUid, setOwnerListingsUid] = useState<string | null>(null);
   const [ownerListingsName, setOwnerListingsName] = useState<string>('');
   const [tabEverMounted, setTabEverMounted] = useState({
@@ -112,6 +117,10 @@ function AppContent() {
     setPropertyToSchedule(null);
     setReturnToProfileAfterFavorites(false);
     setReturnToProfileAfterAppointments(false);
+    // Phase 4.5 nav fix: keep return-to-profile flags in sync when a tab tap
+    // collapses Profile-rooted state.
+    setReturnToProfileAfterLandlordApplication(false);
+    setReturnToProfileAfterLandlordApplicationQueue(false);
   };
 
   // Handle deep linking for shared property links
@@ -273,6 +282,24 @@ function AppContent() {
         setPropertyToEdit(null);
         return true;
       }
+      // Phase 4.5 nav fix: Landlord Application overlays sit ABOVE Profile in
+      // the visual stack, so handle them before selectedProperty/Profile.
+      if (isLandlordApplicationQueueOpen) {
+        setIsLandlordApplicationQueueOpen(false);
+        if (returnToProfileAfterLandlordApplicationQueue) {
+          setIsProfileOpen(true);
+          setReturnToProfileAfterLandlordApplicationQueue(false);
+        }
+        return true;
+      }
+      if (isLandlordApplicationOpen) {
+        setIsLandlordApplicationOpen(false);
+        if (returnToProfileAfterLandlordApplication) {
+          setIsProfileOpen(true);
+          setReturnToProfileAfterLandlordApplication(false);
+        }
+        return true;
+      }
       if (selectedProperty) {
         setSelectedProperty(null);
         return true;
@@ -325,6 +352,8 @@ function AppContent() {
     isRenterListingsOpen,
     ownerListingsUid,
     isCreateListingOpen,
+    isLandlordApplicationOpen,
+    isLandlordApplicationQueueOpen,
     selectedProperty,
     isScheduleViewingOpen,
     isFavoritesOpen,
@@ -333,6 +362,8 @@ function AppContent() {
     isChatOpen,
     returnToProfileAfterFavorites,
     returnToProfileAfterAppointments,
+    returnToProfileAfterLandlordApplication,
+    returnToProfileAfterLandlordApplicationQueue,
   ]);
 
   // Load favorite statuses when user logs in
@@ -435,6 +466,9 @@ function AppContent() {
         t('landlordApp.gateNeededMessage'),
       );
       setIsProfileOpen(false);
+      // Phase 4.5 nav fix: pre-flight gate originated from Profile, so back
+      // should return there rather than collapsing to Home.
+      setReturnToProfileAfterLandlordApplication(true);
       setIsLandlordApplicationOpen(true);
       return;
     }
@@ -445,10 +479,16 @@ function AppContent() {
   const onProfileApplyLandlord = useCallback(() => {
     setIsProfileOpen(false);
     setIsAccountSettingsOpen(false);
+    // Phase 4.5 nav fix: launched from Profile (or AccountSettings, which itself
+    // hops back to Profile) — back must return to Profile, not Home.
+    setReturnToProfileAfterLandlordApplication(true);
     setIsLandlordApplicationOpen(true);
   }, []);
   const onProfileReviewLandlordApplications = useCallback(() => {
     setIsProfileOpen(false);
+    // Phase 4.5 nav fix: admin queue is opened from Profile — back must return
+    // to Profile, not Home.
+    setReturnToProfileAfterLandlordApplicationQueue(true);
     setIsLandlordApplicationQueueOpen(true);
   }, []);
   const onProfileViewListings = useCallback(() => setIsRenterListingsOpen(true), []);
@@ -726,6 +766,10 @@ function AppContent() {
                 // Phase 4.5 pre-flight gate.
                 if (!canFromUser(user, 'manageListings')) {
                   Alert.alert(t('landlordApp.gateNeededTitle'), t('landlordApp.gateNeededMessage'));
+                  // Phase 4.5 nav fix: tab-tap origin → back should NOT hop to
+                  // Profile (user wasn't there). Explicitly clear the flag so
+                  // a stale value doesn't leak from a prior Profile flow.
+                  setReturnToProfileAfterLandlordApplication(false);
                   setIsLandlordApplicationOpen(true);
                   return;
                 }
@@ -896,7 +940,16 @@ function AppContent() {
         {!!user && isLandlordApplicationOpen && (
           <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
             <LandlordApplicationScreen
-              onBack={() => setIsLandlordApplicationOpen(false)}
+              onBack={() => {
+                setIsLandlordApplicationOpen(false);
+                // Phase 4.5 nav fix: hop back to Profile when entry was a
+                // Profile-rooted flow; otherwise fall through to Home (tab-tap
+                // origin) — matches the Favorites/Appointments back pattern.
+                if (returnToProfileAfterLandlordApplication) {
+                  setIsProfileOpen(true);
+                  setReturnToProfileAfterLandlordApplication(false);
+                }
+              }}
               onSubmitted={() => {
                 setHomeRefreshKey((k) => k + 1); // refresh in case profile data changed
               }}
@@ -907,7 +960,16 @@ function AppContent() {
         {!!user && isLandlordApplicationQueueOpen && (
           <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
             <LandlordApplicationQueueScreen
-              onBack={() => setIsLandlordApplicationQueueOpen(false)}
+              onBack={() => {
+                setIsLandlordApplicationQueueOpen(false);
+                // Phase 4.5 nav fix: hop back to Profile (queue is only opened
+                // from Profile today; flag stays correct even if a future
+                // entry-point clears it explicitly).
+                if (returnToProfileAfterLandlordApplicationQueue) {
+                  setIsProfileOpen(true);
+                  setReturnToProfileAfterLandlordApplicationQueue(false);
+                }
+              }}
             />
           </View>
         )}
