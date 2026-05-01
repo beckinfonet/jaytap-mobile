@@ -66,9 +66,9 @@ Existing JayTap convention is RN inline styles (no fontSize tokens). Phase 2 dec
 | Pill label | 11px | 600 (semibold) | 14px (~1.27) | Status pill on PropertyCard (`Pending review` / `Rejected` / `Unpublished`) — matches existing `PropertyCard.tsx:309-310` `fontSize: 11, fontWeight: '600'` chip pattern |
 | Body | 13px | 400 (regular) | 18px (~1.38) | `<RejectionBanner>` body text (reasonNote + reasonCode translation); `<HomeRejectionBanner>` count subtitle — matches existing `LandlordApplicationStatusBanner.tsx:161` `fontSize: 13, lineHeight: 18` |
 | Banner / Tab label | 14px | 600 (semibold) | 20px (~1.43) | `<RejectionBanner>` title row "Listing rejected" / «Объявление отклонено»; `<HomeRejectionBanner>` headline; segmented-control tab label — matches existing `RoleRefreshBanner.tsx:91-92` `fontSize: 14, fontWeight: '600'` |
-| Empty-state heading | 15px | 700 (bold) | 20px (~1.33) | OwnerListings per-tab empty-state heading text — matches existing `LandlordApplicationStatusBanner.tsx:160` `fontSize: 15, fontWeight: '700'` |
+| Empty-state heading | 15px | 600 (semibold) | 20px (~1.33) | OwnerListings per-tab empty-state heading text — uses semibold (not bold) to honor the 2-weights-max contract; the 15px size alone differentiates the heading from the 14px banner label |
 
-**Total: 4 sizes (11 / 13 / 14 / 15), 2 weights (regular 400, semibold 600 — bold 700 reserved for the empty-state heading line only).**
+**Total: 4 sizes (11 / 13 / 14 / 15), 2 weights: 400 (regular) / 600 (semibold).**
 
 - Body line-height ratio: ~1.38 (13/18) — matches existing JayTap banners; not the canonical 1.5 because RN body sizes are smaller than web defaults and the existing palette already converged at this ratio.
 - Heading line-height ratio: ~1.33–1.43 (15/20 and 14/20) — matches existing JayTap pattern.
@@ -284,7 +284,7 @@ This is a brownfield phase with a heavy upstream-decisions input. The contract a
 | AppState 60s cooldown | CONTEXT.md D-17 + ROADMAP success criteria #2 |
 | Pill colors (warning / error / textTertiary) | CONTEXT.md `<discretion>` "Banner visual design" + `colors.ts` existing tokens |
 | Spacing 12/16/24 + banner shape | Sampled from existing `RoleRefreshBanner.tsx` lines 86-95 |
-| Typography sizes 11/13/14/15 + weights 400/600/700 | Sampled from existing `PropertyCard.tsx`, `RoleRefreshBanner.tsx`, `LandlordApplicationStatusBanner.tsx` |
+| Typography sizes 11/13/14/15 + weights 400/600 | Sampled from existing `PropertyCard.tsx`, `RoleRefreshBanner.tsx`, `LandlordApplicationStatusBanner.tsx` (the empty-state heading uses 600 semibold at 15px to honor the 2-weights-max contract) |
 | Color tokens `accent` / `warning` / `error` / `textTertiary` | Existing `src/theme/colors.ts` (zero new tokens added) |
 | 8–12 locale keys budget | CONTEXT.md `<context_notes>` |
 | EN copy ("Pending review" / "Rejected" / "Unpublished" / "Edit & resubmit") | CONTEXT.md D-16 + D-13 lock; ratified here as the design contract |
