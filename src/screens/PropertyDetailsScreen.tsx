@@ -71,6 +71,8 @@ import { PropertyService } from '../services/PropertyService';
 import { useAuth } from '../context/AuthContext';
 import { useRole } from '../hooks/useRole';
 import { Gated } from '../components/Gated';
+import { RejectionBanner } from '../components/RejectionBanner';
+import { StatusPill } from '../components/StatusPill';
 
 interface PropertyDetailsScreenProps {
   property: Property;
@@ -86,6 +88,9 @@ interface PropertyDetailsScreenProps {
   onLandlordPress?: (ownerUid: string, ownerName: string) => void; // Navigate to owner's listings
   /** Admin: open document verification editor for this listing */
   onAdminVerifyDocuments?: (property: Property) => void;
+  /** D-15: navigate parent (App.tsx) to CreateListingScreen edit mode for this property.
+   *  Wired by Plan 08 — until then, the banner CTA is a no-op. */
+  onEditListing?: (property: Property) => void;
 }
 
 const { width, height } = Dimensions.get('window');
@@ -177,6 +182,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   isLoading = false,
   onLandlordPress,
   onAdminVerifyDocuments,
+  onEditListing,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -187,6 +193,35 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isMapFullScreen, setIsMapFullScreen] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
+  // D-13: per-session in-memory dismiss for RejectionBanner. Local Set keyed by listing id.
+  // NEVER AsyncStorage — banner re-evaluates on every navigation back to this screen.
+  const [dismissedBanners, setDismissedBanners] = useState<Set<string>>(new Set());
+
+  // D-13: owner-self check reuses the existing `property.owner?.uid === user?.localId` field-access
+  // shape (matches the same pattern used elsewhere in this file via `property.owner` reads).
+  const isOwnedByMe = !!user?.localId && property.owner?.uid === user.localId;
+
+  // D-13 + D-07: gate the RejectionBanner mount — owner-self AND rejected-status AND not-yet-dismissed.
+  const showRejectionBanner =
+    isOwnedByMe &&
+    (property.status ?? 'live') === 'rejected' &&
+    !!property.id &&
+    !dismissedBanners.has(property.id);
+
+  const onEditResubmit = () => {
+    onEditListing?.(property); // D-15 — Plan 08 wires App.tsx to open CreateListingScreen edit mode.
+  };
+
+  const onDismissBanner = () => {
+    if (property.id) {
+      const id = property.id;
+      setDismissedBanners((prev) => {
+        const next = new Set(prev);
+        next.add(id);
+        return next;
+      });
+    }
+  };
 
   // Phase 6 (HOSP-04 / D-13) — derive category for in-place conditional renders
   const category = propertyTypeToCategory(property.propertyType);
@@ -461,6 +496,20 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         ]}
         showsVerticalScrollIndicator={false}
       >
+        {/* D-13 / MOD-08: RejectionBanner — owner viewing own rejected listing only.
+            Mounted at the TOP of content (above the hero carousel). Per-session dismiss
+            via local Set; navigating away unmounts and resets. */}
+        {showRejectionBanner && (
+          <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
+            <RejectionBanner
+              reasonCode={property.rejectionReasonCode}
+              reasonNote={property.rejectionReasonNote}
+              onEditResubmit={onEditResubmit}
+              onDismiss={onDismissBanner}
+            />
+          </View>
+        )}
+
         {/* Image Carousel */}
         <View style={styles.carouselContainer}>
           <FlatList
@@ -575,6 +624,14 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           <View style={styles.section}>
             <View style={[styles.listingInfoCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <Text style={[styles.title, { color: colors.text }]}>{property.title}</Text>
+              {/* D-19 / MOD-07: status pill inline below title for non-live statuses.
+                  Owner sees this for pending/rejected/archived; mods/admins see it via D-06
+                  visibility branch. Anonymous never reaches a non-live listing (server 404). */}
+              {(property.status ?? 'live') !== 'live' && (
+                <View style={{ marginTop: 6, marginBottom: 4 }}>
+                  <StatusPill status={property.status} />
+                </View>
+              )}
               <ListingMetaTable
                 listingId={property.listingId}
                 availableDate={(property as any).availableDate}
