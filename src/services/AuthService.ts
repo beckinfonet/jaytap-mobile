@@ -107,9 +107,15 @@ export const AuthService = {
   },
 
   // Backend User Methods
-  createBackendUser: async (firebaseUid: string, email: string, profileData: any = {}) => {
+  // Phase 4.5 fix: POST /auth/users now requires a verified Bearer token (HF-03 — see
+  // verifyTokenForUserCreation comment). Pass `idToken` from the fresh signUp/signIn response;
+  // for post-login profile updates from AccountSettings, we fall back to the saved token.
+  createBackendUser: async (firebaseUid: string, email: string, profileData: any = {}, idToken?: string) => {
     try {
-      await axios.post(`${BACKEND_URL}/auth/users`, { firebaseUid, email, ...profileData });
+      const token = idToken || (await AsyncStorage.getItem('userToken'));
+      const headers: Record<string, string> = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+      await axios.post(`${BACKEND_URL}/auth/users`, { firebaseUid, email, ...profileData }, { headers });
     } catch (error: any) {
       console.error('Failed to create/update backend user', error);
       // Check if account is locked

@@ -21,6 +21,8 @@ export interface BackendProfile {
   telegram?: string;
   instagramUrl?: string;
   isRenterApplicant?: boolean;
+  /** Phase 4.5 — true once an admin has approved the user's LandlordApplication. Gates POST /api/properties for role==='user'. */
+  canListProperties?: boolean;
   favorites?: string[];
   availabilitySettings?: {
     blockSize: '30min' | '60min';

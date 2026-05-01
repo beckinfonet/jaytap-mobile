@@ -10,7 +10,7 @@ import {
   Share,
   ActivityIndicator,
 } from 'react-native';
-import { Heart, Bed, Bath, Pencil, Trash2 } from 'lucide-react-native';
+import { Heart, Bed, Bath, Pencil, Trash2, Archive, ArchiveRestore } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { getPropertyShareUrl } from '../constants';
 import { formatPrice } from '../utils/formatPrice';
@@ -27,7 +27,9 @@ interface PropertyCardProps {
   onViewVideo: (property: Property) => void;
   onEdit?: (property: Property) => void; // Optional edit handler
   showEditButton?: boolean; // Show edit button instead of Contact Agent
-  onDelete?: (property: Property) => void; // Optional delete handler
+  onDelete?: (property: Property) => void; // Optional delete handler (intent dispatched by parent based on status)
+  onArchive?: (property: Property) => void; // Optional archive handler (soft-delete for live listings)
+  onUnarchive?: (property: Property) => void; // Optional unarchive handler (restore archived → draft)
   onShare?: (property: Property) => void; // Optional share handler
   onFavorite?: (property: Property) => void; // Optional favorite handler
   isFavorited?: boolean; // Whether this property is favorited
@@ -44,6 +46,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onEdit,
   showEditButton = false,
   onDelete,
+  onArchive,
+  onUnarchive,
   onShare,
   onFavorite,
   isFavorited = false,
@@ -183,37 +187,71 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             </Text>
 
             {showEditButton ? (
-              <View style={styles.ownerActionsRow}>
-                {onEdit && (
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    accessibilityLabel={t('common.edit')}
-                    style={[
-                      styles.listingActionBtnIcon,
-                      styles.listingActionBtnEdit,
-                      {
-                        backgroundColor: isDark ? '#F3F4F6' : colors.inputBackground,
-                        borderColor: colors.border,
-                      },
-                    ]}
-                    onPress={() => onEdit(property)}
-                    activeOpacity={0.75}
-                  >
-                    <Pencil size={19} color={isDark ? '#111827' : colors.text} strokeWidth={2} />
-                  </TouchableOpacity>
-                )}
-                {onDelete && (
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    accessibilityLabel={t('common.delete')}
-                    style={[styles.listingActionBtnIcon, styles.listingActionBtnDelete]}
-                    onPress={() => onDelete(property)}
-                    activeOpacity={0.8}
-                  >
-                    <Trash2 size={19} color="#FFFFFF" strokeWidth={2} />
-                  </TouchableOpacity>
-                )}
-              </View>
+              (() => {
+                // Status-driven owner actions:
+                //   live (or legacy untyped) → Edit + Archive
+                //   draft                    → Edit + Archive + Delete
+                //   archived                 → Edit + Unarchive + Delete (permanent)
+                const status = property.status;
+                const isArchived = status === 'archived';
+                const isDraft = status === 'draft';
+                const canArchive = !isArchived; // live, legacy, or draft
+                return (
+                  <View style={styles.ownerActionsRow}>
+                    {onEdit && (
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel={t('common.edit')}
+                        style={[
+                          styles.listingActionBtnIcon,
+                          styles.listingActionBtnEdit,
+                          {
+                            backgroundColor: isDark ? '#F3F4F6' : colors.inputBackground,
+                            borderColor: colors.border,
+                          },
+                        ]}
+                        onPress={() => onEdit(property)}
+                        activeOpacity={0.75}
+                      >
+                        <Pencil size={19} color={isDark ? '#111827' : colors.text} strokeWidth={2} />
+                      </TouchableOpacity>
+                    )}
+                    {canArchive && onArchive && (
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel={t('property.archive')}
+                        style={[styles.listingActionBtnIcon, styles.listingActionBtnArchive]}
+                        onPress={() => onArchive(property)}
+                        activeOpacity={0.8}
+                      >
+                        <Archive size={19} color="#FFFFFF" strokeWidth={2} />
+                      </TouchableOpacity>
+                    )}
+                    {isArchived && onUnarchive && (
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel={t('property.unarchive')}
+                        style={[styles.listingActionBtnIcon, styles.listingActionBtnUnarchive]}
+                        onPress={() => onUnarchive(property)}
+                        activeOpacity={0.8}
+                      >
+                        <ArchiveRestore size={19} color="#FFFFFF" strokeWidth={2} />
+                      </TouchableOpacity>
+                    )}
+                    {(isArchived || isDraft) && onDelete && (
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel={t('common.delete')}
+                        style={[styles.listingActionBtnIcon, styles.listingActionBtnDelete]}
+                        onPress={() => onDelete(property)}
+                        activeOpacity={0.8}
+                      >
+                        <Trash2 size={19} color="#FFFFFF" strokeWidth={2} />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })()
             ) : (
               <View style={[styles.specsContainer, { backgroundColor: colors.chipBackground, borderColor: colors.chipBorder }]}>
                 <View style={styles.specItem}>
@@ -418,6 +456,30 @@ const styles = StyleSheet.create({
         shadowColor: '#DC2626',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.35,
+        shadowRadius: 4,
+      },
+      android: { elevation: 3 },
+    }),
+  },
+  listingActionBtnArchive: {
+    backgroundColor: '#D97706', // amber — soft-delete signal, distinct from destructive red
+    ...Platform.select({
+      ios: {
+        shadowColor: '#D97706',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+      },
+      android: { elevation: 3 },
+    }),
+  },
+  listingActionBtnUnarchive: {
+    backgroundColor: '#059669', // emerald — restorative action
+    ...Platform.select({
+      ios: {
+        shadowColor: '#059669',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
         shadowRadius: 4,
       },
       android: { elevation: 3 },

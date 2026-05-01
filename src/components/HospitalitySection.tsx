@@ -31,6 +31,8 @@ interface HospitalitySectionProps {
   // Owner-context (only on RenterListings / OwnerListings):
   onEdit?: (property: Property) => void;
   onDelete?: (property: Property) => void;
+  onArchive?: (property: Property) => void;
+  onUnarchive?: (property: Property) => void;
   showEditButton?: boolean;
 }
 
@@ -43,6 +45,8 @@ export function HospitalitySection({
   favoriteLoading,
   onEdit,
   onDelete,
+  onArchive,
+  onUnarchive,
   showEditButton = false,
 }: HospitalitySectionProps) {
   const { colors } = useTheme();
@@ -83,6 +87,8 @@ export function HospitalitySection({
             isLoading={favoriteLoading?.[item.id] ?? false}
             onEdit={onEdit}
             onDelete={onDelete}
+            onArchive={onArchive}
+            onUnarchive={onUnarchive}
             showEditButton={showEditButton}
           />
         )}

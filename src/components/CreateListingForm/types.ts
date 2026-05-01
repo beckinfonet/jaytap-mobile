@@ -23,7 +23,7 @@ export interface FormBag {
   district: string;
   type: 'rent' | 'sale';
   propertyType: string; // intentionally `string` not PropertyType — brownfield tolerance
-  status: 'draft' | 'live';
+  status: 'draft' | 'live' | 'archived';
   features: string[];
   featureInput: string;
   selectedImages: any[];

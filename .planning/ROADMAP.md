@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **M1 v1.0.4 "Polish + Hospitality"** — 8 phases (shipped 2026-04-28) — see [milestones/v1.0.4-ROADMAP.md](milestones/v1.0.4-ROADMAP.md)
-- 🚧 **M2 v2.0 "Roles & Moderation"** — 6 phases (active; planning started 2026-04-29)
+- 🚧 **M2 v2.0 "Roles & Moderation"** — 7 phases (active; planning started 2026-04-29; Phase 4.5 inserted 2026-04-30)
 
 ## Phases
 
@@ -27,6 +27,7 @@
 - [ ] **Phase 2: Listing Lifecycle Status Field Absorption** — `Property.status` enum + timestamp fields, `propertyStatus.ts` helper, Home/Favorites/RenterListings filter to `live`, OwnerListings 4-tab segmented control, status pills (Avito-anchored RU labels), deep-link guard, owner-side rejection banner, `AppState 'active'` role-refresh hook
 - [ ] **Phase 3: Moderation Queue + Actions + Edit-on-Behalf** — `ModerationQueueScreen` overlay, `RejectListingModal` (4-code canned chips + free-text), `PropertyService` extensions with `canFromUser` guards + 409 conflict handling, profile entry-point gated by `<Gated action="viewModerationQueue">`, `OVERLAY_FLAGS` extension, edit-on-behalf via `moderatorContext` prop, `moderationLog` collection
 - [ ] **Phase 4: Archive Lifecycle (Owner + Mod/Admin)** — `ArchiveListingModal`, `archiveListing`/`unarchiveListing` service methods, PropertyCard archive action, OwnerListings Archived tab + Restore action (routes to `pending`), hard-delete becomes admin-only, `Action` union extends with `archiveOwnListing`/`archiveAnyListing`/`hardDeleteListing`
+- [x] **Phase 4.5: Landlord Application Workflow** — COMPLETE 2026-04-30. `User.canListProperties` capability flag (additive); `LandlordApplication` + `LandlordApplicationAuditLog` models; 5 endpoints (submit / get-mine / withdraw / admin-queue / admin-decide); `LandlordApplicationScreen` form (phone, ID photo, intent, optional note); `LandlordApplicationStatusBanner` on Profile (none / submitted / approved / rejected / withdrawn states); `LandlordApplicationQueueScreen` admin overlay (FIFO queue, approve / reject with 4-code canned reasons); `useRole` `manageListings` gate tightened (admin/moderator implicit; user requires `canListProperties`); `reviewLandlordApplications` action added (admin-only); pre-flight gate on Profile/BottomNav `add` entry-points routes ungated users to the application form; `requireListingCapability` middleware on `POST /properties`; one-time `migrate-landlord-capability.js` auto-grants existing self-listers; cosmetic `isRenterApplicant` AccountSettings Switch replaced with navigable row; EN+RU i18n parity (~50 strings).
 - [ ] **Phase 5: Admin Role Management UI** — `RoleManagementScreen`, `UserService.ts` (`searchUsers`, `setUserRole`), profile entry-point gated by `<Gated action="manageRoles">`, server-side last-admin lockout + self-mutation prevention, `roleChangeLog` audit collection
 - [ ] **Phase 6: Hardening + Manual Physical-Device QA + Release** — Cross-cutting role/moderation/archive/admin QA matrix on iPhone 15 Pro Max + Moto G XT2513V; bilingual EN+RU release notes; v2.0.0 atomic version bump (apply M1 D-02 lesson — query Play Console + TestFlight history BEFORE setting baseline); ASC + Play Console submission
 

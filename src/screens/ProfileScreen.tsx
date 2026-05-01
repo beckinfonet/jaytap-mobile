@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useMemo, useRef, memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Heart, Calendar, ClipboardList, Plus, ChevronRight, LogOut } from 'lucide-react-native';
+import { Heart, Calendar, ClipboardList, Plus, ChevronRight, LogOut, Inbox } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useRole } from '../hooks/useRole';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
 import { AuthService } from '../services/AuthService';
 import { AppointmentService } from '../services/AppointmentService';
+import { LandlordApplicationStatusBanner } from '../components/LandlordApplicationStatusBanner';
 
 interface ProfileScreenProps {
     onBack: () => void;
@@ -16,15 +17,17 @@ interface ProfileScreenProps {
     onViewFavorites?: () => void;
     onViewAppointments?: () => void;
     onViewAccountSettings?: () => void;
+    onApplyLandlord?: () => void;
+    onReviewLandlordApplications?: () => void;
 }
 
-function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onViewFavorites, onViewAppointments, onViewAccountSettings }: ProfileScreenProps) {
+function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onViewFavorites, onViewAppointments, onViewAccountSettings, onApplyLandlord, onReviewLandlordApplications }: ProfileScreenProps) {
     const { user, logout } = useAuth();
     const { t } = useLanguage();
     const { isDark } = useTheme();
     const { can } = useRole();
 
-    const [isRenterApplicant, setIsRenterApplicant] = useState(false);
+    const [canListProperties, setCanListProperties] = useState(false);
     const [userType, setUserType] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
@@ -33,6 +36,7 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
 
     /** Same listing tools as renters; admins keep access. Encapsulated in can('manageListings') per D-12. */
     const canManageListings = can('manageListings');
+    const canReviewLandlordApplications = can('reviewLandlordApplications');
 
     const themeStyles = useMemo(
         () => ({
@@ -68,7 +72,7 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
                 if (cancelled) return;
                 if (settings) setBlockSize(settings.blockSize || '30min');
                 if (profile) {
-                    setIsRenterApplicant(profile.isRenterApplicant || false);
+                    setCanListProperties(profile.canListProperties === true);
                     setUserType(profile.userType || '');
                 }
                 profileDataLoadedRef.current = true;
@@ -148,12 +152,25 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
                         </View>
                         <View style={{ marginLeft: 16, flex: 1 }}>
                             <Text style={[styles.email, { color: themeStyles.text }]}>{user?.email}</Text>
-                            <Text style={[styles.role, { color: themeStyles.accent }]}>{isRenterApplicant ? t('profile.applicant') : t('profile.buyerAccount')}</Text>
+                            <Text style={[styles.role, { color: themeStyles.accent }]}>
+                                {userType === 'admin'
+                                    ? t('profile.role.admin')
+                                    : userType === 'moderator'
+                                        ? t('profile.role.moderator')
+                                        : canListProperties
+                                            ? t('profile.role.host')
+                                            : t('profile.role.member')}
+                            </Text>
                             <Text style={[styles.accountSettings, { color: themeStyles.textSecondary }]}>{t('profile.accountSettings')}</Text>
                         </View>
                         <ChevronRight size={20} color={themeStyles.textSecondary} />
                     </View>
                 </TouchableOpacity>
+
+                {/* Phase 4.5 — Landlord application status (own state). Admin/moderator banner self-suppresses. */}
+                {onApplyLandlord && (
+                    <LandlordApplicationStatusBanner onPress={onApplyLandlord} />
+                )}
 
                 {/* Menu Card - grouped items with internal dividers */}
                 <View style={[styles.menuCard, { backgroundColor: themeStyles.surface, borderColor: themeStyles.border }]}>
@@ -187,6 +204,16 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
                                 <Plus size={22} color="#FFF" strokeWidth={2} />
                                 <Text style={[styles.menuText, { color: '#FFF', flex: 1 }]}>{t('profile.createListing')}</Text>
                                 <ChevronRight size={20} color="#FFF" />
+                            </TouchableOpacity>
+                        </>
+                    )}
+                    {canReviewLandlordApplications && onReviewLandlordApplications && (
+                        <>
+                            <View style={[styles.menuDivider, { backgroundColor: themeStyles.border }]} />
+                            <TouchableOpacity style={styles.menuRow} onPress={onReviewLandlordApplications} activeOpacity={0.7}>
+                                <Inbox size={22} color={themeStyles.accent} strokeWidth={1.5} />
+                                <Text style={[styles.menuText, { color: themeStyles.text, flex: 1 }]}>{t('landlordApp.adminQueueTitle')}</Text>
+                                <ChevronRight size={20} color={themeStyles.textSecondary} />
                             </TouchableOpacity>
                         </>
                     )}

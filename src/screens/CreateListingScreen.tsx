@@ -116,7 +116,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
   const [panoramicPhotosUrl, setPanoramicPhotosUrl] = useState('');
   const [instagramUrl, setInstagramUrl] = useState('');
   const [availableDate, setAvailableDate] = useState('');
-  const [status, setStatus] = useState<'draft' | 'live'>('draft');
+  const [status, setStatus] = useState<'draft' | 'live' | 'archived'>('draft');
 
   // Images state
   const [selectedImages, setSelectedImages] = useState<any[]>([]);
@@ -183,7 +183,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
       case 'featureInput': setFeatureInput(value as string); break;
       case 'selectedImages': setSelectedImages(value as any[]); break;
       case 'availableDate': setAvailableDate(value as string); break;
-      case 'status': setStatus(value as 'draft' | 'live'); break;
+      case 'status': setStatus(value as 'draft' | 'live' | 'archived'); break;
       case 'tours': setTours(value as FormBag['tours']); break;
       case 'tourTitle': setTourTitle(value as string); break;
       case 'tourUrl': setTourUrl(value as string); break;

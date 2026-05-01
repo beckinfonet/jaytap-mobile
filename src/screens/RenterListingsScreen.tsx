@@ -16,6 +16,7 @@ import { PropertyCard } from '../components/PropertyCard';
 import { DeleteListingModal } from '../components/DeleteListingModal';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { PropertyService } from '../services/PropertyService';
 import { propertyTypeToCategory } from '../utils/propertyCategory';
 import { HospitalitySection } from '../components/HospitalitySection';
@@ -26,6 +27,8 @@ interface RenterListingsScreenProps {
   onOpenTours: (property: Property) => void;
   onEditProperty?: (property: Property) => void;
   refreshKey?: number;
+  /** Notify parent so screens like Home can refetch (visibility of a listing changed). */
+  onListingMutated?: () => void;
 }
 
 export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
@@ -34,9 +37,11 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
   onOpenTours,
   onEditProperty,
   refreshKey,
+  onListingMutated,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -88,6 +93,7 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
     }
   };
 
+  // Permanent delete — only invoked for archived or draft listings (live listings route through archive instead).
   const handleDeleteProperty = (property: Property) => {
     setPropertyToDelete(property);
     setDeleteModalVisible(true);
@@ -104,12 +110,71 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
       setProperties(properties.filter(p => p.id !== propertyToDelete.id));
       setDeleteModalVisible(false);
       setPropertyToDelete(null);
-      Alert.alert('Success', 'Listing deleted successfully');
+      onListingMutated?.();
+      Alert.alert(t('common.success'), t('property.permanentlyDeletedToast'));
     } catch (error: any) {
       console.error('Error deleting property:', error);
-      const errorMessage = error?.message || 'Failed to delete listing. Please try again.';
-      Alert.alert('Error', errorMessage);
+      const errorMessage = error?.message || t('property.deleteErrorMessage');
+      Alert.alert(t('common.error'), errorMessage);
     }
+  };
+
+  // Soft delete — moves a live or draft listing to 'archived'. Hidden from public browse, restorable.
+  const handleArchiveProperty = (property: Property) => {
+    if (!property.id) return;
+    Alert.alert(
+      t('property.archiveDialogTitle'),
+      t('property.archiveDialogMessage'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('property.archiveConfirm'),
+          style: 'default',
+          onPress: async () => {
+            try {
+              await PropertyService.archiveProperty(property.id!);
+              setProperties(prev =>
+                prev.map(p => (p.id === property.id ? { ...p, status: 'archived' as const } : p))
+              );
+              onListingMutated?.();
+              Alert.alert(t('property.archivedToastTitle'), t('property.archivedToastMessage'));
+            } catch (error: any) {
+              console.error('Error archiving property:', error);
+              Alert.alert(t('common.error'), error?.message || t('property.archiveErrorMessage'));
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Restore archived → draft. User must re-publish from the edit screen (intentional gating).
+  const handleUnarchiveProperty = (property: Property) => {
+    if (!property.id) return;
+    Alert.alert(
+      t('property.unarchiveDialogTitle'),
+      t('property.unarchiveDialogMessage'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('property.unarchiveConfirm'),
+          style: 'default',
+          onPress: async () => {
+            try {
+              await PropertyService.unarchiveProperty(property.id!);
+              setProperties(prev =>
+                prev.map(p => (p.id === property.id ? { ...p, status: 'draft' as const } : p))
+              );
+              onListingMutated?.();
+              Alert.alert(t('property.unarchivedToastTitle'), t('property.unarchivedToastMessage'));
+            } catch (error: any) {
+              console.error('Error unarchiving property:', error);
+              Alert.alert(t('common.error'), error?.message || t('property.unarchiveErrorMessage'));
+            }
+          },
+        },
+      ]
+    );
   };
 
   // D-06 + Gap 9.3: split data into hospitality strip + non-hospitality vertical list
@@ -125,11 +190,13 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
   const formatStatus = (status: string) => {
     switch (status) {
       case 'draft':
-        return '📝 Draft';
+        return t('property.statusDraft');
       case 'pending':
-        return '⏳ Pending Review';
+        return t('property.statusPending');
       case 'live':
-        return '✅ Live';
+        return t('property.statusLive');
+      case 'archived':
+        return t('property.statusArchived');
       default:
         return status;
     }
@@ -159,6 +226,8 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
         onViewVideo={handleViewVideo}
         onEdit={onEditProperty}
         onDelete={handleDeleteProperty}
+        onArchive={handleArchiveProperty}
+        onUnarchive={handleUnarchiveProperty}
         showEditButton={true}
       />
     </View>
@@ -193,6 +262,8 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
               onViewTour={handleViewTour}
               onEdit={onEditProperty}
               onDelete={handleDeleteProperty}
+              onArchive={handleArchiveProperty}
+              onUnarchive={handleUnarchiveProperty}
               showEditButton={true}
             />
           </>

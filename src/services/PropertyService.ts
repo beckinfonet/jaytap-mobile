@@ -209,6 +209,46 @@ export const PropertyService = {
     return { ...response.data, id: response.data._id };
   },
 
+  /** Soft-delete: move a listing to 'archived'. Hidden from public browse, restorable to draft. */
+  archiveProperty: async (propertyId: string) => {
+    try {
+      const userData = await AuthService.getUserData();
+      if (!userData?.localId) {
+        throw new Error('User not authenticated');
+      }
+
+      const formData = new FormData();
+      formData.append('firebaseUid', userData.localId);
+      formData.append('status', 'archived');
+
+      const response = await apiClient.put(`/properties/${propertyId}`, formData);
+      return { ...response.data, id: response.data._id };
+    } catch (error: any) {
+      console.error('Error archiving property:', error);
+      throw error;
+    }
+  },
+
+  /** Restore an archived listing back to 'draft'. Author re-publishes from the edit screen when ready. */
+  unarchiveProperty: async (propertyId: string) => {
+    try {
+      const userData = await AuthService.getUserData();
+      if (!userData?.localId) {
+        throw new Error('User not authenticated');
+      }
+
+      const formData = new FormData();
+      formData.append('firebaseUid', userData.localId);
+      formData.append('status', 'draft');
+
+      const response = await apiClient.put(`/properties/${propertyId}`, formData);
+      return { ...response.data, id: response.data._id };
+    } catch (error: any) {
+      console.error('Error unarchiving property:', error);
+      throw error;
+    }
+  },
+
   deleteProperty: async (propertyId: string) => {
     try {
       const userData = await AuthService.getUserData();

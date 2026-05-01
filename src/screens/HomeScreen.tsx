@@ -15,6 +15,7 @@ import {
   TouchableWithoutFeedback,
   LayoutAnimation,
   UIManager,
+  RefreshControl,
 } from 'react-native';
 
 // Enable LayoutAnimation on Android
@@ -52,6 +53,7 @@ interface HomeScreenProps {
   onFavorite?: (property: Property) => void; // Optional favorite handler
   favoriteStatuses?: Record<string, boolean>; // Map of property ID to favorite status
   favoriteLoading?: Record<string, boolean>; // Map of property ID to loading status
+  refreshKey?: number; // Bump from parent to force refetch (e.g. after archive/unarchive in My Listings)
 }
 
 const BISHKEK_DISTRICTS = [
@@ -73,7 +75,7 @@ const BISHKEK_DISTRICTS = [
   'Kok-Jar',
 ];
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile, onOpenFavorites, viewMode: propViewMode, onViewModeChange, onFavorite, favoriteStatuses = {}, favoriteLoading = {} }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile, onOpenFavorites, viewMode: propViewMode, onViewModeChange, onFavorite, favoriteStatuses = {}, favoriteLoading = {}, refreshKey }) => {
   const { colors, theme, isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -98,10 +100,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
 
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadProperties();
-  }, []);
+  }, [refreshKey]);
 
   const loadProperties = async () => {
     try {
@@ -114,6 +117,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
       setLoading(false);
     }
   };
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const data = await PropertyService.getAllProperties();
+      setProperties(data ?? []);
+    } catch (error: any) {
+      console.error('[HomeScreen] onRefresh - catch:', error?.message, error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
 
   const filteredProperties = useMemo(() => {
     return properties.filter((p) => {
@@ -535,6 +550,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
             )}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={colors.primary}
+                colors={[colors.primary]}
+              />
+            }
           />
 
           {/* Floating Map Button - bottom right, above bottom navigator */}

@@ -14,6 +14,8 @@ import { parseOobCodeFromResetInput } from './src/utils/parseOobCode';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { AccountSettingsScreen } from './src/screens/AccountSettingsScreen';
 import { CreateListingScreen } from './src/screens/CreateListingScreen';
+import { LandlordApplicationScreen } from './src/screens/LandlordApplicationScreen';
+import { LandlordApplicationQueueScreen } from './src/screens/LandlordApplicationQueueScreen';
 import { RenterListingsScreen } from './src/screens/RenterListingsScreen';
 import { OwnerListingsScreen } from './src/screens/OwnerListingsScreen';
 import { FavoritesScreen } from './src/screens/FavoritesScreen';
@@ -30,6 +32,7 @@ import { FavoritesService } from './src/services/FavoritesService';
 import { ChatService } from './src/services/ChatService';
 import { AuthPromptModal } from './src/components/AuthPromptModal';
 import { RoleRefreshBanner } from './src/components/RoleRefreshBanner';
+import { canFromUser } from './src/hooks/useRole';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -43,11 +46,14 @@ function AppContent() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false);
   const [isCreateListingOpen, setIsCreateListingOpen] = useState(false);
+  const [isLandlordApplicationOpen, setIsLandlordApplicationOpen] = useState(false);
+  const [isLandlordApplicationQueueOpen, setIsLandlordApplicationQueueOpen] = useState(false);
   const [propertyToEdit, setPropertyToEdit] = useState<Property | null>(null);
   const [isAdminVerificationMode, setIsAdminVerificationMode] = useState(false);
   const skipRenterListingsReopenRef = useRef(false);
   const [isRenterListingsOpen, setIsRenterListingsOpen] = useState(false);
   const [renterListingsRefreshKey, setRenterListingsRefreshKey] = useState(0);
+  const [homeRefreshKey, setHomeRefreshKey] = useState(0);
   const [homeViewMode, setHomeViewMode] = useState<'list' | 'map'>('list'); // Track view mode to restore after details
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [authPromptMessage, setAuthPromptMessage] = useState('');
@@ -422,9 +428,28 @@ function AppContent() {
 
   const onProfileBack = useCallback(() => setIsProfileOpen(false), []);
   const onProfileCreateListing = useCallback(() => {
+    // Phase 4.5 pre-flight gate: route to LandlordApplicationScreen if the user lacks listing capability.
+    if (!canFromUser(user, 'manageListings')) {
+      Alert.alert(
+        t('landlordApp.gateNeededTitle'),
+        t('landlordApp.gateNeededMessage'),
+      );
+      setIsProfileOpen(false);
+      setIsLandlordApplicationOpen(true);
+      return;
+    }
     setIsAdminVerificationMode(false);
     setPropertyToEdit(null);
     setIsCreateListingOpen(true);
+  }, [user, t]);
+  const onProfileApplyLandlord = useCallback(() => {
+    setIsProfileOpen(false);
+    setIsAccountSettingsOpen(false);
+    setIsLandlordApplicationOpen(true);
+  }, []);
+  const onProfileReviewLandlordApplications = useCallback(() => {
+    setIsProfileOpen(false);
+    setIsLandlordApplicationQueueOpen(true);
   }, []);
   const onProfileViewListings = useCallback(() => setIsRenterListingsOpen(true), []);
   const onProfileViewFavorites = useCallback(() => {
@@ -599,6 +624,7 @@ function AppContent() {
                   setIsAccountSettingsOpen(false);
                   setIsProfileOpen(false);
                 }}
+                onApplyLandlord={onProfileApplyLandlord}
               />
             </View>
           )}
@@ -611,6 +637,8 @@ function AppContent() {
                 onViewFavorites={onProfileViewFavorites}
                 onViewAppointments={onProfileViewAppointments}
                 onViewAccountSettings={onProfileViewAccountSettings}
+                onApplyLandlord={onProfileApplyLandlord}
+                onReviewLandlordApplications={onProfileReviewLandlordApplications}
               />
             </View>
           )}
@@ -680,6 +708,7 @@ function AppContent() {
               onFavorite={handleFavorite}
               favoriteStatuses={favoriteStatuses}
               favoriteLoading={favoriteLoading}
+              refreshKey={homeRefreshKey}
             />
           </View>
           <BottomNavigator
@@ -692,6 +721,12 @@ function AppContent() {
                 if (!user) {
                   setAuthPromptMessage(t('auth.pleaseSignInToCreateListing'));
                   setShowAuthPrompt(true);
+                  return;
+                }
+                // Phase 4.5 pre-flight gate.
+                if (!canFromUser(user, 'manageListings')) {
+                  Alert.alert(t('landlordApp.gateNeededTitle'), t('landlordApp.gateNeededMessage'));
+                  setIsLandlordApplicationOpen(true);
                   return;
                 }
                 setIsAdminVerificationMode(false);
@@ -820,6 +855,7 @@ function AppContent() {
                 setIsCreateListingOpen(true);
               }}
               refreshKey={renterListingsRefreshKey}
+              onListingMutated={() => setHomeRefreshKey((k) => k + 1)}
             />
           </View>
         )}
@@ -836,6 +872,8 @@ function AppContent() {
                 setIsCreateListingOpen(false);
                 setPropertyToEdit(null);
                 setIsAdminVerificationMode(false);
+                // Refresh Home so newly-published listings (and edits that flip draft↔live) appear without remount.
+                setHomeRefreshKey((k) => k + 1);
                 if (!skipRenterListingsReopenRef.current) {
                   setRenterListingsRefreshKey((k) => k + 1);
                   setIsRenterListingsOpen(true);
@@ -851,6 +889,25 @@ function AppContent() {
                 setIsAdminVerificationMode(false);
                 setIsAccountSettingsOpen(true);
               }}
+            />
+          </View>
+        )}
+        {/* Phase 4.5 — Landlord Application screen (user) */}
+        {!!user && isLandlordApplicationOpen && (
+          <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
+            <LandlordApplicationScreen
+              onBack={() => setIsLandlordApplicationOpen(false)}
+              onSubmitted={() => {
+                setHomeRefreshKey((k) => k + 1); // refresh in case profile data changed
+              }}
+            />
+          </View>
+        )}
+        {/* Phase 4.5 — Admin queue */}
+        {!!user && isLandlordApplicationQueueOpen && (
+          <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
+            <LandlordApplicationQueueScreen
+              onBack={() => setIsLandlordApplicationQueueOpen(false)}
             />
           </View>
         )}

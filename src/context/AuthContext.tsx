@@ -82,8 +82,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         userData.backendProfile = backendUser as BackendProfile;
       } else {
-        // If not exists on backend, create it
-        await AuthService.createBackendUser(data.localId, data.email);
+        // If not exists on backend, create it. Pass the fresh idToken explicitly —
+        // AsyncStorage hasn't been written yet (saveToken runs below), so the apiClient
+        // Bearer interceptor would otherwise have no token to attach (Phase 4.5 fix).
+        await AuthService.createBackendUser(data.localId, data.email, {}, data.idToken);
       }
     } catch (e: any) {
       // If account is locked, re-throw the error
@@ -105,9 +107,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       refreshToken: data.refreshToken,
     };
 
-    // Create user on backend (will check for locked email)
+    // Create user on backend (will check for locked email). Pass the fresh idToken
+    // explicitly — saveToken hasn't run yet at this point (Phase 4.5 fix).
     try {
-      await AuthService.createBackendUser(data.localId, data.email);
+      await AuthService.createBackendUser(data.localId, data.email, {}, data.idToken);
     } catch (e: any) {
       // If account creation fails due to locked email, delete Firebase account and throw error
       if (e.message && (e.message.includes('locked') || e.message.includes('ACCOUNT_LOCKED'))) {

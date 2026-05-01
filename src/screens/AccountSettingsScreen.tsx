@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { ChevronRight } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
@@ -22,6 +23,8 @@ import { DeleteAccountModal } from '../components/DeleteAccountModal';
 interface AccountSettingsScreenProps {
     onBack: () => void;
     onAccountDeleted?: () => void;
+    /** Phase 4.5 — route to LandlordApplicationScreen when user taps "Become a Landlord". */
+    onApplyLandlord?: () => void;
 }
 
 const LANG_TRACK_PADDING = 4;
@@ -37,7 +40,7 @@ const isValidName = (v: string): boolean => /^[\p{L}'’\- ]*$/u.test(v.trim());
 // Fails: letters, "@", "#", "$".
 const isValidPhone = (v: string): boolean => /^[0-9+\-() ]*$/.test(v.trim());
 
-export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ onBack, onAccountDeleted }) => {
+export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ onBack, onAccountDeleted, onApplyLandlord }) => {
     const { user, deleteAccount } = useAuth();
     const { language, setLanguage, t } = useLanguage();
     const { colors, isDark } = useTheme();
@@ -59,7 +62,7 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
     const [phone, setPhone] = useState('');
     const [whatsapp, setWhatsapp] = useState('');
     const [telegram, setTelegram] = useState('');
-    const [isRenterApplicant, setIsRenterApplicant] = useState(false);
+    const [canListProperties, setCanListProperties] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -90,7 +93,7 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                 setPhone(profile.phone || '');
                 setWhatsapp(profile.whatsapp || '');
                 setTelegram(profile.telegram || '');
-                setIsRenterApplicant(profile.isRenterApplicant || false);
+                setCanListProperties(profile.canListProperties || false);
             }
         } catch (error) {
             console.error('Failed to load profile', error);
@@ -111,13 +114,13 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
         }
         setSaving(true);
         try {
+            // canListProperties is intentionally NOT passed — it's admin-controlled (Phase 4.5).
             await AuthService.createBackendUser(user.localId, user.email, {
                 firstName,
                 lastName,
                 phone,
                 whatsapp,
                 telegram,
-                isRenterApplicant
             });
             Alert.alert(t('common.success'), t('accountSettings.profileUpdated'));
             setIsEditing(false);
@@ -284,25 +287,25 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                     </View>
                 </View>
 
-                <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={[styles.sectionTitle, { color: themeStyles.accent }]}>{t('accountSettings.applicationStatus')}</Text>
-                    </View>
-                    <View style={[styles.infoContainer, { backgroundColor: themeStyles.surface }]}>
-                        <View style={styles.infoRow}>
-                            <Text style={[styles.infoLabel, { color: isDark ? '#FFF' : '#000' }]}>{t('accountSettings.renterApplication')}</Text>
-                            {isEditing ? (
-                                <Switch
-                                    value={isRenterApplicant}
-                                    onValueChange={setIsRenterApplicant}
-                                    trackColor={{ false: '#767577', true: '#34C759' }}
-                                />
-                            ) : (
-                                <Text style={[styles.infoValue, { color: themeStyles.textSecondary }]}>{isRenterApplicant ? t('accountSettings.active') : t('accountSettings.inactive')}</Text>
-                            )}
+                {/* Phase 4.5 — Landlord application entry-point (replaces cosmetic isRenterApplicant Switch).
+                    Hidden when user already has the capability (admin/moderator/approved landlord). */}
+                {!canListProperties && onApplyLandlord && (
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Text style={[styles.sectionTitle, { color: themeStyles.accent }]}>{t('accountSettings.applicationStatus')}</Text>
                         </View>
+                        <TouchableOpacity
+                            style={[styles.infoContainer, { backgroundColor: themeStyles.surface }]}
+                            onPress={onApplyLandlord}
+                            activeOpacity={0.75}
+                        >
+                            <View style={styles.infoRow}>
+                                <Text style={[styles.infoLabel, { color: isDark ? '#FFF' : '#000' }]}>{t('landlordApp.becomeLandlord')}</Text>
+                                <ChevronRight size={20} color={themeStyles.textSecondary} />
+                            </View>
+                        </TouchableOpacity>
                     </View>
-                </View>
+                )}
 
                 {isEditing && (
                     <View style={styles.actionButtonsContainer}>

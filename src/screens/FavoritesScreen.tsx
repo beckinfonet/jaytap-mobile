@@ -120,17 +120,31 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
     </View>
   );
 
-  const renderPropertyItem = ({ item }: { item: Property }) => (
-    <PropertyCard
-      property={item}
-      onPress={handlePressProperty}
-      onViewTour={handleViewTour}
-      onViewVideo={handleViewVideo}
-      onFavorite={handleFavorite}
-      isFavorited={favoriteStatuses[item.id] || true} // Always true in favorites screen
-      isLoading={favoriteLoading[item.id] || false}
-    />
-  );
+  const renderPropertyItem = ({ item }: { item: Property }) => {
+    const isArchived = item.status === 'archived';
+    return (
+      <View style={styles.favoriteItemWrapper}>
+        {isArchived && (
+          <View style={[styles.unavailableBadge, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.unavailableBadgeText, { color: colors.textSecondary }]}>
+              {t('property.noLongerAvailable')}
+            </Text>
+          </View>
+        )}
+        <View style={isArchived && styles.archivedDimmed}>
+          <PropertyCard
+            property={item}
+            onPress={handlePressProperty}
+            onViewTour={handleViewTour}
+            onViewVideo={handleViewVideo}
+            onFavorite={handleFavorite}
+            isFavorited={favoriteStatuses[item.id] || true} // Always true in favorites screen
+            isLoading={favoriteLoading[item.id] || false}
+          />
+        </View>
+      </View>
+    );
+  };
 
   if (loading) {
     return (
@@ -246,6 +260,31 @@ const styles = StyleSheet.create({
   emptySubtext: {
     fontSize: 14,
     textAlign: 'center',
+  },
+  favoriteItemWrapper: {
+    position: 'relative',
+  },
+  archivedDimmed: {
+    opacity: 0.55,
+  },
+  unavailableBadge: {
+    position: 'absolute',
+    top: 27,
+    left: 130,
+    zIndex: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  unavailableBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
 });
 

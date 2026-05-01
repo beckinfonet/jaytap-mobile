@@ -28,7 +28,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { Heart, Pencil, Trash2 } from 'lucide-react-native';
+import { Heart, Pencil, Trash2, Archive, ArchiveRestore } from 'lucide-react-native';
 import type { Property } from '../types/Property';
 import { getPropertyShareUrl } from '../constants';
 import { useTheme } from '../theme/ThemeContext';
@@ -46,6 +46,8 @@ interface HospitalityCardProps {
   isLoading?: boolean;
   onEdit?: (property: Property) => void;
   onDelete?: (property: Property) => void;
+  onArchive?: (property: Property) => void;
+  onUnarchive?: (property: Property) => void;
   showEditButton?: boolean;
 }
 
@@ -58,6 +60,8 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
   isLoading = false,
   onEdit,
   onDelete,
+  onArchive,
+  onUnarchive,
   showEditButton = false,
 }) => {
   const { colors, isDark } = useTheme();
@@ -236,39 +240,67 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
           )}
 
           {/* Owner-context chrome — caller decides via showEditButton (Pitfall 1: no inline role check) */}
-          {showEditButton && (onEdit || onDelete) && (
-            <View style={styles.ownerActionsRow}>
-              {onEdit && (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessibilityLabel={t('common.edit')}
-                  style={[
-                    styles.listingActionBtnIcon,
-                    styles.listingActionBtnEdit,
-                    {
-                      backgroundColor: colors.surface,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  onPress={() => onEdit(property)}
-                  activeOpacity={0.75}
-                >
-                  <Pencil size={19} color={isDark ? '#111827' : colors.text} strokeWidth={2} />
-                </TouchableOpacity>
-              )}
-              {onDelete && (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessibilityLabel={t('common.delete')}
-                  style={[styles.listingActionBtnIcon, styles.listingActionBtnDelete]}
-                  onPress={() => onDelete(property)}
-                  activeOpacity={0.8}
-                >
-                  <Trash2 size={19} color="#FFFFFF" strokeWidth={2} />
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
+          {showEditButton && (onEdit || onDelete || onArchive || onUnarchive) && (() => {
+            const status = property.status;
+            const isArchived = status === 'archived';
+            const isDraft = status === 'draft';
+            const canArchive = !isArchived; // live, legacy, or draft
+            return (
+              <View style={styles.ownerActionsRow}>
+                {onEdit && (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.edit')}
+                    style={[
+                      styles.listingActionBtnIcon,
+                      styles.listingActionBtnEdit,
+                      {
+                        backgroundColor: colors.surface,
+                        borderColor: colors.border,
+                      },
+                    ]}
+                    onPress={() => onEdit(property)}
+                    activeOpacity={0.75}
+                  >
+                    <Pencil size={19} color={isDark ? '#111827' : colors.text} strokeWidth={2} />
+                  </TouchableOpacity>
+                )}
+                {canArchive && onArchive && (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={t('property.archive')}
+                    style={[styles.listingActionBtnIcon, styles.listingActionBtnArchive]}
+                    onPress={() => onArchive(property)}
+                    activeOpacity={0.8}
+                  >
+                    <Archive size={19} color="#FFFFFF" strokeWidth={2} />
+                  </TouchableOpacity>
+                )}
+                {isArchived && onUnarchive && (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={t('property.unarchive')}
+                    style={[styles.listingActionBtnIcon, styles.listingActionBtnUnarchive]}
+                    onPress={() => onUnarchive(property)}
+                    activeOpacity={0.8}
+                  >
+                    <ArchiveRestore size={19} color="#FFFFFF" strokeWidth={2} />
+                  </TouchableOpacity>
+                )}
+                {(isArchived || isDraft) && onDelete && (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.delete')}
+                    style={[styles.listingActionBtnIcon, styles.listingActionBtnDelete]}
+                    onPress={() => onDelete(property)}
+                    activeOpacity={0.8}
+                  >
+                    <Trash2 size={19} color="#FFFFFF" strokeWidth={2} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            );
+          })()}
         </View>
       </TouchableOpacity>
     </View>
@@ -411,5 +443,11 @@ const styles = StyleSheet.create({
   },
   listingActionBtnDelete: {
     backgroundColor: '#E53935',
+  },
+  listingActionBtnArchive: {
+    backgroundColor: '#D97706',
+  },
+  listingActionBtnUnarchive: {
+    backgroundColor: '#059669',
   },
 });

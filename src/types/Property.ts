@@ -62,8 +62,8 @@ export interface Property {
   platformVerifications?: PlatformVerifications;
   verificationUpdatedAt?: string;
   verificationUpdatedByUid?: string;
-  /** Listing publication state. 'draft' is the author's staging area; 'live' is user-visible. Added Phase 5 D-16 — FORM-08 edit-mode Draft/Publish rule. */
-  status?: 'draft' | 'live';
+  /** Listing publication state. 'draft' is the author's staging area; 'live' is user-visible; 'archived' is soft-deleted (hidden from browse, restorable to draft). */
+  status?: 'draft' | 'live' | 'archived';
   // Phase 6 (HOSP-05 / D-20 / Gap 9.1) — Hospitality top-level fields (NOT inside specs)
   rooms?: number;
   maxGuests?: number;

@@ -12,13 +12,14 @@ export type Role = 'admin' | 'moderator' | 'user' | 'guest';
  * Adding an action is additive (safe); removing one requires grep of call sites.
  */
 export type Action =
-  | 'editVerifications'      // M1 — admin only
-  | 'editMatterportUrl'      // M1 — admin only
-  | 'editPanoramicUrl'       // M1 — admin only
-  | 'manageListings'         // any authenticated user (post ROLE-07 cutover; ownership enforced server-side)
-  | 'editAnyListing'         // M2 forward-compat — moderator + admin
-  | 'approveListings'        // M2 forward-compat — moderator + admin
-  | 'promoteToModerator';    // M2 forward-compat — admin only
+  | 'editVerifications'              // M1 — admin only
+  | 'editMatterportUrl'              // M1 — admin only
+  | 'editPanoramicUrl'               // M1 — admin only
+  | 'manageListings'                 // M2 Phase 4.5 — admin/moderator implicit; user requires backendProfile.canListProperties
+  | 'editAnyListing'                 // M2 forward-compat — moderator + admin
+  | 'approveListings'                // M2 forward-compat — moderator + admin
+  | 'promoteToModerator'             // M2 forward-compat — admin only
+  | 'reviewLandlordApplications';    // M2 Phase 4.5 — admin only
 
 /**
  * Thrown by service-layer guards when the authenticated user is not permitted
@@ -77,17 +78,20 @@ export function canFromUser(user: any, action: Action): boolean {
     case 'editMatterportUrl':
     case 'editPanoramicUrl':
     case 'promoteToModerator':
+    case 'reviewLandlordApplications':
       return role === 'admin';
     case 'editAnyListing':
     case 'approveListings':
       return role === 'admin' || role === 'moderator';
     case 'manageListings':
-      // Post Plan 09 enum cutover + Plan 06 backend cleanup: legacy `userType === 'renter'`
-      // no longer exists in Mongo, and propertyRoutes.js no longer gates this action by
-      // role. Mirror the backend on the client: any authenticated user with a
-      // backendProfile may manage listings; ownership is enforced separately at the
-      // service layer + server. (ROLE-07 closes the M1 D-12 'renter' carve-out.)
-      return role !== 'guest' && !!user?.backendProfile;
+      // Phase 4.5 capability gate: admins and moderators are implicit; plain users (role==='user')
+      // require an admin-approved LandlordApplication, surfaced as backendProfile.canListProperties.
+      // Mirrors the backend's requireListingCapability in propertyRoutes.js (server enforces too).
+      // Editing one's own existing listing is intentionally NOT gated (server PUT route allows
+      // owner edits regardless of capability — see Phase 4.5 plan note).
+      if (role === 'admin' || role === 'moderator') return true;
+      if (role === 'user') return user?.backendProfile?.canListProperties === true;
+      return false;
   }
 }
 
