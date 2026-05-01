@@ -1004,37 +1004,23 @@ See Topic 7 for the full pattern. Key points: `useEffect` with `AppState.addEven
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED — 2026-05-01 via plan-phase Q&A + CONTEXT.md amendments)
 
-1. **Schema-default ambiguity (A9 above)**
-   - What we know: D-01 says `default: 'pending'`. D-02 says schema layer `default: 'live'` for legacy reads.
-   - What's unclear: a Mongoose schema can have only one `default`. Which one wins?
-   - Recommendation: planner clarifies with user; recommended resolution = schema default `'pending'`, null-coalesce via migration + client `?? 'live'`.
+All six items below were resolved before planning began. Decisions land in CONTEXT.md `<decisions>` Amendments block (D-18..D-22). Plans 01–09 implement them. Documented here for research-trail completeness — do NOT re-litigate in Phase 3+.
 
-2. **Pill position vs share/heart actions (Pitfall 5)**
-   - What we know: UI-SPEC says top-right.
-   - What's unclear: existing share/heart already there; UI-SPEC author may not have verified.
-   - Recommendation: planner picks top-left-below-rent-badge OR left-of-share-button; update UI-SPEC if changing.
+1. **Schema-default ambiguity (A9 above)** → RESOLVED via CONTEXT.md **D-18**: schema default is `'pending'` only; D-02 sub-clause (a) ("schema patch ships `default: 'live'`") is RETRACTED. Null-status absorbed by migration backfill (D-04 op b) + client `?? 'live'` (D-07).
 
-3. **CreateListingScreen submit copy (CONTEXT.md `<specifics>` last bullet)**
-   - What we know: MOD-03 framing implies "Submit for review" not "Publish."
-   - What's unclear: whether to ship the copy change in Phase 2 or defer.
-   - Recommendation: ship the copy change (+2 locale keys per UI-SPEC). Planner has discretion.
+2. **Pill position vs share/heart actions (Pitfall 5)** → RESOLVED via CONTEXT.md **D-19**: pill renders top-LEFT below the rent/sale type badge (NOT top-right per UI-SPEC original). Plan 05 Task 2 updates `02-UI-SPEC.md` inline to reflect.
 
-4. **Hard-delete guard (A12 above)**
-   - What we know: `propertyRoutes.js:509` allows hard-delete of `'archived'` or `'draft'`.
-   - What's unclear: Phase 2 drops `'draft'`; should `'rejected'` join `'archived'` as hard-deletable?
-   - Recommendation: keep `'archived'`-only; `'rejected'` listings should be re-edited not deleted.
+3. **CreateListingScreen submit copy** → RESOLVED via CONTEXT.md **D-20**: copy changes to EN "Submit for review" / RU «Отправить на модерацию» on the new-listing path; edit-resubmit path uses a distinct CTA.
 
-5. **Audit fields (`submittedAt`, `approvedAt`, etc.) — Phase 2 or Phase 3?**
-   - What we know: MOD-01 lists ~10 audit fields; Phase 2 implements MOD-01 per requirements traceability.
-   - What's unclear: Phase 3 actions (approve/reject) populate these fields, but Phase 2's schema doesn't strictly need them defined yet.
-   - Recommendation: land them in Phase 2 schema patch (one additive Mongoose edit) so Phase 3 can write without re-editing schema.
+4. **Hard-delete guard (A12 above)** → RESOLVED via plan-phase Q&A: keep `'archived'`-only behavior; drop the `'draft'` clause from `propertyRoutes.js:509` as part of D-01 enum cutover (it becomes dead code). `'rejected'` listings are NOT hard-deletable — owners must edit-resubmit. Plan 03 Edit 7 implements.
 
-6. **Should the unarchive UI be hidden or rewritten in Phase 2?**
-   - What we know: `PropertyService.unarchiveProperty()` sends `status: 'draft'` which fails post-Phase-2 enum.
-   - What's unclear: Topic 8 recommends hide; alternative is rewrite to `'pending'`.
-   - Recommendation: hide in Phase 2 (per Topic 8); Phase 4 redesigns archive flow.
+5. **Audit fields — Phase 2 or Phase 3?** → RESOLVED via CONTEXT.md **D-21**: Phase 2 adds full nullable definitions (`submittedAt`, `approvedAt`, `approvedByUid`, `rejectedAt`, `rejectedByUid`, `rejectionReasonCode`, `rejectionReasonNote`, `archivedAt`, `archivedByUid`); Phase 2 only writes `submittedAt`; Phase 3+ writes the rest. Avoids a Phase 3 schema migration.
+
+6. **Should the unarchive UI be hidden or rewritten in Phase 2?** → RESOLVED via Topic 8 + plan-phase Q&A: hide in Phase 2 (the `'draft'` enum value is going away; rewriting unarchive to `'pending'` is Phase 4's archive-lifecycle scope). Plan 04 Task 2 strips `formData.append('status'…)` writes from `PropertyService.ts` and Plan 06 hides the UI affordance. Phase 4 redesigns archive flow holistically.
+
+**No Phase 2 questions remain open.** Future Phase 3/4 planners should treat D-18..D-22 as locked.
 
 ---
 
