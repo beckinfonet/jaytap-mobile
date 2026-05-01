@@ -42,6 +42,7 @@ import {
 } from '../utils/propertyCategory';
 import { HospitalityCard } from '../components/HospitalityCard';
 import { HospitalitySection } from '../components/HospitalitySection';
+import { HomeRejectionBanner } from '../components/HomeRejectionBanner';
 
 interface HomeScreenProps {
   onSelectProperty: (property: Property) => void;
@@ -54,6 +55,9 @@ interface HomeScreenProps {
   favoriteStatuses?: Record<string, boolean>; // Map of property ID to favorite status
   favoriteLoading?: Record<string, boolean>; // Map of property ID to loading status
   refreshKey?: number; // Bump from parent to force refetch (e.g. after archive/unarchive in My Listings)
+  /** D-14 / MOD-09: open RenterListings with `defaultTab='rejected'` from the HomeRejectionBanner CTA.
+   *  Wired by Plan 08 in App.tsx — until then, the banner press is a no-op. */
+  onOpenMyListingsRejectedTab?: () => void;
 }
 
 const BISHKEK_DISTRICTS = [
@@ -75,7 +79,7 @@ const BISHKEK_DISTRICTS = [
   'Kok-Jar',
 ];
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile, onOpenFavorites, viewMode: propViewMode, onViewModeChange, onFavorite, favoriteStatuses = {}, favoriteLoading = {}, refreshKey }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile, onOpenFavorites, viewMode: propViewMode, onViewModeChange, onFavorite, favoriteStatuses = {}, favoriteLoading = {}, refreshKey, onOpenMyListingsRejectedTab }) => {
   const { colors, theme, isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -101,6 +105,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // D-14 / MOD-09: rejected-listing count for HomeRejectionBanner. Lazy-fetched once
+  // per session for owners that can list (canListProperties OR moderator/admin role).
+  const [rejectedCount, setRejectedCount] = useState(0);
 
   useEffect(() => {
     loadProperties();
@@ -109,7 +116,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   const loadProperties = async () => {
     try {
       const data = await PropertyService.getAllProperties();
-      setProperties(data ?? []);
+      // D-07: defense in depth — server filters but client coalesces and re-filters at SOURCE.
+      // Pitfall 3: filtering only filteredProperties leaks pending/rejected rows into the
+      // hospitality strip (which derives separately from `properties`).
+      const liveOnly = (data ?? []).filter((p: Property) => (p.status ?? 'live') === 'live');
+      setProperties(liveOnly);
     } catch (error: any) {
       console.error('[HomeScreen] loadProperties - catch:', error?.message, error);
       Alert.alert('Error', 'Failed to load properties');
@@ -122,13 +133,37 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
     setRefreshing(true);
     try {
       const data = await PropertyService.getAllProperties();
-      setProperties(data ?? []);
+      // D-07: same source-level coalesce + filter on refresh path (Pitfall 3 mirror).
+      const liveOnly = (data ?? []).filter((p: Property) => (p.status ?? 'live') === 'live');
+      setProperties(liveOnly);
     } catch (error: any) {
       console.error('[HomeScreen] onRefresh - catch:', error?.message, error);
     } finally {
       setRefreshing(false);
     }
   }, []);
+
+  // D-14 / MOD-09: lazy-fetch rejected count for the current owner. Guarded by
+  // canListProperties (or moderator/admin role) so guests never trigger the call.
+  // Re-runs when the user changes or refreshKey bumps (e.g. after edit-resubmit).
+  useEffect(() => {
+    if (!user?.localId) return;
+    const profile = (user as any)?.backendProfile;
+    const canList =
+      profile?.canListProperties === true ||
+      profile?.userType === 'moderator' ||
+      profile?.userType === 'admin';
+    if (!canList) return;
+
+    PropertyService.getUserProperties(user.localId)
+      .then((mine: Property[]) => {
+        const rejected = (mine ?? []).filter((p) => p.status === 'rejected').length;
+        setRejectedCount(rejected);
+      })
+      .catch((err: any) => {
+        console.warn('[HomeScreen] failed to count rejected listings:', err?.message);
+      });
+  }, [user?.localId, refreshKey]);
 
   const filteredProperties = useMemo(() => {
     return properties.filter((p) => {
@@ -356,6 +391,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
           />
         </TouchableOpacity>
       </View>
+
+      {/* D-14 / MOD-09: HomeRejectionBanner — only renders when rejectedCount > 0
+          (Plan 05 component auto-returns null on count <= 0). Placed below the search
+          bar and above the collapsible filter section so it's always visible regardless
+          of filter-expansion state. Tap navigates parent to RenterListings → 'rejected' tab. */}
+      {rejectedCount > 0 && (
+        <HomeRejectionBanner
+          count={rejectedCount}
+          onPress={onOpenMyListingsRejectedTab ?? (() => {})}
+        />
+      )}
 
       {/* Filter Section - Collapsible (toggled via filter icon in top right) */}
       {isFiltersExpanded && (
