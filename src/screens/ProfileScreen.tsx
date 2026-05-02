@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, memo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator, AppState, AppStateStatus } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Heart, Calendar, ClipboardList, Plus, ChevronRight, LogOut, Inbox } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +8,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
 import { AuthService } from '../services/AuthService';
 import { AppointmentService } from '../services/AppointmentService';
+import { PropertyService } from '../services/PropertyService';
 import { LandlordApplicationStatusBanner } from '../components/LandlordApplicationStatusBanner';
 
 interface ProfileScreenProps {
@@ -19,9 +20,15 @@ interface ProfileScreenProps {
     onViewAccountSettings?: () => void;
     onApplyLandlord?: () => void;
     onReviewLandlordApplications?: () => void;
+    // Phase 3 additions (Plan 03-04 / D-03):
+    // onReviewModerationQueue navigates to <ModerationQueueScreen> (App.tsx Plan 06 wires it).
+    // pendingModerationCount is optional — if a parent owns the count via a hook, it takes
+    // precedence; otherwise this screen self-fetches via PropertyService.getModerationQueueCount().
+    onReviewModerationQueue?: () => void;
+    pendingModerationCount?: number;
 }
 
-function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onViewFavorites, onViewAppointments, onViewAccountSettings, onApplyLandlord, onReviewLandlordApplications }: ProfileScreenProps) {
+function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onViewFavorites, onViewAppointments, onViewAccountSettings, onApplyLandlord, onReviewLandlordApplications, onReviewModerationQueue, pendingModerationCount }: ProfileScreenProps) {
     const { user, logout } = useAuth();
     const { t } = useLanguage();
     const { isDark } = useTheme();
@@ -37,6 +44,50 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
     /** Same listing tools as renters; admins keep access. Encapsulated in can('manageListings') per D-12. */
     const canManageListings = can('manageListings');
     const canReviewLandlordApplications = can('reviewLandlordApplications');
+    // Phase 3 (Plan 02 added the Action union member; Plan 03-04 consumes it).
+    const canViewModerationQueue = can('viewModerationQueue');
+
+    // Pending-count state. Self-fetched if no prop is passed; parent (App.tsx Plan 06)
+    // may own the count via a hook and pass it via prop — in which case we skip the fetch.
+    const [internalPendingCount, setInternalPendingCount] = useState<number>(0);
+    const displayCount = (typeof pendingModerationCount === 'number') ? pendingModerationCount : internalPendingCount;
+
+    // Self-fetch on mount when canViewModerationQueue && prop not provided.
+    useEffect(() => {
+        if (!canViewModerationQueue) return;
+        if (typeof pendingModerationCount === 'number') return; // parent owns the count
+        let cancelled = false;
+        (async () => {
+            try {
+                const count = await PropertyService.getModerationQueueCount();
+                if (!cancelled) setInternalPendingCount(count);
+            } catch {
+                /* non-fatal — badge silently stays at 0 (server 403 / network blip) */
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [canViewModerationQueue, pendingModerationCount]);
+
+    // AppState 'active' refresh — own per-screen cooldown ref (PATTERNS §E).
+    // The 60s cooldown is independent from the AuthContext refreshRole cooldown AND from
+    // the ModerationQueueScreen's own cooldown — each consumer fires its OWN work on
+    // its OWN schedule.
+    const lastCountFetchAt = useRef<number | null>(null);
+    useEffect(() => {
+        if (!canViewModerationQueue) return;
+        if (typeof pendingModerationCount === 'number') return; // parent owns the count
+        const onChange = (nextState: AppStateStatus) => {
+            if (nextState !== 'active') return;
+            const now = Date.now();
+            if (lastCountFetchAt.current && now - lastCountFetchAt.current < 60_000) return;
+            lastCountFetchAt.current = now;
+            PropertyService.getModerationQueueCount()
+                .then(setInternalPendingCount)
+                .catch(() => { /* non-fatal */ });
+        };
+        const sub = AppState.addEventListener('change', onChange);
+        return () => sub.remove();
+    }, [canViewModerationQueue, pendingModerationCount]);
 
     const themeStyles = useMemo(
         () => ({
@@ -217,6 +268,32 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
                             </TouchableOpacity>
                         </>
                     )}
+                    {/* Phase 3 (Plan 03-04 / D-03) — Moderation Queue entry-point row gated
+                        by canViewModerationQueue. Pending-count badge follows mainstream-mobile
+                        inbox precedent (Mail / Slack); badge hidden when count === 0 so the
+                        moderator can still verify the queue is empty. */}
+                    {canViewModerationQueue && onReviewModerationQueue && (
+                        <>
+                            <View style={[styles.menuDivider, { backgroundColor: themeStyles.border }]} />
+                            <TouchableOpacity
+                                style={styles.menuRow}
+                                onPress={onReviewModerationQueue}
+                                activeOpacity={0.7}
+                                accessibilityLabel={`${t('moderation.queue.entryPoint')}: ${displayCount} pending`}
+                            >
+                                <Inbox size={22} color={themeStyles.accent} strokeWidth={1.5} />
+                                <Text style={[styles.menuText, { color: themeStyles.text, flex: 1 }]}>
+                                    {t('moderation.queue.entryPoint')}
+                                </Text>
+                                {displayCount > 0 && (
+                                    <View style={[styles.pendingBadge, { backgroundColor: themeStyles.accent }]}>
+                                        <Text style={styles.pendingBadgeText}>{displayCount}</Text>
+                                    </View>
+                                )}
+                                <ChevronRight size={20} color={themeStyles.textSecondary} />
+                            </TouchableOpacity>
+                        </>
+                    )}
                 </View>
             </ScrollView>
 
@@ -344,6 +421,20 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
+    // Phase 3 (Plan 03-04 / D-03) — pending-count badge geometry per UI-SPEC
+    // §"Profile entry-point geometry": borderRadius 10 / paddingHorizontal 6 /
+    // paddingVertical 2 / minWidth 20. Typography 11/600/14 — IDENTICAL to Phase 2
+    // <StatusPill> per UI-SPEC §Typography (reuse, not redeclare).
+    pendingBadge: {
+        borderRadius: 10,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        minWidth: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 8,
+    },
+    pendingBadgeText: { color: '#FFFFFF', fontSize: 11, fontWeight: '600', lineHeight: 14 },
     logoutFooter: {
         paddingHorizontal: 20,
         paddingTop: 12,
