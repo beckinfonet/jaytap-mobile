@@ -276,7 +276,10 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
       ) : (
         <FlatList
           data={items}
-          keyExtractor={(item) => item.id}
+          // WR-03 fix — defensively coerce to String; the upstream PropertyService
+          // mapping already does this, but a belt-and-suspenders String() here
+          // protects against future regressions if items ever flow in unmapped.
+          keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
           refreshControl={

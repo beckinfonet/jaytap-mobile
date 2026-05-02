@@ -302,8 +302,12 @@ export const PropertyService = {
         throw new PermissionDeniedError();
       }
       const response = await apiClient.get('/moderation/queue');
+      // WR-03 fix — defensively coerce _id to String so keyExtractor consumers always
+      // receive a string, even if a future backend change uses .lean() without toJSON
+      // (in which case _id would arrive as an ObjectId-shaped object instead of the
+      // serialized string).
       return {
-        items: (response.data.items || []).map((p: any) => ({ ...p, id: p._id })),
+        items: (response.data.items || []).map((p: any) => ({ ...p, id: String(p._id) })),
         totalCount: response.data.totalCount,
       };
     } catch (error: any) {
