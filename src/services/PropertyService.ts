@@ -326,8 +326,14 @@ export const PropertyService = {
       const { totalCount } = await PropertyService.getModerationQueue();
       return totalCount;
     } catch (error: any) {
+      // WR-04 fix — distinguish "transient network error" from "permission denied".
+      // The 403 / 401 case is already handled by apiClient interceptor (banner / hard
+      // logout), but consumers that opt-in to handling it (e.g. ModerationQueueScreen.load
+      // via WR-06) need the error surface preserved. Network blips still resolve to 0
+      // so the Profile badge silently stays at 0.
+      if (error instanceof PermissionDeniedError) throw error;
       console.error('Error fetching moderation queue count:', error?.message);
-      return 0; // non-fatal — badge stays at 0 on failure
+      return 0;
     }
   },
 
