@@ -43,6 +43,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { PropertyService } from '../services/PropertyService';
 import { PropertyCard } from '../components/PropertyCard';
 import RejectListingModal, { RejectReasonCode } from '../components/RejectListingModal';
+import { PermissionDeniedError } from '../hooks/useRole';
 import type { Property } from '../types/Property';
 
 interface ModerationQueueScreenProps {
@@ -80,6 +81,14 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
       setItems(queueItems as Property[]);
     } catch (err: any) {
       console.error('Failed to load moderation queue:', err);
+      // WR-06 fix — surface PermissionDeniedError as a translated message and bounce
+      // out (the moderator can't see this screen anyway). Previously the user saw
+      // the literal sentinel string 'E_PERMISSION_DENIED' as the Alert body.
+      if (err instanceof PermissionDeniedError || err?.message === 'E_PERMISSION_DENIED') {
+        Alert.alert(t('common.error'), t('errors.permissionDenied'));
+        onBack();
+        return;
+      }
       // WR-01 fix — fall back to a generic translated error string when the server
       // returns a 5xx with no body and the axios error has no .message; prevents
       // the empty-Alert UX from rendering just an "OK" button with no message body.
@@ -91,7 +100,7 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
       setLoading(false);
       setRefreshing(false);
     }
-  }, [t]);
+  }, [t, onBack]);
 
   useEffect(() => {
     load();
