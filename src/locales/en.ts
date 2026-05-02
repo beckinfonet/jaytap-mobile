@@ -605,6 +605,8 @@ export const en = {
   'moderation.editOnBehalf.banner': 'Editing on behalf of {ownerEmail}',
   'moderation.editOnBehalf.success': 'Listing updated and approved.',
   'moderation.actor.generic': 'JayTap moderator',
+  // Phase 3 WR-02 fix — accessibilityLabel suffix for the Profile entry-point pending-count.
+  'moderation.queue.entryPoint.a11yPending': '{count} pending',
 } as const;
 
 export type TranslationKeys = keyof typeof en;

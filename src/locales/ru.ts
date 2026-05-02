@@ -608,4 +608,6 @@ export const ru: Record<TranslationKeys, string> = {
   'moderation.editOnBehalf.banner': 'Редактирование от имени {ownerEmail}',
   'moderation.editOnBehalf.success': 'Объявление обновлено и одобрено.',
   'moderation.actor.generic': 'Модератор JayTap',
+  // Phase 3 WR-02 fix — accessibilityLabel suffix for the Profile entry-point pending-count.
+  'moderation.queue.entryPoint.a11yPending': '{count} ожидает проверки',
 };

@@ -285,7 +285,8 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
                                 style={styles.menuRow}
                                 onPress={onReviewModerationQueue}
                                 activeOpacity={0.7}
-                                accessibilityLabel={`${t('moderation.queue.entryPoint')}: ${displayCount} pending`}
+                                // WR-02 fix — was hardcoded English "X pending" suffix; now fully translated.
+                                accessibilityLabel={`${t('moderation.queue.entryPoint')}: ${t('moderation.queue.entryPoint.a11yPending').replace('{count}', String(displayCount))}`}
                             >
                                 <Inbox size={22} color={themeStyles.accent} strokeWidth={1.5} />
                                 <Text style={[styles.menuText, { color: themeStyles.text, flex: 1 }]}>
