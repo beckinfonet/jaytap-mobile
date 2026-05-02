@@ -98,7 +98,7 @@
   - [x] 03-02-PLAN.md — Wave-1 client foundations (19 EN+RU locale keys + useRole.ts viewModerationQueue + 5 PropertyService methods + RejectionBanner i18n patch) — completed 2026-05-02 (client commits `ecfe3e6` + `337a023` + `7eb3fc1`; i18n parity PASS, tsc baseline 2 preserved, 4 new useRole tests pass)
   - [x] 03-03-PLAN.md — Wave-2 backend approve/reject/queue endpoints (race-safe atomic findOneAndUpdate + actorUid from req.firebaseUid + audit follow-up) — completed 2026-05-02 (backend commits `36ec094` GET /queue + POST approve and `a73e475` POST reject + MOD-13 owner-payload privacy strip; backend npm test 67/67 PASS; 0 anti-pattern grep matches for actorUid: req.body / req.headers)
   - [x] 03-04-PLAN.md — Wave-2 client RejectListingModal + ModerationQueueScreen overlay + ProfileScreen entry-point with badge — completed 2026-05-02 (3 RN-client commits: `d49b606` RejectListingModal reusable component (209 LOC), `66d1e7b` ModerationQueueScreen overlay (333 LOC) with FIFO PropertyCard list + 3-button action row + per-screen useRef AppState cooldown + 409 race handling, `77c68de` ProfileScreen entry-point row + pending-count badge with hybrid prop-or-self-fetch ownership; tsc baseline 2 preserved, i18n parity exits 0, 15 of 19 Plan-02 moderation locale keys consumed (remaining 4 are Plan 06 + defensive forward-fit); App.tsx and PropertyDetailsScreen NOT touched per Plan 06 territory)
-  - [ ] 03-05-PLAN.md — Wave-3 backend edit-on-behalf endpoint + supertest race-condition harness (MANDATORY per gsd-verifier-misses-regressions.md; 13+ test cases)
+  - [x] 03-05-PLAN.md — Wave-3 backend edit-on-behalf endpoint + supertest race-condition harness — completed 2026-05-02 (2 backend commits: `729a0fb` PUT /listings/:id edit-on-behalf handler with 14-field mass-assignment whitelist + race-safe `findOneAndUpdate({_id, status: {$in: ['pending','rejected']}})` + force status flip to 'live' (D-12) + clear rejection metadata + audit row with changed-fields diff; `4df1937` 18-case supertest harness covering MOD-15 race-condition (Promise.all), MOD-16 audit + actorUid anti-spoofing, MOD-17 per-endpoint role-gating × 5, MOD-12 reasonCode validation × 3, MOD-14 edit-on-behalf invariants × 5, MOD-10 FIFO; backend test count 67 → 85 (+18 new, 0 failed); anti-pattern grep gates `actorUid: req.body` / `actorUid: req.headers` both return 0; module-load enumerates all 4 routes `["GET /queue","POST /properties/:id/approve","POST /properties/:id/reject","PUT /listings/:id"]`)
   - [ ] 03-06-PLAN.md — Wave-4 App.tsx wireup + PropertyDetailsScreen action footer + CreateListingScreen moderatorContext + PropertyDetailsHost LOC mitigation + manual physical-device smoke checkpoint
 **UI hint**: yes
 
@@ -154,7 +154,7 @@
 |-------|----------------|--------|-----------|
 | 1. Backend Role Foundation + Auth Migration + Hotfix Bundle | 13/13 | ✅ Complete | 2026-04-30 |
 | 2. Listing Lifecycle Status Field Absorption | 9/9 | ✅ Complete | 2026-05-01 |
-| 3. Moderation Queue + Actions + Edit-on-Behalf | 3/6 | Executing (Plans 01 + 02 + 03 complete; Plan 04 next) | — |
+| 3. Moderation Queue + Actions + Edit-on-Behalf | 5/6 | Executing (Plans 01 + 02 + 03 + 04 + 05 complete; Plan 06 next — App.tsx wireup + PropertyDetailsScreen action footer + CreateListingScreen moderatorContext + manual physical-device smoke) | — |
 | 4. Archive Lifecycle (Owner + Mod/Admin) | 0/0 | Not started | — |
 | 5. Admin Role Management UI | 0/0 | Not started | — |
 | 6. Hardening + Manual Physical-Device QA + Release | 0/0 | Not started | — |
