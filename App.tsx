@@ -33,6 +33,7 @@ import { ChatService } from './src/services/ChatService';
 import { AuthPromptModal } from './src/components/AuthPromptModal';
 import { RoleRefreshBanner } from './src/components/RoleRefreshBanner';
 import { canFromUser } from './src/hooks/useRole';
+import PropertyDetailsHost from './src/components/PropertyDetailsHost';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -835,81 +836,58 @@ function AppContent() {
           />
         </View>
         {selectedProperty && (
-          <View
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 2,
-              elevation: 4,
-              pointerEvents: 'auto',
+          <PropertyDetailsHost
+            selectedProperty={selectedProperty}
+            homeViewMode={homeViewMode}
+            isFavorited={favoriteStatuses[selectedProperty.id] || false}
+            isLoadingFavorite={favoriteLoading[selectedProperty.id] || false}
+            onBack={() => setSelectedProperty(null)}
+            onOpenTours={() => handleOpenTours(selectedProperty)}
+            onOpenPhotos={(url) => setActivePhotosUrl(url)}
+            onMessagePress={() => {
+              if (!user) {
+                setAuthPromptMessage(t('auth.pleaseSignInToMessage'));
+                setShowAuthPrompt(true);
+                return;
+              }
+              const ownerUid = selectedProperty.owner?.uid || (selectedProperty as any).ownerUid;
+              if (ownerUid === user.localId) return;
+              setPropertyToOpenChat(selectedProperty);
+              setSelectedProperty(null);
+              setIsChatOpen(true);
             }}
-          >
-            <PropertyDetailsScreen
-              property={selectedProperty}
-              onBack={() => {
-                setSelectedProperty(null);
-              }}
-              onOpenTours={() => handleOpenTours(selectedProperty)}
-              onOpenPhotos={(url) => setActivePhotosUrl(url)}
-              onMessagePress={() => {
-                if (!user) {
-                  setAuthPromptMessage(t('auth.pleaseSignInToMessage'));
-                  setShowAuthPrompt(true);
-                  return;
-                }
-                const ownerUid = selectedProperty.owner?.uid || (selectedProperty as any).ownerUid;
-                if (ownerUid === user.localId) {
-                  return;
-                }
-                setPropertyToOpenChat(selectedProperty);
-                setSelectedProperty(null);
-                setIsChatOpen(true);
-              }}
-              onScheduleViewing={() => {
-                if (!user) {
-                  setAuthPromptMessage(t('auth.pleaseSignInToSchedule'));
-                  setShowAuthPrompt(true);
-                  return;
-                }
-                const ownerUid = selectedProperty.owner?.uid || (selectedProperty as any).ownerUid;
-                if (ownerUid === user.localId) return;
-                setPropertyToSchedule(selectedProperty);
-                setSelectedProperty(null);
-                setIsScheduleViewingOpen(true);
-              }}
-              returnToMap={homeViewMode === 'map'}
-              onFavorite={handleFavorite}
-              isFavorited={favoriteStatuses[selectedProperty.id] || false}
-              isLoading={favoriteLoading[selectedProperty.id] || false}
-              onLandlordPress={(ownerUid, ownerName) => {
-                setSelectedProperty(null);
-                setOwnerListingsUid(ownerUid);
-                setOwnerListingsName(ownerName);
-              }}
-              onAdminVerifyDocuments={(p) => {
-                skipRenterListingsReopenRef.current = true;
-                setPropertyToEdit(p);
-                setIsAdminVerificationMode(true);
-                setIsCreateListingOpen(true);
-                setSelectedProperty(null);
-              }}
-              // Phase 2 D-15 / MOD-08: RejectionBanner "Edit & resubmit" CTA. Routes
-              // the rejected listing into the existing CreateListingScreen edit-mode
-              // entry the M1 Phase 5 decomposition wired up (mirrors the
-              // onEditProperty path used from RenterListingsScreen). On submit, the
-              // backend Plan 03 D-22 sanitizer auto-flips status 'rejected' →
-              // 'pending' and re-stamps submittedAt.
-              onEditListing={(property) => {
-                setIsAdminVerificationMode(false);
-                setPropertyToEdit(property);
-                setSelectedProperty(null);
-                setIsCreateListingOpen(true);
-              }}
-            />
-          </View>
+            onScheduleViewing={() => {
+              if (!user) {
+                setAuthPromptMessage(t('auth.pleaseSignInToSchedule'));
+                setShowAuthPrompt(true);
+                return;
+              }
+              const ownerUid = selectedProperty.owner?.uid || (selectedProperty as any).ownerUid;
+              if (ownerUid === user.localId) return;
+              setPropertyToSchedule(selectedProperty);
+              setSelectedProperty(null);
+              setIsScheduleViewingOpen(true);
+            }}
+            onFavorite={handleFavorite}
+            onLandlordPress={(ownerUid, ownerName) => {
+              setSelectedProperty(null);
+              setOwnerListingsUid(ownerUid);
+              setOwnerListingsName(ownerName);
+            }}
+            onAdminVerifyDocuments={(p) => {
+              skipRenterListingsReopenRef.current = true;
+              setPropertyToEdit(p);
+              setIsAdminVerificationMode(true);
+              setIsCreateListingOpen(true);
+              setSelectedProperty(null);
+            }}
+            onEditListing={(property) => {
+              setIsAdminVerificationMode(false);
+              setPropertyToEdit(property);
+              setSelectedProperty(null);
+              setIsCreateListingOpen(true);
+            }}
+          />
         )}
         {(renterListingsEverMounted || isRenterListingsOpen) && (
           <View style={[
