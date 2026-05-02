@@ -91,7 +91,7 @@ Prospective renters and buyers can reliably browse, filter, and inquire about Bi
 
 <!-- M2 v2.0 "Roles & Moderation" started 2026-04-29 via /gsd-new-milestone. REQUIREMENTS.md and ROADMAP.md being defined; M2 phase numbering restarts at 1. M1 v1.0.4 archived to .planning/milestones/v1.0.4-*. -->
 
-**Active workstreams:** M2 "Roles & Moderation" — see `## Current Milestone` above and `.planning/REQUIREMENTS.md` (in progress).
+**Active workstreams:** M2 "Roles & Moderation". Phase 1 (backend role foundation + auth migration) closed 2026-04-30. Phase 2 (listing lifecycle status field absorption) closed 2026-05-01 with backend contract empirically proven on production Mongo (4-state enum + 9 audit fields + role-aware route filters + body-status sanitizer + edit-resubmit auto-flip) and owner-facing UI shipped (4-tab MyListings, StatusPill, RejectionBanner, HomeRejectionBanner, AppState 60s role refresh). Phase 3 (moderation queue + actions, MOD-10..MOD-18) is the next plan-phase entry point.
 
 ### Descoped (M1 v1.0.4)
 
@@ -178,4 +178,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-29 — M2 v2.0 "Roles & Moderation" milestone started via /gsd-new-milestone*
+*Last updated: 2026-05-01 — M2 Phase 2 (listing lifecycle status field absorption) closed; Phase 3 (moderation queue) unblocked*
