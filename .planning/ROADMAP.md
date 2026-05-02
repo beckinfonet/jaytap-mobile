@@ -93,7 +93,13 @@
   3. When two moderators act on the same listing concurrently, the loser receives a 409 Conflict with `code: 'ALREADY_MODERATED'`, the client shows a localized EN+RU "This listing was already reviewed by another moderator." / «Это объявление уже рассмотрено другим модератором.» toast, and the queue refetches automatically
   4. The owner of a rejected listing sees a banner with their rejection reason translated into THEIR locale (not the moderator's locale); the banner reads "JayTap moderator" / «Модератор JayTap» generically and never exposes the moderator's identity
   5. Every approve / reject / edit-on-behalf action writes an append-only audit row to the `moderationLog` Mongo collection with `{actorUid, action, targetType: 'property', targetId, before, after, reasonCode?, reasonNote?, at}` (no M2 UI; data forward-fits a future M3+ audit screen); the 4 new endpoints (`GET /api/moderation/queue`, `POST /api/properties/:id/approve`, `POST /api/properties/:id/reject`, `PUT /api/moderation/listings/:id`) all enforce role ≥ moderator server-side via the JWKS middleware
-**Plans**: TBD
+**Plans**: 6 plans
+  - [ ] 03-01-PLAN.md — Wave-1 backend foundations (serviceAreas + ModerationLog model + moderationRoutes skeleton + index.js mount)
+  - [ ] 03-02-PLAN.md — Wave-1 client foundations (19 EN+RU locale keys + useRole.ts viewModerationQueue + 5 PropertyService methods + RejectionBanner i18n patch)
+  - [ ] 03-03-PLAN.md — Wave-2 backend approve/reject/queue endpoints (race-safe atomic findOneAndUpdate + actorUid from req.firebaseUid + audit follow-up)
+  - [ ] 03-04-PLAN.md — Wave-2 client RejectListingModal + ModerationQueueScreen overlay + ProfileScreen entry-point with badge
+  - [ ] 03-05-PLAN.md — Wave-3 backend edit-on-behalf endpoint + supertest race-condition harness (MANDATORY per gsd-verifier-misses-regressions.md; 13+ test cases)
+  - [ ] 03-06-PLAN.md — Wave-4 App.tsx wireup + PropertyDetailsScreen action footer + CreateListingScreen moderatorContext + PropertyDetailsHost LOC mitigation + manual physical-device smoke checkpoint
 **UI hint**: yes
 
 ### Phase 4: Archive Lifecycle (Owner + Mod/Admin)
@@ -106,7 +112,13 @@
   2. Archived listings are hidden from public list views (Home / Favorites / RenterListings) and from PropertyDetailsScreen for non-owners-non-mods, but remain visible to the owner under OwnerListings "Archived" tab and to mods/admins via the moderation surface
   3. Restoring an archived listing transitions status to `pending` (re-moderated) — NOT back to its prior status — preventing the "owner archives a rejected listing then unarchives to dodge moderator review" bypass; restoration affordance is available to whoever has rights to archive (owner for self-archived; mod/admin for any)
   4. Hard-delete (`DELETE /api/properties/:id`) is admin-only; the `<Gated action="hardDeleteListing">` affordance shows on PropertyDetailsScreen footer for admins and is hidden for everyone else (owners, moderators, plain users); the `useRole.ts` `Action` union has been extended with `archiveOwnListing`, `archiveAnyListing`, `hardDeleteListing`
-**Plans**: TBD
+**Plans**: 6 plans
+  - [ ] 03-01-PLAN.md — Wave-1 backend foundations (serviceAreas + ModerationLog model + moderationRoutes skeleton + index.js mount)
+  - [ ] 03-02-PLAN.md — Wave-1 client foundations (19 EN+RU locale keys + useRole.ts viewModerationQueue + 5 PropertyService methods + RejectionBanner i18n patch)
+  - [ ] 03-03-PLAN.md — Wave-2 backend approve/reject/queue endpoints (race-safe atomic findOneAndUpdate + actorUid from req.firebaseUid + audit follow-up)
+  - [ ] 03-04-PLAN.md — Wave-2 client RejectListingModal + ModerationQueueScreen overlay + ProfileScreen entry-point with badge
+  - [ ] 03-05-PLAN.md — Wave-3 backend edit-on-behalf endpoint + supertest race-condition harness (MANDATORY per gsd-verifier-misses-regressions.md; 13+ test cases)
+  - [ ] 03-06-PLAN.md — Wave-4 App.tsx wireup + PropertyDetailsScreen action footer + CreateListingScreen moderatorContext + PropertyDetailsHost LOC mitigation + manual physical-device smoke checkpoint
 **UI hint**: yes
 
 ### Phase 5: Admin Role Management UI
@@ -119,7 +131,13 @@
   2. An admin can change any user's `userType` to any of `user` / `moderator` / `admin`; the change triggers ROLE-11 (`roleRevokedAt = now`) on the target user, propagating the new role to the target's app within 60s of their next protected request
   3. Server-side guardrails reject (a) any role mutation that would result in zero admins (last-admin lockout returns 409 with clear error) and (b) any admin's attempt to mutate their own `userType` (self-mutation prevention returns 403 even if the requester is admin)
   4. Every successful role change writes an append-only audit row to the `roleChangeLog` Mongo collection with `{actorUid, targetUid, fromRole, toRole, at}`; new admin-only endpoints (`GET /api/admin/users?query=<email>&limit=50`, `PATCH /api/admin/users/:uid/role`) verify role server-side via the JWKS middleware
-**Plans**: TBD
+**Plans**: 6 plans
+  - [ ] 03-01-PLAN.md — Wave-1 backend foundations (serviceAreas + ModerationLog model + moderationRoutes skeleton + index.js mount)
+  - [ ] 03-02-PLAN.md — Wave-1 client foundations (19 EN+RU locale keys + useRole.ts viewModerationQueue + 5 PropertyService methods + RejectionBanner i18n patch)
+  - [ ] 03-03-PLAN.md — Wave-2 backend approve/reject/queue endpoints (race-safe atomic findOneAndUpdate + actorUid from req.firebaseUid + audit follow-up)
+  - [ ] 03-04-PLAN.md — Wave-2 client RejectListingModal + ModerationQueueScreen overlay + ProfileScreen entry-point with badge
+  - [ ] 03-05-PLAN.md — Wave-3 backend edit-on-behalf endpoint + supertest race-condition harness (MANDATORY per gsd-verifier-misses-regressions.md; 13+ test cases)
+  - [ ] 03-06-PLAN.md — Wave-4 App.tsx wireup + PropertyDetailsScreen action footer + CreateListingScreen moderatorContext + PropertyDetailsHost LOC mitigation + manual physical-device smoke checkpoint
 **UI hint**: yes
 
 ### Phase 6: Hardening + Manual Physical-Device QA + Release
@@ -133,7 +151,13 @@
   3. Backend deployed to Railway with `FIREBASE_PROJECT_ID` env var present; old MongoDB Atlas password + AWS IAM keys revoked and confirmed dead; new credentials live; `firebase-admin@^13.6.1` removed from backend `package.json` (was dead code)
   4. Bilingual EN+RU release notes drafted and pasted on App Store Connect + Google Play Console under their respective length limits (Play Console's binding 500-char-per-locale limit is the load-bearing budget); content order: What's new (Roles & Moderation) → Improvements (security hardening / data integrity) → Bug fixes (catch-all phrasing only per M1 Phase 8 D-10 — no fabricated specifics)
   5. iOS archive uploaded to App Store Connect under Xcode 26.4+ and visible in TestFlight (TestFlight Internal Testing track sufficient for phase-exit per M1 D-12); Android `.aab` uploaded to Google Play Console under existing keystore and submitted/processing; privacy manifest re-affirmed per M1 Phase 8 D-13 inheritance unless Apple flags (RN client adds zero new data-collecting deps in M2)
-**Plans**: TBD
+**Plans**: 6 plans
+  - [ ] 03-01-PLAN.md — Wave-1 backend foundations (serviceAreas + ModerationLog model + moderationRoutes skeleton + index.js mount)
+  - [ ] 03-02-PLAN.md — Wave-1 client foundations (19 EN+RU locale keys + useRole.ts viewModerationQueue + 5 PropertyService methods + RejectionBanner i18n patch)
+  - [ ] 03-03-PLAN.md — Wave-2 backend approve/reject/queue endpoints (race-safe atomic findOneAndUpdate + actorUid from req.firebaseUid + audit follow-up)
+  - [ ] 03-04-PLAN.md — Wave-2 client RejectListingModal + ModerationQueueScreen overlay + ProfileScreen entry-point with badge
+  - [ ] 03-05-PLAN.md — Wave-3 backend edit-on-behalf endpoint + supertest race-condition harness (MANDATORY per gsd-verifier-misses-regressions.md; 13+ test cases)
+  - [ ] 03-06-PLAN.md — Wave-4 App.tsx wireup + PropertyDetailsScreen action footer + CreateListingScreen moderatorContext + PropertyDetailsHost LOC mitigation + manual physical-device smoke checkpoint
 
 ## Progress
 
