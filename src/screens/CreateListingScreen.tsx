@@ -51,6 +51,12 @@ interface CreateListingScreenProps {
   verificationOnly?: boolean;
   /** D-11: navigate to AccountSettings (Hospitality contact recovery) — optional with no-op fallback. */
   onNavigateToAccountSettings?: () => void;
+  /** Phase 3 Plan 06 Task 03 — moderator edit-on-behalf context (MOD-14).
+   *  When set, the form mounts a warning-stripe mod-context banner above all
+   *  sections, and handleSubmit dispatches PropertyService.editAsModerator
+   *  (NOT updateProperty). The screen is a SHARED orchestrator — owner self-edit
+   *  remains unchanged when this prop is undefined. */
+  moderatorContext?: { editingOwnerUid: string; reason?: string; ownerEmail?: string };
 }
 
 /**
@@ -85,6 +91,7 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
   propertyToEdit,
   verificationOnly = false,
   onNavigateToAccountSettings,
+  moderatorContext,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -522,7 +529,25 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
           : {}),
       };
 
-      if (isEditMode && propertyToEdit?.id) {
+      // Phase 3 Plan 06 Task 03 — 3-branch save dispatcher.
+      //   1. moderatorContext  -> editAsModerator (MOD-14, status flips to 'live' server-side)
+      //   2. propertyToEdit    -> updateProperty  (existing owner self-edit)
+      //   3. neither           -> createProperty  (new submission)
+      // moderatorContext takes precedence over propertyToEdit because the mod
+      // IS editing an existing property — the toast copy + endpoint differ.
+      if (moderatorContext && propertyToEdit?.id) {
+        await PropertyService.editAsModerator(
+          propertyToEdit.id,
+          propertyData,
+          newImages,
+          moderatorContext.reason,
+        );
+        // D-12 status-after-save semantics: backend Plan 05 force-flips status
+        // to 'live' on edit-on-behalf save (mod fixed the issue = ready to publish).
+        Alert.alert(t('common.success'), t('moderation.editOnBehalf.success'), [
+          { text: t('common.ok'), onPress: onSuccess },
+        ]);
+      } else if (isEditMode && propertyToEdit?.id) {
         await PropertyService.updateProperty(propertyToEdit.id, propertyData, newImages);
         Alert.alert(t('common.success'), t('createListing.updatedSuccess'), [
           { text: t('common.ok'), onPress: onSuccess },
@@ -686,6 +711,37 @@ export const CreateListingScreen: React.FC<CreateListingScreenProps> = ({
         keyboardShouldPersistTaps="handled"
         bottomOffset={20}
       >
+        {/* Phase 3 Plan 06 Task 03 — moderator edit-on-behalf mod-context banner.
+            Mounts above all form sections when moderatorContext is set; signals
+            to the moderator that this save will dispatch editAsModerator (NOT
+            updateProperty) and the listing will flip to 'live' on save (D-12).
+            Visual: warning-stripe (NOT error red — informational, not destructive
+            per UI-SPEC §"Mod-context banner geometry"). Owner email comes from
+            App.tsx Task 04's queue/details wiring; falls back to uid if email
+            isn't present on the property's owner field. */}
+        {moderatorContext && (
+          <View
+            style={[
+              styles.modContextBanner,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <View style={[styles.modContextStripe, { backgroundColor: colors.warning }]} />
+            <View style={styles.modContextBody}>
+              <Text style={[styles.modContextTitle, { color: colors.text }]}>
+                {t('moderation.editOnBehalf.banner').replace('{ownerEmail}', moderatorContext.ownerEmail || moderatorContext.editingOwnerUid)}
+              </Text>
+              {moderatorContext.reason ? (
+                <Text
+                  style={[styles.modContextSubtitle, { color: colors.textSecondary }]}
+                  numberOfLines={3}
+                >
+                  {moderatorContext.reason}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        )}
         <View onLayout={(e) => { fieldLayouts.current.title = e.nativeEvent.layout.y; }}>
           <BasicInfoSection values={values} onChange={onChange} errors={errors} />
         </View>
@@ -906,5 +962,35 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 18,
     fontWeight: '700',
+  },
+  // Phase 3 Plan 06 Task 03 — moderator edit-on-behalf mod-context banner.
+  // Visual shell mirrors RejectionBanner (Phase 2 D-13) — left stripe + body
+  // with title (+ optional subtitle for the moderator's free-text reason).
+  // Stripe color is colors.warning (NOT error) per UI-SPEC §"Color > warning row".
+  modContextBanner: {
+    flexDirection: 'row',
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  modContextStripe: {
+    width: 4,
+  },
+  modContextBody: {
+    flex: 1,
+    padding: 12,
+    paddingHorizontal: 16,
+  },
+  modContextTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    lineHeight: 20,
+  },
+  modContextSubtitle: {
+    fontSize: 13,
+    fontWeight: '400',
+    lineHeight: 18,
+    marginTop: 4,
   },
 });
