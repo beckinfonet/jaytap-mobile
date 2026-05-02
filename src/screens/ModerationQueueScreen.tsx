@@ -80,7 +80,13 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
       setItems(queueItems as Property[]);
     } catch (err: any) {
       console.error('Failed to load moderation queue:', err);
-      Alert.alert(t('common.error'), err?.response?.data?.message || err?.message || '');
+      // WR-01 fix — fall back to a generic translated error string when the server
+      // returns a 5xx with no body and the axios error has no .message; prevents
+      // the empty-Alert UX from rendering just an "OK" button with no message body.
+      Alert.alert(
+        t('common.error'),
+        err?.response?.data?.message || err?.message || t('common.errorGeneric'),
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -108,9 +114,11 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
 
   // 409 race-condition UX (PATTERNS §C / CONTEXT D-08): close any open modal FIRST
   // (no overlapping surfaces), THEN fire the MOD-15 verbatim toast, THEN refetch.
+  // WR-05 fix — title was empty string '' which renders awkwardly on iOS (naked
+  // body with whitespace) and inconsistently on Android. Use a translated title.
   const handleRaceConflict = async () => {
     setRejectTarget(null);
-    Alert.alert('', t('moderation.race.toast'));
+    Alert.alert(t('moderation.race.title'), t('moderation.race.toast'));
     await load();
   };
 
@@ -134,9 +142,10 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
                 await handleRaceConflict();
                 return;
               }
+              // WR-01 fix — generic translated fallback prevents empty-Alert UX.
               Alert.alert(
                 t('common.error'),
-                err?.response?.data?.message || err?.message || '',
+                err?.response?.data?.message || err?.message || t('common.errorGeneric'),
               );
             } finally {
               setActingId(null);
@@ -166,7 +175,11 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
         await handleRaceConflict();
         return;
       }
-      Alert.alert(t('common.error'), err?.response?.data?.message || err?.message || '');
+      // WR-01 fix — generic translated fallback prevents empty-Alert UX.
+      Alert.alert(
+        t('common.error'),
+        err?.response?.data?.message || err?.message || t('common.errorGeneric'),
+      );
     } finally {
       setSubmittingReject(false);
     }

@@ -610,4 +610,8 @@ export const ru: Record<TranslationKeys, string> = {
   'moderation.actor.generic': 'Модератор JayTap',
   // Phase 3 WR-02 fix — accessibilityLabel suffix for the Profile entry-point pending-count.
   'moderation.queue.entryPoint.a11yPending': '{count} ожидает проверки',
+  // Phase 3 WR-05 fix — title for the 409 race-condition Alert (was empty string).
+  'moderation.race.title': 'Уже рассмотрено',
+  // Phase 3 WR-01 fix — generic Alert fallback when the server returns no body and the axios error has no .message.
+  'common.errorGeneric': 'Что-то пошло не так. Попробуйте ещё раз.',
 };

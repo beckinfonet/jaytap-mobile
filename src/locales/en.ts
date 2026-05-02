@@ -607,6 +607,10 @@ export const en = {
   'moderation.actor.generic': 'JayTap moderator',
   // Phase 3 WR-02 fix — accessibilityLabel suffix for the Profile entry-point pending-count.
   'moderation.queue.entryPoint.a11yPending': '{count} pending',
+  // Phase 3 WR-05 fix — title for the 409 race-condition Alert (was empty string).
+  'moderation.race.title': 'Already reviewed',
+  // Phase 3 WR-01 fix — generic Alert fallback when the server returns no body and the axios error has no .message.
+  'common.errorGeneric': 'Something went wrong. Please try again.',
 } as const;
 
 export type TranslationKeys = keyof typeof en;

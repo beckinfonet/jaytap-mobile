@@ -291,7 +291,8 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
   const handleRaceConflict = async () => {
     setIsRejectModalOpen(false);
-    Alert.alert('', t('moderation.race.toast'));
+    // WR-05 fix — was empty title; now uses a translated title for proper Alert framing.
+    Alert.alert(t('moderation.race.title'), t('moderation.race.toast'));
     await refetchProperty();
   };
 
@@ -314,7 +315,11 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 await handleRaceConflict();
                 return;
               }
-              Alert.alert(t('common.error'), err?.response?.data?.message || err?.message || '');
+              // WR-01 fix — generic translated fallback prevents empty-Alert UX.
+              Alert.alert(
+                t('common.error'),
+                err?.response?.data?.message || err?.message || t('common.errorGeneric'),
+              );
             } finally {
               setSubmittingAction(false);
             }
@@ -336,7 +341,11 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         await handleRaceConflict();
         return;
       }
-      Alert.alert(t('common.error'), err?.response?.data?.message || err?.message || '');
+      // WR-01 fix — generic translated fallback prevents empty-Alert UX.
+      Alert.alert(
+        t('common.error'),
+        err?.response?.data?.message || err?.message || t('common.errorGeneric'),
+      );
     } finally {
       setSubmittingAction(false);
     }
