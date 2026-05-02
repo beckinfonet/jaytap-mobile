@@ -585,6 +585,26 @@ export const en = {
   'landlordApp.rejectModalSubtitle': 'Pick a reason. Optional note will be shown to the applicant.',
   'landlordApp.rejectNotePlaceholder': 'Optional note (visible to applicant)...',
   'landlordApp.rejectConfirm': 'Reject',
+  // PHASE 3 — Moderation queue + actions + edit-on-behalf (MOD-10..MOD-18)
+  'moderation.queue.entryPoint': 'Moderation Queue',
+  'moderation.queue.title': 'Moderation Queue',
+  'moderation.queue.empty': 'No pending listings.',
+  'moderation.action.approve': 'Approve Listing',
+  'moderation.action.reject': 'Reject Listing',
+  'moderation.action.editOnBehalf': 'Edit on behalf',
+  'moderation.approve.confirmTitle': 'Approve this listing?',
+  'moderation.approve.confirmMessage': 'This listing will become live and visible to all users.',
+  'moderation.reject.modalTitle': 'Reject this listing',
+  'moderation.reject.notePlaceholder': 'Add a note (optional)',
+  'moderation.reject.submit': 'Reject Listing',
+  'moderation.reject.reason.incomplete-info': 'Incomplete information',
+  'moderation.reject.reason.prohibited-content': 'Prohibited content',
+  'moderation.reject.reason.out-of-service-area': 'Out of service area',
+  'moderation.reject.reason.other': 'Other',
+  'moderation.race.toast': 'This listing was already reviewed by another moderator.',
+  'moderation.editOnBehalf.banner': 'Editing on behalf of {ownerEmail}',
+  'moderation.editOnBehalf.success': 'Listing updated and approved.',
+  'moderation.actor.generic': 'JayTap moderator',
 } as const;
 
 export type TranslationKeys = keyof typeof en;
