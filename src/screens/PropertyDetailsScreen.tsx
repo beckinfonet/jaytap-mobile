@@ -48,6 +48,8 @@ import {
   Laptop,
   Waves,
   Check,
+  X,
+  Edit3,
   ImageIcon,
   Video,
   ChevronRight,
@@ -73,6 +75,7 @@ import { useRole } from '../hooks/useRole';
 import { Gated } from '../components/Gated';
 import { RejectionBanner } from '../components/RejectionBanner';
 import { StatusPill } from '../components/StatusPill';
+import RejectListingModal from '../components/RejectListingModal';
 
 interface PropertyDetailsScreenProps {
   property: Property;
@@ -91,6 +94,19 @@ interface PropertyDetailsScreenProps {
   /** D-15: navigate parent (App.tsx) to CreateListingScreen edit mode for this property.
    *  Wired by Plan 08 — until then, the banner CTA is a no-op. */
   onEditListing?: (property: Property) => void;
+  /** Phase 3 Plan 06 Task 02 — moderation action footer "Edit on behalf" dispatcher.
+   *  Wired by App.tsx Task 04 to set propertyToEdit + moderatorContext + open
+   *  CreateListingScreen. Footer renders only when can('approveListings') AND
+   *  status === 'pending'. */
+  onEditOnBehalfPressed?: (property: Property) => void;
+  /** Phase 3 Plan 06 Task 02 — refresh hook used by the moderation action footer
+   *  after Approve/Reject so the screen's `status` re-evaluates and the footer
+   *  auto-hides. App.tsx may forward a parent-side reload OR the screen falls
+   *  back to its own background fetch (the existing useEffect at the top of
+   *  the component already self-refreshes on `initialProperty.id` change; this
+   *  optional callback gives the parent a hook for additional side-effects
+   *  like queue refetch). */
+  onRefreshProperty?: () => Promise<void>;
 }
 
 const { width, height } = Dimensions.get('window');
@@ -183,6 +199,8 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   onLandlordPress,
   onAdminVerifyDocuments,
   onEditListing,
+  onEditOnBehalfPressed,
+  onRefreshProperty,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -246,6 +264,87 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
     return () => { cancelled = true; };
   }, [initialProperty?.id]);
+
+  // Phase 3 Plan 06 Task 02 — moderation action footer state + handlers.
+  // Footer renders when can('approveListings') AND property.status === 'pending'.
+  // 409 race-condition handling per PATTERNS §C: close any open modal first,
+  // fire MOD-15 toast, refetch.
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [submittingAction, setSubmittingAction] = useState(false);
+  const showModFooter = can('approveListings') && property.status === 'pending';
+
+  // Refetch the local `property` state from the server. After approve/reject,
+  // status flips off 'pending' and the footer auto-hides via showModFooter.
+  // Also calls the optional parent callback (e.g., to refetch a queue overlay).
+  const refetchProperty = async () => {
+    if (!property.id) return;
+    try {
+      const fresh = await PropertyService.getPropertyById(property.id);
+      setProperty(fresh);
+    } catch {
+      /* non-fatal — Alert was already surfaced by the caller's catch path */
+    }
+    if (onRefreshProperty) {
+      try { await onRefreshProperty(); } catch { /* parent's problem */ }
+    }
+  };
+
+  const handleRaceConflict = async () => {
+    setIsRejectModalOpen(false);
+    Alert.alert('', t('moderation.race.toast'));
+    await refetchProperty();
+  };
+
+  const handleApprove = () => {
+    Alert.alert(
+      t('moderation.approve.confirmTitle'),
+      t('moderation.approve.confirmMessage'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('moderation.action.approve'),
+          onPress: async () => {
+            if (!property.id) return;
+            setSubmittingAction(true);
+            try {
+              await PropertyService.approveListing(property.id);
+              await refetchProperty();
+            } catch (err: any) {
+              if (err?.response?.status === 409) {
+                await handleRaceConflict();
+                return;
+              }
+              Alert.alert(t('common.error'), err?.response?.data?.message || err?.message || '');
+            } finally {
+              setSubmittingAction(false);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const handleRejectSubmit = async (params: { reasonCode: any; reasonNote?: string }) => {
+    if (!property.id) return;
+    setSubmittingAction(true);
+    try {
+      await PropertyService.rejectListing(property.id, params.reasonCode, params.reasonNote);
+      setIsRejectModalOpen(false);
+      await refetchProperty();
+    } catch (err: any) {
+      if (err?.response?.status === 409) {
+        await handleRaceConflict();
+        return;
+      }
+      Alert.alert(t('common.error'), err?.response?.data?.message || err?.message || '');
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
+  const handleEditOnBehalf = () => {
+    if (onEditOnBehalfPressed) onEditOnBehalfPressed(property);
+  };
 
   // Consolidate images into a single array
   const images = property.images && property.images.length > 0
@@ -1204,6 +1303,79 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           </View>
         </View>
       )}
+
+      {/* Phase 3 Plan 06 Task 02 — moderation action footer.
+          Mounts when can('approveListings') AND property.status === 'pending'.
+          Belt-and-suspenders with backend's requireMinRole('moderator') gate.
+          Footer auto-hides after refetchProperty() flips status off 'pending'. */}
+      {showModFooter && (
+        <View
+          style={[
+            styles.modActionFooter,
+            {
+              backgroundColor: colors.surface,
+              borderTopColor: colors.border,
+              paddingBottom: Math.max(insets.bottom, 12),
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={[styles.modActionBtn, { backgroundColor: '#059669' /* success green */ }]}
+            onPress={handleApprove}
+            disabled={submittingAction}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('moderation.action.approve')}
+          >
+            {submittingAction ? (
+              <ActivityIndicator color="#FFF" size="small" />
+            ) : (
+              <>
+                <Check size={18} color="#FFF" />
+                <Text style={styles.modActionBtnText}>{t('moderation.action.approve')}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.modActionBtn, { backgroundColor: '#DC2626' /* error red */ }]}
+            onPress={() => setIsRejectModalOpen(true)}
+            disabled={submittingAction}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('moderation.action.reject')}
+          >
+            <X size={18} color="#FFF" />
+            <Text style={styles.modActionBtnText}>{t('moderation.action.reject')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.modActionBtn,
+              { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+            ]}
+            onPress={handleEditOnBehalf}
+            disabled={submittingAction}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('moderation.action.editOnBehalf')}
+          >
+            <Edit3 size={18} color={colors.text} />
+            <Text style={[styles.modActionBtnText, { color: colors.text }]}>
+              {t('moderation.action.editOnBehalf')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Phase 3 Plan 06 Task 02 — RejectListingModal sibling mount.
+          Reusable modal extracted by Plan 04 (Task 03-04-01); same component
+          mounts in ModerationQueueScreen. Parent owns the HTTP call via
+          handleRejectSubmit. */}
+      <RejectListingModal
+        visible={isRejectModalOpen}
+        onClose={() => setIsRejectModalOpen(false)}
+        onSubmit={handleRejectSubmit}
+        submitting={submittingAction}
+      />
     </SafeAreaView>
   );
 };
@@ -1921,5 +2093,30 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  // Phase 3 Plan 06 Task 02 — moderation action footer styles.
+  // Per UI-SPEC §"Spacing Scale > Action footer geometry on PropertyDetailsScreen":
+  // 3-button row, gap 8, padding 16, top border 1px on colors.border.
+  modActionFooter: {
+    flexDirection: 'row',
+    gap: 8,
+    padding: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+  },
+  modActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 10,
+    gap: 6,
+  },
+  modActionBtnText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '600',
+    lineHeight: 20,
   },
 });
