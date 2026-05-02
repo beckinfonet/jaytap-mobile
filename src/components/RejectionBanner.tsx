@@ -34,7 +34,11 @@ export const RejectionBanner: React.FC<RejectionBannerProps> = ({
   const { colors } = useTheme();
   const { t } = useLanguage();
 
-  const codeLabel = reasonCode || 'incomplete-info';
+  // D-09 client-side i18n owner-locale translation (Phase 3 / MOD-13).
+  // The owner's app's active language drives t(), so the banner reads in the OWNER's
+  // locale automatically — no backend Accept-Language plumbing required.
+  const reasonKey = `moderation.reject.reason.${reasonCode || 'incomplete-info'}` as const;
+  const codeLabel = t(reasonKey as any) as string;
   const fallback = (t('listings.rejection.bodyFallback' as any) as string).replace('{reasonCode}', codeLabel);
   const body = reasonNote ? `${codeLabel} — ${reasonNote}` : fallback;
 

@@ -284,4 +284,139 @@ export const PropertyService = {
       throw error;
     }
   },
+
+  // ===== PHASE 3 — Moderation queue + actions (MOD-10..MOD-17) =====
+
+  /**
+   * Moderator: list pending listings FIFO. Returns {items, totalCount}.
+   * D-03 piggyback strategy: the same endpoint serves both the queue render and
+   * the Profile entry-point pending-count badge — saves a 5th endpoint.
+   * Belt-and-suspenders permission guard via canFromUser (Phase 1 ROLE-12 pattern);
+   * server-side requireMinRole('moderator') is the authoritative gate.
+   */
+  getModerationQueue: async (): Promise<{ items: any[]; totalCount: number }> => {
+    try {
+      const userData = await AuthService.getUserData();
+      if (!canFromUser(userData, 'approveListings')) {
+        console.error('[PropertyService.getModerationQueue] permission denied', { userId: userData?.localId });
+        throw new PermissionDeniedError();
+      }
+      const response = await apiClient.get('/moderation/queue');
+      return {
+        items: (response.data.items || []).map((p: any) => ({ ...p, id: p._id })),
+        totalCount: response.data.totalCount,
+      };
+    } catch (error: any) {
+      console.error('Error fetching moderation queue:', error?.message);
+      throw error;
+    }
+  },
+
+  /**
+   * Moderator: get the pending-count badge value (D-03).
+   * Implementation: piggybacks on getModerationQueue() — fetches the full list and returns totalCount.
+   * If M3+ scales the queue past ~50 listings, swap to a dedicated GET /moderation/queue/count endpoint.
+   */
+  getModerationQueueCount: async (): Promise<number> => {
+    try {
+      const { totalCount } = await PropertyService.getModerationQueue();
+      return totalCount;
+    } catch (error: any) {
+      console.error('Error fetching moderation queue count:', error?.message);
+      return 0; // non-fatal — badge stays at 0 on failure
+    }
+  },
+
+  /**
+   * Moderator: approve a pending listing. Backend uses race-safe atomic findOneAndUpdate.
+   * Returns 409 with code: 'ALREADY_MODERATED' if another moderator beat us — caller surfaces toast (D-08).
+   */
+  approveListing: async (propertyId: string): Promise<any> => {
+    try {
+      const userData = await AuthService.getUserData();
+      if (!canFromUser(userData, 'approveListings')) {
+        console.error('[PropertyService.approveListing] permission denied', { userId: userData?.localId });
+        throw new PermissionDeniedError();
+      }
+      const response = await apiClient.post(`/moderation/properties/${propertyId}/approve`);
+      return { ...response.data, id: response.data._id };
+    } catch (error: any) {
+      // 409 ALREADY_MODERATED bubbles up; UI consumer (Plan 04 + Plan 06) detects status===409 and surfaces the verbatim toast.
+      console.error('Error approving listing:', error?.message);
+      throw error;
+    }
+  },
+
+  /**
+   * Moderator: reject a pending listing with structured reasonCode + optional note (MOD-12, MOD-13).
+   * Same race-safe + 409 contract as approveListing.
+   */
+  rejectListing: async (
+    propertyId: string,
+    reasonCode: 'incomplete-info' | 'prohibited-content' | 'out-of-service-area' | 'other',
+    reasonNote?: string,
+  ): Promise<any> => {
+    try {
+      const userData = await AuthService.getUserData();
+      if (!canFromUser(userData, 'approveListings')) {
+        console.error('[PropertyService.rejectListing] permission denied', { userId: userData?.localId });
+        throw new PermissionDeniedError();
+      }
+      const body: any = { reasonCode };
+      if (reasonNote && reasonNote.trim()) body.reasonNote = reasonNote.trim();
+      const response = await apiClient.post(`/moderation/properties/${propertyId}/reject`, body);
+      return { ...response.data, id: response.data._id };
+    } catch (error: any) {
+      console.error('Error rejecting listing:', error?.message);
+      throw error;
+    }
+  },
+
+  /**
+   * Moderator: edit listing on behalf of owner (MOD-14). Multipart for image uploads.
+   * Backend strips ownerUid + status defensively; client also avoids sending them.
+   * Backend flips status to 'live' on save (D-12 sub-decision recommendation) and writes audit log.
+   * NOTE: must NOT include ownerUid in the FormData — auto-memory phase45-landlord-application-uid-mismatch-bug.md
+   */
+  editAsModerator: async (
+    propertyId: string,
+    propertyData: any,
+    images: any[] = [],
+    reason?: string,
+  ): Promise<any> => {
+    try {
+      const userData = await AuthService.getUserData();
+      if (!canFromUser(userData, 'editAnyListing')) {
+        console.error('[PropertyService.editAsModerator] permission denied', { userId: userData?.localId });
+        throw new PermissionDeniedError();
+      }
+      const formData = new FormData();
+      // Mirror updateProperty's FormData shape, but defensively strip identity + status fields.
+      // CRITICAL: do NOT append ownerUid or status to the FormData — backend strips defensively
+      // (MOD-14) but client-side hygiene avoids sending them in the first place.
+      Object.keys(propertyData || {}).forEach((key) => {
+        if (key === 'ownerUid' || key === 'status' || key === 'id' || key === '_id') return;
+        const value = (propertyData as any)[key];
+        if (value === undefined || value === null) return;
+        if (Array.isArray(value) || (typeof value === 'object' && !(value as any).uri)) {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, String(value));
+        }
+      });
+      if (reason) formData.append('reason', reason);
+      images.forEach((image, index) => {
+        formData.append('images', {
+          uri: image.uri,
+          type: image.type || 'image/jpeg',
+          name: image.name || `image-${index}.jpg`,
+        } as any);
+      });
+      const response = await apiClient.put(`/moderation/listings/${propertyId}`, formData);
+      return { ...response.data, id: response.data._id };
+    } catch (error: any) {
+      console.error('Error editing as moderator:', error?.message);
+      throw error;
+    }
+  },
 };
