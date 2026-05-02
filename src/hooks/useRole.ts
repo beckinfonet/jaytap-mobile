@@ -19,7 +19,8 @@ export type Action =
   | 'editAnyListing'                 // M2 forward-compat — moderator + admin
   | 'approveListings'                // M2 forward-compat — moderator + admin
   | 'promoteToModerator'             // M2 forward-compat — admin only
-  | 'reviewLandlordApplications';    // M2 Phase 4.5 — admin only
+  | 'reviewLandlordApplications'     // M2 Phase 4.5 — admin only
+  | 'viewModerationQueue';           // M2 Phase 3 (CONTEXT.md D-03; MOD-10) — moderator + admin
 
 /**
  * Thrown by service-layer guards when the authenticated user is not permitted
@@ -82,6 +83,7 @@ export function canFromUser(user: any, action: Action): boolean {
       return role === 'admin';
     case 'editAnyListing':
     case 'approveListings':
+    case 'viewModerationQueue':
       return role === 'admin' || role === 'moderator';
     case 'manageListings':
       // Phase 4.5 capability gate: admins and moderators are implicit; plain users (role==='user')

@@ -135,3 +135,24 @@ describe('canFromUser priority ladder (post-allowlist deletion)', () => {
     expect(canFromUser(formerlyAllowlisted, 'promoteToModerator')).toBe(false);
   });
 });
+
+describe('viewModerationQueue (Phase 3 / MOD-10 / D-03)', () => {
+  test('moderator can view moderation queue', () => {
+    const user = { backendProfile: { userType: 'moderator' } };
+    expect(canFromUser(user, 'viewModerationQueue')).toBe(true);
+  });
+
+  test('admin can view moderation queue', () => {
+    const user = { backendProfile: { userType: 'admin' } };
+    expect(canFromUser(user, 'viewModerationQueue')).toBe(true);
+  });
+
+  test('plain user cannot view moderation queue', () => {
+    const user = { backendProfile: { userType: 'user' } };
+    expect(canFromUser(user, 'viewModerationQueue')).toBe(false);
+  });
+
+  test('guest cannot view moderation queue', () => {
+    expect(canFromUser(null, 'viewModerationQueue')).toBe(false);
+  });
+});
