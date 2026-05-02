@@ -1392,24 +1392,19 @@ The full table is in `## Validation Architecture` above. Highlights:
 
 **This Assumptions Log is short by design.** The vast majority of Phase 3 patterns are VERIFIED via direct code reads of the actual files in this repo (paths cited inline). Phase 4.5's sibling-pattern reuse means almost every claim is grounded in a working precedent.
 
-## Open Questions
+## Open Questions (RESOLVED 2026-05-02 during /gsd-plan-phase 3)
 
-1. **Should `POST /api/moderation/listings/:id/submit` be implemented?**
-   - What we know: REQUIREMENTS MOD-17 lists this endpoint. Phase 2 already auto-flips `'rejected' → 'pending'` on owner edit (D-22), and POST `/api/properties` defaults to `'pending'` (MOD-03). There is NO `'draft'` state in M2 — it was dropped in Phase 2 Plan 03.
-   - What's unclear: What state does this endpoint transition FROM? `'pending' → 'pending'` is a no-op. The endpoint may be vestigial in REQUIREMENTS.
-   - Recommendation: **Skip this endpoint.** The 4-endpoint surface (queue, approve, reject, edit-on-behalf) covers all moderator workflows. The submit endpoint exists in REQUIREMENTS as a hold-over from a draft-state-bearing earlier requirements draft. Planner should confirm with user during plan-phase.
+1. **Should `POST /api/moderation/listings/:id/submit` be implemented?** — **RESOLVED: SKIP.** Phase 2 D-22 auto-flip on owner edit + dropped `'draft'` state in M2 make this endpoint vestigial. The 4-endpoint surface (queue, approve, reject, edit-on-behalf) covers all moderator workflows. REQUIREMENTS.md MOD-17 amended to drop `submit` from the canonical endpoint list.
 
-2. **Should the pending-count fetch be a dedicated endpoint or piggybacked on the queue payload?**
-   - What we know: D-03 leaves this as planner discretion.
-   - Recommendation: **Piggyback `totalCount` on `GET /api/moderation/queue` response.** Saves a 5th endpoint; the queue is small (mod team scale per CONTEXT.md); extra ~50-200 bytes of payload is negligible. If M3+ scales the queue past ~50 pending listings, switch to a dedicated `GET /queue/count` endpoint.
+2. **Should the pending-count fetch be a dedicated endpoint or piggybacked on the queue payload?** — **RESOLVED: PIGGYBACK.** `GET /api/moderation/queue` returns `{items: [...], totalCount: N}`. Saves a 5th endpoint; queue is small at mod-team scale; extra ~50-200 bytes is negligible. M3+ may add a dedicated `GET /queue/count` if the queue scales past ~50 pending listings.
 
-3. **Where exactly does the moderation action footer mount on PropertyDetailsScreen?**
-   - What we know: D-02 says "moderation action footer when role >= moderator AND status === 'pending'". D-15 leaves visual mount as planner discretion.
-   - Recommendation: A bottom-pinned action bar (3 buttons in a row) similar to PropertyDetailsScreen's existing message/schedule footer. Hidden via `useRole().can('approveListings') && property.status === 'pending'`. Visual treatment: warning palette for the entire bar background to signal "moderator mode" context.
+3. **Where exactly does the moderation action footer mount on PropertyDetailsScreen?** — **RESOLVED: BOTTOM-PINNED 3-BUTTON BAR.** Mirrors the existing message/schedule footer. Render gate: `useRole().can('approveListings') && property.status === 'pending'`. Warning palette signals "moderator mode" context. Locked in 03-06-PLAN.md.
 
-4. **Should the RejectListingModal live as a new component file or be defined inline inside ModerationQueueScreen?**
-   - What we know: D-15 leaves visual specifics planner discretion.
-   - Recommendation: **New component file `src/components/RejectListingModal.tsx`** — it's reused from BOTH the queue's per-row reject button AND the PropertyDetailsScreen's reject button. Inline definition would force duplication or prop-passing of the modal state across two parent screens.
+4. **Should the RejectListingModal live as a new component file or be defined inline inside ModerationQueueScreen?** — **RESOLVED: NEW COMPONENT FILE** at `src/components/RejectListingModal.tsx`. Reused by BOTH the moderation queue per-row reject AND the PropertyDetailsScreen action footer reject. Inline definition would duplicate state-prop-passing across two parents.
+
+5. **Endpoint URL prefix (added during plan-checker review)** — **RESOLVED: PREFIX-CONSISTENT.** All four endpoints mount under `/api/moderation/*`: `GET /api/moderation/queue`, `POST /api/moderation/properties/:id/approve`, `POST /api/moderation/properties/:id/reject`, `PUT /api/moderation/listings/:id`. REQUIREMENTS.md MOD-17 + ROADMAP success criterion #5 amended to match. Trade-off vs bare `/api/properties/:id/approve` path: prefix-consistency wins for grouping all moderation surface under one route file (`moderationRoutes.js`) and keeping the M2 `/api/moderation/*` namespace clean for Phase 4's archive endpoints.
+
+6. **Edit-on-behalf status-after-save (D-12 sub-decision, deferred from CONTEXT.md)** — **RESOLVED: STATUS = 'live'.** When a moderator saves an edit-on-behalf, the listing flips to `'live'` (mod fixed + approved in one step). The moderationLog row captures the action `'edit-on-behalf'` with full before/after diff as the audit trail. Avoids the "mod fixed but listing sits in queue" foot-gun. Locked in 03-05-PLAN.md.
 
 ## Sources
 

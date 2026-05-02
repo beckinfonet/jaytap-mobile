@@ -139,3 +139,11 @@ Captured in CONTEXT.md `<deferred>` section. Highlights:
 - Backend shape — D-09 + D-10 + D-11 capture recommendations + planner-picks-among-options.
 - Bulk multi-select moderation, push notifications, lease-based locking, self-promotion path, M3+ audit log UI, M3+ admin UI for serviceAreas, hierarchical permission inheritance, material-edit re-queues to pending rule, in-app mod-owner messaging — all REQUIREMENTS.md Future §; out of M2 scope.
 - Polling on the queue screen — explicitly rejected in D-04.
+
+## Plan-Phase Confirmations (2026-05-02)
+
+Decisions confirmed during /gsd-plan-phase 3 (after plan-checker B-2 surfaced contract drift):
+
+- **D-12 status-after-save = `'live'`** — User implicitly accepted the recommendation (mod editing on behalf combines edit + approval in one step; moderationLog action `'edit-on-behalf'` is the audit trail). Locked in 03-05-PLAN.md + 03-06-PLAN.md.
+- **MOD-17 endpoint URL prefix** — User chose `/api/moderation/*` prefix-consistent paths over the bare `/api/properties/:id/approve` listed in REQUIREMENTS.md verbatim. REQUIREMENTS.md MOD-17 + ROADMAP success criterion #5 amended to match. RESEARCH.md §Open Questions Q5 records the binding decision.
+- **MOD-17 endpoint count = 4 (not 5)** — `POST /api/moderation/listings/:id/submit` dropped per RESEARCH §Open Questions Q1 — Phase 2 D-22 auto-flip + dropped draft state make it vestigial. REQUIREMENTS.md MOD-17 amended.
