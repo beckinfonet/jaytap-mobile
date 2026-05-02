@@ -94,7 +94,7 @@
   4. The owner of a rejected listing sees a banner with their rejection reason translated into THEIR locale (not the moderator's locale); the banner reads "JayTap moderator" / «Модератор JayTap» generically and never exposes the moderator's identity
   5. Every approve / reject / edit-on-behalf action writes an append-only audit row to the `moderationLog` Mongo collection with `{actorUid, action, targetType: 'property', targetId, before, after, reasonCode?, reasonNote?, at}` (no M2 UI; data forward-fits a future M3+ audit screen); the 4 new endpoints (`GET /api/moderation/queue`, `POST /api/moderation/properties/:id/approve`, `POST /api/moderation/properties/:id/reject`, `PUT /api/moderation/listings/:id`) all enforce role ≥ moderator server-side via the JWKS middleware
 **Plans**: 6 plans
-  - [ ] 03-01-PLAN.md — Wave-1 backend foundations (serviceAreas + ModerationLog model + moderationRoutes skeleton + index.js mount)
+  - [x] 03-01-PLAN.md — Wave-1 backend foundations (serviceAreas + ModerationLog model + moderationRoutes skeleton + index.js mount) — completed 2026-05-02 (backend commits `365d0a4` + `a6e4d95`; backend npm test 67/67 PASS)
   - [ ] 03-02-PLAN.md — Wave-1 client foundations (19 EN+RU locale keys + useRole.ts viewModerationQueue + 5 PropertyService methods + RejectionBanner i18n patch)
   - [ ] 03-03-PLAN.md — Wave-2 backend approve/reject/queue endpoints (race-safe atomic findOneAndUpdate + actorUid from req.firebaseUid + audit follow-up)
   - [ ] 03-04-PLAN.md — Wave-2 client RejectListingModal + ModerationQueueScreen overlay + ProfileScreen entry-point with badge
