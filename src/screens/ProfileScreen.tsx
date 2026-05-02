@@ -20,15 +20,18 @@ interface ProfileScreenProps {
     onViewAccountSettings?: () => void;
     onApplyLandlord?: () => void;
     onReviewLandlordApplications?: () => void;
-    // Phase 3 additions (Plan 03-04 / D-03):
+    // Phase 3 additions (Plan 03-04 / D-03; CR-02 amendment 2026-05-02):
     // onReviewModerationQueue navigates to <ModerationQueueScreen> (App.tsx Plan 06 wires it).
-    // pendingModerationCount is optional — if a parent owns the count via a hook, it takes
-    // precedence; otherwise this screen self-fetches via PropertyService.getModerationQueueCount().
+    // moderationCountRefreshKey is bumped by App.tsx whenever the queue overlay closes
+    // (or an edit-on-behalf flow starts) so this screen — kept alive under the overlay —
+    // refreshes the pending-count badge without depending on AppState 'active' alone.
+    // CR-02 fix removed the prior pendingModerationCount prop: parent-owned count had no
+    // AppState listener and shadowed this screen's cooldown ref, leaving the badge stale.
     onReviewModerationQueue?: () => void;
-    pendingModerationCount?: number;
+    moderationCountRefreshKey?: number;
 }
 
-function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onViewFavorites, onViewAppointments, onViewAccountSettings, onApplyLandlord, onReviewLandlordApplications, onReviewModerationQueue, pendingModerationCount }: ProfileScreenProps) {
+function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onViewFavorites, onViewAppointments, onViewAccountSettings, onApplyLandlord, onReviewLandlordApplications, onReviewModerationQueue, moderationCountRefreshKey }: ProfileScreenProps) {
     const { user, logout } = useAuth();
     const { t } = useLanguage();
     const { isDark } = useTheme();
@@ -47,47 +50,50 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
     // Phase 3 (Plan 02 added the Action union member; Plan 03-04 consumes it).
     const canViewModerationQueue = can('viewModerationQueue');
 
-    // Pending-count state. Self-fetched if no prop is passed; parent (App.tsx Plan 06)
-    // may own the count via a hook and pass it via prop — in which case we skip the fetch.
-    const [internalPendingCount, setInternalPendingCount] = useState<number>(0);
-    const displayCount = (typeof pendingModerationCount === 'number') ? pendingModerationCount : internalPendingCount;
+    // Pending-count state. CR-02 fix: this screen owns the count entirely now —
+    // App.tsx no longer fetches it. Refetches on mount, on AppState 'active' (with
+    // 60s cooldown ref per PATTERNS §E), and whenever moderationCountRefreshKey
+    // changes (App.tsx bumps it on queue overlay close + edit-on-behalf launch so
+    // the badge stays fresh after the moderator's own actions).
+    const [pendingCount, setPendingCount] = useState<number>(0);
+    const displayCount = pendingCount;
 
-    // Self-fetch on mount when canViewModerationQueue && prop not provided.
+    // Self-fetch on mount AND whenever moderationCountRefreshKey changes (App.tsx
+    // bumps it on queue close so the badge updates immediately after a mod action).
     useEffect(() => {
         if (!canViewModerationQueue) return;
-        if (typeof pendingModerationCount === 'number') return; // parent owns the count
         let cancelled = false;
         (async () => {
             try {
                 const count = await PropertyService.getModerationQueueCount();
-                if (!cancelled) setInternalPendingCount(count);
+                if (!cancelled) setPendingCount(count);
             } catch {
                 /* non-fatal — badge silently stays at 0 (server 403 / network blip) */
             }
         })();
         return () => { cancelled = true; };
-    }, [canViewModerationQueue, pendingModerationCount]);
+    }, [canViewModerationQueue, moderationCountRefreshKey]);
 
     // AppState 'active' refresh — own per-screen cooldown ref (PATTERNS §E).
     // The 60s cooldown is independent from the AuthContext refreshRole cooldown AND from
     // the ModerationQueueScreen's own cooldown — each consumer fires its OWN work on
-    // its OWN schedule.
+    // its OWN schedule. CR-02 fix: this listener is now load-bearing (no parent-owned
+    // count to shadow it), so a moderator returning from background sees a fresh count.
     const lastCountFetchAt = useRef<number | null>(null);
     useEffect(() => {
         if (!canViewModerationQueue) return;
-        if (typeof pendingModerationCount === 'number') return; // parent owns the count
         const onChange = (nextState: AppStateStatus) => {
             if (nextState !== 'active') return;
             const now = Date.now();
             if (lastCountFetchAt.current && now - lastCountFetchAt.current < 60_000) return;
             lastCountFetchAt.current = now;
             PropertyService.getModerationQueueCount()
-                .then(setInternalPendingCount)
+                .then(setPendingCount)
                 .catch(() => { /* non-fatal */ });
         };
         const sub = AppState.addEventListener('change', onChange);
         return () => sub.remove();
-    }, [canViewModerationQueue, pendingModerationCount]);
+    }, [canViewModerationQueue]);
 
     const themeStyles = useMemo(
         () => ({

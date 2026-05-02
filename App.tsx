@@ -50,10 +50,21 @@ function AppContent() {
   const [isCreateListingOpen, setIsCreateListingOpen] = useState(false);
   const [isLandlordApplicationOpen, setIsLandlordApplicationOpen] = useState(false);
   const [isLandlordApplicationQueueOpen, setIsLandlordApplicationQueueOpen] = useState(false);
-  // Phase 3 Plan 06 — moderation queue overlay + edit-on-behalf mod-context + pending-count badge.
+  // Phase 3 Plan 06 — moderation queue overlay + edit-on-behalf mod-context.
+  // CR-02 fix: pendingModerationCount state was REMOVED — ProfileScreen owns the
+  // count entirely (it has the AppState 'active' refresh + 60s cooldown ref). The
+  // App.tsx-side fetcher had no AppState listener, no cooldown, and its prop
+  // shadowed ProfileScreen's self-fetch path so the cooldown never ran. Letting
+  // ProfileScreen own the state removes the precedence dance and fixes the
+  // stale-badge regression after returning from background.
+  //
+  // moderationCountRefreshKey bumps when the queue overlay closes so ProfileScreen
+  // (kept-alive under the overlay) can refresh its count without depending on
+  // AppState 'active' alone — a moderator who approves/rejects then taps Back
+  // expects the badge to reflect the new total immediately.
   const [isModerationQueueOpen, setIsModerationQueueOpen] = useState(false);
   const [moderatorContext, setModeratorContext] = useState<{ editingOwnerUid: string; reason?: string; ownerEmail?: string } | null>(null);
-  const [pendingModerationCount, setPendingModerationCount] = useState<number>(0);
+  const [moderationCountRefreshKey, setModerationCountRefreshKey] = useState(0);
   const [propertyToEdit, setPropertyToEdit] = useState<Property | null>(null);
   const [isAdminVerificationMode, setIsAdminVerificationMode] = useState(false);
   const skipRenterListingsReopenRef = useRef(false);
@@ -117,18 +128,13 @@ function AppContent() {
   ];
   const hideMainStackUnderOverlay = OVERLAY_FLAGS.some(Boolean);
 
-  // Phase 3 Plan 06 — Profile entry-point pending-count + role gate.
-  // Refetches when canViewModerationQueue changes AND when isModerationQueueOpen
-  // toggles (queue close after the moderator's own approve/reject auto-flips a row).
+  // Phase 3 Plan 06 — Profile entry-point role gate.
+  // CR-02 fix: pending-count fetcher was removed; ProfileScreen owns the count
+  // (self-fetch + AppState 'active' refresh with 60s cooldown). canViewModerationQueue
+  // remains here so we only pass the onReviewModerationQueue callback down when the
+  // user has the permission — keeping the role check at this layer also keeps the
+  // OVERLAY_FLAGS gate (which references isModerationQueueOpen) free of dead UX paths.
   const canViewModerationQueue = canFromUser(user, 'viewModerationQueue');
-  useEffect(() => {
-    if (!canViewModerationQueue) { setPendingModerationCount(0); return; }
-    let cancelled = false;
-    PropertyService.getModerationQueueCount()
-      .then((c) => { if (!cancelled) setPendingModerationCount(c); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [canViewModerationQueue, isModerationQueueOpen]);
 
   // Tab-tap takes precedence: clears every flag the show* priority ladder checks
   // so the target tab can always promote. Adding a new Profile sub-screen flag
@@ -731,7 +737,7 @@ function AppContent() {
                 onApplyLandlord={onProfileApplyLandlord}
                 onReviewLandlordApplications={onProfileReviewLandlordApplications}
                 onReviewModerationQueue={canViewModerationQueue ? onProfileReviewModerationQueue : undefined}
-                pendingModerationCount={pendingModerationCount}
+                moderationCountRefreshKey={moderationCountRefreshKey}
               />
             </View>
           )}
@@ -1037,10 +1043,17 @@ function AppContent() {
         {!!user && isModerationQueueOpen && (
           <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
             <ModerationQueueScreen
-              onBack={() => setIsModerationQueueOpen(false)}
+              onBack={() => {
+                setIsModerationQueueOpen(false);
+                // CR-02 fix: bump refresh key so ProfileScreen (kept-alive under
+                // the overlay) refetches the pending-count badge when the moderator
+                // returns from approving/rejecting.
+                setModerationCountRefreshKey((k) => k + 1);
+              }}
               onOpenPropertyDetails={(p) => setSelectedProperty(p)}
               onEditOnBehalf={(p) => {
                 setIsModerationQueueOpen(false);
+                setModerationCountRefreshKey((k) => k + 1);
                 setIsAdminVerificationMode(false);
                 setPropertyToEdit(p);
                 setModeratorContext({
