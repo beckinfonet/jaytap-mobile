@@ -34,6 +34,7 @@ import { AuthPromptModal } from './src/components/AuthPromptModal';
 import { RoleRefreshBanner } from './src/components/RoleRefreshBanner';
 import { canFromUser } from './src/hooks/useRole';
 import PropertyDetailsHost from './src/components/PropertyDetailsHost';
+import ModerationQueueScreen from './src/screens/ModerationQueueScreen';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -49,6 +50,10 @@ function AppContent() {
   const [isCreateListingOpen, setIsCreateListingOpen] = useState(false);
   const [isLandlordApplicationOpen, setIsLandlordApplicationOpen] = useState(false);
   const [isLandlordApplicationQueueOpen, setIsLandlordApplicationQueueOpen] = useState(false);
+  // Phase 3 Plan 06 — moderation queue overlay + edit-on-behalf mod-context + pending-count badge.
+  const [isModerationQueueOpen, setIsModerationQueueOpen] = useState(false);
+  const [moderatorContext, setModeratorContext] = useState<{ editingOwnerUid: string; reason?: string; ownerEmail?: string } | null>(null);
+  const [pendingModerationCount, setPendingModerationCount] = useState<number>(0);
   const [propertyToEdit, setPropertyToEdit] = useState<Property | null>(null);
   const [isAdminVerificationMode, setIsAdminVerificationMode] = useState(false);
   const skipRenterListingsReopenRef = useRef(false);
@@ -108,8 +113,22 @@ function AppContent() {
     !!user && isCreateListingOpen,
     !!activeTourUrl,
     !!activePhotosUrl,
+    !!user && isModerationQueueOpen, // Phase 3 Plan 06 — moderation queue overlay
   ];
   const hideMainStackUnderOverlay = OVERLAY_FLAGS.some(Boolean);
+
+  // Phase 3 Plan 06 — Profile entry-point pending-count + role gate.
+  // Refetches when canViewModerationQueue changes AND when isModerationQueueOpen
+  // toggles (queue close after the moderator's own approve/reject auto-flips a row).
+  const canViewModerationQueue = canFromUser(user, 'viewModerationQueue');
+  useEffect(() => {
+    if (!canViewModerationQueue) { setPendingModerationCount(0); return; }
+    let cancelled = false;
+    PropertyService.getModerationQueueCount()
+      .then((c) => { if (!cancelled) setPendingModerationCount(c); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [canViewModerationQueue, isModerationQueueOpen]);
 
   // Tab-tap takes precedence: clears every flag the show* priority ladder checks
   // so the target tab can always promote. Adding a new Profile sub-screen flag
@@ -299,6 +318,11 @@ function AppContent() {
         }
         return true;
       }
+      // Phase 3 Plan 06 — moderation queue (sibling to landlord-app queue).
+      if (isModerationQueueOpen) {
+        setIsModerationQueueOpen(false);
+        return true;
+      }
       if (isLandlordApplicationOpen) {
         setIsLandlordApplicationOpen(false);
         if (returnToProfileAfterLandlordApplication) {
@@ -361,6 +385,7 @@ function AppContent() {
     isCreateListingOpen,
     isLandlordApplicationOpen,
     isLandlordApplicationQueueOpen,
+    isModerationQueueOpen,
     selectedProperty,
     isScheduleViewingOpen,
     isFavoritesOpen,
@@ -497,6 +522,12 @@ function AppContent() {
     // to Profile, not Home.
     setReturnToProfileAfterLandlordApplicationQueue(true);
     setIsLandlordApplicationQueueOpen(true);
+  }, []);
+  // Phase 3 Plan 06 Task 04 — Profile entry-point dispatcher for the
+  // moderation queue overlay. Closes Profile, opens the queue.
+  const onProfileReviewModerationQueue = useCallback(() => {
+    setIsProfileOpen(false);
+    setIsModerationQueueOpen(true);
   }, []);
   const onProfileViewListings = useCallback(() => setIsRenterListingsOpen(true), []);
   // Phase 2 D-15 / MOD-09: HomeRejectionBanner CTA target. Opens RenterListings
@@ -699,6 +730,8 @@ function AppContent() {
                 onViewAccountSettings={onProfileViewAccountSettings}
                 onApplyLandlord={onProfileApplyLandlord}
                 onReviewLandlordApplications={onProfileReviewLandlordApplications}
+                onReviewModerationQueue={canViewModerationQueue ? onProfileReviewModerationQueue : undefined}
+                pendingModerationCount={pendingModerationCount}
               />
             </View>
           )}
@@ -887,6 +920,17 @@ function AppContent() {
               setSelectedProperty(null);
               setIsCreateListingOpen(true);
             }}
+            // Phase 3 Plan 06 — mod footer "Edit on behalf" -> CreateListingScreen with moderatorContext.
+            onEditOnBehalfPressed={(p) => {
+              setIsAdminVerificationMode(false);
+              setPropertyToEdit(p);
+              setModeratorContext({
+                editingOwnerUid: (p.owner?.uid || (p as any).ownerUid || '') as string,
+                ownerEmail: p.owner?.email,
+              });
+              setSelectedProperty(null);
+              setIsCreateListingOpen(true);
+            }}
           />
         )}
         {(renterListingsEverMounted || isRenterListingsOpen) && (
@@ -921,12 +965,15 @@ function AppContent() {
                 setIsCreateListingOpen(false);
                 setPropertyToEdit(null);
                 setIsAdminVerificationMode(false);
+                // Phase 3 Plan 06 — clear mod-context so owner self-edit doesn't inherit it.
+                setModeratorContext(null);
                 skipRenterListingsReopenRef.current = false;
               }}
               onSuccess={() => {
                 setIsCreateListingOpen(false);
                 setPropertyToEdit(null);
                 setIsAdminVerificationMode(false);
+                setModeratorContext(null); // Phase 3 Plan 06 — D-12 status->'live' server-side
                 // Refresh Home so newly-published listings (and edits that flip draft↔live) appear without remount.
                 setHomeRefreshKey((k) => k + 1);
                 if (!skipRenterListingsReopenRef.current) {
@@ -937,11 +984,13 @@ function AppContent() {
               }}
               propertyToEdit={propertyToEdit || undefined}
               verificationOnly={isAdminVerificationMode}
+              moderatorContext={moderatorContext || undefined}
               // Phase 5 D-11: Hospitality contact recovery — close CreateListing, open AccountSettings
               onNavigateToAccountSettings={() => {
                 setIsCreateListingOpen(false);
                 setPropertyToEdit(null);
                 setIsAdminVerificationMode(false);
+                setModeratorContext(null);
                 setIsAccountSettingsOpen(true);
               }}
             />
@@ -980,6 +1029,25 @@ function AppContent() {
                   setIsProfileOpen(true);
                   setReturnToProfileAfterLandlordApplicationQueue(false);
                 }
+              }}
+            />
+          </View>
+        )}
+        {/* Phase 3 Plan 06 — Moderation queue overlay (sibling to landlord-app queue). */}
+        {!!user && isModerationQueueOpen && (
+          <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
+            <ModerationQueueScreen
+              onBack={() => setIsModerationQueueOpen(false)}
+              onOpenPropertyDetails={(p) => setSelectedProperty(p)}
+              onEditOnBehalf={(p) => {
+                setIsModerationQueueOpen(false);
+                setIsAdminVerificationMode(false);
+                setPropertyToEdit(p);
+                setModeratorContext({
+                  editingOwnerUid: (p.owner?.uid || (p as any).ownerUid || '') as string,
+                  ownerEmail: p.owner?.email,
+                });
+                setIsCreateListingOpen(true);
               }}
             />
           </View>

@@ -27,6 +27,16 @@ interface PropertyDetailsHostProps {
   onLandlordPress: (ownerUid: string, ownerName: string) => void;
   onAdminVerifyDocuments: (property: Property) => void;
   onEditListing: (property: Property) => void;
+  // Phase 3 Plan 06 Task 02/04 — moderation action footer "Edit on behalf"
+  // dispatcher. PropertyDetailsScreen renders the footer when can('approveListings')
+  // AND status === 'pending'; the Edit-on-behalf button fires this callback so
+  // App.tsx can set propertyToEdit + moderatorContext + open CreateListingScreen.
+  onEditOnBehalfPressed?: (property: Property) => void;
+  // Phase 3 Plan 06 Task 02/04 — refresh hook used by the moderation action
+  // footer after Approve/Reject so the parent (App.tsx) can refetch any sibling
+  // surfaces that depend on listing status (e.g., ModerationQueueScreen list,
+  // pendingModerationCount badge).
+  onRefreshProperty?: () => Promise<void>;
 }
 
 const PropertyDetailsHost: React.FC<PropertyDetailsHostProps> = ({
@@ -43,6 +53,8 @@ const PropertyDetailsHost: React.FC<PropertyDetailsHostProps> = ({
   onLandlordPress,
   onAdminVerifyDocuments,
   onEditListing,
+  onEditOnBehalfPressed,
+  onRefreshProperty,
 }) => {
   return (
     <View style={styles.fullScreenOverlay}>
@@ -60,6 +72,8 @@ const PropertyDetailsHost: React.FC<PropertyDetailsHostProps> = ({
         onLandlordPress={onLandlordPress}
         onAdminVerifyDocuments={onAdminVerifyDocuments}
         onEditListing={onEditListing}
+        onEditOnBehalfPressed={onEditOnBehalfPressed}
+        onRefreshProperty={onRefreshProperty}
       />
     </View>
   );
