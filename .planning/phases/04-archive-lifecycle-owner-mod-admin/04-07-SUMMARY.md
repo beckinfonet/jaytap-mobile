@@ -2,8 +2,8 @@
 phase: 04-archive-lifecycle-owner-mod-admin
 plan: 07
 subsystem: client-integration
-tags: [arch-01, arch-02, arch-03, arch-04, arch-05, locale-rewrite, mod-footer, atomic-strip, wave-4, manual-qa-pending]
-status: partial-pending-checkpoint
+tags: [arch-01, arch-02, arch-03, arch-04, arch-05, locale-rewrite, mod-footer, atomic-strip, wave-4, manual-qa-approved]
+status: complete
 
 # Dependency graph
 requires:
@@ -57,12 +57,12 @@ key-decisions:
 requirements-completed: [ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05]
 
 # Metrics
-duration_human: "~30 min execution + checkpoint pending"
+duration_human: "~30 min execution + manual QA matrix walked APPROVED on iPhone 15 Pro Max"
 duration_seconds: 1800
-tasks_completed: 3   # of 4 (Task 4 is the manual checkpoint, partial-pending)
+tasks_completed: 4   # of 4 — all tasks closed
 tasks_total: 4
 files_modified: 4
-commits: 3   # plus this SUMMARY commit
+commits: 3   # plus partial-pending SUMMARY commit (e0abbe1) + final-close commit
 loc_delta:
   added: 188
   removed: 53
@@ -71,7 +71,7 @@ completed_date: "2026-05-03"
 
 # Phase 4 Plan 07: Wave-4 client integration — RenterListings rewire + PropertyDetails footer extension + locale-value rewrite Summary
 
-End-to-end observable archive lifecycle landed across owner + mod/admin client surfaces; 3 atomic commits in JayTap RN client repo cover the locale-value rewrite (5 keys × 2 locales), the RenterListingsScreen Pitfall 6 atomic strip + archive-call-site rewire + D-13 canSelfRestore conditional gate, and the PropertyDetailsScreen mod-action footer extension + ArchiveListingModal/DeleteListingModal sibling mounts. Backend 106/106 GREEN preserved; tsc baseline preserved; App.tsx 1191 LOC unchanged (D-19 net-zero); i18n parity gate exit 0; anti-spoofing grep gate exit 0. **Manual physical-device QA matrix on iPhone 15 Pro Max is OPEN as the partial-pending checkpoint** — the 11-row walk awaits user execution + APPROVED signal before Phase 4 closes.
+End-to-end observable archive lifecycle landed across owner + mod/admin client surfaces; 3 atomic commits in JayTap RN client repo cover the locale-value rewrite (5 keys × 2 locales), the RenterListingsScreen Pitfall 6 atomic strip + archive-call-site rewire + D-13 canSelfRestore conditional gate, and the PropertyDetailsScreen mod-action footer extension + ArchiveListingModal/DeleteListingModal sibling mounts. Backend 106/106 GREEN preserved; tsc baseline preserved; App.tsx 1191 LOC unchanged (D-19 net-zero); i18n parity gate exit 0; anti-spoofing grep gate exit 0. **Manual physical-device QA matrix on iPhone 15 Pro Max walked APPROVED 2026-05-03** — all 11 rows pass; user resume signal `approved` received. Moto G XT2513V deferred to Phase 6 REL-03 release-gate matrix per Phase 3 Plan 06 SUMMARY's escape-hatch precedent. **Plan 04-07 closes Phase 4 — 7/7 plans shipped; ARCH-01..ARCH-05 fully validated; ready for `/gsd-verify-work 4` + `/gsd-code-review` per `gsd-verifier-misses-regressions.md` paired-gates discipline.**
 
 ## What Shipped
 
@@ -202,25 +202,29 @@ None. Plan executed in atomic-commit order with no other discoveries.
 11. Backend test suite (Plans 02+03+04):     106 / 106 passing  ✓
 ```
 
-## Manual QA Matrix — OPEN (Task 4 partial-pending checkpoint)
+## Manual Verification — APPROVED
 
-The 11-row physical-device QA matrix on iPhone 15 Pro Max awaits user execution. Expected outcome: APPROVED with all 11 rows passing or signal-not-block-only minor polish issues. CRITICAL failures (ARCH-01..ARCH-05 invariants violated) would re-open Plan 07 for fix.
-
-Moto G XT2513V Android matrix is deliberately deferred to Phase 6 release-gate per Phase 3 Plan 06 SUMMARY's escape-hatch precedent (REL-03 cross-cutting QA before store submission).
+**Date:** 2026-05-03
+**Device:** iPhone 15 Pro Max
+**Matrix:** 11/11 rows passed
+**User response:** `Approved — all rows pass`
+**Note:** Moto G XT2513V Android matrix is deliberately deferred to Phase 6 release-gate per Phase 3 Plan 06 SUMMARY's escape-hatch precedent (REL-03 cross-cutting QA before store submission).
 
 | Row | Action under test | Acceptance | Status |
 |---|---|---|---|
-| 1 | Owner archives own live listing (ARCH-01, D-09) | Alert.alert "Archive Listing" copy + listing moves to Archived tab | PENDING |
-| 2 | Owner restores self-archived listing (ARCH-04, D-12 + D-13) | Alert.alert "Restore Listing" with re-moderation copy + listing back to Pending tab | PENDING |
-| 3 | Owner CANNOT restore mod-archived listing (D-13 + Pitfall 4) | NO Restore button on PropertyCard when archivedByUid !== user.localId | PENDING |
-| 4 | Mod archives a live listing via PropertyDetailsScreen (ARCH-02, D-06 + D-08) | ArchiveListingModal opens with 4 chips + note; submit flips status | PENDING |
-| 5 | Mod restores any archived listing (ARCH-04, D-06) | Restore button visible; Alert.alert with rewritten copy; status -> pending | PENDING |
-| 6 | Admin sees Hard Delete button on archived listing (ARCH-05, D-04 + D-10) | DeleteListingModal opens; confirm fires permanentlyDeletedToast; screen pops | PENDING |
-| 7 | Plain user does NOT see Archive/Restore/Hard-Delete buttons (ARCH-05, D-06 + D-16) | No mod-action footer row visible | PENDING |
-| 8 | Archived listings hidden from public lanes (ARCH-03 — Phase 2 D-07 regression preserved) | Home / Favorites exclude archived | PENDING |
-| 9 | Owner sees own archived listings in Archived tab (ARCH-03) | Self-archived + mod-archived both visible to owner | PENDING |
-| 10 | EN+RU locale parity per screen (D-12 + Plan 06) | RU walk-through of Rows 1, 2, 4 shows correct rewritten values | PENDING |
-| 11 | Dark/light mode parity | All theme tokens render correctly; chip contrast ok in dark mode | PENDING |
+| 1 | Owner archives own live listing (ARCH-01, D-09) | Alert.alert "Archive Listing" copy + listing moves to Archived tab | PASS |
+| 2 | Owner restores self-archived listing (ARCH-04, D-12 + D-13) | Alert.alert "Restore Listing" with re-moderation copy + listing back to Pending tab | PASS |
+| 3 | Owner CANNOT restore mod-archived listing (D-13 + Pitfall 4) | NO Restore button on PropertyCard when archivedByUid !== user.localId | PASS |
+| 4 | Mod archives a live listing via PropertyDetailsScreen (ARCH-02, D-06 + D-08) | ArchiveListingModal opens with 4 chips + note; submit flips status | PASS |
+| 5 | Mod restores any archived listing (ARCH-04, D-06) | Restore button visible; Alert.alert with rewritten copy; status -> pending | PASS |
+| 6 | Admin sees Hard Delete button on archived listing (ARCH-05, D-04 + D-10) | DeleteListingModal opens; confirm fires permanentlyDeletedToast; screen pops | PASS |
+| 7 | Plain user does NOT see Archive/Restore/Hard-Delete buttons (ARCH-05, D-06 + D-16) | No mod-action footer row visible | PASS |
+| 8 | Archived listings hidden from public lanes (ARCH-03 — Phase 2 D-07 regression preserved) | Home / Favorites exclude archived | PASS |
+| 9 | Owner sees own archived listings in Archived tab (ARCH-03) | Self-archived + mod-archived both visible to owner | PASS |
+| 10 | EN+RU locale parity per screen (D-12 + Plan 06) | RU walk-through of Rows 1, 2, 4 shows correct rewritten values | PASS |
+| 11 | Dark/light mode parity | All theme tokens render correctly; chip contrast ok in dark mode | PASS |
+
+**Outcome:** All 11 rows of the iPhone 15 Pro Max smoke matrix passed. No CRITICAL failures (ARCH-01..ARCH-05 invariants verified observable end-to-end). No signal-not-block-only minor polish items reported. Phase 4 closes COMPLETE 7/7. Ready for `/gsd-verify-work 4` + `/gsd-code-review` per `gsd-verifier-misses-regressions.md` paired-gates discipline.
 
 ## Threat Model Coverage
 
@@ -250,13 +254,13 @@ No external service configuration required for the code itself (the modals + foo
 
 ## Authentication Gates
 
-None encountered during the autonomous code portion (Tasks 1-3). Task 4 manual QA matrix is a `checkpoint:human-verify` per the plan, not an auth gate.
+None encountered during the autonomous code portion (Tasks 1-3). Task 4 manual QA matrix was a `checkpoint:human-verify` per the plan, not an auth gate; user walked the 11-row matrix on iPhone 15 Pro Max signed in with their pre-existing test fixtures (1 plain user + 1 mod + 1 admin) and returned `approved`.
 
 ## Threat Surface Scan
 
 No new threat-model surfaces introduced beyond what the threat register documented. The 4 endpoint-call sites (handleArchiveProperty, handleUnarchiveProperty, handleModArchiveSubmit, confirmHardDelete) all route through the existing PropertyService methods with their belt-and-suspenders canFromUser guards — no new HTTP attack surface created in this plan.
 
-## Self-Check: PASSED (pending Task 4)
+## Self-Check: PASSED
 
 **Files verified to exist:**
 
@@ -272,10 +276,10 @@ No new threat-model surfaces introduced beyond what the threat register document
 - ✅ `a23c0dc` feat(04-07): RenterListingsScreen Pitfall 6 atomic strip + archive rewire (D-09 + D-10 + D-11 + D-13 + D-14)
 - ✅ `f712420` feat(04-07): PropertyDetailsScreen mod-action footer + 2 modal mounts (D-06 + D-08 + D-10)
 
-**Phase 4 close metadata:** Plans 04-01 / 04-02 / 04-03 / 04-04 / 04-05 / 04-06 / 04-07 = 7 of 7 plans shipped. ARCH-01 / ARCH-02 / ARCH-03 / ARCH-04 / ARCH-05 = 5 of 5 requirements covered end-to-end. Backend 106/106 GREEN. Ready for `/gsd-verify-work` + `/gsd-code-review` paired-gates discipline per `gsd-verifier-misses-regressions.md` once Task 4 manual QA APPROVED.
+**Phase 4 close metadata:** Plans 04-01 / 04-02 / 04-03 / 04-04 / 04-05 / 04-06 / 04-07 = 7 of 7 plans shipped. ARCH-01 / ARCH-02 / ARCH-03 / ARCH-04 / ARCH-05 = 5 of 5 requirements covered end-to-end AND validated on iPhone 15 Pro Max (11/11 smoke matrix rows PASS, user resume signal `approved` 2026-05-03). Backend 106/106 GREEN. Ready for `/gsd-verify-work 4` + `/gsd-code-review` paired-gates discipline per `gsd-verifier-misses-regressions.md`.
 
 ---
 *Phase: 04-archive-lifecycle-owner-mod-admin*
 *Plan: 07 of 07 — Wave-4 client integration*
-*Status: 3 of 4 tasks complete (autonomous code shipped); Task 4 manual QA matrix awaits user APPROVED*
-*Completed (code portion): 2026-05-03*
+*Status: COMPLETE — 4 of 4 tasks shipped (Tasks 1-3 autonomous code + Task 4 manual QA matrix APPROVED on iPhone 15 Pro Max)*
+*Completed: 2026-05-03*
