@@ -1090,9 +1090,9 @@ admin.roles.error.network                               // "Could not reach serv
 
 **Total: 23 new keys × 2 locales = 46 strings.** Within the M2 i18n growth budget (Phase 3 added 19, Phase 4 added 8 + rewrote 5).
 
-## Open Questions for Planner
+## Open Questions for Planner (RESOLVED)
 
-### Q1 — MongoDB Atlas tier transaction support
+### Q1 — MongoDB Atlas tier transaction support — RESOLVED: two-phase CAS + post-write rollback (the portable path; transactions deferred)
 
 **What we know:** MongoDB transactions require a replica set. Atlas free tier (M0) and paid shared tiers (M2/M5) do support transactions because Atlas provisions a replica set by default. Atlas M0 free tier explicitly supports transactions per official docs as of mid-2024. Backend connects to Atlas.
 
@@ -1100,7 +1100,7 @@ admin.roles.error.network                               // "Could not reach serv
 
 **Recommendation:** Plan for the **two-phase compare-and-swap + rollback** mitigation strategy (Risk #1) as the primary close — it's portable and works on bare clusters. If the maintainer can confirm Atlas tier supports transactions during plan-phase, the planner can OPTIONALLY add a transaction-wrapped path as a defense-in-depth upgrade. The two-phase CAS handles the worst-case race correctly; transactions just close the race window faster.
 
-### Q2 — Search performance: should we add a prefix-only search alternative?
+### Q2 — Search performance: should we add a prefix-only search alternative? — RESOLVED: substring-only per CONTEXT D-Discretion; defer prefix-mode to M3+
 
 **What we know:** D-Discretion locked substring search (`$regex: escapedQuery, $options: 'i'`). At admin scale this is fine.
 
@@ -1108,31 +1108,31 @@ admin.roles.error.network                               // "Could not reach serv
 
 **Recommendation:** Ship substring-only per CONTEXT lock. Document the unindexed-scan tradeoff in code comments + SUMMARY. Defer prefix-mode toggle to M3+ if user count crosses ~10K.
 
-### Q3 — `LAST_ADMIN_LOCKOUT_RACE` envelope code: same as `LAST_ADMIN_LOCKOUT` or distinct?
+### Q3 — `LAST_ADMIN_LOCKOUT_RACE` envelope code: same as `LAST_ADMIN_LOCKOUT` or distinct? — RESOLVED: reuse `LAST_ADMIN_LOCKOUT` envelope code with a distinct ops log event for rollback path
 
 **What we know:** CONTEXT D-11 locks `LAST_ADMIN_LOCKOUT (409)` for the pre-flight check. Risk #1's rollback close needs a SEPARATE distinguishable code (or it can reuse `LAST_ADMIN_LOCKOUT` with a different message).
 
 **Recommendation:** Reuse `LAST_ADMIN_LOCKOUT` with the same code + message. Both surface to the user via the D-09 blocking modal. The race-window distinction is interesting for ops (log analysis) but not for UX. Add a `console.log({evt:'last_admin_lockout_rollback', ...})` for ops visibility.
 
-### Q4 — Should `firebaseUid` field on User be the lookup key or `_id`?
+### Q4 — Should `firebaseUid` field on User be the lookup key or `_id`? — RESOLVED: `User.findOne({uid: targetUid})` (Firebase uid string) — matches verifyFirebaseToken middleware
 
 **What we know:** User schema has both `_id` (Mongo ObjectId, auto) and `uid` (Firebase string, unique-indexed). The `verifyFirebaseToken` middleware does `User.findOne({uid: firebaseUid})` (line 70). The PATCH route's `req.params.uid` matches the Firebase uid string.
 
 **Recommendation:** Use `User.findOne({uid: targetUid})` and `User.findOneAndUpdate({uid: targetUid, userType: fromRole}, ...)` (Firebase uid string). Consistent with the existing lookup pattern. Document this in code comments.
 
-### Q5 — Should we tighten `userType` enum validation on the client too?
+### Q5 — Should we tighten `userType` enum validation on the client too? — RESOLVED: client const + backend validate (duplicate harmless at this scale)
 
 **What we know:** RoleChangeModal renders 3 chips from a hardcoded `ROLE_TYPES` const. Backend validates against `VALID_USER_TYPES`. Client gate is UX-only.
 
 **Recommendation:** Keep client const + backend validate. If the planner wants single-source-of-truth, export `VALID_USER_TYPES` from the backend and re-derive on the client (similar to RejectReasonCode), but at this scale the duplication is harmless.
 
-### Q6 — How should the inline "(you)" badge look visually?
+### Q6 — How should the inline "(you)" badge look visually? — RESOLVED: `opacity: 0.5` row + `textSecondary` (you) chip + `disabled` TouchableOpacity per Phase 5 UI-SPEC
 
 **What we know:** D-10 says "subtle '(you)' / «(вы)» label next to the email" + "non-tappable". Discretion left to UI.
 
 **Recommendation:** Render row with `opacity: 0.5`, badge as a small chip next to email (`textSecondary` color), `disabled` on the TouchableOpacity. Standard iOS Settings disabled-row treatment.
 
-### Q7 — App.tsx LOC drift — should we extract `<RoleManagementOverlayHost>`?
+### Q7 — App.tsx LOC drift — should we extract `<RoleManagementOverlayHost>`? — RESOLVED: signal-not-block per PATTERN D; document drift in 05-05-SUMMARY
 
 **What we know:** Current App.tsx = 1191 LOC. Phase 5 adds +30-40 LOC. Phase 3 SUMMARY's M3 remediation list mentions extracting overlay host components.
 
