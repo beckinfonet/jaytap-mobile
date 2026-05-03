@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator, AppState, AppStateStatus } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Heart, Calendar, ClipboardList, Plus, ChevronRight, LogOut, Inbox } from 'lucide-react-native';
+import { Heart, Calendar, ClipboardList, Plus, ChevronRight, LogOut, Inbox, UserCog } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useRole } from '../hooks/useRole';
 import { useLanguage } from '../context/LanguageContext';
@@ -28,10 +28,11 @@ interface ProfileScreenProps {
     // CR-02 fix removed the prior pendingModerationCount prop: parent-owned count had no
     // AppState listener and shadowed this screen's cooldown ref, leaving the badge stale.
     onReviewModerationQueue?: () => void;
+    onOpenRoleManagement?: () => void;  // Phase 5 — admin-only role management entry-point dispatch
     moderationCountRefreshKey?: number;
 }
 
-function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onViewFavorites, onViewAppointments, onViewAccountSettings, onApplyLandlord, onReviewLandlordApplications, onReviewModerationQueue, moderationCountRefreshKey }: ProfileScreenProps) {
+function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onViewFavorites, onViewAppointments, onViewAccountSettings, onApplyLandlord, onReviewLandlordApplications, onReviewModerationQueue, onOpenRoleManagement, moderationCountRefreshKey }: ProfileScreenProps) {
     const { user, logout } = useAuth();
     const { t } = useLanguage();
     const { isDark } = useTheme();
@@ -49,6 +50,7 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
     const canReviewLandlordApplications = can('reviewLandlordApplications');
     // Phase 3 (Plan 02 added the Action union member; Plan 03-04 consumes it).
     const canViewModerationQueue = can('viewModerationQueue');
+    const canManageRoles = can('manageRoles');  // Phase 5 — admin-only entry-point gate
 
     // Pending-count state. CR-02 fix: this screen owns the count entirely now —
     // App.tsx no longer fetches it. Refetches on mount, on AppState 'active' (with
@@ -297,6 +299,26 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
                                         <Text style={styles.pendingBadgeText}>{displayCount}</Text>
                                     </View>
                                 )}
+                                <ChevronRight size={20} color={themeStyles.textSecondary} />
+                            </TouchableOpacity>
+                        </>
+                    )}
+                    {/* Phase 5 — Admin role management entry-point (sibling to Moderation Queue row;
+                        no pending-count badge per UI-SPEC). Double-gated: canManageRoles + parent
+                        passes onOpenRoleManagement only when canManageRoles is also true in App.tsx. */}
+                    {canManageRoles && onOpenRoleManagement && (
+                        <>
+                            <View style={[styles.menuDivider, { backgroundColor: themeStyles.border }]} />
+                            <TouchableOpacity
+                                style={styles.menuRow}
+                                onPress={onOpenRoleManagement}
+                                activeOpacity={0.7}
+                                accessibilityLabel={t('admin.roles.entryPoint')}
+                            >
+                                <UserCog size={22} color={themeStyles.accent} strokeWidth={1.5} />
+                                <Text style={[styles.menuText, { color: themeStyles.text, flex: 1 }]}>
+                                    {t('admin.roles.entryPoint')}
+                                </Text>
                                 <ChevronRight size={20} color={themeStyles.textSecondary} />
                             </TouchableOpacity>
                         </>
