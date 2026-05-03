@@ -1154,17 +1154,19 @@ export function canFromUser(user: any, action: Action): boolean {
 | 5 | iPhone 15 Pro Max | admin | Open archived listing → tap Hard Delete | DeletePropertyModal opens with audit-log warning copy; confirm → toast "Listing permanently deleted"; ModerationLog row written with full before-snapshot |
 ```
 
-## Open Questions / tensions (CONTEXT.md vs actual codebase)
+## Open Questions / tensions (RESOLVED)
+
+> All 6 questions below are RESOLVED at plan-time. The "Recommendation:" line for each is implemented in the named PLAN.md task; verify against `04-0X-PLAN.md` before execution.
 
 ### Q1: `archivedReasonCode` schema field — CONTEXT.md says present, source says absent
 **What we know:** CONTEXT.md D-20 states "The `archivedReasonCode: String | null` field already exists per Phase 2 D-21 (no enum constraint at schema level — code constrains via `VALID_REJECT_CODES` const reuse per D-02)." Source at `JayTap-services/src/models/Property.js:36-50` lists only `archivedAt` + `archivedByUid` after the audit-fields block. **No `archivedReasonCode`. No `archivedReasonNote`.**
 **What's unclear:** Whether Phase 2 intended to add `archivedReasonCode` and missed it (Phase 2 STATE row is closed per ROADMAP.md), or whether CONTEXT.md misframed.
-**Recommendation:** Phase 4 plan adds BOTH `archivedReasonCode` AND `archivedReasonNote` to the Property schema in the same additive diff. Treat D-20 as the spec; the schema gap is just a Phase 2 oversight, not a re-decision.
+**RESOLVED — Recommendation:** Phase 4 plan adds BOTH `archivedReasonCode` AND `archivedReasonNote` to the Property schema in the same additive diff. Treat D-20 as the spec; the schema gap is just a Phase 2 oversight, not a re-decision. **Implemented in:** `04-01-PLAN.md` Task 1.
 
 ### Q2: PropertyCard `onUnarchive` prop already wired — D-11 misframed
 **What we know:** CONTEXT.md D-11 says "Phase 4 adds: `onUnarchive` (renders the existing emerald-styled 'restorative' button at PropertyCard.tsx:480 with copy from `t('property.unarchive')`)." Source at `PropertyCard.tsx:33` already has `onUnarchive?: (property: Property) => void` declared, and lines 233-243 render the button conditional on `isArchived && onUnarchive`. **Prop is fully wired in source today.**
 **What's unclear:** Whether D-11 means the WIRE (already done — Phase 2 stripped from JSX caller side, not from PropertyCard component) or the prop (already done in component).
-**Recommendation:** Plan-time interpretation: D-11 work happens in **RenterListingsScreen.tsx** (the parent that needs to re-pass `onArchive` + `onUnarchive` props in its `<PropertyCard>` invocation at lines 313-321) and **HospitalitySection.tsx** (verify same). PropertyCard itself is untouched.
+**RESOLVED — Recommendation:** Plan-time interpretation: D-11 work happens in **RenterListingsScreen.tsx** (the parent that needs to re-pass `onArchive` + `onUnarchive` props in its `<PropertyCard>` invocation at lines 313-321) and **HospitalitySection.tsx** (verify same). PropertyCard itself is untouched. **Implemented in:** `04-07-PLAN.md` Task 2 (callback re-mount only — no PropertyCard.tsx changes).
 
 ### Q3: LOC numbers in CONTEXT.md drift from actual files
 **What we know:** CONTEXT.md cites:
@@ -1174,20 +1176,20 @@ export function canFromUser(user: any, action: Action): boolean {
 - PropertyCard 492 LOC → actual 495 LOC (+3)
 - RejectListingModal 209 LOC → actual 209 LOC (✓; minor: file is 208 lines + 1 trailing newline, both readings valid)
 **What's unclear:** Why drift exists (some files may have had post-Phase-3 close commits not reflected in CONTEXT.md).
-**Recommendation:** Plan-time `wc -l` to lock actual baselines; flag any LOC budget conflicts (D-19 1180 hard ceiling) at plan time.
+**RESOLVED — Recommendation:** Plan-time `wc -l` to lock actual baselines; flag any LOC budget conflicts (D-19 1180 hard ceiling) at plan time. **Implemented in:** `04-07-PLAN.md` (Task 3 + acceptance criteria reference 1191 baseline; D-19 net-zero target locked at 1191, not 1178).
 
 ### Q4: Owner-restore route should it return the disambiguated 403/404/409, or collapse to one code?
 **What we know:** D-01 enumerates returns 200 / 403 (not owner) / 404 / 409 (already archived). D-13's owner-restore gate is `req.user.uid === property.ownerUid AND property.archivedByUid === property.ownerUid` — that's TWO conditions; the second one is the 403 case for "owner trying to restore mod-archived listing." If the planner uses `findOneAndUpdate({_id, ownerUid: req.firebaseUid, archivedByUid: req.firebaseUid, status: 'archived'}, ...)`, a `null` result conflates 4 scenarios: not-found / not-owner / mod-archived / not-currently-archived.
 **What's unclear:** Whether to disambiguate via follow-up `findById` read (per the example pattern earlier in this research) or accept a single 403 code with generic message.
-**Recommendation:** Disambiguate for owner-restore — the UX cost of a generic 403 is real (owner can't tell why their button failed). Mirror the example pattern in "Backend route patterns" section above.
+**RESOLVED — Recommendation:** Disambiguate for owner-restore — the UX cost of a generic 403 is real (owner can't tell why their button failed). Mirror the example pattern in "Backend route patterns" section above. **Implemented in:** `04-02-PLAN.md` Task 2 (handler runs `Property.findById(req.params.id)` after null `findOneAndUpdate` result, with 4 distinct branches: 404 not-found / 403 not-owner / 403 mod-archived / 409 not-currently-archived).
 
 ### Q5: Should the moderation log `before` field be empty or a snapshot for owner-archive?
 **What we know:** D-18 says "follow-up insert ... `before: <pre-update snapshot>`". For owner-archive, the pre-update snapshot would be the listing's previous status (live / pending / rejected). The owner-archive `findOneAndUpdate` uses `status: { $ne: 'archived' }` — Mongo can't return the pre-update value with `{new: true}`. Two options: (a) follow `{new: false}` to get pre-update doc (read overhead is negligible for a single doc); (b) accept `before: {}` for owner-archive since the action verb itself signals the lifecycle.
-**Recommendation:** Use `{new: false}` (or a separate `findById` before the update) to capture pre-update status. Audit value > 1-roundtrip overhead. Phase 3's `edit-on-behalf` handler at moderationRoutes.js:278 already does this pattern with `Property.findById(propertyId).lean()` before the update.
+**RESOLVED — Recommendation:** Use `{new: false}` (or a separate `findById` before the update) to capture pre-update status. Audit value > 1-roundtrip overhead. Phase 3's `edit-on-behalf` handler at moderationRoutes.js:278 already does this pattern with `Property.findById(propertyId).lean()` before the update. **Implemented in:** `04-02-PLAN.md` + `04-03-PLAN.md` + `04-04-PLAN.md` (each route captures `before` via pre-update `Property.findById().lean()`).
 
 ### Q6: Hard-delete WHEN admin opens DeletePropertyModal vs WHEN admin confirms — single-confirm or double-confirm?
 **What we know:** D-10 says reuse existing `<DeletePropertyModal>` (single-confirm). D-Claude-Discretion says "Hard-delete confirm copy intensity — recommend modeling after the existing `property.deleteDialogTitle` + adding a one-line warning sentence." Listed deferred: "DangerConfirmModal with type-listing-id-to-confirm — over-engineered."
-**Recommendation:** Single-confirm with augmented warning copy (prepend "PERMANENT — this action will be recorded in the audit log. " to existing `property.deleteDialogMessage`). The audit-log row IS the second-confirm equivalent (irrecoverable action + recorded).
+**RESOLVED — Recommendation:** Single-confirm with augmented warning copy (prepend "PERMANENT — this action will be recorded in the audit log. " to existing `property.deleteDialogMessage`). The audit-log row IS the second-confirm equivalent (irrecoverable action + recorded). **Implemented in:** `04-07-PLAN.md` Task 3 (single-confirm DeletePropertyModal with audit-log warning prepended via locale rewrite in Task 1).
 
 ## Files to read at execution time
 
