@@ -601,6 +601,11 @@ export const en = {
   'moderation.reject.reason.prohibited-content': 'Prohibited content',
   'moderation.reject.reason.out-of-service-area': 'Out of service area',
   'moderation.reject.reason.other': 'Other',
+  // Phase 4 D-08 — ArchiveListingModal copy (forked from RejectListingModal; reuses chip-label keys + notePlaceholder).
+  'moderation.archive.modalTitle': 'Archive Listing',
+  'moderation.archive.submit': 'Archive',
+  'moderation.archive.success': 'Listing archived',
+  'moderation.archive.failure': 'Failed to archive listing. Please try again.',
   'moderation.race.toast': 'This listing was already reviewed by another moderator.',
   'moderation.editOnBehalf.banner': 'Editing on behalf of {ownerEmail}',
   'moderation.editOnBehalf.success': 'Listing updated and approved.',

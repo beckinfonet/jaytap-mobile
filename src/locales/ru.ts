@@ -604,6 +604,11 @@ export const ru: Record<TranslationKeys, string> = {
   'moderation.reject.reason.prohibited-content': 'Запрещённое содержимое',
   'moderation.reject.reason.out-of-service-area': 'За пределами зоны обслуживания',
   'moderation.reject.reason.other': 'Другое',
+  // Phase 4 D-08 — ArchiveListingModal copy (forked from RejectListingModal; reuses chip-label keys + notePlaceholder).
+  'moderation.archive.modalTitle': 'Архивировать объявление',
+  'moderation.archive.submit': 'В архив',
+  'moderation.archive.success': 'Объявление архивировано',
+  'moderation.archive.failure': 'Не удалось архивировать объявление. Повторите попытку.',
   'moderation.race.toast': 'Это объявление уже рассмотрено другим модератором.',
   'moderation.editOnBehalf.banner': 'Редактирование от имени {ownerEmail}',
   'moderation.editOnBehalf.success': 'Объявление обновлено и одобрено.',
