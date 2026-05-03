@@ -73,10 +73,16 @@ const RoleChangeModal: React.FC<RoleChangeModalProps> = ({
   if (!user) return null;
 
   const currentRole: UserRole = user.userType;
-  const displayName = (user.firstName || user.lastName)
+  const hasName = !!(user.firstName || user.lastName);
+  const displayName = hasName
     ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
     : user.email;
-  const targetIdentity = t('admin.roles.modal.targetIdentity', { displayName, email: user.email });
+  // WR-01: when there's no first/last name, displayName already equals email,
+  // so the "{displayName} — {email}" template would render the email twice.
+  // Show just the email in that case to avoid the duplication.
+  const targetIdentity = hasName
+    ? t('admin.roles.modal.targetIdentity', { displayName, email: user.email })
+    : user.email;
 
   const isSubmitEnabled = pendingRole !== null && pendingRole !== currentRole && !submitting;
 
