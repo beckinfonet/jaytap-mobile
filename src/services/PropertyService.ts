@@ -214,51 +214,88 @@ export const PropertyService = {
     return { ...response.data, id: response.data._id };
   },
 
-  /** Soft-delete: move a listing to 'archived'. Hidden from public browse, restorable to draft. */
-  archiveProperty: async (propertyId: string) => {
+  // Phase 4 D-09 + D-Claude-Discretion — owner archives own listing via dedicated POST route (Plan 04-02).
+  // Belt-and-suspenders: client UI gate (Plan 07 <Gated>) → service layer canFromUser → backend ownership check.
+  // REPLACES the broken Phase 2 archiveProperty stub (PUT body-status was no-op'd by D-22 sanitizer).
+  archiveOwnListing: async (propertyId: string): Promise<any> => {
     try {
       const userData = await AuthService.getUserData();
-      if (!userData?.localId) {
-        throw new Error('User not authenticated');
+      if (!canFromUser(userData, 'archiveOwnListing')) {
+        console.error('[PropertyService.archiveOwnListing] permission denied', { userId: userData?.localId });
+        throw new PermissionDeniedError();
       }
-
-      const formData = new FormData();
-      formData.append('firebaseUid', userData.localId);
-      // TODO(Phase 4): archive UI is hidden in Phase 2; Plan 03's D-22 sanitizer strips body-status
-      // from owner PUTs (ALLOWED_OWNER_STATUS_TRANSITIONS = []), so this write is now a server-side
-      // no-op. Phase 4 reintroduces archive actions via a dedicated route or carve-out (planner's
-      // discretion). The method stays in source for shape symmetry — its single call site in
-      // RenterListingsScreen will go inactive in Phase 2.
-      formData.append('status', 'archived');
-
-      const response = await apiClient.put(`/properties/${propertyId}`, formData);
+      const response = await apiClient.post(`/properties/${propertyId}/archive`);
       return { ...response.data, id: response.data._id };
     } catch (error: any) {
-      console.error('Error archiving property:', error);
+      console.error('Error owner-archiving listing:', error?.message);
       throw error;
     }
   },
 
-  /** Restore an archived listing back to 'draft'. Author re-publishes from the edit screen when ready. */
-  unarchiveProperty: async (propertyId: string) => {
+  // Phase 4 D-08 + D-Claude-Discretion — mod/admin archives any listing with structured reasonCode + optional reasonNote.
+  // Backend Plan 04-03 validates reasonCode against VALID_REJECT_CODES allowlist; mismatches return 400.
+  archiveAnyListing: async (
+    propertyId: string,
+    reasonCode: 'incomplete-info' | 'prohibited-content' | 'out-of-service-area' | 'other',
+    reasonNote?: string,
+  ): Promise<any> => {
     try {
       const userData = await AuthService.getUserData();
-      if (!userData?.localId) {
-        throw new Error('User not authenticated');
+      if (!canFromUser(userData, 'archiveAnyListing')) {
+        console.error('[PropertyService.archiveAnyListing] permission denied', { userId: userData?.localId });
+        throw new PermissionDeniedError();
       }
-
-      const formData = new FormData();
-      formData.append('firebaseUid', userData.localId);
-      // TODO(Phase 4): unarchive UI is hidden in Phase 2 (RenterListings hides the unarchive
-      // affordance per RESEARCH.md Topic 8); this method's status:'draft' will fail post-D-01
-      // enum cutover. Phase 4 redesigns to status:'pending'. The method stays in source for
-      // shape symmetry — its single call site in RenterListingsScreen will go inactive.
-      formData.append('status', 'draft');
-
-      const response = await apiClient.put(`/properties/${propertyId}`, formData);
+      const body: any = { reasonCode };
+      if (reasonNote && reasonNote.trim()) body.reasonNote = reasonNote.trim();
+      const response = await apiClient.post(`/moderation/properties/${propertyId}/archive`, body);
       return { ...response.data, id: response.data._id };
     } catch (error: any) {
-      console.error('Error unarchiving property:', error);
+      console.error('Error mod-archiving listing:', error?.message);
+      throw error;
+    }
+  },
+
+  // Phase 4 D-12 + D-Claude-Discretion — restore archived listing → status 'pending'.
+  // ARCH-04: restore is available to whoever has rights to archive (owner for self-archived; mod/admin for any).
+  // Single method routes by role at call time: mod/admin → /moderation/properties/:id/restore (Plan 04-03);
+  // any other authenticated user → /properties/:id/unarchive (Plan 04-02 — backend D-13 ownership-gates).
+  // REPLACES the broken Phase 2 unarchiveProperty stub (PUT body-status 'draft' had no enum value).
+  restoreListing: async (propertyId: string): Promise<any> => {
+    try {
+      const userData = await AuthService.getUserData();
+      const isMod = canFromUser(userData, 'archiveAnyListing');
+      if (!isMod && !canFromUser(userData, 'archiveOwnListing')) {
+        console.error('[PropertyService.restoreListing] permission denied', { userId: userData?.localId });
+        throw new PermissionDeniedError();
+      }
+      const url = isMod
+        ? `/moderation/properties/${propertyId}/restore`
+        : `/properties/${propertyId}/unarchive`;
+      const response = await apiClient.post(url);
+      return { ...response.data, id: response.data._id };
+    } catch (error: any) {
+      console.error('Error restoring listing:', error?.message);
+      throw error;
+    }
+  },
+
+  // Phase 4 D-04 + D-Claude-Discretion — admin hard-delete (apiClient.delete path unchanged; backend Plan 04-04 tightens auth).
+  // Action union member: 'hardDeleteListing' (admin only). Pre-condition: listing must be 'archived' first
+  // (HARD_DELETE_REQUIRES_ARCHIVED 400 from backend if not). The legacy `deleteProperty` method below stays as
+  // backwards-compat alias for any unknown downstream caller; Plan 07 will swap RenterListingsScreen to call
+  // hardDeleteListing directly.
+  hardDeleteListing: async (propertyId: string): Promise<any> => {
+    try {
+      const userData = await AuthService.getUserData();
+      if (!canFromUser(userData, 'hardDeleteListing')) {
+        console.error('[PropertyService.hardDeleteListing] permission denied', { userId: userData?.localId });
+        throw new PermissionDeniedError();
+      }
+      const response = await apiClient.delete(`/properties/${propertyId}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error hard-deleting listing:', error?.message);
+      if (error.response?.data?.message) throw new Error(error.response.data.message);
       throw error;
     }
   },
