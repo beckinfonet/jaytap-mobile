@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: "Roles & Moderation"
-status: phase_complete
-last_updated: "2026-05-02T23:10:00Z"
-last_activity: 2026-05-02 -- Phase 03 COMPLETE end-to-end. Code review surfaced 2 CRITICAL bugs the verifier alone would have missed (CR-01: PUT /listings/:id never JSON-parsed FormData arrays / never read req.files — corrupts every edit-on-behalf save; CR-02: App.tsx pendingModerationCount prop precedence killed ProfileScreen's AppState cooldown — badge stays stale forever after backgrounding). Both CRs fixed (commits 5fe3583 backend multer-s3 + field-handling block + MOD-14 regression test 18->19; 88539f1 client moderationCountRefreshKey + ProfileScreen owns count). 8/8 in-scope findings (2 CRIT + 6 WARN) auto-fixed via /gsd-code-review-fix; 5 INFO deferred. Verifier: 8/9 must-haves PASS, 1 PARTIAL (App.tsx 1191 LOC, 11 over 1180 ceiling — accepted under PATTERN D signal-not-block precedent). Backend tests 86/86, tsc baseline 2 preserved, i18n parity 0, actorUid anti-pattern grep 0/0. 5 human re-walk items persisted at 03-HUMAN-UAT.md (re-smoke after REVIEW-FIX commits). MOD-10..MOD-18 all complete. Phase 3 of 6 in M2; recommended next: /clear then /gsd-discuss-phase 4.
+status: verifying
+last_updated: "2026-05-03T01:36:27.905Z"
+last_activity: 2026-05-02 -- Phase 03 Plan 06 (Wave-4 App.tsx wireup + PropertyDetailsScreen action footer + CreateListingScreen moderatorContext + manual physical-device smoke APPROVED) COMPLETE — Phase 3 closes 6/6
 progress:
   total_phases: 6
   completed_phases: 3
@@ -201,7 +201,7 @@ Tracked from M1 v1.0.4 close-out (`08-VERIFICATION.md` Section I + retrospective
 
 ## Session Continuity
 
-**Last session:** 2026-05-02T05:15:38.192Z
+**Last session:** 2026-05-03T01:36:27.896Z
 
 **Resume with:** `/gsd-execute-phase 2` to run Plan 02-08 (Wave-6 App.tsx wire-up: passes `onEditListing` from PropertyDetailsScreen → App.tsx setPropertyToEdit + open CreateListingScreen edit mode per D-15; passes `onOpenMyListingsRejectedTab` from HomeScreen → App.tsx navigate to RenterListings with defaultTab='rejected' per D-14; passes `defaultTab` + `onCreateListing` from RenterListingsScreen → BottomNav 'add' tab per D-11; AuthContext AppState 'active' role-refresh hook with 60s cooldown closing Phase 1 D-12 deferral). Plan 08 is `autonomous: true`. Plan 09 (Wave-7 phase-exit) remains `autonomous: false` — manual physical-device QA matrix on iPhone 15 Pro Max + Moto G XT2513V; 2 remaining tsc errors (HospitalityCard:246 + PropertyCard:202) can also be cleaned up at Plan 09 close-out or by a future tsc-prune pass.
 
