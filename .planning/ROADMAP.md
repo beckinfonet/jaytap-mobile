@@ -113,7 +113,7 @@
   3. Restoring an archived listing transitions status to `pending` (re-moderated) — NOT back to its prior status — preventing the "owner archives a rejected listing then unarchives to dodge moderator review" bypass; restoration affordance is available to whoever has rights to archive (owner for self-archived; mod/admin for any)
   4. Hard-delete (`DELETE /api/properties/:id`) is admin-only; the `<Gated action="hardDeleteListing">` affordance shows on PropertyDetailsScreen footer for admins and is hidden for everyone else (owners, moderators, plain users); the `useRole.ts` `Action` union has been extended with `archiveOwnListing`, `archiveAnyListing`, `hardDeleteListing`
 **Plans**: 7 plans across 4 waves
-  - [ ] 04-01-PLAN.md — Wave-1 backend foundations (Property schema additive archivedReasonCode + archivedReasonNote per Pitfall 1; ModerationLog action enum extension archive/unarchive/hard-delete; Phase 4 RED supertest scaffolds in propertyRoutes.test.js + moderationRoutes.test.js)
+  - [x] 04-01-PLAN.md — Wave-1 backend foundations (Property schema additive archivedReasonCode + archivedReasonNote per Pitfall 1; ModerationLog action enum extension archive/unarchive/hard-delete; Phase 4 RED supertest scaffolds in propertyRoutes.test.js + moderationRoutes.test.js) — completed 2026-05-03 (3 backend commits: f54bd61 Property schema +2 fields, cea35fc ModerationLog action enum +3 verbs, 95e7efa Phase 4 RED supertest scaffolds 20 cases across 5 describe blocks; backend npm test 89 passing / 17 RED failing / 106 total — 86 baseline preserved + 17 Phase 4 RED awaiting Wave-2 routes + 3 incidentally-passing 403 cases via existing requireMinRole gates; anti-pattern grep `actorUid: req.(body|headers)` returns 0 matches in production routes; 1 Rule-3 auto-fix added missing ModerationLog import to propertyRoutes.test.js; 1 plan-spec drift documented re: top-level describe placement; SUMMARY at .planning/phases/04-archive-lifecycle-owner-mod-admin/04-01-SUMMARY.md)
   - [ ] 04-02-PLAN.md — Wave-2 backend owner archive/unarchive routes (POST /:id/archive race-safe + POST /:id/unarchive D-13 two-condition gate + 4-way 403/404/409 disambiguation + ModerationLog audit rows; flips 7 Plan 01 RED tests GREEN)
   - [ ] 04-03-PLAN.md — Wave-2 backend mod/admin archive/restore routes (POST /moderation/properties/:id/archive with VALID_REJECT_CODES validation + POST /moderation/properties/:id/restore with D-15 selective field clears; flips 9 Plan 01 RED tests GREEN)
   - [ ] 04-04-PLAN.md — Wave-3 backend hard-delete admin-only swap (DELETE /:id middleware → requireMinRole('admin') + delete inline ownership block per Pitfall 2 + full-snapshot audit row per D-18; flips 4 Plan 01 RED tests GREEN)
@@ -162,7 +162,7 @@
 | 1. Backend Role Foundation + Auth Migration + Hotfix Bundle | 13/13 | ✅ Complete | 2026-04-30 |
 | 2. Listing Lifecycle Status Field Absorption | 9/9 | ✅ Complete | 2026-05-01 |
 | 3. Moderation Queue + Actions + Edit-on-Behalf | 6/6 | ✅ Complete — ready for `/gsd-verify-work 3` + `/gsd-code-review` (paired-gates per `gsd-verifier-misses-regressions.md` discipline) | 2026-05-02 |
-| 4. Archive Lifecycle (Owner + Mod/Admin) | 0/0 | Not started | — |
+| 4. Archive Lifecycle (Owner + Mod/Admin) | 1/7 | 🚧 Executing (Plan 04-01 complete; Plan 04-02 next) | — |
 | 5. Admin Role Management UI | 0/0 | Not started | — |
 | 6. Hardening + Manual Physical-Device QA + Release | 0/0 | Not started | — |
 
