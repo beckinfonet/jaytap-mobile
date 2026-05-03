@@ -616,6 +616,31 @@ export const en = {
   'moderation.race.title': 'Already reviewed',
   // Phase 3 WR-01 fix — generic Alert fallback when the server returns no body and the axios error has no .message.
   'common.errorGeneric': 'Something went wrong. Please try again.',
+
+  // Phase 5 — Admin role management (ADMIN-01..07). Cancel button reuses common.cancel (no namespaced duplicate).
+  'admin.roles.entryPoint': 'Role Management',
+  'admin.roles.title': 'Role Management',
+  'admin.roles.search.placeholder': 'Search by email',
+  'admin.roles.search.prompt': 'Type to search',
+  'admin.roles.search.noResults': "No users match '{query}'.",
+  'admin.roles.search.refineHint': 'Refine your search to see more results.',
+  'admin.roles.label.user': 'User',
+  'admin.roles.label.moderator': 'Moderator',
+  'admin.roles.label.admin': 'Admin',
+  'admin.roles.currentSuffix': '(current)',
+  'admin.roles.selfBadge': '(you)',
+  'admin.roles.revokedAt': 'Revoked: {date}',
+  'admin.roles.modal.title': 'Change role',
+  'admin.roles.modal.targetIdentity': '{displayName} — {email}',
+  'admin.roles.modal.confirmPrompt': 'Change {displayName} from {fromRole} to {toRole}?',
+  'admin.roles.modal.submit': 'Update Role',
+  'admin.roles.success.toast': 'Role updated',
+  'admin.roles.error.lastAdminLockout.title': 'Cannot change role',
+  'admin.roles.error.lastAdminLockout.body': '{displayName} is the only admin. Promote another user to admin first.',
+  'admin.roles.error.selfMutation': 'You cannot change your own role.',
+  'admin.roles.error.roleAlreadyChanged': 'Another admin already updated this user.',
+  'admin.roles.error.userNotFound': 'This user no longer exists.',
+  'admin.roles.error.network': 'Network error. Please try again.',
 } as const;
 
 export type TranslationKeys = keyof typeof en;
