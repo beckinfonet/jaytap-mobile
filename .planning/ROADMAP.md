@@ -112,7 +112,14 @@
   2. Archived listings are hidden from public list views (Home / Favorites / RenterListings) and from PropertyDetailsScreen for non-owners-non-mods, but remain visible to the owner under OwnerListings "Archived" tab and to mods/admins via the moderation surface
   3. Restoring an archived listing transitions status to `pending` (re-moderated) — NOT back to its prior status — preventing the "owner archives a rejected listing then unarchives to dodge moderator review" bypass; restoration affordance is available to whoever has rights to archive (owner for self-archived; mod/admin for any)
   4. Hard-delete (`DELETE /api/properties/:id`) is admin-only; the `<Gated action="hardDeleteListing">` affordance shows on PropertyDetailsScreen footer for admins and is hidden for everyone else (owners, moderators, plain users); the `useRole.ts` `Action` union has been extended with `archiveOwnListing`, `archiveAnyListing`, `hardDeleteListing`
-**Plans**: TBD
+**Plans**: 7 plans across 4 waves
+  - [ ] 04-01-PLAN.md — Wave-1 backend foundations (Property schema additive archivedReasonCode + archivedReasonNote per Pitfall 1; ModerationLog action enum extension archive/unarchive/hard-delete; Phase 4 RED supertest scaffolds in propertyRoutes.test.js + moderationRoutes.test.js)
+  - [ ] 04-02-PLAN.md — Wave-2 backend owner archive/unarchive routes (POST /:id/archive race-safe + POST /:id/unarchive D-13 two-condition gate + 4-way 403/404/409 disambiguation + ModerationLog audit rows; flips 7 Plan 01 RED tests GREEN)
+  - [ ] 04-03-PLAN.md — Wave-2 backend mod/admin archive/restore routes (POST /moderation/properties/:id/archive with VALID_REJECT_CODES validation + POST /moderation/properties/:id/restore with D-15 selective field clears; flips 9 Plan 01 RED tests GREEN)
+  - [ ] 04-04-PLAN.md — Wave-3 backend hard-delete admin-only swap (DELETE /:id middleware → requireMinRole('admin') + delete inline ownership block per Pitfall 2 + full-snapshot audit row per D-18; flips 4 Plan 01 RED tests GREEN)
+  - [ ] 04-05-PLAN.md — Wave-3 client foundations (useRole.ts Action union + canFromUser switch extension per D-16 with 12 new test cases + PropertyService 4 new methods replacing broken stubs + Property type 4 archive audit fields)
+  - [ ] 04-06-PLAN.md — Wave-3 ArchiveListingModal fork from RejectListingModal per D-08 (3-line t() diff + Pitfall 7 dark-mode contrast preserved + 8 new EN+RU locale strings)
+  - [ ] 04-07-PLAN.md — Wave-4 PropertyDetailsScreen footer extension + RenterListingsScreen rewire (D-09 + D-10 + D-11 + D-13 + D-14 atomic strip per Pitfall 6 + canSelfRestore conditional per Pitfall 4) + 5 D-12 locale value rewrites + manual physical-device QA matrix on iPhone 15 Pro Max (autonomous: false; closes phase)
 **UI hint**: yes
 
 ### Phase 5: Admin Role Management UI
