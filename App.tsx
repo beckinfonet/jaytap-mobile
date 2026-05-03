@@ -35,6 +35,7 @@ import { RoleRefreshBanner } from './src/components/RoleRefreshBanner';
 import { canFromUser } from './src/hooks/useRole';
 import PropertyDetailsHost from './src/components/PropertyDetailsHost';
 import ModerationQueueScreen from './src/screens/ModerationQueueScreen';
+import RoleManagementScreen from './src/screens/RoleManagementScreen';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -63,6 +64,7 @@ function AppContent() {
   // AppState 'active' alone — a moderator who approves/rejects then taps Back
   // expects the badge to reflect the new total immediately.
   const [isModerationQueueOpen, setIsModerationQueueOpen] = useState(false);
+  const [isRoleManagementOpen, setIsRoleManagementOpen] = useState(false); // Phase 5 — admin role management overlay
   const [moderatorContext, setModeratorContext] = useState<{ editingOwnerUid: string; reason?: string; ownerEmail?: string } | null>(null);
   const [moderationCountRefreshKey, setModerationCountRefreshKey] = useState(0);
   const [propertyToEdit, setPropertyToEdit] = useState<Property | null>(null);
@@ -125,6 +127,7 @@ function AppContent() {
     !!activeTourUrl,
     !!activePhotosUrl,
     !!user && isModerationQueueOpen, // Phase 3 Plan 06 — moderation queue overlay
+    !!user && isRoleManagementOpen,  // Phase 5 — admin role management overlay
   ];
   const hideMainStackUnderOverlay = OVERLAY_FLAGS.some(Boolean);
 
@@ -135,6 +138,7 @@ function AppContent() {
   // user has the permission — keeping the role check at this layer also keeps the
   // OVERLAY_FLAGS gate (which references isModerationQueueOpen) free of dead UX paths.
   const canViewModerationQueue = canFromUser(user, 'viewModerationQueue');
+  const canManageRoles = canFromUser(user, 'manageRoles');  // Phase 5 — admin-only entry-point gate
 
   // Tab-tap takes precedence: clears every flag the show* priority ladder checks
   // so the target tab can always promote. Adding a new Profile sub-screen flag
@@ -329,6 +333,11 @@ function AppContent() {
         setIsModerationQueueOpen(false);
         return true;
       }
+      // Phase 5 — admin role management overlay back-handler
+      if (isRoleManagementOpen) {
+        setIsRoleManagementOpen(false);
+        return true;
+      }
       if (isLandlordApplicationOpen) {
         setIsLandlordApplicationOpen(false);
         if (returnToProfileAfterLandlordApplication) {
@@ -392,6 +401,7 @@ function AppContent() {
     isLandlordApplicationOpen,
     isLandlordApplicationQueueOpen,
     isModerationQueueOpen,
+    isRoleManagementOpen,
     selectedProperty,
     isScheduleViewingOpen,
     isFavoritesOpen,
@@ -534,6 +544,11 @@ function AppContent() {
   const onProfileReviewModerationQueue = useCallback(() => {
     setIsProfileOpen(false);
     setIsModerationQueueOpen(true);
+  }, []);
+  // Phase 5 — Profile entry-point dispatcher for the admin role management overlay.
+  const onProfileOpenRoleManagement = useCallback(() => {
+    setIsProfileOpen(false);
+    setIsRoleManagementOpen(true);
   }, []);
   const onProfileViewListings = useCallback(() => setIsRenterListingsOpen(true), []);
   // Phase 2 D-15 / MOD-09: HomeRejectionBanner CTA target. Opens RenterListings
@@ -737,6 +752,7 @@ function AppContent() {
                 onApplyLandlord={onProfileApplyLandlord}
                 onReviewLandlordApplications={onProfileReviewLandlordApplications}
                 onReviewModerationQueue={canViewModerationQueue ? onProfileReviewModerationQueue : undefined}
+                onOpenRoleManagement={canManageRoles ? onProfileOpenRoleManagement : undefined}
                 moderationCountRefreshKey={moderationCountRefreshKey}
               />
             </View>
@@ -1062,6 +1078,14 @@ function AppContent() {
                 });
                 setIsCreateListingOpen(true);
               }}
+            />
+          </View>
+        )}
+        {/* Phase 5 — Admin role management overlay (sibling to moderation queue). */}
+        {!!user && isRoleManagementOpen && (
+          <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
+            <RoleManagementScreen
+              onBack={() => setIsRoleManagementOpen(false)}
             />
           </View>
         )}
