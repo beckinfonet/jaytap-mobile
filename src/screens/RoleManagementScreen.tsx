@@ -62,22 +62,35 @@ const RoleManagementScreen: React.FC<RoleManagementScreenProps> = ({ onBack }) =
   const requestIdRef = useRef<number>(0);
   const lastRefreshAt = useRef<number | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // WR-04: requestIdRef only deduplicates concurrent searches — it does NOT
+  // detect unmount. If a slow searchUsers() resolves after the admin taps
+  // Back, setItems/setLoading would fire on an unmounted component. Mirror
+  // the `cancelled` pattern used in ProfileScreen.tsx:120,131.
+  const isMountedRef = useRef<boolean>(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const runSearch = useCallback(
     async (q: string) => {
       if (!q.trim()) {
+        if (!isMountedRef.current) return;
         setItems([]);
         setLoading(false);
         return;
       }
       const myId = ++requestIdRef.current;
+      if (!isMountedRef.current) return;
       setLoading(true);
       try {
         const { items: results } = await UserService.searchUsers(q);
-        if (myId !== requestIdRef.current) return; // Pitfall 5: stale response guard
+        if (myId !== requestIdRef.current || !isMountedRef.current) return; // Pitfall 5 + WR-04 unmount guard
         setItems(results);
       } catch (err: any) {
-        if (myId !== requestIdRef.current) return;
+        if (myId !== requestIdRef.current || !isMountedRef.current) return;
         console.error('Failed to search users', err);
         if (err instanceof PermissionDeniedError || err?.message === 'E_PERMISSION_DENIED') {
           Alert.alert(t('common.error'), t('errors.permissionDenied'));
@@ -89,7 +102,7 @@ const RoleManagementScreen: React.FC<RoleManagementScreenProps> = ({ onBack }) =
           err?.response?.data?.message || err?.message || t('common.errorGeneric'),
         );
       } finally {
-        if (myId === requestIdRef.current) setLoading(false);
+        if (myId === requestIdRef.current && isMountedRef.current) setLoading(false);
       }
     },
     [t, onBack],
