@@ -132,7 +132,13 @@
   2. An admin can change any user's `userType` to any of `user` / `moderator` / `admin`; the change triggers ROLE-11 (`roleRevokedAt = now`) on the target user, propagating the new role to the target's app within 60s of their next protected request
   3. Server-side guardrails reject (a) any role mutation that would result in zero admins (last-admin lockout returns 409 with clear error) and (b) any admin's attempt to mutate their own `userType` (self-mutation prevention returns 403 even if the requester is admin)
   4. Every successful role change writes an append-only audit row to the `roleChangeLog` Mongo collection with `{actorUid, targetUid, fromRole, toRole, at}`; new admin-only endpoints (`GET /api/admin/users?query=<email>&limit=50`, `PATCH /api/admin/users/:uid/role`) verify role server-side via the JWKS middleware
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 05-01-PLAN.md — Backend foundations (RoleChangeLog model + adminRoutes.js with router-level admin gate, GET /users, PATCH /users/:uid/role with self-mutation + last-admin lockout + race rollback + audit-row + index.js mount)
+- [ ] 05-02-PLAN.md — RN client foundations (useRole rename promoteToModerator → manageRoles + UserService + 23 admin.roles.* keys × EN+RU)
+- [ ] 05-03-PLAN.md — Backend test pass (12+ supertest cases covering ADMIN-01..05+07; race-rollback Promise.all + actorUid anti-spoofing + envelope codes + full suite ≥118 GREEN)
+- [ ] 05-04-PLAN.md — RN UI components (RoleChangeModal fork from RejectListingModal with 8 edits + RoleManagementScreen fork from ModerationQueueScreen with debounced search + sibling modal)
+- [ ] 05-05-PLAN.md — App.tsx wireup + ProfileScreen entry-point + manual physical-device QA matrix walk on iPhone 15 Pro Max (Moto G XT2513V deferred to Phase 6 REL-03)
 **UI hint**: yes
 
 ### Phase 6: Hardening + Manual Physical-Device QA + Release
@@ -163,7 +169,7 @@
 | 2. Listing Lifecycle Status Field Absorption | 9/9 | ✅ Complete | 2026-05-01 |
 | 3. Moderation Queue + Actions + Edit-on-Behalf | 6/6 | ✅ Complete — ready for `/gsd-verify-work 3` + `/gsd-code-review` (paired-gates per `gsd-verifier-misses-regressions.md` discipline) | 2026-05-02 |
 | 4. Archive Lifecycle (Owner + Mod/Admin) | 7/7 | ✅ Complete — manual physical-device smoke walked APPROVED on iPhone 15 Pro Max (11/11 rows PASS); ready for `/gsd-verify-work 4` + `/gsd-code-review` (paired-gates per `gsd-verifier-misses-regressions.md` discipline) | 2026-05-03 |
-| 5. Admin Role Management UI | 0/0 | Not started | — |
+| 5. Admin Role Management UI | 0/5 | Planning complete — ready for /gsd-execute-phase 5 | — |
 | 6. Hardening + Manual Physical-Device QA + Release | 0/0 | Not started | — |
 
 ## Backlog
