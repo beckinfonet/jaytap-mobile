@@ -3,7 +3,7 @@ status: complete
 phase: 05-admin-role-management-ui
 source: [05-01-SUMMARY.md, 05-02-SUMMARY.md, 05-03-SUMMARY.md, 05-04-SUMMARY.md, 05-05-SUMMARY.md]
 started: 2026-05-03T20:32:14Z
-updated: 2026-05-03T20:46:00Z
+updated: 2026-05-03T20:52:00Z
 ---
 
 ## Current Test
@@ -55,10 +55,29 @@ result: pass
 
 ### 11. LAST_ADMIN_LOCKOUT shows blocking Alert.alert
 expected: With only 2 admin accounts in the system, sign in as one and try to demote the other. The PATCH returns 409 LAST_ADMIN_LOCKOUT and the app shows a native blocking Alert.alert (NOT the inline modal error row). The other admin remains an admin.
-result: issue
-reported: "it demoted"
-severity: major
-ambiguity: User did not state how many admin accounts existed at test time. Two interpretations: (a) ≥3 admins existed → backend correctly allowed demotion (no lockout) → false-positive issue; (b) exactly 2 admins existed → backend LAST_ADMIN_LOCKOUT guard failed → security-critical regression. Diagnosis must check Mongo admin count snapshot before/after the test.
+result: pass-as-spec
+reported: "it demoted (with exactly 2 admins in system)"
+note: |
+  Initially logged as a major issue, then RECLASSIFIED as a test-design error
+  after re-reading adminRoutes.js:124-137. The Step 6 pre-flight checks
+  countDocuments({userType:'admin', _id:{$ne:target._id}}) — the count of
+  OTHER admins, excluding the target. With 2 admins total, demoting one
+  leaves otherAdmins = 1 (the surviving admin), which is NOT < 1, so the
+  lockout correctly does NOT fire. The system is left with 1 admin = the
+  ADMIN-03 invariant ("at least 1 admin remains") is upheld. The user's
+  observed behavior is spec-compliant.
+
+  The actual LAST_ADMIN_LOCKOUT trigger requires either:
+  (a) Exactly 1 admin total, demoting self — unreachable in single-request
+      flow because Step 1 SELF_MUTATION returns 403 first.
+  (b) A Promise.all race demoting both of 2 admins simultaneously — caught
+      by Step 8 post-write rollback. Already covered by Plan 03 supertest
+      case 12 ("two concurrent demotes preserve at least one admin"),
+      currently 17/17 green per 05-03-SUMMARY.md.
+
+  Conclusion: Phase 5 backend lockout protection is intact and the deployed
+  code matches the spec; my UAT test 11 was phrased wrong (cannot be
+  manually triggered on a single device without a Promise.all race).
 
 ### 12. 50-row footer "Refine your search" hint
 expected: Run a search broad enough to return 50+ matching users (e.g. very short query). The list footer shows the "Refine your search" hint (admin.roles.search.refineHint) signaling pagination cap.
@@ -68,25 +87,19 @@ reason: "User reported: skip — not enough seed users (dev DB has fewer than 50
 ## Summary
 
 total: 12
-passed: 10
-issues: 1
+passed: 11
+issues: 0
 pending: 0
 skipped: 1
 blocked: 0
+note: "Test 11 originally logged as issue, then reclassified pass-as-spec after backend code re-read confirmed the observed behavior is spec-compliant (see Test 11 note)."
 
 ## Gaps
 
-- truth: "Demoting one admin out of exactly two admins is blocked by LAST_ADMIN_LOCKOUT (409) and surfaced as a native Alert.alert; the targeted admin remains an admin."
-  status: failed
-  reason: "User reported: it demoted"
-  severity: major
-  test: 11
-  ambiguity: "User did not confirm admin count at test time. If ≥3 admins existed, demotion was correctly allowed (no lockout fires) and this is a false-positive. If exactly 2 admins existed, the backend LAST_ADMIN_LOCKOUT pre-flight check (adminRoutes.js Step 6) and/or post-write rollback (Step 8) failed — security-critical regression because the system is now one demotion away from zero-admin lockout."
-  artifacts: []  # Filled by diagnosis
-  missing: []    # Filled by diagnosis
-  diagnosis_must_check:
-    - "Snapshot of User collection admin count immediately before and after the test (db.users.countDocuments({userType:'admin'}))."
-    - "RoleChangeLog entries for the demotion (actorUid, fromRole, toRole, ts) — confirms which admin demoted whom."
-    - "Backend logs for evt: 'last_admin_lockout_rollback' and evt: 'role_change_audit_orphan' around the test timestamp."
-    - "Whether Plan 03 supertest case 'demoting one of two admins leaves exactly one admin (boundary state)' still passes against current backend HEAD."
-    - "If admin count was 2 and demotion succeeded, isolate which guard bypassed: pre-flight countDocuments query (Step 6) vs. post-write rollback (Step 8)."
+[none — Test 11 issue retracted after spec re-verification; see Test 11 note for full reasoning]
+
+## Test-Design Follow-Ups (carried forward, not blockers)
+
+1. **Test 11 cannot be triggered manually on a single device.** The only production path that fires LAST_ADMIN_LOCKOUT requires a Promise.all race demoting both of 2 admins simultaneously (Step 8 rollback). This is automated-test-only territory — Plan 03 supertest case 12 covers it. Future UAT iterations should drop Row 11 from the manual matrix or replace it with "verify that adminRoutes.test.js still has the concurrent-demote case green."
+2. **05-05-SUMMARY.md QA matrix Row 11** ("LAST_ADMIN_LOCKOUT 409 → blocking native Alert.alert (D-09)") inherits the same test-design defect and should be updated to reflect that this code path is automated-only.
+3. **50-row footer (Test 12)** would be testable on a Mongo seed of ≥50 users matching a single short query (e.g. ".") — a small dev-data follow-up if visual verification is wanted.
