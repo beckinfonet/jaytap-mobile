@@ -163,8 +163,12 @@ const RoleManagementScreen: React.FC<RoleManagementScreenProps> = ({ onBack }) =
     }
   };
 
+  // WR-03: AuthUser already declares `localId: string` (src/types/Auth.ts:43),
+  // so the `as any` cast was unnecessary and silenced the very type-safety
+  // guard that would catch a future `localId` rename — directly relevant to
+  // the prior Phase 4.5 uid-mismatch incident.
   const isSelf = (item: AdminUserListItem) =>
-    !!currentUser && item.uid === (currentUser as any).localId;
+    !!currentUser?.localId && item.uid === currentUser.localId;
 
   const pillColorFor = (role: UserRole): string => {
     if (role === 'admin') return colors.accent;
