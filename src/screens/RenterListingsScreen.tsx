@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Property } from '../types/Property';
@@ -213,7 +214,13 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
   const TABS: ListingTab[] = ['live', 'pending', 'rejected', 'archived'];
 
   const renderTabs = () => (
-    <View style={[styles.tabsRow, { backgroundColor: colors.surface }]}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      bounces={false}
+      style={[styles.tabsScroll, { backgroundColor: colors.surface }]}
+      contentContainerStyle={styles.tabsScrollContent}
+    >
       {TABS.map((tab) => {
         const selected = activeTab === tab;
         return (
@@ -230,9 +237,7 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
             accessibilityState={{ selected }}
           >
             <Text
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.75}
+              numberOfLines={2}
               style={[
                 styles.tabLabel,
                 {
@@ -246,7 +251,7 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
           </TouchableOpacity>
         );
       })}
-    </View>
+    </ScrollView>
   );
 
   // D-11: per-tab empty-state copy from Plan 04 locale keys; CTA renders only on Live + Pending.
@@ -388,25 +393,31 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     position: 'relative',
   },
-  // Phase 2 D-09: 4-tab segmented control row pinned above the FlatList; the underlying
-  // 2px accent underline marks the selected tab (PATTERN E).
-  tabsRow: {
-    flexDirection: 'row',
-    height: 40,
+  // Phase 2 D-09: tabs above the FlatList; horizontal scroll avoids tiny labels
+  // (adjustsFontSizeToFit) and overflow when accessibility text size is large.
+  tabsScroll: {
     marginHorizontal: 16,
     marginBottom: 16,
+    maxHeight: 72,
+  },
+  tabsScrollContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingRight: 4,
+    gap: 4,
   },
   tabButton: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 48,
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
   tabLabel: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 22,
     textAlign: 'center',
   },
   emptyContainer: {

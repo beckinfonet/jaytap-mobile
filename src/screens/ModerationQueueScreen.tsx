@@ -37,7 +37,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Check, X, Edit3 } from 'lucide-react-native';
+import { ChevronLeft } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { PropertyService } from '../services/PropertyService';
@@ -204,41 +204,46 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
   const renderItem = ({ item }: { item: Property }) => {
     const isActing = actingId === item.id;
     return (
-      <View style={styles.row}>
+      <View
+        style={[
+          styles.queueItemShell,
+          { borderColor: colors.border, backgroundColor: colors.surface },
+        ]}
+      >
         <PropertyCard
           property={item}
           onPress={onOpenPropertyDetails}
           onViewTour={handleViewTour}
           onViewVideo={handleViewVideo}
+          groupWithFooter
         />
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: colors.success }]}
-            onPress={() => handleApprove(item)}
-            disabled={isActing}
-            activeOpacity={0.7}
-          >
-            {isActing ? (
-              <ActivityIndicator color="#FFF" size="small" />
-            ) : (
-              <>
-                <Check size={18} color="#FFF" />
+        <View style={[styles.actionsBlock, { borderTopColor: colors.border }]}>
+          <View style={styles.actionsRowTop}>
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.actionBtnHalf, { backgroundColor: colors.success }]}
+              onPress={() => handleApprove(item)}
+              disabled={isActing}
+              activeOpacity={0.7}
+            >
+              {isActing ? (
+                <ActivityIndicator color="#FFF" size="small" />
+              ) : (
                 <Text style={styles.actionBtnText}>{t('moderation.action.approve')}</Text>
-              </>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: colors.error }]}
-            onPress={() => setRejectTarget(item)}
-            disabled={isActing}
-            activeOpacity={0.7}
-          >
-            <X size={18} color="#FFF" />
-            <Text style={styles.actionBtnText}>{t('moderation.action.reject')}</Text>
-          </TouchableOpacity>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.actionBtnHalf, { backgroundColor: colors.error }]}
+              onPress={() => setRejectTarget(item)}
+              disabled={isActing}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.actionBtnText}>{t('moderation.action.reject')}</Text>
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity
             style={[
               styles.actionBtn,
+              styles.actionBtnFull,
               {
                 backgroundColor: colors.surface,
                 borderWidth: 1,
@@ -249,7 +254,6 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
             disabled={isActing}
             activeOpacity={0.7}
           >
-            <Edit3 size={18} color={colors.text} />
             <Text style={[styles.actionBtnText, { color: colors.text }]}>
               {t('moderation.action.editOnBehalf')}
             </Text>
@@ -337,19 +341,39 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 18, fontWeight: '600', lineHeight: 24 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   listContent: { padding: 16, paddingBottom: 32 },
-  row: { marginBottom: 16 },
-  actionsRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  // Single bordered shell per listing so actions read as part of the same unit as the card.
+  queueItemShell: {
+    marginHorizontal: 20,
+    marginBottom: 16,
+    borderRadius: 24,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
+  },
+  actionsBlock: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 12,
+    gap: 8,
+  },
+  actionsRowTop: { flexDirection: 'row', gap: 8, alignItems: 'stretch' },
   actionBtn: {
-    flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
+    paddingHorizontal: 10,
     borderRadius: 10,
-    gap: 6,
   },
+  actionBtnHalf: { flex: 1, minWidth: 0 },
+  actionBtnFull: { alignSelf: 'stretch' },
   // Action label role per UI-SPEC §"Typography": 14/600/20.
-  actionBtnText: { color: '#FFF', fontSize: 14, fontWeight: '600', lineHeight: 20 },
+  actionBtnText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '600',
+    lineHeight: 18,
+    textAlign: 'center',
+  },
   emptyContainer: { paddingVertical: 60, alignItems: 'center' },
   // Empty-state heading per UI-SPEC revision 2026-05-01: 14/600/20 (was 15/600/20).
   emptyText: { fontSize: 14, fontWeight: '600', lineHeight: 20 },

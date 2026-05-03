@@ -35,6 +35,8 @@ interface PropertyCardProps {
   onFavorite?: (property: Property) => void; // Optional favorite handler
   isFavorited?: boolean; // Whether this property is favorited
   isLoading?: boolean; // Whether favorite is being toggled
+  /** Parent renders actions below the card (e.g. moderation queue) — flush margins + square bottom corners. */
+  groupWithFooter?: boolean;
 }
 
 const { width } = Dimensions.get('window');
@@ -53,6 +55,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onFavorite,
   isFavorited = false,
   isLoading = false,
+  groupWithFooter = false,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -86,10 +89,16 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     }
   };
   return (
-    <View style={[styles.cardContainer, { backgroundColor: colors.surface }]}>
+    <View
+      style={[
+        styles.cardContainer,
+        groupWithFooter && styles.cardContainerGroupedFooter,
+        { backgroundColor: colors.surface },
+      ]}
+    >
       <TouchableOpacity activeOpacity={0.95} onPress={() => onPress(property)}>
         {/* Image Section */}
-        <View style={styles.imageWrapper}>
+        <View style={[styles.imageWrapper, groupWithFooter && styles.imageWrapperGroupedFooter]}>
           <Image
             source={{ uri: property.imageUrl || (property.images && property.images.length > 0 ? property.images[0] : 'https://via.placeholder.com/400') }}
             style={styles.image}
@@ -283,12 +292,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     overflow: 'hidden',
   },
+  cardContainerGroupedFooter: {
+    marginHorizontal: 0,
+    marginVertical: 0,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
   imageWrapper: {
     height: 250, // Taller image as per mockup
     width: '100%',
     position: 'relative',
     borderRadius: 24, // Rounded image
     overflow: 'hidden',
+  },
+  imageWrapperGroupedFooter: {
+    borderRadius: 0,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
   image: {
     width: '100%',
