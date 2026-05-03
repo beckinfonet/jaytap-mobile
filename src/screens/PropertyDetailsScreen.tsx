@@ -57,6 +57,9 @@ import {
   Instagram,
   ShieldCheck,
   AlertTriangle,
+  Archive,
+  ArchiveRestore,
+  Trash2,
 } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { propertyTypeToCategory } from '../utils/propertyCategory';
@@ -76,6 +79,8 @@ import { Gated } from '../components/Gated';
 import { RejectionBanner } from '../components/RejectionBanner';
 import { StatusPill } from '../components/StatusPill';
 import RejectListingModal from '../components/RejectListingModal';
+import ArchiveListingModal from '../components/ArchiveListingModal';
+import { DeleteListingModal } from '../components/DeleteListingModal';
 
 interface PropertyDetailsScreenProps {
   property: Property;
@@ -270,8 +275,19 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   // 409 race-condition handling per PATTERNS §C: close any open modal first,
   // fire MOD-15 toast, refetch.
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  // Phase 4 Plan 07 D-06 + D-08 + D-10 — mod/admin Archive + Restore + Hard-Delete affordances.
+  // Same submittingAction gate covers all 5 mod actions (approve/reject/archive/restore/hard-delete).
+  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
+  const [isHardDeleteModalOpen, setIsHardDeleteModalOpen] = useState(false);
   const [submittingAction, setSubmittingAction] = useState(false);
   const showModFooter = can('approveListings') && property.status === 'pending';
+  // Phase 4 Plan 07 D-06 — mod/admin Archive/Restore/Hard-Delete render predicates.
+  // Backend HARD_DELETE_REQUIRES_ARCHIVED still gates non-archived listings via the
+  // backend route's 400 response (Plan 04-04); the client predicate is permissive so
+  // an admin can attempt the action and surface the backend's structured error if needed.
+  const showArchiveBtn = can('archiveAnyListing') && property?.status !== 'archived';
+  const showRestoreBtn = can('archiveAnyListing') && property?.status === 'archived';
+  const showHardDeleteBtn = can('hardDeleteListing');
 
   // Refetch the local `property` state from the server. After approve/reject,
   // status flips off 'pending' and the footer auto-hides via showModFooter.
@@ -353,6 +369,89 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
   const handleEditOnBehalf = () => {
     if (onEditOnBehalfPressed) onEditOnBehalfPressed(property);
+  };
+
+  // Phase 4 Plan 07 D-06 — mod/admin Archive submit (mirrors handleRejectSubmit shape).
+  // Calls Plan 05's PropertyService.archiveAnyListing -> backend Plan 03 POST
+  // /api/moderation/properties/:id/archive. Reuses Phase 3's 409 race-conflict path.
+  const handleModArchiveSubmit = async (params: { reasonCode: any; reasonNote?: string }) => {
+    if (!property.id) return;
+    setSubmittingAction(true);
+    try {
+      await PropertyService.archiveAnyListing(property.id, params.reasonCode, params.reasonNote);
+      setIsArchiveModalOpen(false);
+      await refetchProperty();
+    } catch (err: any) {
+      if (err?.response?.status === 409) {
+        await handleRaceConflict();
+        return;
+      }
+      Alert.alert(
+        t('common.error'),
+        err?.response?.data?.message || err?.message || t('common.errorGeneric'),
+      );
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
+  // Phase 4 Plan 07 D-06 + D-12 — Restore (owner OR mod-archived). Mirrors handleApprove's
+  // Alert.alert flow. Uses PropertyService.restoreListing role-aware split (Plan 05 PATTERNS §10):
+  // mod/admin -> POST /moderation/properties/:id/restore; owner -> POST /properties/:id/unarchive.
+  // Locale values rewritten in Plan 07 Task 1 (D-12 + Pitfall 3 — keys preserved verbatim).
+  const handleRestore = () => {
+    Alert.alert(
+      t('property.unarchiveDialogTitle'),
+      t('property.unarchiveDialogMessage'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('property.unarchiveConfirm'),
+          onPress: async () => {
+            if (!property.id) return;
+            setSubmittingAction(true);
+            try {
+              await PropertyService.restoreListing(property.id);
+              await refetchProperty();
+            } catch (err: any) {
+              if (err?.response?.status === 409) {
+                await handleRaceConflict();
+                return;
+              }
+              Alert.alert(
+                t('common.error'),
+                err?.response?.data?.message || err?.message || t('common.errorGeneric'),
+              );
+            } finally {
+              setSubmittingAction(false);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  // Phase 4 Plan 07 D-10 — Admin-only hard delete. Called from DeleteListingModal's onConfirm
+  // (mounted as sibling to RejectListingModal). Backend Plan 04-04 enforces requireMinRole('admin')
+  // + HARD_DELETE_REQUIRES_ARCHIVED 400 if status !== 'archived'.
+  const confirmHardDelete = async () => {
+    if (!property.id) return;
+    setSubmittingAction(true);
+    try {
+      await PropertyService.hardDeleteListing(property.id);
+      setIsHardDeleteModalOpen(false);
+      Alert.alert(t('common.success'), t('property.permanentlyDeletedToast'));
+      if (onRefreshProperty) {
+        try { await onRefreshProperty(); } catch { /* parent's problem */ }
+      }
+    } catch (err: any) {
+      Alert.alert(
+        t('common.error'),
+        err?.response?.data?.message || err?.message || t('common.errorGeneric'),
+      );
+    } finally {
+      setSubmittingAction(false);
+    }
   };
 
   // Consolidate images into a single array
@@ -1375,6 +1474,66 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         </View>
       )}
 
+      {/* Phase 4 Plan 07 D-06 — mod/admin Archive/Restore/Hard-Delete action footer.
+          Renders only when at least one of the 3 buttons should show (otherwise the
+          row would be an empty bar). For pending listings, this row renders BELOW
+          the existing 3-button Approve/Reject/Edit-on-behalf row (mod sees BOTH per
+          CONTEXT.md D-06 verbatim — Archive becomes the take-down option for pending
+          listings the mod judges aren't worth approving OR rejecting).
+          Reuses existing modActionFooter / modActionBtn / modActionBtnText styles. */}
+      {(showArchiveBtn || showRestoreBtn || showHardDeleteBtn) && (
+        <View
+          style={[
+            styles.modActionFooter,
+            {
+              backgroundColor: colors.surface,
+              borderTopColor: colors.border,
+              paddingBottom: Math.max(insets.bottom, 12),
+            },
+          ]}
+        >
+          {showArchiveBtn && (
+            <TouchableOpacity
+              style={[styles.modActionBtn, { backgroundColor: '#D97706' /* amber — archive convention */ }]}
+              onPress={() => setIsArchiveModalOpen(true)}
+              disabled={submittingAction}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={t('property.archive')}
+            >
+              <Archive size={18} color="#FFF" />
+              <Text style={styles.modActionBtnText}>{t('property.archive')}</Text>
+            </TouchableOpacity>
+          )}
+          {showRestoreBtn && (
+            <TouchableOpacity
+              style={[styles.modActionBtn, { backgroundColor: '#059669' /* emerald — restorative */ }]}
+              onPress={handleRestore}
+              disabled={submittingAction}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={t('property.unarchive')}
+            >
+              <ArchiveRestore size={18} color="#FFF" />
+              <Text style={styles.modActionBtnText}>{t('property.unarchive')}</Text>
+            </TouchableOpacity>
+          )}
+          {showHardDeleteBtn && (
+            <TouchableOpacity
+              style={[styles.modActionBtn, { backgroundColor: colors.error }]}
+              onPress={() => setIsHardDeleteModalOpen(true)}
+              disabled={submittingAction}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.delete')}
+            >
+              <Trash2 size={18} color="#FFF" />
+              <Text style={styles.modActionBtnText}>{t('common.delete')}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
       {/* Phase 3 Plan 06 Task 02 — RejectListingModal sibling mount.
           Reusable modal extracted by Plan 04 (Task 03-04-01); same component
           mounts in ModerationQueueScreen. Parent owns the HTTP call via
@@ -1384,6 +1543,23 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         onClose={() => setIsRejectModalOpen(false)}
         onSubmit={handleRejectSubmit}
         submitting={submittingAction}
+      />
+
+      {/* Phase 4 Plan 07 D-06 + D-08 — ArchiveListingModal sibling mount (mod/admin only). */}
+      <ArchiveListingModal
+        visible={isArchiveModalOpen}
+        onClose={() => setIsArchiveModalOpen(false)}
+        onSubmit={handleModArchiveSubmit}
+        submitting={submittingAction}
+      />
+
+      {/* Phase 4 Plan 07 D-10 — DeleteListingModal sibling mount (admin only).
+          Hard-delete UX moved here from RenterListingsScreen (Plan 07 Task 2 atomic strip). */}
+      <DeleteListingModal
+        visible={isHardDeleteModalOpen}
+        onClose={() => setIsHardDeleteModalOpen(false)}
+        onConfirm={confirmHardDelete}
+        property={property}
       />
     </SafeAreaView>
   );
