@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: "Roles & Moderation"
-status: ready_to_verify
-last_updated: "2026-05-02T22:00:00Z"
-last_activity: 2026-05-02 -- Phase 03 Plan 06 (Wave-4 App.tsx wireup + PropertyDetailsScreen action footer + CreateListingScreen moderatorContext + manual smoke APPROVED) COMPLETE — Phase 3 closes 6/6; ready for /gsd-verify-work + /gsd-code-review on the Phase 3 commit chain
+status: phase_complete
+last_updated: "2026-05-02T23:10:00Z"
+last_activity: 2026-05-02 -- Phase 03 COMPLETE end-to-end. Code review surfaced 2 CRITICAL bugs the verifier alone would have missed (CR-01: PUT /listings/:id never JSON-parsed FormData arrays / never read req.files — corrupts every edit-on-behalf save; CR-02: App.tsx pendingModerationCount prop precedence killed ProfileScreen's AppState cooldown — badge stays stale forever after backgrounding). Both CRs fixed (commits 5fe3583 backend multer-s3 + field-handling block + MOD-14 regression test 18->19; 88539f1 client moderationCountRefreshKey + ProfileScreen owns count). 8/8 in-scope findings (2 CRIT + 6 WARN) auto-fixed via /gsd-code-review-fix; 5 INFO deferred. Verifier: 8/9 must-haves PASS, 1 PARTIAL (App.tsx 1191 LOC, 11 over 1180 ceiling — accepted under PATTERN D signal-not-block precedent). Backend tests 86/86, tsc baseline 2 preserved, i18n parity 0, actorUid anti-pattern grep 0/0. 5 human re-walk items persisted at 03-HUMAN-UAT.md (re-smoke after REVIEW-FIX commits). MOD-10..MOD-18 all complete. Phase 3 of 6 in M2; recommended next: /clear then /gsd-discuss-phase 4.
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 28
   completed_plans: 28
   percent: 100
