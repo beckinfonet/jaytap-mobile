@@ -128,6 +128,16 @@ const RoleManagementScreen: React.FC<RoleManagementScreenProps> = ({ onBack }) =
       setSelectedUser(null);
       Alert.alert('', t('admin.roles.success.toast'));
     } catch (err: any) {
+      // WR-02: surface mid-flight role revocation explicitly instead of
+      // collapsing it into the generic NETWORK toast. Mirrors runSearch's
+      // handling at lines 82-86.
+      if (err instanceof PermissionDeniedError || err?.message === 'E_PERMISSION_DENIED') {
+        setSelectedUser(null);
+        setModalErrorCode(null);
+        Alert.alert(t('common.error'), t('errors.permissionDenied'));
+        onBack();
+        return;
+      }
       const code = err?.response?.data?.code as string | undefined;
       const status = err?.response?.status as number | undefined;
       if (code === 'LAST_ADMIN_LOCKOUT') {
