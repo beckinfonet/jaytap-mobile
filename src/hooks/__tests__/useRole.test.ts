@@ -156,3 +156,74 @@ describe('viewModerationQueue (Phase 3 / MOD-10 / D-03)', () => {
     expect(canFromUser(null, 'viewModerationQueue')).toBe(false);
   });
 });
+
+// Phase 4 — ARCH-05 Action union extension tests
+describe('Phase 4 — Archive Lifecycle action gates', () => {
+  describe('archiveOwnListing — any authenticated user with backendProfile', () => {
+    test('admin can archiveOwnListing', () => {
+      const user = { localId: 'a1', backendProfile: { userType: 'admin' } };
+      expect(canFromUser(user, 'archiveOwnListing')).toBe(true);
+    });
+
+    test('moderator can archiveOwnListing', () => {
+      const user = { localId: 'm1', backendProfile: { userType: 'moderator' } };
+      expect(canFromUser(user, 'archiveOwnListing')).toBe(true);
+    });
+
+    test('plain user with backendProfile can archiveOwnListing', () => {
+      const user = { localId: 'u1', backendProfile: { userType: 'user' } };
+      expect(canFromUser(user, 'archiveOwnListing')).toBe(true);
+    });
+
+    test('guest (null user) cannot archiveOwnListing', () => {
+      expect(canFromUser(null, 'archiveOwnListing')).toBe(false);
+    });
+
+    test('user without backendProfile cannot archiveOwnListing', () => {
+      // role derives to 'user' (Branch 3) but backendProfile is missing — gate fails on !!user?.backendProfile.
+      expect(canFromUser({ localId: 'g1' }, 'archiveOwnListing')).toBe(false);
+    });
+  });
+
+  describe('archiveAnyListing — moderator + admin only', () => {
+    test('admin can archiveAnyListing', () => {
+      const user = { localId: 'a1', backendProfile: { userType: 'admin' } };
+      expect(canFromUser(user, 'archiveAnyListing')).toBe(true);
+    });
+
+    test('moderator can archiveAnyListing', () => {
+      const user = { localId: 'm1', backendProfile: { userType: 'moderator' } };
+      expect(canFromUser(user, 'archiveAnyListing')).toBe(true);
+    });
+
+    test('plain user CANNOT archiveAnyListing', () => {
+      const user = { localId: 'u1', backendProfile: { userType: 'user' } };
+      expect(canFromUser(user, 'archiveAnyListing')).toBe(false);
+    });
+
+    test('guest CANNOT archiveAnyListing', () => {
+      expect(canFromUser(null, 'archiveAnyListing')).toBe(false);
+    });
+  });
+
+  describe('hardDeleteListing — admin only', () => {
+    test('admin can hardDeleteListing', () => {
+      const user = { localId: 'a1', backendProfile: { userType: 'admin' } };
+      expect(canFromUser(user, 'hardDeleteListing')).toBe(true);
+    });
+
+    test('moderator CANNOT hardDeleteListing (M2 admin-only swap)', () => {
+      const user = { localId: 'm1', backendProfile: { userType: 'moderator' } };
+      expect(canFromUser(user, 'hardDeleteListing')).toBe(false);
+    });
+
+    test('plain user CANNOT hardDeleteListing', () => {
+      const user = { localId: 'u1', backendProfile: { userType: 'user' } };
+      expect(canFromUser(user, 'hardDeleteListing')).toBe(false);
+    });
+
+    test('guest CANNOT hardDeleteListing', () => {
+      expect(canFromUser(null, 'hardDeleteListing')).toBe(false);
+    });
+  });
+});

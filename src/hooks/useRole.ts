@@ -20,7 +20,10 @@ export type Action =
   | 'approveListings'                // M2 forward-compat — moderator + admin
   | 'promoteToModerator'             // M2 forward-compat — admin only
   | 'reviewLandlordApplications'     // M2 Phase 4.5 — admin only
-  | 'viewModerationQueue';           // M2 Phase 3 (CONTEXT.md D-03; MOD-10) — moderator + admin
+  | 'viewModerationQueue'            // M2 Phase 3 (CONTEXT.md D-03; MOD-10) — moderator + admin
+  | 'archiveOwnListing'              // M2 Phase 4 (ARCH-05; D-16) — any authenticated user with backendProfile
+  | 'archiveAnyListing'              // M2 Phase 4 (ARCH-05; D-16) — moderator + admin
+  | 'hardDeleteListing';             // M2 Phase 4 (ARCH-05; D-16) — admin only
 
 /**
  * Thrown by service-layer guards when the authenticated user is not permitted
@@ -80,11 +83,18 @@ export function canFromUser(user: any, action: Action): boolean {
     case 'editPanoramicUrl':
     case 'promoteToModerator':
     case 'reviewLandlordApplications':
+    case 'hardDeleteListing':                 // ARCH-05 D-16 — admin only
       return role === 'admin';
     case 'editAnyListing':
     case 'approveListings':
     case 'viewModerationQueue':
+    case 'archiveAnyListing':                 // ARCH-05 D-16 — moderator + admin
       return role === 'admin' || role === 'moderator';
+    case 'archiveOwnListing':
+      // ARCH-05 D-16 — any authenticated user with backendProfile.
+      // Belt-and-suspenders only; backend's per-route ownership check
+      // (req.user.uid === property.ownerUid) is the authoritative gate.
+      return role !== 'guest' && !!user?.backendProfile;
     case 'manageListings':
       // Phase 4.5 capability gate: admins and moderators are implicit; plain users (role==='user')
       // require an admin-approved LandlordApplication, surfaced as backendProfile.canListProperties.
