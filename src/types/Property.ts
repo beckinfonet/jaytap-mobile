@@ -77,6 +77,13 @@ export interface Property {
   submittedAt?: string;
   rejectionReasonCode?: string | null;
   rejectionReasonNote?: string | null;
+  // Phase 4 D-20 — archive audit fields (mirrors backend Property.js schema additions in Plan 01).
+  // Optional (?:) per Phase 2 D-07 belt-and-suspenders posture; legacy listings without these read undefined.
+  // archivedByUid is the type prerequisite for Plan 07's canSelfRestore helper (PATTERNS §11).
+  archivedAt?: string;
+  archivedByUid?: string | null;
+  archivedReasonCode?: string | null;
+  archivedReasonNote?: string | null;
   // Phase 6 (HOSP-05 / D-20 / Gap 9.1) — Hospitality top-level fields (NOT inside specs)
   rooms?: number;
   maxGuests?: number;
