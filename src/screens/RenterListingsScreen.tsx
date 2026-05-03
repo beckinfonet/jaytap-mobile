@@ -13,7 +13,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Property } from '../types/Property';
 import { PropertyCard } from '../components/PropertyCard';
-import { DeleteListingModal } from '../components/DeleteListingModal';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -55,8 +54,10 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
   const { t } = useLanguage();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
+  // Phase 4 Plan 07 D-10 + D-14 (Pitfall 6 atomic strip): owner-side hard-delete affordances
+  // (modal-visibility state, the to-delete property state, the press / confirm handlers, the
+  // modal mount, and the onDelete props on PropertyCard / HospitalitySection) all REMOVED.
+  // Hard-delete UX moves to PropertyDetailsScreen as an admin-only affordance per D-10.
   // Phase 2 D-09: default selected tab is Pending (bridges M1 "post=instantly live" → M2 "post=pending").
   // Parent may pass defaultTab='rejected' from the Home rejection-banner CTA path (D-15).
   const [activeTab, setActiveTab] = useState<ListingTab>(defaultTab ?? 'pending');
@@ -107,35 +108,17 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
     }
   };
 
-  // Permanent delete — only invoked for archived or draft listings (live listings route through archive instead).
-  const handleDeleteProperty = (property: Property) => {
-    setPropertyToDelete(property);
-    setDeleteModalVisible(true);
-  };
+  // Phase 4 Plan 07 D-13 (Pitfall 4 conditional gate): owners may only restore listings they
+  // archived themselves. If the listing was archived by a moderator/admin, the owner sees no
+  // restore affordance — they must contact a moderator. Backend enforces the same rule on
+  // POST /api/properties/:id/unarchive (req.user.uid === ownerUid AND archivedByUid === ownerUid).
+  // Plan 05 added archivedByUid to the Property type (PATTERNS §11 prerequisite).
+  const canSelfRestore = (p: Property): boolean =>
+    p.archivedByUid != null && p.archivedByUid === user?.localId;
 
-  const confirmDelete = async () => {
-    if (!propertyToDelete?.id) {
-      return;
-    }
-
-    try {
-      await PropertyService.deleteProperty(propertyToDelete.id);
-      // Remove from local state
-      setProperties(properties.filter(p => p.id !== propertyToDelete.id));
-      setDeleteModalVisible(false);
-      setPropertyToDelete(null);
-      onListingMutated?.();
-      Alert.alert(t('common.success'), t('property.permanentlyDeletedToast'));
-    } catch (error: any) {
-      console.error('Error deleting property:', error);
-      const errorMessage = error?.message || t('property.deleteErrorMessage');
-      Alert.alert(t('common.error'), errorMessage);
-    }
-  };
-
-  // TODO(Phase 4): handleArchiveProperty + handleUnarchiveProperty are kept in source for Phase 4
-  // ARCH-01..ARCH-04 reuse. The archive UI affordances (button props on PropertyCard + HospitalitySection)
-  // are stripped in Phase 2 per CONTEXT.md D-08 boundary; Phase 4 re-mounts the affordances.
+  // Phase 4 Plan 07: owner-side hard-delete press handler + confirm handler STRIPPED per
+  // D-10 + D-14 (Pitfall 6 atomic strip). Hard-delete is now admin-only and lives on
+  // PropertyDetailsScreen.
 
   // Soft delete — moves a live or draft listing to 'archived'. Hidden from public browse, restorable.
   const handleArchiveProperty = (property: Property) => {
@@ -150,7 +133,7 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
           style: 'default',
           onPress: async () => {
             try {
-              await PropertyService.archiveProperty(property.id!);
+              await PropertyService.archiveOwnListing(property.id!);
               setProperties(prev =>
                 prev.map(p => (p.id === property.id ? { ...p, status: 'archived' as const } : p))
               );
@@ -180,7 +163,7 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
           style: 'default',
           onPress: async () => {
             try {
-              await PropertyService.unarchiveProperty(property.id!);
+              await PropertyService.restoreListing(property.id!);
               setProperties(prev =>
                 prev.map(p => (p.id === property.id ? { ...p, status: 'pending' as const } : p))
               );
@@ -316,7 +299,8 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
         onViewTour={handleViewTour}
         onViewVideo={handleViewVideo}
         onEdit={onEditProperty}
-        onDelete={handleDeleteProperty}
+        onArchive={handleArchiveProperty}
+        onUnarchive={canSelfRestore(item) ? handleUnarchiveProperty : undefined}
         showEditButton={true}
       />
     </View>
@@ -356,23 +340,13 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
             onPress={handlePressProperty}
             onViewTour={handleViewTour}
             onEdit={onEditProperty}
-            onDelete={handleDeleteProperty}
+            onArchive={handleArchiveProperty}
             showEditButton={true}
           />
         }
         ListEmptyComponent={renderEmpty()}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-      />
-
-      <DeleteListingModal
-        visible={deleteModalVisible}
-        onClose={() => {
-          setDeleteModalVisible(false);
-          setPropertyToDelete(null);
-        }}
-        onConfirm={confirmDelete}
-        property={propertyToDelete}
       />
     </SafeAreaView>
   );
