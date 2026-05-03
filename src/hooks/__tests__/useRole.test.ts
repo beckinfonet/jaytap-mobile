@@ -94,7 +94,7 @@ describe('canFromUser priority ladder (post-allowlist deletion)', () => {
     expect(canFromUser(moderator, 'editAnyListing')).toBe(true);
     expect(canFromUser(moderator, 'approveListings')).toBe(true);
     expect(canFromUser(moderator, 'editVerifications')).toBe(false);
-    expect(canFromUser(moderator, 'promoteToModerator')).toBe(false);
+    expect(canFromUser(moderator, 'manageRoles')).toBe(false);
   });
 
   test('manageListings (post-cutover): any authenticated user with a backendProfile is permitted', () => {
@@ -124,15 +124,15 @@ describe('canFromUser priority ladder (post-allowlist deletion)', () => {
     expect(canFromUser(formerlyAllowlisted, 'editPanoramicUrl')).toBe(false);
   });
 
-  test('promoteToModerator is admin-only (no moderator self-promotion + no allowlist bypass)', () => {
-    expect(canFromUser(admin, 'promoteToModerator')).toBe(true);
-    expect(canFromUser(moderator, 'promoteToModerator')).toBe(false);
-    expect(canFromUser(plainUser, 'promoteToModerator')).toBe(false);
+  test('manageRoles is admin-only (no moderator self-promotion + no allowlist bypass)', () => {
+    expect(canFromUser(admin, 'manageRoles')).toBe(true);
+    expect(canFromUser(moderator, 'manageRoles')).toBe(false);
+    expect(canFromUser(plainUser, 'manageRoles')).toBe(false);
     const formerlyAllowlisted = {
       email: 'beckprograms@gmail.com',
       backendProfile: { userType: 'user' },
     };
-    expect(canFromUser(formerlyAllowlisted, 'promoteToModerator')).toBe(false);
+    expect(canFromUser(formerlyAllowlisted, 'manageRoles')).toBe(false);
   });
 });
 
@@ -225,5 +225,27 @@ describe('Phase 4 — Archive Lifecycle action gates', () => {
     test('guest CANNOT hardDeleteListing', () => {
       expect(canFromUser(null, 'hardDeleteListing')).toBe(false);
     });
+  });
+});
+
+// Phase 5 — manageRoles action gate tests (CONTEXT D-Discretion)
+describe('manageRoles (Phase 5 / ADMIN-02 / D-Discretion)', () => {
+  test('admin can manageRoles', () => {
+    const user = { backendProfile: { userType: 'admin' } };
+    expect(canFromUser(user, 'manageRoles')).toBe(true);
+  });
+
+  test('moderator CANNOT manageRoles (admin-exclusive privilege)', () => {
+    const user = { backendProfile: { userType: 'moderator' } };
+    expect(canFromUser(user, 'manageRoles')).toBe(false);
+  });
+
+  test('plain user CANNOT manageRoles', () => {
+    const user = { backendProfile: { userType: 'user' } };
+    expect(canFromUser(user, 'manageRoles')).toBe(false);
+  });
+
+  test('guest (null user) CANNOT manageRoles', () => {
+    expect(canFromUser(null, 'manageRoles')).toBe(false);
   });
 });

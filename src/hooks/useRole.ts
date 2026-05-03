@@ -18,7 +18,7 @@ export type Action =
   | 'manageListings'                 // M2 Phase 4.5 — admin/moderator implicit; user requires backendProfile.canListProperties
   | 'editAnyListing'                 // M2 forward-compat — moderator + admin
   | 'approveListings'                // M2 forward-compat — moderator + admin
-  | 'promoteToModerator'             // M2 forward-compat — admin only
+  | 'manageRoles'                    // M2 Phase 5 (ADMIN-02 + D-Discretion) — admin only
   | 'reviewLandlordApplications'     // M2 Phase 4.5 — admin only
   | 'viewModerationQueue'            // M2 Phase 3 (CONTEXT.md D-03; MOD-10) — moderator + admin
   | 'archiveOwnListing'              // M2 Phase 4 (ARCH-05; D-16) — any authenticated user with backendProfile
@@ -81,7 +81,7 @@ export function canFromUser(user: any, action: Action): boolean {
     case 'editVerifications':
     case 'editMatterportUrl':
     case 'editPanoramicUrl':
-    case 'promoteToModerator':
+    case 'manageRoles':
     case 'reviewLandlordApplications':
     case 'hardDeleteListing':                 // ARCH-05 D-16 — admin only
       return role === 'admin';
