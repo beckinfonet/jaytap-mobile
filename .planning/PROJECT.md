@@ -86,6 +86,12 @@ Prospective renters and buyers can reliably browse, filter, and inquire about Bi
 - ✓ REL-02 iOS `MARKETING_VERSION 1.0.4` + `CURRENT_PROJECT_VERSION 22` + Android `versionCode 28` / `versionName "1.0.28"` — v1.0.4 (Phase 8)
 - ✓ REL-05 Manual regression on physical iOS + Android devices APPROVED on first pass — v1.0.4 (Phase 8)
 - ✓ REL-06 Bilingual EN+RU release notes pasted on ASC + Play Console — v1.0.4 (Phase 8)
+- ✓ REL-01 RN client `package.json` bumped to `2.0.0` — v2.0.0 (Phase 6)
+- ✓ REL-02 iOS `MARKETING_VERSION 2.0.0` + `CURRENT_PROJECT_VERSION 27` + Android `versionCode 30` / `versionName "2.0.0"` (M1 D-02 lesson applied — derived from `06-STORE-HISTORY.md` queried max(local, store)+1) — v2.0.0 (Phase 6)
+- ✓ REL-03 Manual physical-device QA matrix walked APPROVED on iPhone 15 Pro Max + Moto G XT2513V (74 PASS / 3 PARTIAL / 5 DEFERRED-USER-APPROVED / 0 FAIL) — v2.0.0 (Phase 6)
+- ✓ REL-04 Bilingual EN+RU release notes pasted on ASC + Play Console (EN 403 / RU 409 chars under 500 limit) — v2.0.0 (Phase 6)
+- ✓ REL-05 Backend live + healthy on Railway at SHA `2fb5639`; Mongo password rotated post-2026-04-29; `firebase-admin` confirmed absent — v2.0.0 (Phase 6)
+- ✓ REL-06 v2.0.0 submitted to ASC TestFlight Internal + Play Console Internal Testing; M1 D-13 inheritance descope honored (7/7 items INHERITED) — v2.0.0 (Phase 6)
 
 ### Active
 

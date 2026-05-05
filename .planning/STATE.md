@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: "Roles & Moderation"
-status: executing
-last_updated: "2026-05-05T19:05:23.455Z"
-last_activity: 2026-05-05 -- Phase 6 planning complete
+status: shipped
+last_updated: "2026-05-05T20:55:00Z"
+last_activity: 2026-05-05 -- Phase 6 SHIPPED v2.0.0 (build 27 / versionCode 30) to ASC TestFlight Internal + Play Console Internal Testing; M2 v2.0 closes
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 47
-  completed_plans: 40
-  percent: 85
+  completed_plans: 47
+  percent: 100
 ---
 
 # STATE: JayTap
