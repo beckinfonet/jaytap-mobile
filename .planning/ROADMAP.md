@@ -174,7 +174,26 @@ Plans:
 
 ## Backlog
 
-*Empty.* M1 backlog entry 999.1 (archive listings — authors + mod/admin) was promoted into M2 Phase 4 on 2026-04-29; the corresponding `.planning/phases/999.1-archive-listings/` directory will be removed during Phase 4 plan execution. Future backlog entries land here.
+### Phase 999.1: Contextual listing creation flow (6-step conditional UI) — M3 anchor (BACKLOG)
+
+**Goal:** [Captured for future planning] Replace the current generic listing form with a step-by-step contextual flow where each screen's fields are determined by previous answers (deal type × property type × admin toggles). Full spec: `./movein-listing-flow-spec.md` (repo root).
+
+**Target milestone:** M3 (do NOT start during M2 — M2 v2.0 ships first)
+
+**Requirements:** TBD — derive during /gsd-spec-phase 999.1 after M2 closes
+
+**Reconciliation points to resolve before planning:**
+1. Spec's flat property-type taxonomy (`apartment | house | office | commercial | hotel`) conflicts with M1's three-category taxonomy (Residential / Commercial / Hospitality). CLAUDE.md guards the existing taxonomy. Either the spec wins (taxonomy migration phase) or the spec is reframed onto the existing taxonomy.
+2. Spec moves photo / video / 3D-tour upload from user to admin/mod (post-submission). This inverts the current user-uploads-to-S3 workflow (uses `jaytap-prod-s3` IAM user). Confirm direction before planning — has implications for moderation UI scope and S3 IAM policy.
+
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+---
+
+*M1 backlog entry 999.1 (archive listings — authors + mod/admin) was promoted into M2 Phase 4 on 2026-04-29; the corresponding `.planning/phases/999.1-archive-listings/` directory was removed during Phase 4 plan execution. The 999.1 number is now reused for the M3 anchor above.*
 
 ---
 
