@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: "Roles & Moderation"
-status: ready-to-plan
-last_updated: "2026-05-05T00:00:00.000Z"
-last_activity: 2026-05-05 -- Phase 05 closed via auto-transition (paired gates clear); Phase 06 ready to plan
+status: executing
+last_updated: "2026-05-05T19:05:23.455Z"
+last_activity: 2026-05-05 -- Phase 6 planning complete
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 5
-  total_plans: 40
+  total_plans: 47
   completed_plans: 40
-  percent: 100
+  percent: 85
 ---
 
 # STATE: JayTap
@@ -85,8 +85,8 @@ progress:
 Milestone: **M2 v2.0 "Roles & Moderation" — Phases 1–5 COMPLETE (40/40 plans). Phase 6 (Hardening + Manual Physical-Device QA + Release) is the last remaining phase; closes M2 with v2.0.0 atomic version bump + dual-store submission applying M1 D-02 lesson.**
 Phase: 06 (hardening-and-release) — READY TO PLAN
 Plan: Not started
-Status: Ready to plan Phase 06
-Last activity: 2026-05-05 -- Phase 05 closed via auto-transition (paired gates UAT + REVIEW + SECURITY + VALIDATION all clear; ROADMAP row flipped, REQUIREMENTS.md ADMIN-01..07 marked validated)
+Status: Ready to execute
+Last activity: 2026-05-05 -- Phase 6 planning complete
 **Recommended next action:** `/gsd-plan-phase 6` to plan the Hardening + Release phase. Per CLAUDE.md M1 testing-bar carryover and ROADMAP Phase 6 success criteria: cross-device QA matrix on iPhone 15 Pro Max + Moto G XT2513V (role transitions, Moderation Queue race-condition coverage on two devices, Archive flows, owner-side rejection banner persistence, EN+RU + dark/light parity, all four hotfix-bundle fixes empirically verified); v2.0.0 atomic version bump (RN client `package.json` + iOS `MARKETING_VERSION` + Android `versionName`; build numbers AFTER querying Play Console + TestFlight history per M1 D-02 lesson — RETROSPECTIVE.md Key Lesson #1); backend Railway deploy with `FIREBASE_PROJECT_ID` env var present + old MongoDB Atlas password and AWS IAM keys revoked + `firebase-admin@^13.6.1` removed from backend `package.json` (was dead code per M2 Phase 1 hotfix bundle); bilingual EN+RU release notes drafted under Play Console's binding 500-char-per-locale limit, content order What's new (Roles & Moderation) → Improvements (security hardening / data integrity) → Bug fixes (catch-all phrasing only — M1 Phase 8 D-10); iOS archive uploaded to ASC under Xcode 26.4+ visible in TestFlight + Android `.aab` uploaded to Play Console under existing keystore; privacy manifest re-affirmed per M1 Phase 8 D-13 inheritance unless Apple flags. Then `/gsd-audit-milestone v2.0` + `/gsd-complete-milestone v2.0` to archive M2 cleanly. Phase 4.5 landlord-app uid-mismatch bug (memory `phase45-landlord-application-uid-mismatch-bug.md`) is open and should be triaged into Phase 6 scope or routed to M3 backlog before Phase 6 plan-phase. **Prior recommended next action archived:** `/gsd-execute-phase 4` to run Plan 04-07 (FINAL Phase 4 plan — Wave-3 client integration: PropertyDetailsScreen archive/restore/hard-delete action footer wiring with `<Gated action="archiveOwnListing">` / `<Gated action="archiveAnyListing">` / `<Gated action="hardDeleteListing">` predicates from Plan 04-05; ArchiveListingModal mount as sibling to existing RejectListingModal (Plan 04-06 ships this); RenterListingsScreen archiveProperty → archiveOwnListing + unarchiveProperty → restoreListing swap closing the 2 Plan-05 handoff tsc errors at lines 153 + 183; OwnerListings Archived-tab Restore action with auto-pending re-moderation per ARCH-04; per Pitfall 3 Plan 07 OVERWRITES 5 existing key VALUES preserving names — value-grep verification needed since name-only parity gate misses VALUE drift; manual physical-device QA matrix on iPhone 15 Pro Max + Moto G XT2513V the BLOCKING phase-exit checkpoint per CLAUDE.md M1 testing bar carryover). Alternatively `/gsd-verify-work 3` followed by `/gsd-code-review` on the full Phase 3 commit chain (17 atomic task commits + 6 metadata commits across Plans 01–06) before starting Phase 4 execution if a verify-first sequencing is preferred. Per auto-memory `gsd-verifier-misses-regressions.md`, treat verifier+reviewer as paired gates — the verifier alone missed 2 CRITICAL regressions in M2 Phase 1 (verifier said PASS 15/15 while reviewer found 2 CRITICAL findings in the same commit chain). After both gates pass, proceed to `/gsd-uat` for any remaining cross-device QA before Phase 4 planning. Phase 4 (Archive Lifecycle: ARCH-01..ARCH-05) is the next planning target; can run in parallel with Phase 5 (Admin Role Management) but recommended serial execution for small-team test-surface bounding. Backlog tracked: (a) M3 App.tsx LOC mitigation candidates from Plan 06 SUMMARY — extract `<ModerationQueueOverlayHost>` (~15 LOC savings) + move pending-count fetch into `useModerationQueueCount()` hook (~20 LOC savings); (b) M3 geocoder fetch-timeout (pre-Phase-2 Nominatim no-timeout in `backend-services/JayTap-services/src/utils/geocoder.js` causing intermittent AxiosError Network Error during create); (c) M2 cleanup pass to prune 8 orphan `createListing.*` locale keys en bloc; (d) Phase 6 release-gate matrix walks Moto G XT2513V cross-device parity sweep (Phase 3 smoke walked iPhone 15 Pro Max only as the gating device, per Plan 06 documented escape hatch).
 **Phase numbering:** Restarts at 1 for M2 (M1 phase dirs at `.planning/milestones/v1.0.4-phases/`); M2 phase dirs will be created with kebab-case slugs (`01-backend-role-foundation`, `02-listing-lifecycle-absorption`, `03-moderation-queue-and-actions`, `04-archive-lifecycle`, `05-admin-role-management`, `06-hardening-and-release`) at `/gsd-discuss-phase` / `/gsd-plan-phase` time
 

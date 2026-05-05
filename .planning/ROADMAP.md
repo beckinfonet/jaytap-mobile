@@ -152,7 +152,16 @@ Plans:
   3. Backend deployed to Railway with `FIREBASE_PROJECT_ID` env var present; old MongoDB Atlas password + AWS IAM keys revoked and confirmed dead; new credentials live; `firebase-admin@^13.6.1` removed from backend `package.json` (was dead code)
   4. Bilingual EN+RU release notes drafted and pasted on App Store Connect + Google Play Console under their respective length limits (Play Console's binding 500-char-per-locale limit is the load-bearing budget); content order: What's new (Roles & Moderation) → Improvements (security hardening / data integrity) → Bug fixes (catch-all phrasing only per M1 Phase 8 D-10 — no fabricated specifics)
   5. iOS archive uploaded to App Store Connect under Xcode 26.4+ and visible in TestFlight (TestFlight Internal Testing track sufficient for phase-exit per M1 D-12); Android `.aab` uploaded to Google Play Console under existing keystore and submitted/processing; privacy manifest re-affirmed per M1 Phase 8 D-13 inheritance unless Apple flags (RN client adds zero new data-collecting deps in M2)
-**Plans**: TBD
+**Plans**: 7 plans across 4 waves
+
+Plans:
+- [ ] 06-01-PLAN.md — Wave 1: Query ASC TestFlight + Play Console for highest-accepted iOS build number + Android versionCode; derive max(local, store) + 1 next-bump targets per track; record M1 D-02 lesson + Phase 3+4 paired-gates prerequisite in 06-STORE-HISTORY.md
+- [ ] 06-02-PLAN.md — Wave 1: Privacy + store-listing inheritance audit (M1 D-13 descope); package.json diff v1.0.4 vs v2.0.0 with no-firebase-sdk repo-rule grep; per-item disposition + re_open_conditions in 06-INHERITANCE-AUDIT.md; binding proceed_with_inheritance signal for Plan 07
+- [ ] 06-03-PLAN.md — Wave 1: Bilingual EN+RU release notes draft (M1 D-10 content order — What's new / Improvements / Bug fixes catch-all); both bodies ≤ 500 chars per Play Console binding limit; Cyrillic RU body; no Bishkek-only phrasing per geographic-scope.md; output 06-RELEASE-NOTES.md (paste-only artifact per M1 D-11)
+- [ ] 06-04-PLAN.md — Wave 1: Backend redeploy on Railway (cross-repo /Users/beckmaldinVL/development/mobileApps/backend-services/JayTap-services with nvm use 24); spot-check firebase-admin removed; verify FIREBASE_PROJECT_ID env var present; confirm OLD MongoDB password REVOKED + OLD shared AWS IAM user DEAD per memory aws-iam-jaytap-prod-s3.md; output 06-BACKEND-DEPLOY.md
+- [ ] 06-05-PLAN.md — Wave 2: Atomic v2.0.0 version bump in single commit (package.json + pbxproj MARKETING_VERSION × 2 + pbxproj CURRENT_PROJECT_VERSION × 2 + build.gradle versionName + build.gradle versionCode); build numbers from 06-STORE-HISTORY.md derived targets per M1 D-02 lesson
+- [ ] 06-06-PLAN.md — Wave 3: Cross-cutting manual physical-device QA matrix walk on iPhone 15 Pro Max + Moto G XT2513V (REL-03 explicit two-device race-condition coverage; absorbs deferred Moto G items from Phases 3+4+5; 7 matrices = role transitions / mod actions / archive flows / rejection banner persistence / 4 hotfix-bundle empirical / EN+RU parity / dark+light parity); checkpoint:human-verify gate; PREREQUISITE: Phase 3+4 paired-gates (/gsd-verify-work + /gsd-code-review) clear per memory gsd-verifier-misses-regressions.md
+- [ ] 06-07-PLAN.md — Wave 4: iOS archive build under Xcode 26.4+ + upload to ASC TestFlight Internal Testing (M1 D-12 sufficient for phase-exit) + Android .aab build under existing keystore + upload to Play Console + paste EN+RU release notes on both stores; M1 D-13 inheritance honored per 06-INHERITANCE-AUDIT.md (no privacy questionnaire re-author, no store-listing refresh); output 06-SUBMISSION-LOG.md
 
 ## Progress
 
@@ -170,7 +179,7 @@ Plans:
 | 3. Moderation Queue + Actions + Edit-on-Behalf | 6/6 | ✅ Complete — ready for `/gsd-verify-work 3` + `/gsd-code-review` (paired-gates per `gsd-verifier-misses-regressions.md` discipline) | 2026-05-02 |
 | 4. Archive Lifecycle (Owner + Mod/Admin) | 7/7 | ✅ Complete — manual physical-device smoke walked APPROVED on iPhone 15 Pro Max (11/11 rows PASS); ready for `/gsd-verify-work 4` + `/gsd-code-review` (paired-gates per `gsd-verifier-misses-regressions.md` discipline) | 2026-05-03 |
 | 5. Admin Role Management UI | 5/5 | ✅ Complete — paired gates clear (UAT 11p+1s, REVIEW all_fixed, SECURITY 27/27 closed, VALIDATION nyquist_compliant); manual physical-device PASS on iPhone 15 Pro Max (Moto G deferred to Phase 6) | 2026-05-03 |
-| 6. Hardening + Manual Physical-Device QA + Release | 0/0 | Ready to plan — `/gsd-plan-phase 6` | — |
+| 6. Hardening + Manual Physical-Device QA + Release | 0/7 | Planned — 7 plans across 4 waves; ready for `/gsd-execute-phase 6` | — |
 
 ## Backlog
 
