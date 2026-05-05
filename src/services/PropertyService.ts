@@ -281,9 +281,8 @@ export const PropertyService = {
 
   // Phase 4 D-04 + D-Claude-Discretion — admin hard-delete (apiClient.delete path unchanged; backend Plan 04-04 tightens auth).
   // Action union member: 'hardDeleteListing' (admin only). Pre-condition: listing must be 'archived' first
-  // (HARD_DELETE_REQUIRES_ARCHIVED 400 from backend if not). The legacy `deleteProperty` method below stays as
-  // backwards-compat alias for any unknown downstream caller; Plan 07 will swap RenterListingsScreen to call
-  // hardDeleteListing directly.
+  // (HARD_DELETE_REQUIRES_ARCHIVED 400 from backend if not). The legacy `deleteProperty` backwards-compat alias
+  // was removed in Phase 4 review-fix WR-01 — grep confirmed zero callers across src/ + App.tsx.
   hardDeleteListing: async (propertyId: string): Promise<any> => {
     try {
       const userData = await AuthService.getUserData();
@@ -296,28 +295,6 @@ export const PropertyService = {
     } catch (error: any) {
       console.error('Error hard-deleting listing:', error?.message);
       if (error.response?.data?.message) throw new Error(error.response.data.message);
-      throw error;
-    }
-  },
-
-  deleteProperty: async (propertyId: string) => {
-    try {
-      const userData = await AuthService.getUserData();
-      if (!userData?.localId) {
-        throw new Error('User not authenticated');
-      }
-
-      const response = await apiClient.delete(`/properties/${propertyId}`, {
-        // Legacy body field — see createProperty note.
-        data: { firebaseUid: userData.localId },
-      });
-
-      return response.data;
-    } catch (error: any) {
-      console.error('Error deleting property:', error);
-      if (error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
       throw error;
     }
   },
