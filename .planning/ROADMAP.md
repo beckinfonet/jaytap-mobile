@@ -176,7 +176,7 @@ Plans:
 
 ### Phase 999.1: Contextual listing creation flow (6-step conditional UI) — M3 anchor (BACKLOG)
 
-**Goal:** [Captured for future planning] Replace the current generic listing form with a step-by-step contextual flow where each screen's fields are determined by previous answers (deal type × property type × admin toggles). Full spec: `./movein-listing-flow-spec.md` (repo root).
+**Goal:** [Captured for future planning] Replace the current generic listing form with a step-by-step contextual flow where each screen's fields are determined by previous answers (deal type × property type × admin toggles). Full spec: `.planning/phases/999.1-contextual-listing-flow-m3-anchor/SPEC.md` (collocated with this backlog entry).
 
 **Target milestone:** M3 (do NOT start during M2 — M2 v2.0 ships first)
 
