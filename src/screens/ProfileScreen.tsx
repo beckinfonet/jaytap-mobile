@@ -36,10 +36,9 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
     const { user, logout } = useAuth();
     const { t } = useLanguage();
     const { isDark } = useTheme();
-    const { can } = useRole();
+    const { can, role } = useRole();
 
     const [canListProperties, setCanListProperties] = useState(false);
-    const [userType, setUserType] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
     const [blockSize, setBlockSize] = useState<'30min' | '60min'>('30min');
@@ -132,7 +131,6 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
                 if (settings) setBlockSize(settings.blockSize || '30min');
                 if (profile) {
                     setCanListProperties(profile.canListProperties === true);
-                    setUserType(profile.userType || '');
                 }
                 profileDataLoadedRef.current = true;
             } catch (error) {
@@ -212,9 +210,9 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
                         <View style={{ marginLeft: 16, flex: 1 }}>
                             <Text style={[styles.email, { color: themeStyles.text }]}>{user?.email}</Text>
                             <Text style={[styles.role, { color: themeStyles.accent }]}>
-                                {userType === 'admin'
+                                {role === 'admin'
                                     ? t('profile.role.admin')
-                                    : userType === 'moderator'
+                                    : role === 'moderator'
                                         ? t('profile.role.moderator')
                                         : canListProperties
                                             ? t('profile.role.host')

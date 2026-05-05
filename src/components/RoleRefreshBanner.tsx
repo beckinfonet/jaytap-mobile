@@ -8,8 +8,9 @@ import { t } from '../locales';
 /**
  * RoleRefreshBanner (Phase 1 ROLE-10 / D-13)
  *
- * Sticky top-of-app banner that appears when the user's `backendProfile.userType`
- * has changed since the last value the user acknowledged. Tapping the banner
+ * Sticky top-of-app banner that appears when the user's role (per their
+ * backend profile) has changed since the last value the user acknowledged.
+ * Tapping the banner
  * optimistically dismisses it and triggers a confirming refreshRole() call.
  *
  * Mounted in App.tsx ABOVE the OVERLAY_FLAGS-driven hideMainStackUnderOverlay

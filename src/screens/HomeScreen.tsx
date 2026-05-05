@@ -33,6 +33,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { PropertyService } from '../services/PropertyService';
+import { canFromUser } from '../hooks/useRole';
 import {
   RESIDENTIAL_TYPES,
   COMMERCIAL_TYPES,
@@ -144,16 +145,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   }, []);
 
   // D-14 / MOD-09: lazy-fetch rejected count for the current owner. Guarded by
-  // canListProperties (or moderator/admin role) so guests never trigger the call.
-  // Re-runs when the user changes or refreshKey bumps (e.g. after edit-resubmit).
+  // can('manageListings') (canListProperties OR moderator/admin role) so guests
+  // never trigger the call. Re-runs when the user changes or refreshKey bumps.
   useEffect(() => {
     if (!user?.localId) return;
-    const profile = (user as any)?.backendProfile;
-    const canList =
-      profile?.canListProperties === true ||
-      profile?.userType === 'moderator' ||
-      profile?.userType === 'admin';
-    if (!canList) return;
+    if (!canFromUser(user, 'manageListings')) return;
 
     PropertyService.getUserProperties(user.localId)
       .then((mine: Property[]) => {

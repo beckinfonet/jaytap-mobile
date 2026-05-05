@@ -228,7 +228,7 @@ describe('Phase 4 — Archive Lifecycle action gates', () => {
   });
 
   // WR-03 — Branch-1 forward-compat coverage: customClaims.role short-circuits
-  // before backendProfile.userType (Branch 2). These tests lock the behavior
+  // before the Branch-2 backend-profile lookup. These tests lock the behavior
   // for the new Phase 4 actions so a future server-issued claim doesn't
   // silently regress the gate.
   describe('Branch 1 forward-compat (customClaims.role)', () => {

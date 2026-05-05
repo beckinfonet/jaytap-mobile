@@ -7,6 +7,7 @@ import { ChevronRight } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useRole } from '../hooks/useRole';
 import {
   LandlordApplicationService,
   LandlordApplication,
@@ -48,11 +49,11 @@ export const LandlordApplicationStatusBanner: React.FC<Props> = ({ onPress }) =>
   const { colors } = useTheme();
   const { user, refreshRole } = useAuth();
   const { t } = useLanguage();
+  const { isAdmin, isModerator } = useRole();
   const [loading, setLoading] = useState(true);
   const [applications, setApplications] = useState<LandlordApplication[]>([]);
 
   const canListProperties = (user as any)?.backendProfile?.canListProperties as boolean | undefined;
-  const userType = (user as any)?.backendProfile?.userType as string | undefined;
 
   // Refresh AuthContext.user.backendProfile on every mount so canListProperties
   // reflects any admin decisions made since login. The banner's "approved" branch
@@ -84,7 +85,7 @@ export const LandlordApplicationStatusBanner: React.FC<Props> = ({ onPress }) =>
   }, [user?.localId, refreshRole]);
 
   // Admins/moderators have implicit listing rights — banner is irrelevant for them.
-  if (userType === 'admin' || userType === 'moderator') return null;
+  if (isAdmin || isModerator) return null;
 
   if (loading) {
     return (
