@@ -8,26 +8,21 @@ JayTap is a mobile real-estate app for Central Asia (current launch market: Bish
 
 Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
-## Current Milestone: v2.0 M2 "Roles & Moderation"
+## Current Milestone: M3 (next)
 
-**Goal:** Replace M1's hardcoded admin email gate with a real three-role permission system, give moderators + admins a workflow to review listings before they go public, and let owners + mods/admins archive listings.
+**Status:** Awaiting milestone goals from `/gsd-new-milestone` (planning started 2026-05-05 immediately after M2 archive).
 
-**Target features:**
+**Anchor:** Backlog 999.1 (Contextual listing creation flow — 6-step conditional UI) is the M3 anchor. Reconciliation points before planning: (1) spec's flat property-type taxonomy vs. M1's three-category taxonomy; (2) photo/video/3D-tour upload moving from user to admin/mod (inverts current user-uploads-to-S3 workflow on `jaytap-prod-s3` IAM user).
 
-- Three-role permission system (`admin` / `moderator` / `user`) backed by **MongoDB as the role authority** (the `userType` field on the enriched user record). Railway backend verifies the Firebase ID token via JWKS, then looks up `userType` in MongoDB. Closes M1 GATE-05 D-22 Path B accepted risk **without adding any Firebase SDK to this repo** (REST-only stays the rule).
-- Listing moderation lifecycle — status field on listings: `pending` / `live` / `rejected` / `archived` (replaces today's "post = instantly live" model); owner-side messaging on rejection.
-- Moderator actions + Moderation Queue UI — approve / reject / flag / edit-on-behalf-of-owner from a dedicated queue screen; available to admins + moderators.
-- Admin-only UIs — promote-user-to-moderator, add-admin, role management screens (mutate MongoDB user record, never Firebase).
-- Archive listings — owner-driven (author archives own listing) + mod/admin-driven (any listing); promoted from backlog 999.1.
+**Goal:** TBD via `/gsd-new-milestone` discovery.
 
-**Key context:**
+## Previous Milestone: v2.0 M2 "Roles & Moderation" (Shipped 2026-05-05)
 
-- **Auth split:** Firebase Identity Toolkit REST = identity proof (uid). MongoDB user record = enriched profile + role authority. Role changes touch Mongo, never Firebase.
-- **No Firebase SDK** in this repo. ID-token signature verification on Railway uses standard JWT/JWKS (Firebase public x509 endpoint), not firebase-admin SDK. Previous SDK addition attempt caused issues — REST-only is a hard rule.
-- **Forward-compat shim already in place.** M1 shipped `useRole()` / `can(action)` / `<Gated>` over a hardcoded email allowlist. M2 swaps the *source* (now: backend endpoint returning Mongo-resolved role for the authenticated uid) without touching call sites.
-- **Backend coordination is the gating dependency.** Same Railway-team conversation GATE-05 D-22 Path B deferred — pre-archive Wave-0 of any backend-touching phase needs endpoint shape + Mongo schema confirmed first.
-- **Phase numbering restarts at 1** for M2 (M1 dirs already moved to `.planning/milestones/v1.0.4-phases/`).
-- **Out of scope (carried from M1):** chat moderation tooling, react-navigation migration, payment/booking, per-night pricing, migration tooling for existing listings (clean-slate data still holds).
+**Delivered:** Three-role permission system (`admin` / `moderator` / `user`) backed by MongoDB as role authority + Railway-side JWKS verification (no Firebase SDK in either repo); 4-state listing lifecycle (`pending` / `live` / `rejected` / `archived`); moderation queue UI + approve/reject/edit-on-behalf actions with race-condition coverage; owner-side rejection banners; archive lifecycle for owners + mods/admins with post-rejection-bypass prevention; admin role-management UI with last-admin lockout + self-mutation prevention + audit trail; landlord application gate (Phase 4.5 inserted); 4-bug hotfix bundle (HF-01..HF-04).
+
+iOS shipped at `2.0.0 build 27` (TestFlight Internal Testing); Android shipped at `2.0.0 versionCode 30` (Play Console Internal Testing). 6 phases + Phase 4.5 inserted, 47 plans, 51 v1 requirements, 7 days from milestone start to ship. Full archive at `.planning/milestones/v2.0-ROADMAP.md` + `.planning/milestones/v2.0-REQUIREMENTS.md`.
+
+**M1 GATE-05 D-22 Path B accepted-risk row CLOSED** via M2 Phase 1 (ROLE-03 + ROLE-04: JWKS verification middleware + 5-service auth migration).
 
 ## Requirements
 
@@ -95,9 +90,40 @@ Prospective renters and buyers can reliably browse, filter, and inquire about Bi
 
 ### Active
 
-<!-- M2 v2.0 "Roles & Moderation" started 2026-04-29 via /gsd-new-milestone. REQUIREMENTS.md and ROADMAP.md being defined; M2 phase numbering restarts at 1. M1 v1.0.4 archived to .planning/milestones/v1.0.4-*. -->
+<!-- M2 v2.0 archived 2026-05-05 via /gsd-complete-milestone. M3 milestone goals being gathered; REQUIREMENTS.md will be re-created by /gsd-new-milestone. -->
 
-**Active workstreams:** M2 "Roles & Moderation". Phase 1 (backend role foundation + auth migration) closed 2026-04-30. Phase 2 (listing lifecycle status field absorption) closed 2026-05-01. Phase 3 (moderation queue + actions, MOD-10..MOD-18) closed 2026-05-02. Phase 4 (archive lifecycle, ARCH-01..ARCH-05) closed 2026-05-03. **Phase 5 (admin role management, ADMIN-01..07) closed 2026-05-03** with all 7 ADMIN-IDs satisfied: backend `RoleChangeLog` Mongoose model (append-only audit) + `adminRoutes.js` mounted under `/api/admin` with router-level `verifyFirebaseToken + requireMinRole('admin')`; `GET /api/admin/users?query=<email>&limit=50` + `PATCH /api/admin/users/:uid/role` endpoints; server guardrails ADMIN-04 self-mutation prevention (Step 1 — 403 SELF_MUTATION when actor uid matches target) + ADMIN-03 race-safe last-admin lockout (Step 6 preflight `countDocuments({userType:'admin', _id:{$ne:target._id}})` < 1 → 409 + Step 8 post-write Promise.all rollback); `roleRevokedAt = now` bumped on demotion only (Pitfall 3 — promotion does NOT force re-login); 17/17 backend supertest cases GREEN covering race rollback + actorUid anti-spoofing + envelope codes (SELF_MUTATION 403, LAST_ADMIN_LOCKOUT 409, NOT_FOUND 404). RN client: `useRole` Action union extended with `manageRoles` (admin-only — moderators hide the row); `UserService.searchUsers(query)` + `setUserRole(uid, role)` (debounced 300ms); `RoleChangeModal` forked from RejectListingModal (3 chips with current-role de-emphasis + Pitfall 7 chip-deselection clears pendingRole); `RoleManagementScreen` overlay with self-row "(you)" badge non-tappable + 50-row footer hint + 23 `admin.roles.*` keys × EN+RU; ProfileScreen entry-point `<Gated action="manageRoles">`; App.tsx OVERLAY_FLAGS extension (back-handler + tab-bar-hide derivation participate). **Paired gates clear:** UAT 11 PASS + 1 skipped-with-reason (Test 11 LAST_ADMIN_LOCKOUT reclassified pass-as-spec — only fires on Promise.all race per memory `last-admin-lockout-semantics.md`); REVIEW 0 critical / 4 warning / 5 info → all 4 warnings fixed (REVIEW-FIX `status: all_fixed`); SECURITY 27/27 threats closed (`status: verified`); VALIDATION `nyquist_compliant: true`. Manual physical-device verified on iPhone 15 Pro Max (Moto G XT2513V deferred to Phase 6 REL-03 cross-device QA matrix). Phase 6 (Hardening + Manual Physical-Device QA + Release) is the next plan-phase entry point — closes M2 with v2.0.0 atomic version bump + dual-store submission applying M1 D-02 lesson (query Play Console + TestFlight history before setting baseline).
+(Empty — M3 requirements are pending milestone discovery via `/gsd-new-milestone`.)
+
+<!-- M2 v2.0 v1 requirements — all 51 validated below. -->
+
+**M2 v2.0 "Roles & Moderation" — shipped 2026-05-05 (full archive: `.planning/milestones/v2.0-*`):**
+
+- ✓ HF-01..HF-04 Hotfix bundle (Hospitality field persistence + secret rotation + firebaseUid mass-assignment close + socket.io JWKS handshake) — v2.0 (Phase 1)
+- ✓ ROLE-01 User.userType three-value enum — v2.0 (Phase 1)
+- ✓ ROLE-02 Mongo migration script (renter|owner|agent → user/moderator/admin) — v2.0 (Phase 1)
+- ✓ ROLE-03 JWKS verifyFirebaseToken middleware — v2.0 (Phase 1)
+- ✓ ROLE-04 Five-service auth migration (auth/property/favorite/chat/appointment) — v2.0 (Phase 1)
+- ✓ ROLE-05 Client Bearer migration via shared apiClient — v2.0 (Phase 1)
+- ✓ ROLE-06 Firebase REST refresh-token flow — v2.0 (Phase 1)
+- ✓ ROLE-07 useRole reads from backendProfile.userType + allowlist deletion — v2.0 (Phase 1)
+- ✓ ROLE-08 GET /api/auth/me endpoint — v2.0 (Phase 1)
+- ✓ ROLE-09 Axios 401/403 interceptors with single-flight refresh — v2.0 (Phase 1)
+- ✓ ROLE-10 AuthContext.refreshRole + foreground RoleRefreshBanner — v2.0 (Phase 1)
+- ✓ ROLE-11 server `roleRevokedAt` invariant (BACKEND ONLY; frontend mid-action 403 popup-recovery is M3 carry-forward) — v2.0 (Phase 1)
+- ✓ MOD-01 Property.status enum + 9-field audit schema — v2.0 (Phase 2)
+- ✓ MOD-02 Legacy `status: missing` fallback (D-07 client filter) — v2.0 (Phase 2)
+- ✓ MOD-03 POST /properties defaults to pending + submit-for-review copy — v2.0 (Phase 2)
+- ✓ MOD-04 GET /properties filters server-side to live for non-mod — v2.0 (Phase 2)
+- ✓ MOD-05 GET /properties/:id 404 for non-live deep-link — v2.0 (Phase 2)
+- ✓ MOD-06 4-tab segmented control on RenterListingsScreen — v2.0 (Phase 2)
+- ✓ MOD-07 PropertyCard StatusPill — v2.0 (Phase 2)
+- ✓ MOD-08 PropertyDetailsScreen RejectionBanner with per-session dismiss — v2.0 (Phase 2)
+- ✓ MOD-09 HomeRejectionBanner with auto-dismiss + tap-to-rejected-tab — v2.0 (Phase 2)
+- ✓ MOD-10..MOD-18 Moderation queue + actions + edit-on-behalf + race-safe + audit — v2.0 (Phase 3)
+- ✓ ARCH-01..ARCH-05 Archive lifecycle (owner + mod/admin + restore-to-pending + admin-only hard-delete) — v2.0 (Phase 4)
+- ✓ ADMIN-01..ADMIN-07 Admin role management UI + last-admin lockout + self-mutation prevention + audit trail — v2.0 (Phase 5)
+- ✓ REL-01..REL-06 v2.0.0 atomic version bump + manual physical-device QA matrix APPROVED + EN+RU release notes + Railway redeploy + dual-store submission — v2.0 (Phase 6)
+- ✓ Phase 4.5 (inserted) Landlord application capability gate + admin queue — v2.0 (out-of-roadmap insertion 2026-04-30)
 
 ### Descoped (M1 v1.0.4)
 
@@ -116,9 +142,9 @@ Prospective renters and buyers can reliably browse, filter, and inquire about Bi
 
 ## Context
 
-**Project stage:** Shipped v1.0.4 (M1 "Polish + Hospitality") on 2026-04-28 to TestFlight + Play Console processing. iOS shipped at `1.0.4 build 22`; Android shipped at `1.0.28 versionCode 28`. No production listings; all content remains mock data. M2 "Roles & Moderation" planning unblocked.
+**Project stage:** Shipped v2.0.0 (M2 "Roles & Moderation") on 2026-05-05 to ASC TestFlight Internal Testing (build 27) + Play Console Internal Testing (versionCode 30). M1 v1.0.4 shipped 2026-04-28. No production listings; all content remains mock data. M3 planning unblocked — milestone goals being gathered via `/gsd-new-milestone` immediately after this archive.
 
-**Tech stack (v1.0.4):** React Native 0.84.0 New Architecture (Hermes + Fabric on both platforms); custom `App.tsx` state-machine navigation (no react-navigation); React Context state (`ThemeProvider` → `LanguageProvider` → `AuthProvider`); `axios` to Railway backend + Firebase Identity Toolkit REST; `react-native-keyboard-controller@1.21.6` + `reanimated@4.3.0` + `worklets@0.8.1` for universal keyboard handling; `useRole()` / `can(action)` / `<Gated>` abstraction over hardcoded admin-email allowlist (M2 swaps to server-verified roles). Build toolchain: Xcode 26.4 / Build 17E192.
+**Tech stack (v2.0.0):** React Native 0.84.0 New Architecture (Hermes + Fabric on both platforms); custom `App.tsx` state-machine navigation (no react-navigation); React Context state (`ThemeProvider` → `LanguageProvider` → `AuthProvider`); `axios` to Railway backend (now via shared `apiClient.ts` with Bearer + 401/403 single-flight) + Firebase Identity Toolkit REST; `react-native-keyboard-controller@1.21.6` + `reanimated@4.3.0` + `worklets@0.8.1` for universal keyboard handling; `useRole()` / `can(action)` / `<Gated>` now backed by **MongoDB-resolved roles** via Railway-side JWKS verification (no Firebase SDK in either repo — `jose` on backend). Build toolchain: Xcode 26.4 / Build 17E192. Backend: Node ≥22.12 (jose@6 ESM-only); 106 backend tests passing across 6 suites.
 
 **Target users:** Property listers (landlords, sellers, hostel/hotel operators) and prospective renters/buyers in Bishkek, Kyrgyzstan. EN/RU bilingual.
 
@@ -165,6 +191,14 @@ Prospective renters and buyers can reliably browse, filter, and inquire about Bi
 | Phase 8 D-13 descope-by-inheritance for v1.0.4 update submission | v1.0.4 is a polish/feature update on top of already-approved v1.0.3, not a fresh submission. Privacy manifest (`PrivacyInfo.xcprivacy`), ASC App Privacy responses, Play Data Safety questionnaire, `applinks:bizdinkonush.com` legacy entitlement, and Google Maps Android key restrictions were all live and unchanged in v1.0.3 production. v1.0.4 codebase scan confirmed no new data-collecting SDKs added. Re-touching live declarations would be churn without a defect to fix. REL-03 + REL-04 marked DESCOPED with re-open conditions documented inline. | — Validated 2026-04-28 (Phase 8); both stores accepted v1.0.4 update submission without privacy/entitlement flags |
 | D-02 baseline trusted local `build.gradle` without Play Console version-code history check | Phase 8 CONTEXT.md D-02 anchored on local Android `versionCode 25 / versionName "1.0.24"` baseline. Play Console had already accepted versionCode 25 from a prior submission; bump-to-25 plan would have been rejected. User authored out-of-band commit `63f3b72` at archive time bumping versionCode 25 → 28 + iOS `CURRENT_PROJECT_VERSION` 21 → 22. Both stores accepted post-bump values. Lesson for M2+: pre-archive Wave-0 should query Play Console + TestFlight for highest-accepted version-code per track BEFORE setting baseline. | — Lesson recorded 2026-04-28 (M1 close); applied as RETROSPECTIVE.md key lesson 1 |
 | M1 v1.0.4 milestone shipped to both stores | 8/8 ROADMAP phases resolved (7 executed + Phase 7 SKIPPED); 33/35 v1 requirements COMPLETE + 2 DESCOPED (REL-03 + REL-04 per D-13); iOS in TestFlight (build 22) + Android submitted/processing (versionCode 28). | — Shipped 2026-04-28 |
+| MongoDB as role authority (NOT Firebase custom claims) | Single source of truth for `userType`; Firebase remains identity-proof only via JWKS-verified ID tokens. Avoids the split-brain failure mode of custom claims + Mongo profile drifting. | — Validated 2026-04-30 (M2 Phase 1); 5-service Bearer migration + JWKS middleware + production migration |
+| `jose` for JWKS verification (NOT `firebase-admin` SDK) | REPO RULE per memory `no-firebase-sdk.md` — previous SDK addition attempt caused issues. `jose@6` ESM-only requires backend Node ≥22.12 (`nvm use 24` before backend npm/node ops). | — Validated 2026-04-30 (M2 Phase 1); `firebase-admin` confirmed absent from backend `package.json` at REL-05 |
+| `roleRevokedAt` bumped on demotion only (NOT promotion) | Promotion forcing re-login is hostile UX (a user who just got promoted to moderator shouldn't get logged out). Demotion forcing re-login is required for security (revoke a moderator's in-flight tokens). Pitfall 3 captured. | — Validated 2026-05-03 (M2 Phase 5) |
+| Phase 4.5 Landlord Application Workflow inserted out-of-roadmap | UX gap surfaced during Phase 4 device QA — existing role-gating allowed any authenticated user to reach `CreateListingScreen` without an explicit "I want to list properties" capability check. Insertion was cheaper than restructuring the roadmap. | — Validated 2026-04-30 (Phase 4.5 inserted + closed same day); known open uid-mismatch bug carried to M3 per memory `phase45-landlord-application-uid-mismatch-bug.md` |
+| Phase 6 race-cell QA deferred to backend supertest coverage (T-06-33 option b) | Two-human simultaneous-tap race coordination across iOS + Android is timing-fragile. Backend MOD-15 + ROLE-11 atomic invariants ARE covered by Phase 3 supertest suite + Phase 1 verifyFirebaseToken middleware tests. Device-level race walk is empirical confirmation only. | — Accepted 2026-05-04 (Phase 6 06-06 QA matrix); race-cell test rig is M3 carry-forward |
+| AWS IAM cross-project residual at REL-05 PARTIAL | JayTap runtime now uses dedicated `jaytap-prod-s3` keys exclusively, but the OLD shared cross-project IAM user retains JayTap-bucket policy access (cannot delete OLD user — other project depends on it). Documented re-open condition. | — PARTIAL accepted 2026-05-05 (Phase 6 REL-05); re-open when other project unblocks scoping the OLD shared IAM user away from JayTap bucket ARN |
+| Android `clean bundleRelease` reanimated prefab gotcha | `gradlew clean bundleRelease` wipes reanimated's release prefab. Use `gradlew :react-native-reanimated:assembleRelease :app:bundleRelease` instead. | — Memory captured 2026-05-05 (`android-reanimated-clean-prefab-gotcha.md`); document in `scripts/release-android.md` is M3 carry-forward |
+| M2 v2.0 milestone shipped to both stores | 6/6 ROADMAP phases + Phase 4.5 inserted; 47 plans; 51 v1 requirements (38 strict `[x]` + 5 `[~]` + 8 stale-bookkeeping at archive); iOS in TestFlight Internal (build 27) + Android in Play Console Internal Testing (versionCode 30). M1 GATE-05 D-22 Path B accepted-risk row CLOSED. | — Shipped 2026-05-05 |
 
 ## Evolution
 
@@ -184,4 +218,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-05 — M2 Phase 5 (admin role management ADMIN-01..ADMIN-07) closed via auto-transition (paired gates UAT + REVIEW + SECURITY + VALIDATION all clear); Phase 6 (Hardening + Manual Physical-Device QA + Release) is the last remaining M2 phase*
+*Last updated: 2026-05-05 — M2 v2.0 "Roles & Moderation" SHIPPED to both stores (TestFlight Internal build 27 + Play Console Internal Testing versionCode 30) and archived via /gsd-complete-milestone. M3 milestone goals being gathered.*

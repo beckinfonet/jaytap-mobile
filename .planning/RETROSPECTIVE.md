@@ -52,6 +52,69 @@
 
 ---
 
+## Milestone: v2.0 — M2 "Roles & Moderation"
+
+**Shipped:** 2026-05-05
+**Phases:** 6 (+ Phase 4.5 inserted) | **Plans:** 47 | **Sessions:** spread across 7 days
+
+### What Was Built
+
+- Three-role permission system (`admin` / `moderator` / `user`) backed by **MongoDB as the role authority** + Railway-side JWKS verification using `jose` (no Firebase SDK in either repo); 5-service auth migration consolidating `x-firebase-uid` header + 5 inline auth blocks into one `verifyFirebaseToken` middleware + `Authorization: Bearer` apiClient.
+- 4-state listing lifecycle (`pending` / `live` / `rejected` / `archived`); 9-field audit schema; role-aware route filters; status-pill UI; per-session + persistent rejection banners; 4-tab segmented control on RenterListingsScreen.
+- `/api/moderation/*` 4-handler backend (queue + approve + reject + edit-on-behalf) all race-safe via atomic `findOneAndUpdate` with status-filter lock primitive; `ModerationLog` audit collection; reusable RejectListingModal; ModerationQueueScreen overlay; CreateListingScreen `moderatorContext` prop with warning-stripe banner; PropertyDetailsScreen mod-action footer.
+- Archive lifecycle (owner self-archive + mod/admin archive with reason; restore-to-`pending` blocking post-rejection bypass via D-13 two-condition gate; admin-only hard-delete with full pre-delete audit snapshot).
+- Phase 4.5 (inserted) Landlord application capability gate + admin queue + 5 endpoints + ~50 EN+RU strings.
+- Admin role management UI with last-admin lockout (Promise.all preflight + post-write rollback) + self-mutation prevention + RoleChangeLog append-only audit + 17/17 supertest cases GREEN.
+- 4-bug hotfix bundle (HF-01 Hospitality field persistence + HF-02 Mongo/AWS rotation + HF-03 firebaseUid mass-assignment close + HF-04 socket.io JWKS handshake).
+- v2.0.0 atomic version bump + manual physical-device QA matrix walked APPROVED on iPhone 15 Pro Max + Moto G XT2513V (74 PASS / 3 PARTIAL / 5 DEFERRED-USER-APPROVED / 0 FAIL across 7 matrices) + dual-store submission (TestFlight Internal build 27 + Play Console Internal Testing versionCode 30).
+
+### What Worked
+
+- **`gsd-verifier-misses-regressions` paired-gates discipline matured.** Memory captured during M2 Phase 1 shaped the rest of the milestone — verifier alone misses regression classes; pair `/gsd-verify-work` with `/gsd-code-review` on every phase commit chain. Phase 5 ran the full paired-gates set (UAT + REVIEW + SECURITY + VALIDATION) before close-out and surfaced 4 warnings that would have shipped under verifier-only.
+- **Race-condition supertest harness with `Promise.all`.** MOD-15 (mod-on-mod queue race) + ADMIN-03 (last-admin lockout race) both ship with explicit `Promise.all` two-actor concurrent-action supertest cases. Caught real race windows that single-actor sequential tests miss. Same pattern reused across Phase 3 + Phase 5.
+- **D-XX two-condition gate primitives encoded as MongoDB filter clauses.** Phase 4 D-13 owner-restore filter `{_id, ownerUid, archivedByUid, status:'archived'}` enforced "owner can only restore listings they themselves archived" entirely at the query layer. No application-level if-checks. Rules become provable via grep gates.
+- **Anti-spoofing grep gate carried forward.** `grep -nE "actorUid:\s*req\.(body|headers)"` returning 0 became a CI-style invariant across moderationRoutes.js + propertyRoutes.js + adminRoutes.js. Every audit-row write sources `actorUid` from JWKS-verified `req.firebaseUid`. Survived 4 phases without regression.
+- **Atomic version bump in a single commit.** Phase 6 Plan 05 commit `95b13c1` flipped `package.json` + iOS pbxproj `MARKETING_VERSION` ×2 + iOS pbxproj `CURRENT_PROJECT_VERSION` ×2 + Android `build.gradle` `versionName` + Android `build.gradle` `versionCode` together. Build-identity is a single git ref. Phase 6 Plan 02's INHERITANCE-AUDIT confirmed no regressions; Plan 06's QA matrix walked APPROVED.
+- **M1 D-02 lesson applied.** Phase 6 Plan 01 produced `06-STORE-HISTORY.md` deriving `next_ios_build_number=27` and `next_android_version_code=30` from `max(local, store)+1` BEFORE the atomic bump. Both stores accepted the post-bump values without rejection. M1's reactive 63f3b72 bump avoided.
+
+### What Was Inefficient
+
+- **REQUIREMENTS.md checkbox drift again (13 stale at close).** Same pattern as M1 — phase-close metadata commits advanced STATE.md but not REQUIREMENTS.md checkboxes. M1 retrospective Lesson 4 said "phase-close bookkeeping is owed at the phase commit, not deferred to milestone close" — not internalized in M2 cadence. Add to phase-close convention as a *grep gate*, not just guidance: `grep -c "^- \[ \] \*\*" .planning/REQUIREMENTS.md` should match the count of REQ-IDs not yet closed by phase artifacts at every plan close.
+- **Phase 4.5 inserted out-of-roadmap.** UX gap surfaced at Phase 4 device QA: any authenticated user could reach `CreateListingScreen` without an explicit "I want to list properties" capability check. Insertion was cheaper than restructuring the roadmap, but it's a signal that Phase 1's role-system discovery missed a capability layer between "authenticated" and "any role". Future role-system phases should explicitly enumerate *capabilities* alongside *roles*.
+- **Phase 03 artifact bookkeeping (UAT + VERIFICATION) left at `partial` / `human_needed` despite shipped behavior.** `audit-open` flagged these at milestone close. The materially-validated-but-unbumped artifact pattern keeps showing up. Make `audit-open` a phase-close gate (already runs at milestone-close — should run at phase-close too).
+- **App.tsx LOC drift (1132 at Phase 2 → 1178 at Phase 3 → 1191 at Phase 4 lock).** PATTERN D signal-not-block was invoked twice. M3 should plan an explicit App.tsx remediation phase early — extract `<ModerationQueueOverlayHost>` + `useModerationQueueCount()` + `<RoleManagementOverlayHost>` + `<LandlordApplicationOverlayHost>` to drop ~50 LOC and decouple state from the god-file.
+- **Android `clean bundleRelease` reanimated prefab gotcha discovered late.** Phase 6 Plan 07 hit this at archive time. Use `gradlew :react-native-reanimated:assembleRelease :app:bundleRelease` instead. M3 should document in `scripts/release-android.md` (carry-forward).
+- **AWS IAM cross-project residual at REL-05 PARTIAL.** OLD shared cross-project IAM user retains JayTap-bucket policy access. Cannot delete (other project depends on it). Documented re-open condition. M3 should re-open when other project unblocks.
+
+### Patterns Established
+
+- **`Promise.all` race-condition supertest cases per atomic invariant.** Every state-mutating endpoint with a race-window concern (MOD-15 mod-queue + ADMIN-03 last-admin) ships with a paired-actor `Promise.all` test. Pattern: spawn N concurrent calls; assert exactly one 200 + N-1 409 (or appropriate envelope code). Loser-rollback via post-write `User.countDocuments` preflight + atomic delete-and-revert.
+- **Two-condition gate as MongoDB query primitive.** D-13 owner-restore filter `{_id, ownerUid: req.firebaseUid, archivedByUid: req.firebaseUid, status: 'archived'}` encoded the rule "owner can only restore self-archived listings" entirely at the query layer. Application code stays thin.
+- **Anti-spoofing grep gate as cross-route invariant.** `grep -nE "actorUid:\s*req\.(body|headers)"` returning 0 across all moderation/admin route files became a CI-style assertion. `actorUid` always sources from JWKS-verified `req.firebaseUid`. Survived M2 without regression.
+- **Mass-assignment defensive whitelist on edit-on-behalf endpoint.** Phase 3 Plan 05 stripped 14 fields (`ownerUid`, `_id`, `id`, `createdAt`, `status`, `submittedAt`, `approvedAt`, `approvedByUid`, `rejectedAt`, `rejectedByUid`, `rejectionReasonCode`, `rejectionReasonNote`, `actorUid`, `firebaseUid`) from req.body BEFORE any DB write. Listed line-by-line with `delete updateData.X` + comment. Pattern: enumerate every immutable/sensitive field; trust no body field for write-through.
+- **Forked modal pattern.** `<RejectListingModal>` → `<ArchiveListingModal>` → `<RoleChangeModal>` — each fork is 4 minimal edits (header docstring + identity rename + 2 t() call swaps) preserving Pitfall 7 dark-mode chip contrast verbatim. Forked components are cheaper than abstractions when divergence is shallow but call-site copy differs meaningfully.
+- **Demotion-only `roleRevokedAt` bump (Pitfall 3).** Promotion forcing re-login is hostile UX. Demotion forcing re-login is required. Captured pre-implementation; supertest case enforces.
+- **3-tier defense in depth for permission gates.** Client `<Gated action="X">` predicate + service-layer `canFromUser(user, 'X')` belt-and-suspenders + backend `requireMinRole('moderator')` middleware. Each layer can fail independently without compromising the next.
+
+### Key Lessons
+
+1. **Verifier alone misses regression classes — always pair with code-reviewer.** Phase 5 paired-gates surfaced 4 warnings that would have shipped under `/gsd-verify-work` alone. Memory `gsd-verifier-misses-regressions.md` captured. Treat verifier+reviewer as paired gates from M3 onward — never run only one.
+2. **Race conditions need `Promise.all` supertest cases, not sequential.** Two-mods-on-the-same-listing (MOD-15) + two-admins-demoting-the-last-admin (ADMIN-03) both have race windows that single-actor sequential tests miss. Pattern is: spawn N concurrent actors with parallel tokens; assert correct envelope. M3 race-cell test rig (carry-forward) should encode this for two-device coverage.
+3. **Encode two-condition gates as MongoDB query filters, not application-level if-checks.** D-13 owner-restore (`ownerUid AND archivedByUid AND status='archived'`) survives at the query layer. Application code stays thin; the rule is provable via collection state, not codebase audit.
+4. **REQUIREMENTS.md checkbox drift will keep happening unless made a CI gate.** Both M1 and M2 closed with stale checkboxes. Carrying forward Lesson 4 from v1.0.4 retrospective wasn't enough. M3 should add a phase-close grep gate that fails the close commit if any REQ-IDs in the phase's `requirements_addressed` block aren't flipped.
+5. **Insertable mid-milestone phases are valid (e.g., Phase 4.5).** When device QA surfaces a UX gap during execution, inserting a small phase out-of-roadmap is cheaper than restructuring. Convention: insertion gets a `.5` decimal; ROADMAP archive flags the insertion under the prior phase.
+6. **Atomic version bump in single commit + query store history first.** M1 D-02 lesson applied cleanly in M2 Phase 6: `06-STORE-HISTORY.md` derived next-bump targets BEFORE Plan 05's atomic commit. Both stores accepted post-bump values without rejection. Default for all future milestones.
+7. **Inserted phases need their own SUMMARY archive.** Phase 4.5 doesn't have a `.planning/phases/04.5-*` directory — its work landed via `LandlordApplication*` files in the codebase but not a dedicated phase dir. Documented in v2.0-ROADMAP.md archive but harder to retrieve granularly. M3: insertions should always create the dir, even if just a CONTEXT.md + SUMMARY.md.
+
+### Cost Observations
+
+- Model mix: Most execution on Opus 4.7. Synthesizer model (sonnet) for research synthesis; roadmapper model (opus) for the initial M2 roadmap draft.
+- Sessions: spread across 7 days (2026-04-29 → 2026-05-05).
+- Notable: 203 commits in M2 active phase (project lifetime now 545+). +359 net commits over M1's pace despite same-length timeline (M1 was 6 days × ~38 commits/day; M2 was 7 days × ~29 commits/day). M2's deeper backend work + Phase 4.5 insertion absorbed time M1 would have spent on iteration breadth.
+- Backend test suite growth: 0 → 106 across 6 suites — Phase 1's TDD scaffolds compounded across phases.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -59,6 +122,7 @@
 | Milestone | Sessions | Phases | Key Change |
 |-----------|----------|--------|------------|
 | v1.0.4 | ~14 | 8 (7 executed + 1 SKIPPED) | First full GSD milestone for JayTap. Established wave-based execution + atomic-commit convention + physical-device QA matrices + descope-by-CONTEXT.md pattern. |
+| v2.0 | spread over 7 days | 6 (+ Phase 4.5 inserted) | Cross-cutting backend + frontend milestone. Established paired-gates discipline (`/gsd-verify-work` + `/gsd-code-review` always together) + `Promise.all` race supertests + two-condition MongoDB gate primitives + anti-spoofing grep gate + 3-tier defense in depth + atomic version bump with store-history-derived build numbers. |
 
 ### Cumulative Quality
 
