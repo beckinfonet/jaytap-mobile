@@ -226,6 +226,27 @@ describe('Phase 4 — Archive Lifecycle action gates', () => {
       expect(canFromUser(null, 'hardDeleteListing')).toBe(false);
     });
   });
+
+  // WR-03 — Branch-1 forward-compat coverage: customClaims.role short-circuits
+  // before backendProfile.userType (Branch 2). These tests lock the behavior
+  // for the new Phase 4 actions so a future server-issued claim doesn't
+  // silently regress the gate.
+  describe('Branch 1 forward-compat (customClaims.role)', () => {
+    test('Branch 1 forward-compat: customClaims.role === "admin" grants hardDeleteListing', () => {
+      const customClaimAdmin = {
+        backendProfile: { userType: 'user', customClaims: { role: 'admin' } },
+      };
+      expect(canFromUser(customClaimAdmin, 'hardDeleteListing')).toBe(true);
+    });
+
+    test('Branch 1: customClaims.role === "moderator" grants archiveAnyListing but NOT hardDeleteListing', () => {
+      const customClaimMod = {
+        backendProfile: { userType: 'user', customClaims: { role: 'moderator' } },
+      };
+      expect(canFromUser(customClaimMod, 'archiveAnyListing')).toBe(true);
+      expect(canFromUser(customClaimMod, 'hardDeleteListing')).toBe(false);
+    });
+  });
 });
 
 // Phase 5 — manageRoles action gate tests (CONTEXT D-Discretion)
