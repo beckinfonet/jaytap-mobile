@@ -98,20 +98,6 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadingListing, setLoadingListing] = useState<boolean>(true);
 
-  // ---------------------------------------------------------------------
-  // UI-SPEC §Surface 1 line 272 + RESEARCH §Open Question #2 RESOLVED YES.
-  // Belt-and-suspenders mod gate. App.tsx mount conditional already gates
-  // this screen behind !!user && isMediaCurationOpen, but the screen
-  // itself returns null if the role is missing — closes a deep-link or
-  // hot-reload race where the screen could mount before the role check.
-  // ---------------------------------------------------------------------
-  if (!can('approveListings')) {
-    console.error(
-      '[MediaCurationScreen] mounted by non-mod — gating closed (belt-and-suspenders)',
-    );
-    return null;
-  }
-
   // Photo / video tile dimensions — recomputed once per render via useMemo
   // because Dimensions.get('window') is a synchronous read (rotation handling
   // is out of scope for Phase 3; UI-SPEC §"Out of Scope").
@@ -438,6 +424,28 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
     },
     [],
   );
+
+  // ---------------------------------------------------------------------
+  // UI-SPEC §Surface 1 line 272 + RESEARCH §Open Question #2 RESOLVED YES.
+  // Belt-and-suspenders mod gate. App.tsx mount conditional already gates
+  // this screen behind !!user && isMediaCurationOpen, but the screen
+  // itself returns null if the role is missing — closes a deep-link or
+  // hot-reload race where the screen could mount before the role check.
+  //
+  // IMPORTANT (HG-01 fix, 2026-05-06): this gate sits AFTER every hook
+  // call in this component. React enforces a strict "same hooks, same
+  // order, same count" invariant across renders. If `useRole()` flips to
+  // false mid-session (e.g. via M2 ROLE-09 single-flight 401/403 refresh
+  // demoting the user), the next render must still call the same hooks
+  // — only the JSX render is gated. Do NOT move this block above the
+  // hooks; do NOT add hooks below it.
+  // ---------------------------------------------------------------------
+  if (!can('approveListings')) {
+    console.error(
+      '[MediaCurationScreen] mounted by non-mod — gating closed (belt-and-suspenders)',
+    );
+    return null;
+  }
 
   // -- Derived: photo / video counts for section labels ------------------
   const savedPhotos: string[] = listing?.media?.photos ?? [];

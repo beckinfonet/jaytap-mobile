@@ -214,6 +214,75 @@ describe('MediaCurationScreen — Phase 3 Plan 03-05 smoke', () => {
     expect(tree!.toJSON()).toBeNull();
   });
 
+  // ----------------------------------------------------------------------
+  // HG-01 regression — role flips false mid-session.
+  //
+  // Reviewer (`03-REVIEW.md` HG-01) flagged that the mod gate used to sit
+  // BEFORE useMemo/useEffect/useCallback inside the component. If
+  // `useRole()` flipped to false on a subsequent render (e.g. via M2
+  // ROLE-09 single-flight 401/403 demoting the user mid-action), the next
+  // render would call FEWER hooks than the prior render and React would
+  // throw `Invariant Violation: Rendered fewer hooks than expected`.
+  //
+  // The fix relocated the gate to AFTER every hook in the component. This
+  // test asserts the regression is closed by:
+  //   1. Mounting with `can() = true` (full hook set runs).
+  //   2. Flipping the `useRole` mock to return `can() = false`.
+  //   3. Re-rendering: must NOT throw, must collapse to null.
+  //
+  // If the gate is ever moved back above the hooks, this test will throw
+  // `Rendered fewer hooks than expected` on the rerender and fail loudly.
+  // ----------------------------------------------------------------------
+  test('does not violate React hooks rules when role flips false mid-session (HG-01 regression)', async () => {
+    (useRole as jest.Mock).mockReturnValue({
+      can: (a: string) => a === 'approveListings',
+    });
+    PropertyService.getPropertyById.mockResolvedValue({
+      _id: 'l1',
+      media: { photos: [], videos: [], tourUrl: undefined },
+      status: 'pending',
+    });
+
+    let tree: ReactTestRenderer.ReactTestRenderer | null = null;
+    await ReactTestRenderer.act(async () => {
+      tree = ReactTestRenderer.create(
+        <MediaCurationScreen
+          listingId="l1"
+          onClose={jest.fn()}
+          onApproveSuccess={jest.fn()}
+        />,
+      );
+    });
+    // Drain on-mount fetch + setState — first render produces real JSX.
+    await ReactTestRenderer.act(async () => {
+      await Promise.resolve();
+    });
+    expect(tree!.toJSON()).not.toBeNull();
+
+    // Flip useRole to non-mod, simulating a mid-session role demote
+    // (M2 ROLE-09 single-flight 401/403 refresh, or admin demotion in
+    // a sibling session).
+    (useRole as jest.Mock).mockReturnValue({ can: () => false });
+
+    // The rerender MUST NOT throw `Invariant Violation: Rendered fewer
+    // hooks than expected`. With HG-01 fixed (gate after all hooks),
+    // every hook still runs; only the JSX render collapses to null.
+    expect(() => {
+      ReactTestRenderer.act(() => {
+        tree!.update(
+          <MediaCurationScreen
+            listingId="l1"
+            onClose={jest.fn()}
+            onApproveSuccess={jest.fn()}
+          />,
+        );
+      });
+    }).not.toThrow();
+
+    // Post-flip render: screen unmounts cleanly to null (mod gate engaged).
+    expect(tree!.toJSON()).toBeNull();
+  });
+
   test('Photo grid renders with photos.section label', async () => {
     (useRole as jest.Mock).mockReturnValue({
       can: (a: string) => a === 'approveListings',
