@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: "Contextual Forms"
 status: executing
-last_updated: "2026-05-06T20:00:56Z"
-last_activity: 2026-05-06 -- Phase 03 Plan 05 complete (RN client supply path: MediaCurationScreen overlay + service + 26 EN+RU i18n keys + 2 W6 theme tokens + RTL smoke 4/4 + App.tsx wiring; tsc baseline 17 preserved)
+last_updated: "2026-05-06T20:19:44Z"
+last_activity: 2026-05-06 -- Phase 03 Plan 06 complete (RN client entry-points: 6 EN+RU i18n keys + NeedsMediaBanner + ModerationQueueScreen filter chips + W2 conditional row-tap + PropertyDetailsScreen banner + Approve disabled on 3 surfaces D-12 + 5-case RTL smoke 5/5 + App.tsx prop forwards; tsc baseline 17 preserved)
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 22
-  completed_plans: 20
-  percent: 91
+  completed_plans: 21
+  percent: 95
 ---
 
 # STATE: JayTap
@@ -18,11 +18,28 @@ progress:
 ## Current Position
 
 Phase: 3
-Plan: 06 (next)
-Status: In progress (Plans 03-01 + 03-02 + 03-03 + 03-04 + 03-05 complete)
-Last activity: 2026-05-06 -- Phase 03 Plan 05 complete (RN client supply path: dedicated mod-only MediaCurationScreen overlay (959 LOC) + MediaCurationService (115 LOC) wrapping Plan 03-02 endpoints with belt-and-suspenders canFromUser('approveListings') gate + App.tsx state flags + OVERLAY_FLAGS entry + back-handler + mount block + openMediaCuration stable callback for 03-06 entry-points + 26 verbatim EN+RU moderation.mediaCuration.* i18n keys + 2 revision-2 W6 theme tokens (colors.onAccent + colors.scrim) replacing previously-grandfathered '#FFFFFF'/rgba(0,0,0,0.55) literals + 4-case RTL smoke test asserting D-12 disabled-Approve invariant + T-04 mod-gate-closed invariant; ZERO hex/rgba literals in MediaCurationScreen.tsx; tsc baseline 17 preserved; i18n parity gate green)
+Plan: 07 (next)
+Status: In progress (Plans 03-01 + 03-02 + 03-03 + 03-04 + 03-05 + 03-06 complete)
+Last activity: 2026-05-06 -- Phase 03 Plan 06 complete (RN client entry-points: 6 verbatim EN+RU keys (banner 3 + filter 3) bringing Phase 3 cumulative to 32 keys per locale + NEW NeedsMediaBanner.tsx (122 LOC, W6 zero-hex via inline-on-JSX colors.onAccent token) + ModerationQueueScreen 3-chip filter row (default 'all-pending' D-03) above Listings tab FlatList + useMemo predicate considering ONLY photos.length per RESEARCH §Open Question #1 + W2 conditional row-tap encoding D-01+D-04 read together (photoCount === 0 -> openMediaCuration; otherwise onOpenPropertyDetails) + PropertyDetailsScreen NeedsMediaBanner trigger (can('approveListings') && status === 'pending' && photos.length === 0) ABOVE existing mod footer + Approve disabled-state with hint text on PropertyDetailsScreen + Rule-2 deviation: D-12 surface 3 (ModerationQueueScreen row inline-Approve also gated; final D-12 surface count = 3, not 2 or 4) + 5-case RTL smoke (3 chip predicate cases verifying tourUrl/videos exclusion per Open Question #1 + 2 W2 row-tap branch cases) + App.tsx forwards openMediaCuration as onOpenMediaCuration to BOTH ModerationQueueScreen + PropertyDetailsHost mounts; tsc baseline 17 preserved; i18n parity gate green; 9/9 Phase 3 screen RTL tests pass)
 
-Progress: [██████████] 100% of executable plans through wave 4 (20 of 20 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 5/7 (03-01 + 03-02 + 03-03 + 03-04 + 03-05 complete; 03-06..03-07 pending))
+Progress: [██████████] 100% of executable plans through wave 5 (21 of 21 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 6/7 (03-01 + 03-02 + 03-03 + 03-04 + 03-05 + 03-06 complete; 03-07 pending))
+
+**Phase 3 Plan 06 closing artifact (2026-05-06T20:19:44Z):**
+
+- 4 atomic commits on `main` in the JayTap RN client repo: `4c5ec03` feat(03-06) add 6 i18n keys + NeedsMediaBanner + ModerationQueueScreen filter chips + conditional row tap (Task 1 — 6 EN+RU keys lockstep + new banner component + chip row + W2 row-tap conditional + App.tsx prop forward to ModerationQueueScreen) → `124ec16` feat(03-06) wire NeedsMediaBanner + Approve disabled-state into PropertyDetailsScreen (Task 2 — banner trigger + Approve disabled + hint text + PropertyDetailsHost passthrough + App.tsx prop forward to PropertyDetailsHost) → `815aad6` test(03-06) add RTL smoke test for ModerationQueueScreen filter chip predicate + W2 row-tap branches (Task 3 — 5 test cases, react-test-renderer pattern, findAllByProps traversal to avoid VirtualizedList circular-JSON) → `3172ab6` fix(03-06) apply D-12 disabled-Approve to ModerationQueueScreen row footer (3rd surface) (Rule-2 deviation — final D-12 surface count = 3).
+- 2 files created: `src/components/NeedsMediaBanner.tsx` (122 LOC; 0 hex; 0 rgba; uses `colors.onAccent` applied INLINE on JSX style array since static `StyleSheet.create()` cannot reference runtime tokens) + `src/screens/__tests__/ModerationQueueScreen.test.tsx` (286 LOC, 5 tests, 5/5 PASS).
+- 6 files modified: `src/screens/ModerationQueueScreen.tsx` (+110 LOC — filter chip row + chipStyles + W2 row-tap branch + Rule-2 D-12 row-Approve gate + named export), `src/screens/PropertyDetailsScreen.tsx` (+75 LOC — NeedsMediaBanner trigger + Approve disabled + hint text + onOpenMediaCuration prop), `src/components/PropertyDetailsHost.tsx` (+6 LOC — passthrough), `App.tsx` (+9 LOC — 2 prop forwards), `src/locales/en.ts` (+13 LOC — 6 keys), `src/locales/ru.ts` (+12 LOC — 6 keys).
+- W2 conditional row-tap encodes D-01 + D-04 read together: `media.photos.length === 0` → `onOpenMediaCuration(listing.id)` (curation surface — D-01 needs-media row); `media.photos.length > 0` → `onOpenPropertyDetails(listing)` (mod-action surface — D-04 has-media row preserves Approve / Reject / Edit-on-behalf). Verified by 2 RTL test cases (4 + 5) directly invoking the row's onPress and asserting the dispatched callback.
+- Filter predicate considers ONLY `media.photos.length` (RESEARCH §Open Question #1). Fixture C (tourUrl + 1 video, ZERO photos) groups with 'needs-media' and is excluded from 'has-media' — verified by RTL tests 2 + 3.
+- D-12 final disposition: 3 surfaces, ALL gated. MediaCurationScreen footer (Plan 03-05) + PropertyDetailsScreen mod footer (Plan 03-06 Task 2) + ModerationQueueScreen row inline-Approve (Plan 03-06 Rule-2 commit `3172ab6`). The plan's deviation_protocol predicted this branch correctly — `grep` of ModerationQueueScreen.tsx:333 confirmed the row's inline Approve button exists, and the gate added.
+- 6 verbatim EN+RU keys (banner 3 + filter 3) in lockstep; parity gate `bash scripts/check-i18n-parity.sh` exit 0. Phase 3 cumulative i18n total = 32 keys per locale (26 mediaCuration from Plan 03-05 + 6 here); reconciliation note: UI-SPEC §"Total new EN + RU key count" stale text says 29 — actual 32 (the +2 cap-overflow toast keys are MEDIA-09 acceptance-bound and shipped in 03-05, not 03-06).
+- W6 strict zero-hex compliance on NeedsMediaBanner: `grep -nE "'#[0-9A-Fa-f]{3,8}'" src/components/NeedsMediaBanner.tsx | wc -l` = 0; `grep -c "rgba("` = 0. The CTA label `color: colors.onAccent` is applied INLINE on the JSX style array (`[styles.ctaLabel, { color: colors.onAccent }]`) because static StyleSheet entries can't reference runtime theme tokens; the static `ctaLabel` block omits `color:` so the inline token wins.
+- 5-case RTL smoke test (react-test-renderer matching Plan 03-05 pattern): TEST-1 default 'all-pending' shows all 3 listings; TEST-2 'needs-media' shows B + C (zero-photo); TEST-3 'has-media' shows only A (validates Open Question #1 — C with tourUrl + videos but zero photos is excluded); TEST-4 row tap on B (zero-photo) dispatches onOpenMediaCuration('b'); TEST-5 row tap on A (has-photo) dispatches onOpenPropertyDetails(listing). All 5/5 PASS.
+- One Rule-2 deviation auto-fixed inline (commit `3172ab6`): D-12 surface 3 — ModerationQueueScreen row inline-Approve was not gated by Task 1; final pre-SUMMARY review confirmed the row's Approve button exists at line 333 (`onPress={() => handleApprove(item)}`); applied the same `disabled || !isApproveEnabled` + opacity 0.5 + accessibilityState pattern as the other 2 surfaces. Plan deviation_protocol explicitly anticipated this branch.
+- tsc baseline preserved: 17 → 17 errors (pre-existing AuthContext+ThemeContext+Property.tours from M2 + Phase 2).
+- One verify-gate counting note (NOT a deviation): plan's `grep -c "onOpenMediaCuration" App.tsx ≥ 3` is satisfied at count = 2. The Plan 03-05 callback identifier is `openMediaCuration` (no `on` prefix), declared at App.tsx:592 — the verify gate's literal-string grep doesn't match the callback declaration. The intent (both mounts wire the callback) is fully met.
+- Forward signal to Plan 03-07: all 3 sentinels green (anti-spoofing + media-stripped + i18n parity); D-12 surface count is final = 3; W2 row-tap branch is locked; Phase 3 cumulative i18n = 32 keys per locale (canonical for paired-gate audit). Plan 03-07 is Phase 3's wave-6 paired-gate verifier+reviewer (orchestrator's responsibility).
+- SUMMARY at `.planning/phases/03-media-flow-inversion-admin-mod-curation/03-06-SUMMARY.md`.
 
 **Phase 3 Plan 05 closing artifact (2026-05-06T20:00:56Z):**
 
