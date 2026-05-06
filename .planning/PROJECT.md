@@ -106,9 +106,17 @@ iOS shipped at `2.0.0 build 27` (TestFlight Internal Testing); Android shipped a
 
 ### Active
 
-<!-- M2 v2.0 archived 2026-05-05 via /gsd-complete-milestone. M3 milestone goals being gathered; REQUIREMENTS.md will be re-created by /gsd-new-milestone. -->
+<!-- M3 v3.0 in progress. SCHEMA-01..05 validated in Phase 1 (2026-05-06). FLOW-* / MEDIA-* / CARRY-* / REL-* still active. -->
 
-(Empty — M3 requirements are pending milestone discovery via `/gsd-new-milestone`.)
+**M3 v3.0 "Contextual Forms" — Phase 1 complete 2026-05-06:**
+
+- ✓ SCHEMA-01 Property nested schema (location/basics/conditionAndAmenities/content/terms/media) — v3.0 (Phase 1)
+- ✓ SCHEMA-02 migrate-listings-m3.js with --dry-run + --verify=PASS (idempotent) — v3.0 (Phase 1) *(live Atlas deploy pending in 01-HUMAN-UAT.md)*
+- ✓ SCHEMA-03 Status enum unchanged (`pending | live | rejected | archived`) — v3.0 (Phase 1)
+- ✓ SCHEMA-04 11 audit fields preserved top-level — v3.0 (Phase 1)
+- ✓ SCHEMA-05 Backend route reads handle ONLY nested shape — v3.0 (Phase 1)
+
+**M3 v3.0 — remaining active (Phases 2–5):** FLOW-01..16 (Phase 2) · MEDIA-01..09 (Phase 3) · CARRY-01..02 (Phase 4) · REL-01..06 (Phase 5)
 
 <!-- M2 v2.0 v1 requirements — all 51 validated below. -->
 

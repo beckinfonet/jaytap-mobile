@@ -43,7 +43,7 @@ Full M2 details: `.planning/milestones/v2.0-ROADMAP.md`
 
 **Phase numbering reset to 1** for M3, matching the M1 → M2 precedent. Anchor SPEC: `.planning/phases/999.1-contextual-listing-flow-m3-anchor/SPEC.md` (Version 2). All 38 v1 requirements (16 FLOW + 5 SCHEMA + 9 MEDIA + 2 CARRY + 6 REL) map to exactly one phase.
 
-- [ ] **Phase 1: Schema Reshape + Backend Route Shape Cutover** — Mongoose nested-shape migration (`location.*`/`basics.*`/`conditionAndAmenities.*`/`content.*`/`terms.*`/`media.*`) + operator-supervised one-shot `migrate-listings-m3.js` + backend route read/write cutover. Foundation for Phase 2 client work.
+- [x] **Phase 1: Schema Reshape + Backend Route Shape Cutover** (5/5 plans) — completed 2026-05-06 — Mongoose nested-shape migration (`location.*`/`basics.*`/`conditionAndAmenities.*`/`content.*`/`terms.*`/`media.*`) + operator-supervised one-shot `migrate-listings-m3.js` + backend route read/write cutover. Foundation for Phase 2 client work. *(4 operator items pending in `01-HUMAN-UAT.md`: Atlas live migration, restore-snapshot drill, tester comms delivery, RN client whole-project tsc capture in Phase 2.)*
 - [ ] **Phase 2: 6-Step Contextual Listing Flow (Client)** — New `<ContextualListingFlow>` 6-step UI replacing `CreateListingScreen.tsx` atomically; per-step `validateStep()` single-source-of-truth; conditional sub-fields per property type; mod edit-on-behalf wired via M2 `moderatorContext` prop; +80–120 EN+RU keys.
 - [ ] **Phase 3: Media Flow Inversion (Admin/Mod Curation)** — Mod queue extension with media-curation view; `POST /api/moderation/listings/:id/media` endpoint; ModerationLog `'media-upload'` action; S3 IAM policy update (admin/mod gain upload rights, user upload rights revoked); "needs media" queue filter + `MEDIA_REQUIRED` 400 invariant blocking approval.
 - [ ] **Phase 4: M2 Carry-Forward Bug Fixes** — CARRY-01 ROLE-11 frontend mid-action 403 popup-recovery across 5+ submit handlers + CARRY-02 Phase 4.5 landlord-application uid-mismatch fix with anti-spoofing grep gate + repair migration.
@@ -69,11 +69,11 @@ Full M2 details: `.planning/milestones/v2.0-ROADMAP.md`
 **Plans:** 5 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Reshape Property.js to nested schema (location/basics/conditionAndAmenities/content/terms/media); status enum + 11 audit fields stay top-level; Property.test.js updated
-- [ ] 01-02-PLAN.md — migrate-listings-m3.js + migrate-listings-m3.test.js + package.json npm script (dry-run + verify=PASS + idempotent + D-04..D-15 mapping + audit-field preservation)
-- [ ] 01-03-PLAN.md — propertyRoutes.js cutover (POST/PUT body to nested; D-22 sanitizer + auto-flip + CR-01 + MOD-13 + PATCH /:id/verifications preserved verbatim) + propertyRoutes.test.js updated
-- [ ] 01-04-PLAN.md — moderationRoutes.js cutover (PUT edit-on-behalf body to nested; MOD-14 mass-assignment strip extended; MOD-15 race-cell + queue FIFO + ARCH-01..ARCH-05 + HF-03 actorUid preserved verbatim) + moderationRoutes.test.js updated
-- [ ] 01-05-PLAN.md — RN client src/types/Property.ts type-stub (full nested type per Claude Discretion #3) + 01-CONTEXT.md §Rollback subsection (D-17 — Atlas tier checklist + operator runbook + tester comms + reverse-rollback procedure)
+- [x] 01-01-PLAN.md — Reshape Property.js to nested schema (location/basics/conditionAndAmenities/content/terms/media); status enum + 11 audit fields stay top-level; Property.test.js updated
+- [x] 01-02-PLAN.md — migrate-listings-m3.js + migrate-listings-m3.test.js + package.json npm script (dry-run + verify=PASS + idempotent + D-04..D-15 mapping + audit-field preservation)
+- [x] 01-03-PLAN.md — propertyRoutes.js cutover (POST/PUT body to nested; D-22 sanitizer + auto-flip + CR-01 + MOD-13 + PATCH /:id/verifications preserved verbatim) + propertyRoutes.test.js updated
+- [x] 01-04-PLAN.md — moderationRoutes.js cutover (PUT edit-on-behalf body to nested; MOD-14 mass-assignment strip extended; MOD-15 race-cell + queue FIFO + ARCH-01..ARCH-05 + HF-03 actorUid preserved verbatim) + moderationRoutes.test.js updated
+- [x] 01-05-PLAN.md — RN client src/types/Property.ts type-stub (full nested type per Claude Discretion #3) + 01-CONTEXT.md §Rollback subsection (D-17 — Atlas tier checklist + operator runbook + tester comms + reverse-rollback procedure)
 
 ### Phase 2: 6-Step Contextual Listing Flow (Client)
 
@@ -154,13 +154,13 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-----------|--------|--------|--------|
 | M1 v1.0.4 "Polish + Hospitality" | 8/8 (7 executed + Phase 7 SKIPPED) | ✅ SHIPPED | 2026-04-28 |
 | M2 v2.0 "Roles & Moderation" | 6/6 (+ Phase 4.5 inserted) | ✅ SHIPPED | 2026-05-05 |
-| M3 v3.0 "Contextual Forms" | 0/5 | 📋 Ready to plan | — |
+| M3 v3.0 "Contextual Forms" | 1/5 | 🚧 Executing | — |
 
 ### M3 Phase Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Schema Reshape + Backend Route Shape Cutover | 0/TBD | Not started | — |
+| 1. Schema Reshape + Backend Route Shape Cutover | 5/5 | Complete (4 operator UAT pending) | 2026-05-06 |
 | 2. 6-Step Contextual Listing Flow (Client) | 0/TBD | Not started | — |
 | 3. Media Flow Inversion (Admin/Mod Curation) | 0/TBD | Not started | — |
 | 4. M2 Carry-Forward Bug Fixes | 0/TBD | Not started | — |
