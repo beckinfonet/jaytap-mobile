@@ -1,0 +1,142 @@
+# JayTap — M3 v3.0 "Contextual Forms" Requirements
+
+**Milestone:** M3 v3.0 "Contextual Forms"
+**Started:** 2026-05-05
+**Builds on:** M2 v2.0 "Roles & Moderation" (shipped 2026-05-05; archived under `.planning/milestones/v2.0-*`)
+**Anchor SPEC:** `.planning/phases/999.1-contextual-listing-flow-m3-anchor/SPEC.md` (Version 2)
+
+**Goal:** Replace the current single-screen `CreateListingScreen` with a 6-step contextual listing creation flow (every screen and every field determined by previous answers) and invert the media flow so admin/mod uploads photos/videos/3D-tour after metadata submission. Closes 2 M2 carry-forward UX/data-integrity bugs (ROLE-11 frontend popup-recovery + Phase 4.5 landlord-app uid-mismatch).
+
+**Hard rules carried forward (do NOT introduce):**
+- No Firebase SDK in either repo (RN client OR backend) — REPO RULE per memory `no-firebase-sdk.md`. Backend continues using `jose` for JWKS verification.
+- No `react-navigation` migration — custom `App.tsx` state machine stays. New 6-step flow mounts as overlay or screen-stack within the existing pattern.
+- No Firebase custom claims as role source — MongoDB `userType` remains authoritative.
+- No new authentication providers (OAuth, magic link, 2FA) — out of scope.
+- M1's 3-category 9-type taxonomy preserved — CLAUDE.md guard. SPEC's flat 5-type list reframed (apartment + house → Residential; office + commercial → Commercial; hotel + hostel → Hospitality, kept split per tour-first UI).
+- M2's status enum preserved (`pending | live | rejected | archived`). SPEC's `draft | pending_moderation | published | rejected` reframed 1:1 cosmetically only.
+- EN+RU bilingual parity for every new UI string (CI gate enforces).
+- Manual physical-device QA on iPhone 15 Pro Max + Moto G XT2513V.
+
+**Geographic scope:** KG launch market (Bishkek). KZ + UZ expansion remains M4+ — KZT + UZS currencies deferred.
+
+---
+
+## v1 (M3) Requirements
+
+### Contextual flow (Phase 1 + Phase 2) — 6-step UI
+
+The user-facing 6-step listing creation flow. Replaces the existing single-screen `CreateListingScreen` atomically.
+
+- [ ] **FLOW-01** 6-step container component with header progress indicator (Step N of 6), Back / Next navigation, and per-step validation gating advance. Replaces `CreateListingScreen.tsx`. Mounts via existing `App.tsx` overlay pattern.
+- [ ] **FLOW-02** Step 1A — Deal Type single-select chips: Sale (`sale`) / Long-term rent (`rent_long`) / Daily rent (`rent_daily`). Required to advance.
+- [ ] **FLOW-03** Step 1B — Property Type single-select chips. Reframed onto M1's 9-type 3-category taxonomy (Residential: apartment + house; Commercial: office + commercial; Hospitality: hotel + hostel). All combinations of deal type × property type allowed. Required to advance.
+- [ ] **FLOW-04** Step 2 — Location: city autocomplete + district selector (district options dependent on city). Required to advance.
+- [ ] **FLOW-05** Step 2 — Map pin via existing map abstraction (no 2GIS bridge — out of scope). Coordinates `{lat, lng}` required to advance.
+- [ ] **FLOW-06** Step 2 — Conditional exact-address toggle. Toggle hidden when `propertyType ∈ {hotel, hostel}` (forced true). For all other types, default false → display approximate 200–300m radius.
+- [ ] **FLOW-07** Step 3 — Always-shown: area (m²) + price + currency chip (KGS / USD / EUR). All three required.
+- [ ] **FLOW-08** Step 3 — Conditional sub-fields per property type (per SPEC §"Conditional sub-fields"): apartment + house → rooms (1/2/3/4+); office + commercial → rooms + bathroom (private/none/shared) + kitchen (private/none/shared); hotel + hostel → hotelRooms (1/2/3/4+) + hotelClass (economy/standard/comfort/premium).
+- [ ] **FLOW-09** Step 4 — Always shown: condition (rough/whitebox/good/euro) + furnished (boolean). Both required, including for hotel/hostel.
+- [ ] **FLOW-10** Step 5 — Title + Description (long-text). Both required.
+- [ ] **FLOW-11** Step 6 — Deal Conditions gated by deal type per SPEC §6 matrix: Sale → bargain + optional deposit; Long-term rent → bargain + optional deposit + prepaymentMonths (preset 0/1/2 + custom integer) + minTerm (1_month / 3_months); Daily rent → optional deposit only (minTerm implicit `1_day`).
+- [ ] **FLOW-12** Per-step validation matches SPEC §"Validation Rules" exactly. Pure `validateStep(stepN, formState)` single source of truth (matches M1 Phase 5 `validateByCategory()` pattern).
+- [ ] **FLOW-13** Submit fires `editAsModerator` (mod-context, M2 MOD-14 carry) OR `submitForModeration` (owner). Status flips to `pending`. M2 `RejectionBanner` rendering preserved on edit-resubmit path.
+- [ ] **FLOW-14** Old `CreateListingScreen.tsx` deleted atomically when new flow ships. No dual-flow window. CreateListingForm/ sub-component barrel from M1 Phase 4 either re-used or torn down with cleanup commit.
+- [ ] **FLOW-15** Edit-on-behalf (M2 MOD-14 `moderatorContext` prop) wired into new 6-step flow. Mod can edit any field on a pending listing through the same conditional UI; banner stripe at TOP of flow when `moderatorContext` is set.
+- [ ] **FLOW-16** EN+RU locale parity for all new flow strings — estimated +80–120 keys to the post-M2 baseline. CI gate (`scripts/check-i18n-parity.sh`) enforces.
+
+### Schema (Phase 1) — Mongo migration + nested shape
+
+Backend Property schema reshape from flat to nested per SPEC §"Suggested Data Shape".
+
+- [ ] **SCHEMA-01** `Property` Mongoose schema reshapes to nested structure: `location.{city, district, coordinates, showExactAddress}` / `basics.{areaSqm, price, currency, rooms?, bathroom?, kitchen?, hotelRooms?, hotelClass?}` / `conditionAndAmenities.{condition, furnished}` / `content.{title, description, language}` / `terms.{negotiable?, deposit?, prepaymentMonths?, minTerm?}` / `media.{photos, videos, tourUrl?}`. Status enum + audit fields (M2's `submittedAt`/`approvedAt`/`approvedByUid`/`rejectedAt`/`rejectedByUid`/`rejectionReasonCode`/`rejectionReasonNote`/`archivedAt`/`archivedByUid`) stay top-level (preserved from M2 MOD-01).
+- [ ] **SCHEMA-02** One-shot `migrate-listings-m3.js` reshapes existing flat-schema listings into the nested shape. Idempotent. `--dry-run` + `--verify=PASS` operator-supervised checkpoint pattern matches M2 Plan 02-02 (`migrate-listings-m2.js`). Acceptance: post-migration `db.properties.countDocuments({location: {$exists: false}})` returns 0.
+- [ ] **SCHEMA-03** Status enum unchanged (`pending | live | rejected | archived`). SPEC's `draft | pending_moderation | published | rejected` mapped 1:1 cosmetic only. No new enum values.
+- [ ] **SCHEMA-04** M2 audit fields and archive lifecycle fields (`archivedReasonCode`, `archivedReasonNote` from Phase 4) preserved at top level — NOT nested under `terms.*`.
+- [ ] **SCHEMA-05** Backend route reads handle ONLY nested shape post-migration (no dual-shape read paths). Acceptance criterion: migration runs BEFORE route-shape cutover commit; rollback rollback-without-migration documented in CONTEXT.md.
+
+### Media inversion (Phase 3) — admin/mod uploads post-submission
+
+Inverts current user-uploads-to-S3 workflow: users submit metadata only; admin/mod uploads photos/videos/3D-tour via moderation queue extension after metadata review.
+
+- [ ] **MEDIA-01** New 6-step flow has NO photo / video / 3D-tour fields. `MediaSection` from M1 Phase 4 `CreateListingForm/` is removed from the user-facing flow. (May still be referenced internally as a shared component for the mod media-curation UI.)
+- [ ] **MEDIA-02** `Property.media.{photos: string[], videos: string[], tourUrl?: string}` populated by admin/mod, NOT user. Empty arrays + undefined `tourUrl` for newly-submitted listings until mod adds them.
+- [ ] **MEDIA-03** Mod queue extension — new "Media curation" view per pending listing (alongside existing Approve / Reject / Edit-on-behalf actions from M2 MOD-11). Lets mod upload photos / videos / paste tour URL before publishing.
+- [ ] **MEDIA-04** New backend endpoint: `POST /api/moderation/listings/:id/media` accepting multipart photos/videos uploads + JSON `tourUrl`. Race-safe via existing M2 atomic `findOneAndUpdate` patterns. Audit row written to `ModerationLog` with `action: 'media-upload'` (extends M2 enum, matching Phase 4 archive/unarchive/hard-delete extension pattern).
+- [ ] **MEDIA-05** S3 IAM policy update — admin and moderator role accounts get upload rights to the `listing-images/` (and equivalent video/tour) prefixes. Existing `jaytap-prod-s3` IAM user retains existing rights for legacy/admin paths. Documented in `06-BACKEND-DEPLOY.md` equivalent (Phase 6 carry-forward audit). User account upload rights revoked at Phase 3 close — rotation symmetric to M2 HF-02 secret rotation discipline.
+- [ ] **MEDIA-06** Mod queue surfaces a queue-side filter for listings in `status: pending` AND `media.photos.length === 0` (or equivalent "needs media" predicate). Pre-publish "awaiting media" workflow handled as a filter, NOT a new status enum value.
+- [ ] **MEDIA-07** Approval action on pending listings BLOCKED if `media.photos.length === 0`. Mod must add at least one photo before listing can flip to `live`. Backend invariant enforced via 400 with clear error code (`MEDIA_REQUIRED`).
+- [ ] **MEDIA-08** Existing M1+M2 listings with user-uploaded photos preserved unchanged through schema migration (SCHEMA-02). Media object preserved verbatim.
+- [ ] **MEDIA-09** EN+RU locale parity for mod media-curation UI strings — estimated +20–30 keys.
+
+### Carry-forward bug fixes (Phase 4)
+
+Two genuine M2 carry-forward bugs folded into M3 per `phase06-m3-carry-forward.md`.
+
+- [ ] **CARRY-01** ROLE-11 frontend mid-action 403 popup-recovery. When a user is demoted while a moderator action popup is OPEN, the popup's submit handler currently doesn't catch 403/PermissionDeniedError — loading spinner stays on; popup hangs; RoleRefreshBanner doesn't surface. Fix scope: catch 403 in mod-action submit handlers across `ModerationQueueScreen` approve/reject + `RejectListingModal` + `ArchiveListingModal` + `PropertyDetailsScreen` mod-action footer + `DeleteListingModal` + `RoleManagementScreen` (M2 Phase 5). On catch: reset loading state, surface `RoleRefreshBanner`, force re-login. Acceptance: demoting a moderator while their action popup is open results in popup closing + banner surfacing within 1s + tap-to-reload working without app restart.
+- [ ] **CARRY-02** Phase 4.5 landlord-application uid-mismatch fix. Submit endpoint currently lands the application in Mongo with a `uid` that doesn't match the submitting Firebase uid. Root cause: body-supplied uid trusted instead of JWKS-verified `req.firebaseUid`. Fix: `POST /api/landlord-applications` sources uid exclusively from `req.firebaseUid` (matches M2 Phase 1 HF-03 pattern + anti-spoofing grep gate). Migration script repairs existing mismatched rows. Acceptance: anti-spoofing grep gate `grep -nE "uid:\s*req\.(body|headers)" src/routes/landlordApplicationRoutes.js` returns 0; migration script flips mismatched rows to JWKS-verified uid; supertest case verifies post-fix.
+
+### Release & store submission (Phase 6)
+
+- [ ] **REL-01** RN client `package.json` bumped to `3.0.0`.
+- [ ] **REL-02** iOS `MARKETING_VERSION 3.0.0` + Android `versionName "3.0.0"`. Build numbers per **M1 D-02 lesson**: query `06-STORE-HISTORY.md` (re-run pattern from M2 Phase 6) for `next_ios_build_number = max(local, store) + 1` and `next_android_version_code = max(local, store) + 1` BEFORE the atomic version-bump commit. Avoids reactive bumps at archive time.
+- [ ] **REL-03** Manual physical-device QA matrix walked APPROVED on iPhone 15 Pro Max + Moto G XT2513V. New matrices vs M2: 6-step flow happy path × 5 property types × 3 deal types (= 15 cells); conditional sub-field rendering (e.g., bathroom appears only for office/commercial); exact-address toggle hidden for hotel/hostel; mod media curation (upload photos via mod queue → publish blocks until photos added); ROLE-11 demote-mid-action recovery (popup closes + banner surfaces); Phase 4.5 uid-mismatch repair (re-submit landlord app, verify uid matches token sub); EN+RU + dark/light parity per screen.
+- [ ] **REL-04** Bilingual EN+RU release notes drafted + pasted on App Store Connect + Google Play Console (per M1 D-10 content order: What's new → Improvements → Bug fixes catch-all). Both bodies ≤ 500 chars per Play Console binding limit. No Bishkek-only phrasing per memory `geographic-scope.md`.
+- [ ] **REL-05** Backend live + healthy on Railway. M3 changes deployed; `firebase-admin` STILL absent (carry-forward invariant); MongoDB Atlas + AWS IAM credentials confirmed unchanged from M2 baseline (HF-02 closed; AWS IAM cross-project residual remains documented PARTIAL — re-open condition unchanged).
+- [ ] **REL-06** v3.0.0 submitted to ASC TestFlight Internal Testing track + Play Console Internal Testing track. M1 D-13 inheritance descope honored (privacy manifest unchanged unless new data-collecting SDK added in M3 — none anticipated).
+
+---
+
+## Future Requirements (M4+ — deferred)
+
+Carried forward from M2 close + planted during M3 discovery:
+
+- Race-cell test rig — coordinated-curl OR Bluetooth-trigger-pair sync for MOD-15 + ROLE-11 + HF-04 race coverage; cells 1.7 + 2.4–2.6 + 5.6 + 5.3 deferred from M2 Phase 6 with explicit user sign-off.
+- Android `clean bundleRelease` reanimated build doc — document `gradlew :react-native-reanimated:assembleRelease :app:bundleRelease` in `scripts/release-android.md` OR add `bundleReleaseSafe` gradle task wrapper.
+- AWS IAM cross-project residual — re-open when other project unblocks scoping the OLD shared IAM user's policy away from JayTap bucket ARN.
+- KZT + UZS currency support — comes with KG/KZ/UZ market expansion (Almaty / Tashkent serviceAreas).
+- Multi-language localization beyond EN+RU (KK + UZ if KZ/UZ markets warrant it).
+- 2GIS native map bridge — multi-week effort; plan drafted in `2GIS_BRIDGE_PLAN.md`.
+- Automated/AI moderation (image/text classifiers) — captured in M2 archive future requirements.
+- Full audit log UI (`moderationLog` + `roleChangeLog` data captured in M2; UI deferred).
+- Push notifications / email notifications for moderation events.
+- Bulk moderation actions (multi-select approve/reject).
+- Real-estate document verification (Avito-style ownership proof — multi-month compliance subproject).
+
+---
+
+## Out of Scope (M3)
+
+Explicit exclusions, with reasoning:
+
+- **Firebase SDK additions in either repo** — REPO RULE per memory `no-firebase-sdk.md`. Backend continues using `jose`.
+- **Firebase custom claims as role source** — MongoDB `userType` is authoritative (validated in M2).
+- **`react-navigation` migration** — custom `App.tsx` state machine stays. 6-step flow uses existing overlay pattern.
+- **Replacing M1's 3-category 9-type taxonomy** — guarded by CLAUDE.md. SPEC's flat 5-type list reframed onto existing categories.
+- **Replacing M2's status enum** — `pending | live | rejected | archived` preserved. SPEC's wording reframed 1:1.
+- **New `awaiting_media` status enum value** — handled as queue-side filter, not new enum value.
+- **2GIS native map bridge** — deferred to M4+ per `2GIS_BRIDGE_PLAN.md`.
+- **Payment / booking flows** — JayTap is showcase-only by design (carried from M1+M2).
+- **Per-night pricing for hospitality** — eliminated in M1; remains out of scope.
+- **Chat moderation tooling** — listing moderation only (carried from M2).
+- **New authentication providers (OAuth, magic link, 2FA)** — M3 keeps Email/password Identity Toolkit REST.
+- **KZT + UZS currencies** — deferred to KG/KZ/UZ market expansion milestone.
+- **Push notifications / email notifications** for moderation/media-uploaded events — in-app surfacing sufficient.
+- **Race-cell test rig + Android reanimated build doc + AWS IAM cross-project residual** — explicitly deferred at M3 milestone discovery; folded into M4+ Future Requirements.
+- **User-side photo upload during listing creation** — INVERTED in M3. Users submit metadata only; mod uploads media post-submission. Existing M1+M2 listings retain user-uploaded media (preserved through SCHEMA-02 migration).
+
+---
+
+## Traceability
+
+*Filled by `/gsd-roadmapper` when ROADMAP.md is created.*
+
+| Phase | Requirements |
+|-------|--------------|
+| TBD | TBD |
+
+**Coverage:** TBD (every M3 v1 requirement should map to exactly one phase; no orphans, no duplicates).
+
+---
+
+*Requirements drafted: 2026-05-05*
+*Total v1 (M3) requirements: 38 (16 flow + 5 schema + 9 media + 2 carry-forward + 6 release-and-submission). 25% smaller than M2's 51 v1 reqs; reflects M3's tighter scope (one feature surface — listing creation flow — vs. M2's cross-cutting role + lifecycle + admin work).*
