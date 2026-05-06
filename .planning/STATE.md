@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: M3-pending
-milestone_name: "TBD via /gsd-new-milestone"
-status: between_milestones
-last_updated: "2026-05-05T22:30:00Z"
-last_activity: 2026-05-05 -- M2 v2.0 ARCHIVED via /gsd-complete-milestone; ROADMAP.md collapsed; 6 phase dirs moved to .planning/milestones/v2.0-phases/; REQUIREMENTS.md removed (fresh for M3); ready for /gsd-new-milestone
+milestone: v3.0
+milestone_name: "Contextual Forms"
+status: defining_requirements
+last_updated: "2026-05-05T22:45:00Z"
+last_activity: 2026-05-05 -- M3 v3.0 "Contextual Forms" started via /gsd-new-milestone; PROJECT.md updated with target features; defining REQUIREMENTS.md next, then /gsd-roadmapper for ROADMAP.md
 progress:
   total_phases: 0
   completed_phases: 0

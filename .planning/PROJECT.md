@@ -8,13 +8,29 @@ JayTap is a mobile real-estate app for Central Asia (current launch market: Bish
 
 Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
-## Current Milestone: M3 (next)
+## Current Milestone: v3.0 M3 "Contextual Forms"
 
-**Status:** Awaiting milestone goals from `/gsd-new-milestone` (planning started 2026-05-05 immediately after M2 archive).
+**Goal:** Replace the current single-screen `CreateListingScreen` with a 6-step contextual listing creation flow (every screen and every field determined by previous answers) per `.planning/phases/999.1-contextual-listing-flow-m3-anchor/SPEC.md`, and invert the media flow so admin/mod uploads photos / videos / 3D-tour after metadata submission. Closes 2 M2 carry-forward UX/data-integrity bugs (ROLE-11 frontend popup-recovery + Phase 4.5 landlord-app uid-mismatch).
 
-**Anchor:** Backlog 999.1 (Contextual listing creation flow — 6-step conditional UI) is the M3 anchor. Reconciliation points before planning: (1) spec's flat property-type taxonomy vs. M1's three-category taxonomy; (2) photo/video/3D-tour upload moving from user to admin/mod (inverts current user-uploads-to-S3 workflow on `jaytap-prod-s3` IAM user).
+**Target features:**
 
-**Goal:** TBD via `/gsd-new-milestone` discovery.
+- **6-step contextual flow** — Step 1 deal type + property type; Step 2 location with conditional exact-address toggle (forced true for hotels); Step 3 basic info with conditional sub-fields per property type (rooms / bathroom / kitchen / hotelClass); Step 4 condition + furnished; Step 5 title + description; Step 6 deal conditions gated by deal type (bargain / deposit / prepayment / min-term).
+- **Schema migration to nested shape** — one-shot `migrate-listings-m3.js` reshaping the flat M2 Property schema into the SPEC's nested structure (location.* / basics.* / conditionAndAmenities.* / content.* / terms.*). Pattern matches M2 Plan 02-02 (`migrate-listings-m2.js`). Production listings still don't exist (clean-slate); migration is forward-fit.
+- **Status enum unchanged** — M2's `pending | live | rejected | archived` is preserved. SPEC's `draft | pending_moderation | published | rejected` mapped 1:1 as cosmetic reframing only. Media-pending state handled as queue-side filter, not new enum value.
+- **Currency expansion** — add EUR chip alongside KGS + USD. RUB stays out (deprecated in M2).
+- **Media flow inversion** — users submit metadata only; admin/mod upload photos / videos / 3D-tour post-submission via moderation queue extension (new mod UI for media curation). S3 IAM policy update — admin/mod accounts get upload rights; user uploads from in-flow form removed. New pre-publish "awaiting media" workflow handled as queue filter (not new status).
+- **Taxonomy reconciliation** — preserve M1's 9-type 3-category taxonomy (Residential / Commercial / Hospitality). SPEC's 5-type flat list reframed onto categories: apartment + house → Residential; office + commercial → Commercial; hotel + hostel → Hospitality (kept as 2 separate sub-types per tour-first UI consistency, NOT collapsed into single "hotel/hostel" chip per SPEC). CLAUDE.md guard preserved.
+- **Carry-forward bug fixes** — ROLE-11 frontend mid-action 403 recovery UX (catch 403 in mod-action submit handlers; reset loading state; surface RoleRefreshBanner; force re-login) + Phase 4.5 landlord-app uid-mismatch fix (submitted apps land in Mongo with uid != submitting Firebase uid).
+
+**Key context:**
+
+- **Phase numbering resets to 1** for M3 (M1 + M2 precedent honored).
+- **Anchor:** Backlog 999.1 spec (`.planning/phases/999.1-contextual-listing-flow-m3-anchor/SPEC.md`, "Version 2") is the load-bearing input. All decisions in its Decisions Log carry forward. Two reconciliation points were resolved at M3 milestone discovery: (1) taxonomy stays 3-category 9-type (NOT SPEC's flat 5-type); (2) media flow inverts to admin/mod (PER SPEC — overrides current user-uploads-to-S3).
+- **Backend coordination:** Same maintainer owns `JayTap-services` repo at `/Users/beckmaldinVL/development/mobileApps/backend-services/JayTap-services`. M3 phases touch backend directly (Phase 1 schema migration; mod media-upload endpoint). Backend Node ≥22.12 (`nvm use 24` before backend npm/node ops); jose@6 ESM-only.
+- **Carry-forwards explicitly deferred:** race-cell test rig (M4+), Android reanimated build doc (M4+), AWS IAM cross-project residual (re-open when other project unblocks scoping the OLD shared IAM user away from JayTap bucket ARN).
+- **Out of scope (carried from M2):** chat moderation tooling, react-navigation migration, Firebase SDK additions in either repo, payment/booking flows, per-night pricing for hospitality, KZT/UZS currencies (deferred to KZ/UZ expansion milestone), new authentication providers.
+- **Manual physical-device QA bar:** iPhone 15 Pro Max + Moto G XT2513V (same as M1 + M2).
+- **EN+RU bilingual parity:** carried over from M1+M2 (CI gate enforced).
 
 ## Previous Milestone: v2.0 M2 "Roles & Moderation" (Shipped 2026-05-05)
 
