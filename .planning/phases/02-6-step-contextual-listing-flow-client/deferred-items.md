@@ -42,3 +42,30 @@ M3 jest-stack hardening or re-open at the next paired-gate verifier+code-review
 sweep. The 21 new ContextualListingFlow tests (validators 7, adapters 7,
 Step1 7) all pass green.
 
+## Plan 02-05 — same pre-existing RN client jest baseline failures (2026-05-06)
+
+**Symptoms (verified pre-existing by stash-and-test):** 8 test suites fail with
+4 failing tests on the npm test run. Failures span:
+
+1. `src/services/__tests__/PropertyService.test.ts` (axios interceptor
+   undefined — same as Plan 02-02 entry above).
+2. `src/hooks/__tests__/useRole.test.ts` `manageListings: plainUser …` (same
+   as Plan 02-02 entry above).
+3. Jest haste-map collision: stale parallel-execution worktrees under
+   `.claude/worktrees/agent-*` re-introduce duplicate module IDs. Symptoms:
+   `agent-aa0b9593dd69e6ff0`, `agent-ac77564fe620be4f9`, `agent-a545d4d5d2a4ef41d`
+   directories surface in test paths. Cleanup or jest `modulePathIgnorePatterns`
+   addition would remove the noise.
+
+**Scope:** Plan 02-05 only swaps read-path field reads in 9 surfaces
+(PropertyCard / HospitalityCard / HospitalityCheck / HomeScreen / FavoritesScreen
+/ RenterListingsScreen / OwnerListingsScreen / PropertyMap / ListingMetaTable +
+formatPrice utility + i18n). None of the failing tests target any of these
+files. Pre-existing baseline confirmed via `git stash; npm test` against HEAD
+(returns identical 8-suite / 4-test failure profile).
+
+**Decision:** Out of Plan 02-05 scope (Rule 4: SCOPE BOUNDARY). Same M3
+jest-stack hardening backlog item. i18n parity gate green
+(`scripts/check-i18n-parity.sh`) and `npx tsc --noEmit` clean against the 9
+plan files.
+
