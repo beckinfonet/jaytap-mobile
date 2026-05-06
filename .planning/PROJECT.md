@@ -108,15 +108,16 @@ iOS shipped at `2.0.0 build 27` (TestFlight Internal Testing); Android shipped a
 
 <!-- M3 v3.0 in progress. SCHEMA-01..05 validated in Phase 1 (2026-05-06). FLOW-* / MEDIA-* / CARRY-* / REL-* still active. -->
 
-**M3 v3.0 "Contextual Forms" — Phase 1 complete 2026-05-06:**
+**M3 v3.0 "Contextual Forms" — Phases 1 + 2 complete 2026-05-06:**
 
 - ✓ SCHEMA-01 Property nested schema (location/basics/conditionAndAmenities/content/terms/media) — v3.0 (Phase 1)
 - ✓ SCHEMA-02 migrate-listings-m3.js with --dry-run + --verify=PASS (idempotent) — v3.0 (Phase 1) *(live Atlas deploy pending in 01-HUMAN-UAT.md)*
 - ✓ SCHEMA-03 Status enum unchanged (`pending | live | rejected | archived`) — v3.0 (Phase 1)
 - ✓ SCHEMA-04 11 audit fields preserved top-level — v3.0 (Phase 1)
 - ✓ SCHEMA-05 Backend route reads handle ONLY nested shape — v3.0 (Phase 1)
+- ✓ FLOW-01..16 6-step ContextualListingFlow (3 modes: create / edit-owner / edit-mod), backend KG/KZ/UZ Location dictionary + moderator curation, atomic deletion of CreateListingScreen + CreateListingForm, admin doc-verification extracted into AdminVerificationScreen — v3.0 (Phase 2). Code-level GREEN (94/94 ContextualListingFlow tests, 16/16 FLOW reqs grep-confirmed, i18n parity 112↔112, atomic-deletion sentinel exits 0). 13 device walks deferred to Phase 5 REL-03 (`02-HUMAN-UAT.md`); operator follow-ups remain — Phase 1 Atlas migration deploy + Plan 02-01 Railway deploy at backend SHA `b2a785c` + production Atlas seed run.
 
-**M3 v3.0 — remaining active (Phases 2–5):** FLOW-01..16 (Phase 2) · MEDIA-01..09 (Phase 3) · CARRY-01..02 (Phase 4) · REL-01..06 (Phase 5)
+**M3 v3.0 — remaining active (Phases 3–5):** MEDIA-01..09 (Phase 3) · CARRY-01..02 (Phase 4) · REL-01..06 (Phase 5)
 
 <!-- M2 v2.0 v1 requirements — all 51 validated below. -->
 
@@ -242,4 +243,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-05 — M2 v2.0 "Roles & Moderation" SHIPPED to both stores (TestFlight Internal build 27 + Play Console Internal Testing versionCode 30) and archived via /gsd-complete-milestone. M3 milestone goals being gathered.*
+*Last updated: 2026-05-06 — M3 Phase 2 ("6-Step Contextual Listing Flow — Client") closed at code level. 16/16 FLOW requirements verified, 94/94 ContextualListingFlow tests pass, atomic-deletion sentinel green. 13 device walks + 21 carry-forward TS regressions on out-of-Phase-2 surfaces tracked for Phase 5 REL-03. Backend operator follow-ups (Atlas seed, Railway deploy at backend SHA `b2a785c`) pending.*
