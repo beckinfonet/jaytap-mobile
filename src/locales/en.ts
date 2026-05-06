@@ -745,6 +745,34 @@ export const en = {
   'contextualListing.step3.hotelClass.standard': 'Standard',
   'contextualListing.step3.hotelClass.comfort': 'Comfort',
   'contextualListing.step3.hotelClass.premium': 'Premium',
+
+  // Phase 2 (Plan 02-04a) — ContextualListingFlow Step 4: Condition + Furnished (FLOW-09).
+  // Required for every propertyType including hotel/hostel per CONTEXT §Decisions Log #4.
+  // B-02 reconciliation: 11 keys (RESEARCH first listed 12; the would-be
+  // `contextualListing.step4.furnished.unset` label is NOT shipped because the
+  // validator treats furnished:null as unset and the UI shows BOTH Yes and No
+  // as inactive in that state — no displayable copy needed.
+  'contextualListing.step4.title': 'Condition and amenities',
+  'contextualListing.step4.conditionLabel': 'Condition',
+  'contextualListing.step4.conditionRequired': 'Pick the condition',
+  'contextualListing.step4.condition.rough': 'Rough (PSO)',
+  'contextualListing.step4.condition.whitebox': 'White box',
+  'contextualListing.step4.condition.good': 'Good',
+  'contextualListing.step4.condition.euro': 'Euro renovation',
+  'contextualListing.step4.furnishedLabel': 'Furnished',
+  'contextualListing.step4.furnishedRequired': 'Pick yes or no',
+  'contextualListing.step4.furnished.yes': 'Yes',
+  'contextualListing.step4.furnished.no': 'No',
+
+  // Phase 2 (Plan 02-04a) — ContextualListingFlow Step 5: Title + Description (FLOW-10).
+  // Both are required strings (validator uses .trim() — whitespace-only fails).
+  'contextualListing.step5.title': 'Title and description',
+  'contextualListing.step5.titleLabel': 'Listing title',
+  'contextualListing.step5.titleRequired': 'Add a title',
+  'contextualListing.step5.titlePlaceholder': 'e.g. Cozy 2-bedroom in central Bishkek',
+  'contextualListing.step5.descriptionLabel': 'Description',
+  'contextualListing.step5.descriptionRequired': 'Add a description',
+  'contextualListing.step5.descriptionPlaceholder': 'Tell prospective tenants what makes this listing special',
 } as const;
 
 export type TranslationKeys = keyof typeof en;

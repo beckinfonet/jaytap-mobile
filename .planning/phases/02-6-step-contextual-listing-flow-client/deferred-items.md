@@ -69,3 +69,23 @@ jest-stack hardening backlog item. i18n parity gate green
 (`scripts/check-i18n-parity.sh`) and `npx tsc --noEmit` clean against the 9
 plan files.
 
+## Plan 02-04a — pre-existing TS errors in CreateListingScreen / Property type (2026-05-06)
+
+**Symptoms:** `npx tsc --noEmit` reports ~20 errors in
+`src/screens/CreateListingScreen.tsx`, `src/screens/ScheduleViewingScreen.tsx`,
+`src/screens/TourSelectionScreen.tsx`, and `src/theme/ThemeContext.tsx`. All
+are `Property` field-access errors (`address`, `city`, `price`, `images`,
+`tours`, `title`, etc.) — fallout from M2's `Property` type rename and from
+the `ColorSchemeName` issue in `ThemeContext.tsx`.
+
+**Scope:** Plan 02-04a only adds `Step4ConditionAmenities.tsx`,
+`Step5TitleDescription.tsx`, two test files, ~18 i18n keys to
+`src/locales/{en,ru}.ts`, and edits `src/components/ContextualListingFlow/index.tsx`
+to wire steps. `npx tsc --noEmit` against ONLY the Plan 02-04a surface returns
+zero errors (`grep -E 'ContextualListingFlow|locales/(en|ru)\.ts'` over the
+tsc output is empty).
+
+**Decision:** Out of Plan 02-04a scope (Rule 4: SCOPE BOUNDARY). Same M3
+client type-hardening backlog as Plan 02-05's entry. The 7 affected
+ContextualListingFlow test suites pass 74/74 and i18n parity gate exits 0.
+

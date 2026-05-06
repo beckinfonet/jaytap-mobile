@@ -748,4 +748,29 @@ export const ru: Record<TranslationKeys, string> = {
   'contextualListing.step3.hotelClass.standard': 'Стандарт',
   'contextualListing.step3.hotelClass.comfort': 'Комфорт',
   'contextualListing.step3.hotelClass.premium': 'Премиум',
+
+  // Phase 2 (Plan 02-04a) — ContextualListingFlow Шаг 4: Состояние + Мебель (FLOW-09).
+  // Обязательно для любого propertyType, включая hotel/hostel (CONTEXT §Decisions Log #4).
+  // B-02: 11 ключей; «unset»-метка для меблировки не нужна — при null оба чипа неактивны.
+  'contextualListing.step4.title': 'Состояние и удобства',
+  'contextualListing.step4.conditionLabel': 'Состояние',
+  'contextualListing.step4.conditionRequired': 'Выберите состояние',
+  'contextualListing.step4.condition.rough': 'Черновая (ПСО)',
+  'contextualListing.step4.condition.whitebox': 'White box',
+  'contextualListing.step4.condition.good': 'Хорошее',
+  'contextualListing.step4.condition.euro': 'Евроремонт',
+  'contextualListing.step4.furnishedLabel': 'Мебель',
+  'contextualListing.step4.furnishedRequired': 'Выберите да или нет',
+  'contextualListing.step4.furnished.yes': 'Да',
+  'contextualListing.step4.furnished.no': 'Нет',
+
+  // Phase 2 (Plan 02-04a) — ContextualListingFlow Шаг 5: Заголовок + Описание (FLOW-10).
+  // Оба поля обязательны (валидатор использует .trim() — пустые пробелы не проходят).
+  'contextualListing.step5.title': 'Заголовок и описание',
+  'contextualListing.step5.titleLabel': 'Заголовок объявления',
+  'contextualListing.step5.titleRequired': 'Добавьте заголовок',
+  'contextualListing.step5.titlePlaceholder': 'Например: Уютная 2-комнатная в центре Бишкека',
+  'contextualListing.step5.descriptionLabel': 'Описание',
+  'contextualListing.step5.descriptionRequired': 'Добавьте описание',
+  'contextualListing.step5.descriptionPlaceholder': 'Расскажите потенциальным арендаторам, чем особенно это объявление',
 };
