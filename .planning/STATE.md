@@ -2,20 +2,15 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: "Contextual Forms"
-status: context_gathered
-last_updated: "2026-05-05T23:55:00Z"
-last_activity: 2026-05-05 -- Phase 1 (Schema Reshape + Backend Route Shape Cutover) CONTEXT.md gathered via /gsd-discuss-phase 1; 18 decisions across 4 gray areas; ready for /gsd-plan-phase 1
+status: executing
+last_updated: "2026-05-06T02:50:03.694Z"
+last_activity: 2026-05-06 -- Phase 01 planning complete
 progress:
-  total_phases: 5
+  total_phases: 4
   completed_phases: 0
-  total_plans: 0
+  total_plans: 5
   completed_plans: 0
   percent: 0
-prior_milestone:
-  version: v2.0
-  name: "Roles & Moderation"
-  shipped_date: 2026-05-05
-  archive_path: .planning/milestones/v2.0-*
 ---
 
 # STATE: JayTap
@@ -24,8 +19,8 @@ prior_milestone:
 
 Phase: 1 of 5 (Schema Reshape + Backend Route Shape Cutover) — context gathered
 Plan: 0 of TBD
-Status: Ready to plan via `/gsd-plan-phase 1`
-Last activity: 2026-05-05 — Phase 1 CONTEXT.md gathered via /gsd-discuss-phase 1. 18 implementation decisions captured across 4 user-selected gray areas (cutover atomicity, schema field mapping, media coalescing, rollback strategy). Atomic-break locked: M2 client (TestFlight build 27 + Play Internal versionCode 30) breaks until Phase 2 ships nested-aware reads — accepted because testers are dev-team only and M1+M2 listings are mock data. M2 Plan 02-02 verbatim deploy sequence (Atlas snapshot → dry-run → live → verify=PASS → cutover commit). Atlas snapshot is the rollback mechanism (no reverse migration script). 'rent' → 'rent_long' for legacy dealType; legacy address dropped; district='' for legacy; rooms numeric→string with '4+' collapse; bedrooms/bathrooms dropped; M1 hospitality maxGuests + amenities[] preserved top-level; selective orphan-field policy (instagramUrl/availableDate/listingId/platformVerifications kept; period/is3DTourAvailable/agent dropped); content.language='ru' default. Media: tours[]→first non-empty url, panoramicPhotosUrl dropped, videoUrl wrapped to array, images→media.photos with imageUrl dropped. Test scope + Mongoose strict + type-stub shape are Claude's discretion in plan-phase. Ready for /gsd-plan-phase 1.
+Status: Ready to execute
+Last activity: 2026-05-06 -- Phase 01 planning complete
 
 Progress: [░░░░░░░░░░] 0% (0 of TBD plans complete across 5 phases)
 
@@ -39,7 +34,6 @@ See: .planning/PROJECT.md (updated 2026-05-05 at M2 close + M3 milestone discove
 ---
 
 **LAST UPDATE** — 2026-05-05T23:30:00Z (**M3 ROADMAP.md CREATED via /gsd-roadmapper**. 5 phases scoped covering all 38 v1 requirements (16 FLOW + 5 SCHEMA + 9 MEDIA + 2 CARRY + 6 REL). Phase numbering reset to 1 for M3 per PROJECT.md convention (matches M1 → M2 precedent). Phase structure: **Phase 1: Schema Reshape + Backend Route Shape Cutover** (SCHEMA-01..05; foundation — Mongoose nested-shape migration `migrate-listings-m3.js` operator-supervised --dry-run + --verify=PASS, route read/write cutover lands strictly AFTER migration runs); **Phase 2: 6-Step Contextual Listing Flow (Client)** (FLOW-01..16; UI-bearing; new <ContextualListingFlow> with header progress + Back/Next + per-step validation; Step 1 deal-type + property-type chips; Step 2 location with conditional exact-address toggle hidden for hotel/hostel; Step 3 always-shown area+price+currency + conditional sub-fields per property type; Step 4 always-shown condition+furnished; Step 5 title+description; Step 6 deal conditions gated by deal type per SPEC §6 matrix; CreateListingScreen.tsx deleted atomically; +80–120 EN+RU keys; mod edit-on-behalf wired via M2 moderatorContext prop); **Phase 3: Media Flow Inversion (Admin/Mod Curation)** (MEDIA-01..09; UI-bearing; new mod-queue media-curation view; POST /api/moderation/listings/:id/media endpoint; ModerationLog 'media-upload' action enum extension; S3 IAM policy update — admin/mod gain upload rights, user upload rights revoked symmetric to M2 HF-02; "needs media" queue filter — handled as filter NOT new status enum value; MEDIA_REQUIRED 400 invariant blocks approval until ≥1 photo); **Phase 4: M2 Carry-Forward Bug Fixes** (CARRY-01..02; bundled because both bug-fix-only with independent risk profiles; CARRY-01 ROLE-11 frontend mid-action 403 popup-recovery across 5+ submit handlers — ModerationQueueScreen approve/reject + RejectListingModal + ArchiveListingModal + PropertyDetailsScreen mod-action footer + DeleteListingModal + RoleManagementScreen; CARRY-02 Phase 4.5 landlord-application uid-mismatch backend route fix with anti-spoofing grep gate matching M2 Phase 1 HF-03 pattern + repair migration script); **Phase 5: Hardening + Manual Physical-Device QA + Release v3.0.0** (REL-01..06; atomic v3.0.0 bump per M1 D-02 + M2 Wave-1 query-first lessons — 06-STORE-HISTORY.md derives next_ios_build_number + next_android_version_code from max(local,store)+1 BEFORE bump commit; new QA matrices vs M2: 6-step flow happy path × 5 property types × 3 deal types = 15 cells + conditional sub-field rendering + exact-address toggle gating + mod media curation + ROLE-11 demote-mid-action recovery + Phase 4.5 uid-mismatch repair + EN+RU + dark/light parity; bilingual EN+RU release notes ≤500 chars per Play Console binding limit, region-neutral copy per memory geographic-scope.md; ASC TestFlight Internal + Play Console Internal Testing submission — M1 D-13 inheritance descope honored). **Hard rules locked into phase success criteria:** (1) M2 status enum (`pending | live | rejected | archived`) preserved — SPEC's `draft | pending_moderation | published | rejected` reframed 1:1 cosmetically; (2) M1's 3-category 9-type taxonomy preserved — SPEC's flat 5-type list reframed (apartment+house → Residential, office+commercial → Commercial, hotel+hostel → Hospitality, kept split per tour-first UI); (3) "awaiting media" handled as queue filter, NOT new enum value; (4) M2 audit fields + M2 Phase 4 archive metadata stay top-level on Property, NOT nested under terms.*; (5) No Firebase SDK in either repo (jose continues for JWKS); (6) No react-navigation migration; (7) EN+RU bilingual parity (CI gate); (8) Manual physical-device QA on iPhone 15 Pro Max + Moto G XT2513V; (9) SCHEMA-05 acceptance: migration runs BEFORE route-shape cutover commit. **Coverage gate clean:** 38/38 v1 reqs map to exactly one phase; zero orphans; zero duplicates. REQUIREMENTS.md ## Traceability table filled with phase → REQ-IDs mapping + per-requirement → phase index. Backlog 999.1 entry retained as historical reference until Phase 2 ships and absorbs the SPEC into phase artifacts. Reconciliation points (taxonomy preservation + media inversion direction) marked RESOLVED at M3 milestone discovery. ROADMAP.md ## Phases section now shows M1 + M2 collapsed milestone summaries (under <details>) preserved + new M3 phase listing with summary checklist + Phase Details with Goal/Depends-on/Requirements/Success-Criteria/Plans-count + UI-hint annotations on Phases 2/3/4 (UI-bearing) + M3 phase progress table appended below the milestone-level Progress table. **Recommended next action:** `/gsd-plan-phase 1` to scaffold Phase 1 (schema migration + route shape cutover; foundation that unblocks Phases 2 and 3).)
-
 
 ---
 
