@@ -245,93 +245,12 @@ export const ru: Record<TranslationKeys, string> = {
   'verification.unverifiedBody':
     'По этому объявлению MoveIn выполнил только 3D-сканирование и фотосъёмку. Право собственности, личность владельца и иные юридические документы платформой не проверяются. Перед сделкой самостоятельно убедитесь в подлинности документов и информации.',
 
-  // Create Listing
+  // Create Listing — Plan 02-09 (FLOW-14 / D-22): legacy CreateListingScreen +
+  // CreateListingForm barrel atomically deleted; new ContextualListingFlow owns
+  // its own contextualListing.* namespace. Only 2 keys retained here for the
+  // standalone AdminVerificationScreen (admin doc-verification PATCH). All other
+  // ~81 createListing.* keys removed in this plan as orphans.
   'createListing.cancel': 'Отмена',
-  'createListing.editListing': 'Редактировать объявление',
-  // Phase 2 (D-20, MOD-03) — submit copy reflects new "post = pending" semantics; resubmit
-  // distinguishes the rejected→pending edit-resubmit path from a fresh new-listing submit
-  'createListing.submitForReview': 'Отправить на модерацию',
-  'createListing.resubmit': 'Отправить повторно',
-  'createListing.transactionType': 'Тип сделки',
-  'createListing.basicInfo': 'Основная информация',
-  'createListing.location': 'Местоположение',
-  'createListing.propertyDetails': 'Детали объекта',
-  'createListing.features': 'Удобства',
-  'createListing.images': 'Изображения',
-  'createListing.tours3d': '3D туры Matterport',
-  'createListing.links': 'Ссылки',
-  'createListing.contactInfo': 'Контактная информация (из профиля)',
-  'createListing.status': 'Статус',
-  'createListing.title': 'Название *',
-  'createListing.description': 'Описание',
-  'createListing.streetAddress': 'Адрес *',
-  'createListing.district': 'Район',
-  'createListing.city': 'Город',
-  'createListing.amount': 'Сумма (напр., 850)',
-  'createListing.bedrooms': 'Спален',
-  'createListing.bathrooms': 'Ванных',
-  'createListing.area': 'Площадь (м²)',
-  'createListing.addFeature': 'Добавить удобство',
-  'createListing.tourTitle': 'Название тура (напр., Полный обзор квартиры)',
-  'createListing.matterportUrl': 'URL Matterport',
-  'createListing.videoUrl': 'URL видео (необязательно)',
-  'createListing.panoramicUrl': 'URL панорамных фото (необязательно, напр. Ricoh 360)',
-  'createListing.instagramUrl': 'Instagram URL *',
-  'createListing.currency': 'Валюта *',
-  'createListing.price': 'Цена *',
-  'createListing.propertyType': 'Тип объекта',
-  'createListing.availableFrom': 'Доступно с',
-  'createListing.selectDate': 'Выберите дату',
-  'createListing.rent': 'Аренда',
-  'createListing.sell': 'Продажа',
-  'createListing.draft': 'Черновик',
-  'createListing.submit': 'Отправить',
-  'createListing.selectImages': 'Выбрать изображения',
-  'createListing.maxImagesReached': 'Достигнут лимит изображений',
-  'createListing.add3dTour': '+ Добавить 3D тур',
-  'createListing.selectCurrencyHint': 'Сначала выберите валюту, затем введите цену',
-  'createListing.addImagesHint': 'Добавьте до 40 изображений',
-  'createListing.matterportHint': 'Добавьте URL туров Matterport для интерактивного 3D обзора',
-  'createListing.availableHint': 'Когда объект станет доступен...',
-  'createListing.instagramHint': 'Добавьте ссылку на Instagram для связи с вами',
-  'createListing.maxImagesReachedAlert': 'Можно добавить до 40 изображений',
-  'createListing.titleRequired': 'Название обязательно',
-  'createListing.addressRequired': 'Адрес обязателен',
-  'createListing.currencyRequired': 'Выберите валюту (USD или сом)',
-  'createListing.priceRequired': 'Цена обязательна',
-  'createListing.tourTitleUrlRequired': 'Введите название и URL тура',
-  'createListing.descriptionRequired': 'Описание обязательно',
-  'createListing.cityRequired': 'Город обязателен',
-  'createListing.districtRequired': 'Район обязателен',
-  'createListing.bedroomsRequired': 'Количество спален обязательно',
-  'createListing.bathroomsRequired': 'Количество ванных обязательно',
-  'createListing.areaRequired': 'Площадь обязательна',
-  'createListing.roomsRequired': 'Количество комнат обязательно',
-  'createListing.maxGuestsRequired': 'Макс. число гостей обязательно',
-  'createListing.propertyTypeRequired': 'Выберите тип недвижимости',
-  'createListing.contactMissingTitle': 'Контактная информация неполная',
-  'createListing.contactMissingMessage': 'Для объявлений размещения необходимы телефон и WhatsApp или Telegram. Добавьте их в настройках аккаунта.',
-  'createListing.contactMissingCta': 'Заполнить профиль',
-  'createListing.contactMissingInline': 'Добавьте телефон + WhatsApp или Telegram в профиле, чтобы опубликовать это объявление.',
-  'createListing.createFailed': 'Не удалось создать объявление',
-  'createListing.updatedSuccess': 'Объявление успешно обновлено!',
-  'createListing.draftSuccess': 'Объявление сохранено как черновик!',
-  'createListing.createdSuccess': 'Объявление успешно создано!',
-  'createListing.updateListing': 'Обновить объявление',
-  'createListing.statusHint':
-    'Черновик: сохранить позже. Отправить: опубликовать объявление (изображения добавит платформа).',
-  'createListing.addImagesHintCount': 'Добавьте до 40 изображений ({current}/40)',
-  'createListing.matterportUrlExample': 'URL Matterport (напр., https://my.matterport.com/show/?m=...)',
-  'createListing.availableHintDetail':
-    'Когда объект станет доступен. Если в пределах месяца — «сейчас», иначе «скоро» с датой.',
-  'createListing.maxReachedTitle': 'Достигнут лимит',
-  'createListing.imagePickerUnavailable': 'Выбор изображений недоступен',
-  'createListing.imagePickerUnavailableMessage':
-    'Пересоберите приложение после установки react-native-image-picker. Выполните: cd ios && pod install && cd .. && npx react-native run-ios',
-  'createListing.contactEmail': 'Email',
-  'createListing.contactPhone': 'Телефон',
-  'createListing.contactWhatsapp': 'WhatsApp',
-  'createListing.contactTelegram': 'Telegram',
   'createListing.updateFailed': 'Не удалось обновить объявление',
 
   // Property types
@@ -371,9 +290,6 @@ export const ru: Record<TranslationKeys, string> = {
   'amenity.commonarea': 'Общая зона',
   'amenity.lockers': 'Камеры хранения',
   'amenity.ensuite': 'Санузел в номере',
-
-  // Phase 6 (HOSP-05 / D-22)
-  'createListing.amenitiesRequired': 'Выберите хотя бы одно удобство',
 
   // Phase 6 (HOSP-01 / D-02)
   'home.hospitalitySectionTitle': 'Хостелы и отели',
