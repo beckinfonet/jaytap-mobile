@@ -96,7 +96,7 @@ Plans:
 Plans:
 - [x] 02-01-PLAN.md — Backend Location dictionary (City + District models + locationRoutes.js + moderationRoutes.js extension + seed-locations-m3.js + supertest cases + middleware extract) — completed 2026-05-06 (3 operator items pending: Phase 1 Atlas migration confirmation, Plan 02-01 Railway deploy, prod Atlas seed run)
 - [x] 02-02-PLAN.md — <ContextualListingFlow> skeleton + Step 1 + types/validators/adapters + ~24 i18n keys + Wave 0 test scaffolds
-- [ ] 02-03-PLAN.md — Step 2 (Location chips + map pin + Other modal) + Step 3 (BasicInfo conditional sub-fields) + ModerationQueueScreen Locations tab + ~49 i18n keys
+- [x] 02-03-PLAN.md — Step 2 (Location chips + map pin + Other modal) + Step 3 (BasicInfo conditional sub-fields) + ModerationQueueScreen Locations tab + 49 i18n keys — completed 2026-05-06 (7 atomic commits e5bebb2 / 7c5286b / 0b57eec / d024379 / a7f7a6f / 8a868ae / f588166; locationService.ts wires 7 backend functions; Step2Location ships react-native-maps draggable Marker WITH tap-to-move fallback per Pitfall 1; Step3BasicInfo conditional sub-fields per FLOW-08 matrix + KGS/USD/EUR per D-03 no $/сом legacy; orchestrator-side propertyType reflow per ROADMAP SC#3; ModerationQueueScreen 2-tab control with display:'none' keep-alive per Pitfall 3; 52/52 ContextualListingFlow tests pass; i18n parity green; FLOW-04..FLOW-08 closed)
 - [ ] 02-04a-PLAN.md — Step 4 (ConditionAmenities) + Step 5 (TitleDescription) + Step 4/5 validator tests + ~18 i18n keys
 - [ ] 02-04b-PLAN.md — Step 6 (DealConditions matrix per dealType) + integration test (Step 1→6 + edit-mod cell) + real submit dispatch + ~18 i18n keys
 - [x] 02-05-PLAN.md — Read-path cutover Wave 1: HomeScreen + FavoritesScreen + RenterListingsScreen + OwnerListingsScreen + PropertyCard + HospitalityCard + HospitalitySection + ListingMetaTable + PropertyMap → nested shape — completed 2026-05-06 (5 atomic commits f2cf2f8 / 8a9efb6 / 5a2d64e / 583eb63 / 3f5114a; Tradeoff §K caller-side hospitality derivation `dealType !== 'sale'` applied at all 4 list screens; D-10 BISHKEK_DISTRICTS preserved; D-21 HospitalityCard top-level maxGuests + amenities preserved; formatPrice + 10 EN+RU i18n keys added; FLOW-13 closed)
@@ -173,7 +173,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Schema Reshape + Backend Route Shape Cutover | 5/5 | Complete (4 operator UAT pending) | 2026-05-06 |
-| 2. 6-Step Contextual Listing Flow (Client) | 4/9 | In progress (Plans 02-01 + 02-02 + 02-05 + 02-06 complete; Plans 02-03/04/07/08/09 remaining; operator deploys pending) | — |
+| 2. 6-Step Contextual Listing Flow (Client) | 5/9 | In progress (Plans 02-01 + 02-02 + 02-03 + 02-05 + 02-06 complete; Plans 02-04a/b + 02-07/08/09 remaining; operator deploys pending) | — |
 | 3. Media Flow Inversion (Admin/Mod Curation) | 0/TBD | Not started | — |
 | 4. M2 Carry-Forward Bug Fixes | 0/TBD | Not started | — |
 | 5. Hardening + Manual Physical-Device QA + Release v3.0.0 | 0/TBD | Not started | — |
