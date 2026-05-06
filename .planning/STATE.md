@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: "Contextual Forms"
 status: executing
-last_updated: "2026-05-06T20:05:00Z"
-last_activity: 2026-05-06 -- Phase 03 Plan 04 complete (multer stripped from user-side propertyRoutes; both backend sentinels chained into npm test; 258/258 backend pass)
+last_updated: "2026-05-06T20:00:56Z"
+last_activity: 2026-05-06 -- Phase 03 Plan 05 complete (RN client supply path: MediaCurationScreen overlay + service + 26 EN+RU i18n keys + 2 W6 theme tokens + RTL smoke 4/4 + App.tsx wiring; tsc baseline 17 preserved)
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 22
-  completed_plans: 19
-  percent: 86
+  completed_plans: 20
+  percent: 91
 ---
 
 # STATE: JayTap
@@ -18,11 +18,28 @@ progress:
 ## Current Position
 
 Phase: 3
-Plan: 05 (next)
-Status: In progress (Plans 03-01 + 03-02 + 03-03 + 03-04 complete)
-Last activity: 2026-05-06 -- Phase 03 Plan 04 complete (D-13 atomic-break: multer fully stripped from user-side POST/PUT /api/properties; check-property-routes-media-stripped sentinel FLIPPED FAIL→PASS and chained into npm test; explicit `media: { photos: [], videos: [], tourUrl: undefined }` literal landed; 6 new MEDIA-02 + MEDIA-08 supertest cases; 258/258 backend pass)
+Plan: 06 (next)
+Status: In progress (Plans 03-01 + 03-02 + 03-03 + 03-04 + 03-05 complete)
+Last activity: 2026-05-06 -- Phase 03 Plan 05 complete (RN client supply path: dedicated mod-only MediaCurationScreen overlay (959 LOC) + MediaCurationService (115 LOC) wrapping Plan 03-02 endpoints with belt-and-suspenders canFromUser('approveListings') gate + App.tsx state flags + OVERLAY_FLAGS entry + back-handler + mount block + openMediaCuration stable callback for 03-06 entry-points + 26 verbatim EN+RU moderation.mediaCuration.* i18n keys + 2 revision-2 W6 theme tokens (colors.onAccent + colors.scrim) replacing previously-grandfathered '#FFFFFF'/rgba(0,0,0,0.55) literals + 4-case RTL smoke test asserting D-12 disabled-Approve invariant + T-04 mod-gate-closed invariant; ZERO hex/rgba literals in MediaCurationScreen.tsx; tsc baseline 17 preserved; i18n parity gate green)
 
-Progress: [██████████] 100% of executable plans through wave 3 (19 of 19 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 4/7 (03-01 + 03-02 + 03-03 + 03-04 complete; 03-05..03-07 pending))
+Progress: [██████████] 100% of executable plans through wave 4 (20 of 20 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 5/7 (03-01 + 03-02 + 03-03 + 03-04 + 03-05 complete; 03-06..03-07 pending))
+
+**Phase 3 Plan 05 closing artifact (2026-05-06T20:00:56Z):**
+
+- 3 atomic commits on `main` in the JayTap RN client repo: `b89a8f4` feat(03-05) add MediaCurationService + onAccent/scrim theme tokens + 26 i18n keys (Task 1 — service + theme tokens + locale lockstep) → `b99bd19` feat(03-05) add MediaCurationScreen overlay + RTL smoke test (Task 2 — 959-LOC screen + 4-case RTL test) → `808d01d` feat(03-05) wire MediaCurationScreen overlay into App.tsx state machine (Task 3 — state flags + OVERLAY_FLAGS + import + back-handler + mount block + openMediaCuration callback for 03-06).
+- 4 files created: `src/services/MediaCurationService.ts` (115 LOC) + `src/screens/MediaCurationScreen.tsx` (959 LOC) + `src/screens/__tests__/MediaCurationScreen.test.tsx` (232 LOC) + the SUMMARY.md.
+- 4 files modified: `src/theme/colors.ts` (+18 LOC — 2 light + 2 dark tokens with comments), `src/locales/en.ts` (+34 LOC), `src/locales/ru.ts` (+33 LOC), `App.tsx` (+48 LOC).
+- Three-layer mod gate (T-04 mitigation): App.tsx mount conditional `!!user && isMediaCurationOpen && currentMediaCurationListingId`, `useRole().can('approveListings')` early-return inside the screen, `MediaCurationService.assertModCapability()` synchronously throws PermissionDeniedError BEFORE any apiClient call when canFromUser is false.
+- W6 hex/rgba budget HIT: `grep -nE "'#[0-9A-Fa-f]{3,6}'" src/screens/MediaCurationScreen.tsx | wc -l` = 0; `grep -c "rgba(" src/screens/MediaCurationScreen.tsx` = 0. The new colors.onAccent + colors.scrim tokens replace every previously-grandfathered hex/rgba literal at 15 consumption sites in MediaCurationScreen.tsx.
+- ImagePicker config: mediaType='mixed' + selectionLimit=0 + assetRepresentationMode='compatible' (Pitfall 1 — HEIC→JPEG so multer fileFilter doesn't reject) + quality=0.8 (Rule 1 fix: PhotoQuality literal-union forbids the plan's 0.85; 0.8 matches LandlordApplicationScreen precedent and preserves the avoid-quality:1-HEIC-bug intent).
+- Cap-overflow truncation: `Math.min(newCount, slots)`; surface `cap.toast.{photos,videos}` with {taken}/{requested} interpolation when truncation occurs (MEDIA-09 acceptance-bound; the 2 over-budget keys per Discretion #5).
+- Save handler maps backend codes: MEDIA_INVALID_TYPE / MEDIA_INVALID_TOUR_URL / MEDIA_FILE_TOO_LARGE / MEDIA_TOO_MANY_FILES / 409 race + generic upload-failed fallback. Approve handler maps MEDIA_REQUIRED (refetches listing) + 409 race.
+- 26 verbatim EN+RU `moderation.mediaCuration.*` keys in lockstep; `bash scripts/check-i18n-parity.sh; echo $?` = `exit=0`. Cumulative i18n total: 109 (Phase 2 close) + 26 (here) = 135 keys per locale; 270 entries across both files.
+- 4-case RTL smoke test (react-test-renderer pattern matching Gated.test.tsx): TEST-1 Approve disabled-hint renders when photos.length === 0 (D-12); TEST-2 disabled-hint does NOT render when photos non-empty; TEST-3 component returns null when can('approveListings') is false (T-04 gate); TEST-4 photo + video section labels + empty.title render on initial mount. All 4/4 PASS.
+- tsc baseline preserved: 17 → 17 errors (the 17 are pre-existing AuthContext+ThemeContext+Property.tours errors documented in M2 + Phase 2 baseline).
+- Three Rule-1 deviations auto-fixed (all folded into atomic commits before push): (i) PropertyService method name plan body said `getById`, actual codebase method is `getPropertyById` — using `getById` would have crashed at runtime; corrected at 3 call sites (initial fetch + post-409 refetch + post-MEDIA_REQUIRED refetch). (ii) ImagePicker quality 0.85 not assignable to PhotoQuality literal-union; used 0.8. (iii) RTL test mocks initially called `RN.createElement` instead of `React.createElement`; 3 of 4 tests failed; switched to `jest.requireActual('react').createElement`.
+- Forward signal: Plan 03-06 owns the entry-point wiring. The stable callback `openMediaCuration: (listingId: string) => void` is exported from App.tsx and ready to be passed as `onOpenMediaCuration` to ModerationQueueScreen + PropertyDetailsScreen. The cap-overflow toast keys are SHIPPED here so 03-06 will not duplicate them; the remaining 6 keys for 03-06 belong to the banner + filter-chip namespace.
+- SUMMARY at `.planning/phases/03-media-flow-inversion-admin-mod-curation/03-05-SUMMARY.md`.
 
 **Phase 3 Plan 04 closing artifact (2026-05-06T20:05:00Z):**
 
