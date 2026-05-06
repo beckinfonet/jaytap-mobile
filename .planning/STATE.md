@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: "Contextual Forms"
 status: executing
-last_updated: "2026-05-06T19:17:54Z"
-last_activity: 2026-05-06 -- Phase 03 Plan 02 complete (backend mod media endpoints — POST + DELETE)
+last_updated: "2026-05-06T19:30:15Z"
+last_activity: 2026-05-06 -- Phase 03 Plan 03 complete (MEDIA_REQUIRED gate at /approve + edit-on-behalf — 252/252 backend pass)
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 22
-  completed_plans: 17
-  percent: 77
+  completed_plans: 18
+  percent: 82
 ---
 
 # STATE: JayTap
@@ -18,11 +18,22 @@ progress:
 ## Current Position
 
 Phase: 3
-Plan: 03 (next)
-Status: In progress (Plans 03-01 + 03-02 complete)
-Last activity: 2026-05-06 -- Phase 03 Plan 02 complete (backend mod media endpoints: POST + DELETE /api/moderation/listings/:id/media + 26 supertest cases)
+Plan: 04 (next)
+Status: In progress (Plans 03-01 + 03-02 + 03-03 complete)
+Last activity: 2026-05-06 -- Phase 03 Plan 03 complete (MEDIA_REQUIRED 400 invariant landed at 2 surfaces — POST /properties/:id/approve + PUT /listings/:id edit-on-behalf flip; 7 new supertest cases; 252/252 backend pass)
 
-Progress: [██████████] 100% of executable plans through wave 1 (17 of 17 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 2/7 (03-01 + 03-02 complete; 03-03..03-07 pending))
+Progress: [██████████] 100% of executable plans through wave 2 (18 of 18 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 3/7 (03-01 + 03-02 + 03-03 complete; 03-04..03-07 pending))
+
+**Phase 3 Plan 03 closing artifact (2026-05-06T19:30:15Z):**
+
+- 3 atomic commits in backend repo: `9539313` test(03-03) RED — 7 supertest cases under describe('Phase 3 MEDIA-07 — MEDIA_REQUIRED gate') + makeNestedFixture default seeded with 1 stub photo + 3 Plan 03-02 fixture overrides back to empty (negative-case preservation) → `6cbf3ab` feat(03-03) MEDIA_REQUIRED gate at POST /properties/:id/approve (line 87-104; pre-fetch findById projection-narrow + photos-length check BEFORE M2 atomic transition; 404 short-circuits before photos check) → `80dd45d` feat(03-03) MEDIA_REQUIRED gate at PUT /listings/:id edit-on-behalf (line 853-876; mergedPhotos-based check BETWEEN NESTED_SUBTREES deep-merge and STEP 4 status='live' mutation).
+- 2 files modified: `src/routes/moderationRoutes.js` (982 → 1029 LOC, +47 net) and `src/__tests__/moderationRoutes.test.js` (1572 → 1775 LOC, +203 net).
+- **Branch parity decision (revision 2 / W3):** edit-on-behalf handler uses a SINGLE shared code path for both `pending` and `rejected` (status filter `$in: ['pending','rejected']` at the atomic findOneAndUpdate). One gate suffices — no separate pending/rejected branches to gate. Verified by an explicit RED test 'edit-on-behalf on REJECTED listing with empty photos returns 400 (branch-parity check — single shared path)' which exercises the rejected branch through the same shared gate.
+- **Pitfall 2 race semantics acknowledged:** /approve gate uses findById (read) then atomic findOneAndUpdate (write). Concurrent media-upload between fetch and update could in theory cause a false-negative 400 (mod re-taps Approve and second tap wins). Acceptable per RESEARCH §511-522. Mongoose pre-save hook would lose the M2 race-safety atomic update; schema-required would block valid empty-photo `pending` listings.
+- 7 new supertest cases (covering both surfaces, both negative+positive paths): /approve empty/1-photo/non-existent + edit-on-behalf empty-merge/non-empty-via-original/rejected-branch-parity/non-empty-via-body. Test totals 245/245 (pre-plan) → 252/252 (post-plan, +7 = exact count of new tests). Anti-spoofing sentinel chained into npm test → exit 0; new gates write no actorUid (they short-circuit BEFORE the audit-row insert) so D-15 invariant held.
+- **Two auto-deviations:** (1) Rule 3 — default `makeNestedFixture` had `media: { photos: [], videos: [] }` which broke ~30 legacy /approve and edit-on-behalf happy-path tests under the new gate. Updated default to seed 1 stub photo (`https://stub-s3.test/photos/seed.jpg`); 3 Plan 03-02 media-upload fixtures explicitly override back to empty to preserve append-from-empty assertions. Documented per deviation_protocol as "TEST update — legacy fixtures need a photo added — not a regression in production code." (2) Rule 1 / contract change — /approve on a non-existent listing id now returns 404 (intrinsic to the new findById short-circuit) instead of the M2 409 ALREADY_MODERATED. Intentional per plan spec; new test validates the desired contract; more informative than 409 (distinguishes "no such listing" from "already moderated"). No production caller relies on the M2 409-for-missing-id behavior.
+- Verification gates green: `grep "code:\s*'MEDIA_REQUIRED'" moderationRoutes.js | wc -l` = 2 (line 104 + line 874); `grep "Property\.findById\(req\.params\.id, \{ 'media\.photos':"` = 1 (line 101 — verbatim from RESEARCH §Code Example 2); `grep "mergedPhotos"` = 3 (declaration line 870 + length check line 873 + JSDoc reference line 866); anti-spoofing sentinel exit 0; full backend suite 252/252.
+- SUMMARY at `.planning/phases/03-media-flow-inversion-admin-mod-curation/03-03-SUMMARY.md`.
 
 **Phase 3 Plan 02 closing artifact (2026-05-06T19:17:54Z):**
 
