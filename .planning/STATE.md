@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: "Contextual Forms"
 status: executing
-last_updated: "2026-05-06T08:16:11Z"
-last_activity: 2026-05-06 -- Phase 02 Plan 01 complete (backend Location dictionary + mod curation + 22 new tests; 7 atomic backend commits)
+last_updated: "2026-05-06T08:36:11.935Z"
+last_activity: 2026-05-06
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 15
-  completed_plans: 6
-  percent: 40
+  completed_plans: 7
+  percent: 47
 ---
 
 # STATE: JayTap
@@ -18,13 +18,14 @@ progress:
 ## Current Position
 
 Phase: 02 (6-step-contextual-listing-flow-client) — EXECUTING
-Plan: 2 of 9 (Plan 02-01 complete 2026-05-06)
-Status: Executing Phase 02
-Last activity: 2026-05-06 -- Phase 02 Plan 01 complete (backend Location dictionary)
+Plan: 3 of 9 (Plan 02-01 complete 2026-05-06)
+Status: Ready to execute
+Last activity: 2026-05-06
 
 Progress: [████░░░░░░] 40% (6 of 15 plans complete — Phase 1: 5/5; Phase 2: 1/9)
 
 **Operator follow-ups pending after Plan 02-01:**
+
 1. Phase 1 Atlas live migration (`01-HUMAN-UAT.md` item #1) — required before Plan 02-05/06 client read-path cutover ships.
 2. Plan 02-01 backend Railway deploy — backend repo at SHA `b2a785c` (7 atomic Plan-02-01 commits ahead of Railway).
 3. Plan 02-01 production Atlas seed (`nvm use 24 && npm run seed:locations`) — expected ≥11 approved cities + ≥19 districts.
@@ -170,10 +171,15 @@ Status: 33/35 v1 reqs COMPLETE + 2 DESCOPED (REL-03 + REL-04 per Phase 8 D-13 in
 | Phase 2 gap closures | 1 (`47a52b7` — chat KAV `behavior="padding"` after A8 disproven) |
 | Code review passes | 0 (M1 testing bar is manual physical-device QA per CLAUDE.md) |
 | Plan 03-07 timing | 10min / 3 tasks / 4 files (3 created + 1 modified) |
+| Phase 02 P02 | 25min | 7 tasks | 11 files |
 
 ## Accumulated Context
 
 ### Key decisions (from PROJECT.md, re-anchored here)
+
+- **Phase 02 / Plan 02-02 (2026-05-06):** `useTheme` lives at `src/theme/ThemeContext.tsx`; `useLanguage` lives at `src/context/LanguageContext.tsx` (singular `context/`, no `contexts/` or `providers/` directory). Plans 02-03 / 02-04a / 02-04b / 02-07 must copy `import { useTheme } from '../../theme/ThemeContext'` + `import { useLanguage } from '../../context/LanguageContext'` verbatim.
+- **Phase 02 / Plan 02-02 (2026-05-06):** RN-client component tests use `react-test-renderer` directly (matching `src/components/__tests__/Gated.test.tsx` precedent). `@testing-library/react-native` is NOT installed and is out-of-scope to add as a scaffolding-only plan. Use `ReactTestRenderer.act` + `root.findByProps({testID})` + `root.findAllByProps({testID})` for "may not exist" cases. Helpers `findByTestID` / `tryFindByTestID` are inlined in `src/components/ContextualListingFlow/__tests__/Step1.test.tsx` — extract to a shared util once a third file needs them.
+- **Phase 02 / Plan 02-02 (2026-05-06):** `<ContextualListingFlow>` orchestrator owns Android `BackHandler.addEventListener('hardwareBackPress', ...)` (W-04). When Plan 02-07 wires the orchestrator into `App.tsx`, App.tsx-level hardware-back handling MUST stand down whenever the overlay is mounted to avoid double-consumption.
 
 - **Build order is load-bearing.** Nav → Keyboard → Roles (parallel) → Form taxonomy → Form validation → Hospitality → Alignment → Release. All four research docs agree; deviating from this order creates ambiguous failures during debugging.
 - **Navigation stays custom state machine.** No migration to `react-navigation` in M1. Fixes live inside `App.tsx`.

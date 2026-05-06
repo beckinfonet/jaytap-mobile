@@ -95,7 +95,7 @@ Plans:
 
 Plans:
 - [x] 02-01-PLAN.md — Backend Location dictionary (City + District models + locationRoutes.js + moderationRoutes.js extension + seed-locations-m3.js + supertest cases + middleware extract) — completed 2026-05-06 (3 operator items pending: Phase 1 Atlas migration confirmation, Plan 02-01 Railway deploy, prod Atlas seed run)
-- [ ] 02-02-PLAN.md — <ContextualListingFlow> skeleton + Step 1 + types/validators/adapters + ~24 i18n keys + Wave 0 test scaffolds
+- [x] 02-02-PLAN.md — <ContextualListingFlow> skeleton + Step 1 + types/validators/adapters + ~24 i18n keys + Wave 0 test scaffolds
 - [ ] 02-03-PLAN.md — Step 2 (Location chips + map pin + Other modal) + Step 3 (BasicInfo conditional sub-fields) + ModerationQueueScreen Locations tab + ~49 i18n keys
 - [ ] 02-04a-PLAN.md — Step 4 (ConditionAmenities) + Step 5 (TitleDescription) + Step 4/5 validator tests + ~18 i18n keys
 - [ ] 02-04b-PLAN.md — Step 6 (DealConditions matrix per dealType) + integration test (Step 1→6 + edit-mod cell) + real submit dispatch + ~18 i18n keys
