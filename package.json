@@ -8,7 +8,8 @@
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest"
+    "test": "jest",
+    "check:atomic-deletion": "bash scripts/check-create-listing-screen-removed.sh"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
