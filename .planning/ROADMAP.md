@@ -100,7 +100,7 @@ Plans:
 - [ ] 02-04a-PLAN.md — Step 4 (ConditionAmenities) + Step 5 (TitleDescription) + Step 4/5 validator tests + ~18 i18n keys
 - [ ] 02-04b-PLAN.md — Step 6 (DealConditions matrix per dealType) + integration test (Step 1→6 + edit-mod cell) + real submit dispatch + ~18 i18n keys
 - [x] 02-05-PLAN.md — Read-path cutover Wave 1: HomeScreen + FavoritesScreen + RenterListingsScreen + OwnerListingsScreen + PropertyCard + HospitalityCard + HospitalitySection + ListingMetaTable + PropertyMap → nested shape — completed 2026-05-06 (5 atomic commits f2cf2f8 / 8a9efb6 / 5a2d64e / 583eb63 / 3f5114a; Tradeoff §K caller-side hospitality derivation `dealType !== 'sale'` applied at all 4 list screens; D-10 BISHKEK_DISTRICTS preserved; D-21 HospitalityCard top-level maxGuests + amenities preserved; formatPrice + 10 EN+RU i18n keys added; FLOW-13 closed)
-- [ ] 02-06-PLAN.md — Read-path cutover: PropertyDetailsScreen (1680 LOC own plan) → nested shape
+- [x] 02-06-PLAN.md — Read-path cutover: PropertyDetailsScreen (1680 LOC own plan) → nested shape — completed 2026-05-06 (1 atomic commit 07bc5f0; 13 flat-field families swapped; 2 map embed sites read location.coordinates.lat/lng; 5 basics?.* reads; 3 media?.* reads; D-21 maxGuests + amenities preserved; FLOW-13 RejectionBanner mounting preserved; 0 TS errors in file post-cutover, was 55; npm test 335 pass / 4 fail baseline preserved)
 - [ ] 02-07-PLAN.md — Wire <ContextualListingFlow> into App.tsx (replace isCreateListingOpen flag; mode discriminated-union dispatch per D-15/D-17)
 - [ ] 02-08-PLAN.md — Operator dry-run on iPhone 15 Pro Max + Moto G XT2513V (checkpoint plan; verifies all 3 modes + Pitfall 1 map-drag + mod-banner persistence + Locations tab — BEFORE atomic deletion)
 - [ ] 02-09-PLAN.md — Atomic deletion: DELETE CreateListingScreen.tsx + CreateListingForm/ barrel + App.tsx import; ADD scripts/check-create-listing-screen-removed.sh sentinel + package.json check:atomic-deletion script + final i18n cleanup of orphaned createListing.* keys
@@ -173,7 +173,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Schema Reshape + Backend Route Shape Cutover | 5/5 | Complete (4 operator UAT pending) | 2026-05-06 |
-| 2. 6-Step Contextual Listing Flow (Client) | 3/9 | In progress (Plans 02-01 + 02-02 + 02-05 complete; Plans 02-03/04/06/07/08/09 remaining; operator deploys pending) | — |
+| 2. 6-Step Contextual Listing Flow (Client) | 4/9 | In progress (Plans 02-01 + 02-02 + 02-05 + 02-06 complete; Plans 02-03/04/07/08/09 remaining; operator deploys pending) | — |
 | 3. Media Flow Inversion (Admin/Mod Curation) | 0/TBD | Not started | — |
 | 4. M2 Carry-Forward Bug Fixes | 0/TBD | Not started | — |
 | 5. Hardening + Manual Physical-Device QA + Release v3.0.0 | 0/TBD | Not started | — |
