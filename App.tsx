@@ -41,6 +41,8 @@ import { canFromUser } from './src/hooks/useRole';
 import PropertyDetailsHost from './src/components/PropertyDetailsHost';
 import ModerationQueueScreen from './src/screens/ModerationQueueScreen';
 import RoleManagementScreen from './src/screens/RoleManagementScreen';
+// Phase 3 Plan 03-05 — mod-only media-curation overlay (entry-points wired by Plan 03-06).
+import { MediaCurationScreen } from './src/screens/MediaCurationScreen';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -75,6 +77,12 @@ function AppContent() {
   // expects the badge to reflect the new total immediately.
   const [isModerationQueueOpen, setIsModerationQueueOpen] = useState(false);
   const [isRoleManagementOpen, setIsRoleManagementOpen] = useState(false); // Phase 5 — admin role management overlay
+  // Phase 3 Plan 03-05 — MediaCurationScreen overlay state (mod-only).
+  // Plan 03-06 will wire the entry-points (filter chips + needs-media banner CTA)
+  // that call openMediaCuration(listingId) below.
+  const [isMediaCurationOpen, setIsMediaCurationOpen] = useState(false);
+  const [currentMediaCurationListingId, setCurrentMediaCurationListingId] =
+    useState<string | null>(null);
   const [moderatorContext, setModeratorContext] = useState<{ editingOwnerUid: string; reason?: string; ownerEmail?: string } | null>(null);
   const [moderationCountRefreshKey, setModerationCountRefreshKey] = useState(0);
   const [propertyToEdit, setPropertyToEdit] = useState<Property | null>(null);
@@ -138,6 +146,7 @@ function AppContent() {
     !!activePhotosUrl,
     !!user && isModerationQueueOpen, // Phase 3 Plan 06 — moderation queue overlay
     !!user && isRoleManagementOpen,  // Phase 5 — admin role management overlay
+    !!user && isMediaCurationOpen,   // Phase 3 Plan 03-05 — media-curation overlay
   ];
   const hideMainStackUnderOverlay = OVERLAY_FLAGS.some(Boolean);
 
@@ -355,6 +364,13 @@ function AppContent() {
         setIsRoleManagementOpen(false);
         return true;
       }
+      // Phase 3 Plan 03-05 — media-curation overlay back-handler.
+      // Reset both flags (mount conditional requires both).
+      if (isMediaCurationOpen) {
+        setIsMediaCurationOpen(false);
+        setCurrentMediaCurationListingId(null);
+        return true;
+      }
       if (isLandlordApplicationOpen) {
         setIsLandlordApplicationOpen(false);
         if (returnToProfileAfterLandlordApplication) {
@@ -420,6 +436,7 @@ function AppContent() {
     isLandlordApplicationQueueOpen,
     isModerationQueueOpen,
     isRoleManagementOpen,
+    isMediaCurationOpen,
     selectedProperty,
     isScheduleViewingOpen,
     isFavoritesOpen,
@@ -567,6 +584,14 @@ function AppContent() {
   const onProfileOpenRoleManagement = useCallback(() => {
     setIsProfileOpen(false);
     setIsRoleManagementOpen(true);
+  }, []);
+  // Phase 3 Plan 03-05 — stable callback for entry-points that will trigger
+  // the MediaCurationScreen overlay (Plan 03-06 wires this from
+  // ModerationQueueScreen filter chips + the NeedsMediaBanner CTA).
+  // Receivers accept the prop as optional today to keep tsc green pre-wire.
+  const openMediaCuration = useCallback((listingId: string) => {
+    setCurrentMediaCurationListingId(listingId);
+    setIsMediaCurationOpen(true);
   }, []);
   const onProfileViewListings = useCallback(() => setIsRenterListingsOpen(true), []);
   // Phase 2 D-15 / MOD-09: HomeRejectionBanner CTA target. Opens RenterListings
@@ -1168,6 +1193,29 @@ function AppContent() {
           <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
             <RoleManagementScreen
               onBack={() => setIsRoleManagementOpen(false)}
+            />
+          </View>
+        )}
+        {/* Phase 3 Plan 03-05 — Media curation overlay (mod-only).
+            Mounts only when (a) authenticated, (b) the open flag is set, AND
+            (c) a listingId is staged. Plan 03-06 wires the entry-points that
+            call openMediaCuration(listingId). Pitfall 4: pointerEvents lives
+            in the style object — RN 0.84 deprecates the prop form. */}
+        {!!user && isMediaCurationOpen && currentMediaCurationListingId && (
+          <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
+            <MediaCurationScreen
+              listingId={currentMediaCurationListingId}
+              onClose={() => {
+                setIsMediaCurationOpen(false);
+                setCurrentMediaCurationListingId(null);
+              }}
+              onApproveSuccess={() => {
+                setIsMediaCurationOpen(false);
+                setCurrentMediaCurationListingId(null);
+                // Mirror the moderation-queue refresh-key bump pattern so the
+                // queue badge updates immediately after the moderator approves.
+                setModerationCountRefreshKey((k) => k + 1);
+              }}
             />
           </View>
         )}
