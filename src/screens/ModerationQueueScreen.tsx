@@ -45,6 +45,16 @@ import { PropertyCard } from '../components/PropertyCard';
 import RejectListingModal, { RejectReasonCode } from '../components/RejectListingModal';
 import { PermissionDeniedError } from '../hooks/useRole';
 import type { Property } from '../types/Property';
+// Plan 02-03: Locations tab — service for the new location-curation queue.
+import {
+  fetchLocationsQueue,
+  approveLocation,
+  rejectLocation,
+  type City,
+  type DistrictWithCity,
+} from '../services/locationService';
+import { TextInput } from 'react-native';
+import type { TranslationKeys } from '../locales';
 
 interface ModerationQueueScreenProps {
   onBack: () => void;
@@ -71,6 +81,23 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
   const [actingId, setActingId] = useState<string | null>(null);
   const [rejectTarget, setRejectTarget] = useState<Property | null>(null);
   const [submittingReject, setSubmittingReject] = useState(false);
+
+  // Plan 02-03: Locations tab — additive 2-tab segmented control per Tradeoff §B.
+  // Both tab bodies stay MOUNTED with display:'none' (Pitfall 3 mitigation —
+  // matches RenterListingsScreen.tsx:184-196 keep-alive pattern). Listings
+  // surface is unchanged; this is purely additive UI.
+  const [activeTab, setActiveTab] = useState<'listings' | 'locations'>('listings');
+  const [pendingCities, setPendingCities] = useState<City[]>([]);
+  const [pendingDistricts, setPendingDistricts] = useState<DistrictWithCity[]>([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
+  const [actingLocationId, setActingLocationId] = useState<string | null>(null);
+  const [rejectLocationTarget, setRejectLocationTarget] = useState<{
+    kind: 'city' | 'district';
+    id: string;
+    label: string;
+  } | null>(null);
+  const [rejectLocationNote, setRejectLocationNote] = useState('');
+  const [submittingLocationReject, setSubmittingLocationReject] = useState(false);
 
   // Per-screen cooldown ref — useRef survives re-renders; resets on screen unmount.
   const lastRefreshAt = useRef<number | null>(null);
@@ -105,6 +132,34 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
   useEffect(() => {
     load();
   }, [load]);
+
+  // Plan 02-03: Locations queue loader (mounted + fetched on first tab activation
+  // and on subsequent activeTab toggles back to 'locations'). 409 race-conflict
+  // handling reuses handleRaceConflict via a refetch (lighter UX — no toast
+  // duplication).
+  const loadLocations = useCallback(async () => {
+    setLoadingLocations(true);
+    try {
+      const { cities, districts } = await fetchLocationsQueue();
+      setPendingCities(cities);
+      setPendingDistricts(districts);
+    } catch (err: any) {
+      // PermissionDeniedError handled by router-level guard upstream; surface generic
+      // error to keep the listings tab usable.
+      Alert.alert(
+        t('common.error'),
+        err?.response?.data?.message || err?.message || t('common.errorGeneric'),
+      );
+    } finally {
+      setLoadingLocations(false);
+    }
+  }, [t]);
+
+  useEffect(() => {
+    if (activeTab === 'locations') {
+      loadLocations();
+    }
+  }, [activeTab, loadLocations]);
 
   // AppState 'active' refetch — separate subscription from AuthContext per PATTERNS §E.
   // The 60s cooldown ref is per-screen so this listener never duplicates auth's refresh
@@ -263,6 +318,153 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
     );
   };
 
+  // ===== Plan 02-03: Locations tab handlers + row renderer =====
+
+  const handleApproveLocation = (kind: 'city' | 'district', id: string, label: string) => {
+    Alert.alert(
+      t('moderation.approve.confirmTitle'),
+      label,
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('moderation.action.approve'),
+          onPress: async () => {
+            setActingLocationId(id);
+            try {
+              await approveLocation(kind, id);
+              if (kind === 'city') {
+                setPendingCities((prev) => prev.filter((c) => c._id !== id));
+              } else {
+                setPendingDistricts((prev) => prev.filter((d) => d._id !== id));
+              }
+            } catch (err: any) {
+              if (err?.response?.status === 409) {
+                // Race-conflict — refetch the queue and surface a generic
+                // already-moderated toast (reuses the listings race copy).
+                Alert.alert(t('moderation.race.title'), t('moderation.race.toast'));
+                await loadLocations();
+                return;
+              }
+              Alert.alert(
+                t('common.error'),
+                err?.response?.data?.message || err?.message || t('common.errorGeneric'),
+              );
+            } finally {
+              setActingLocationId(null);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const submitLocationReject = async () => {
+    if (!rejectLocationTarget) return;
+    setSubmittingLocationReject(true);
+    try {
+      await rejectLocation(
+        rejectLocationTarget.kind,
+        rejectLocationTarget.id,
+        rejectLocationNote.trim() || undefined,
+      );
+      if (rejectLocationTarget.kind === 'city') {
+        setPendingCities((prev) =>
+          prev.filter((c) => c._id !== rejectLocationTarget.id),
+        );
+      } else {
+        setPendingDistricts((prev) =>
+          prev.filter((d) => d._id !== rejectLocationTarget.id),
+        );
+      }
+      setRejectLocationTarget(null);
+      setRejectLocationNote('');
+    } catch (err: any) {
+      if (err?.response?.status === 409) {
+        Alert.alert(t('moderation.race.title'), t('moderation.race.toast'));
+        await loadLocations();
+        setRejectLocationTarget(null);
+        setRejectLocationNote('');
+        return;
+      }
+      Alert.alert(
+        t('common.error'),
+        err?.response?.data?.message || err?.message || t('common.errorGeneric'),
+      );
+    } finally {
+      setSubmittingLocationReject(false);
+    }
+  };
+
+  const renderLocationRow = (
+    kind: 'city' | 'district',
+    id: string,
+    title: string,
+    subtitle: string,
+  ) => {
+    const isActing = actingLocationId === id;
+    return (
+      <View
+        key={`${kind}-${id}`}
+        style={[
+          styles.queueItemShell,
+          { borderColor: colors.border, backgroundColor: colors.surface, padding: 12 },
+        ]}
+      >
+        <Text style={[styles.headerTitle, { color: colors.text, fontSize: 16 }]}>
+          {title}
+        </Text>
+        {subtitle ? (
+          <Text style={{ color: colors.textSecondary, marginTop: 4, fontSize: 13 }}>
+            {subtitle}
+          </Text>
+        ) : null}
+        <View style={[styles.actionsRowTop, { marginTop: 12 }]}>
+          <TouchableOpacity
+            style={[
+              styles.actionBtn,
+              styles.actionBtnHalf,
+              { backgroundColor: colors.success },
+            ]}
+            onPress={() => handleApproveLocation(kind, id, title)}
+            disabled={isActing}
+            activeOpacity={0.7}
+          >
+            {isActing ? (
+              <ActivityIndicator color="#FFF" size="small" />
+            ) : (
+              <Text style={styles.actionBtnText}>{t('moderation.action.approve')}</Text>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.actionBtn,
+              styles.actionBtnHalf,
+              { backgroundColor: colors.error },
+            ]}
+            onPress={() => {
+              setRejectLocationNote('');
+              setRejectLocationTarget({ kind, id, label: title });
+            }}
+            disabled={isActing}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.actionBtnText}>{t('moderation.action.reject')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  // Locations tab counts (drives tab label badges).
+  const pendingLocationsCount = pendingCities.length + pendingDistricts.length;
+  const pendingListingsCount = items.length;
+  const listingsTabLabel = t('moderation.queue.tabs.listings', {
+    count: String(pendingListingsCount),
+  });
+  const locationsTabLabel = t('moderation.queue.tabs.locations', {
+    count: String(pendingLocationsCount),
+  });
+
   return (
     <SafeAreaView
       edges={['top', 'bottom']}
@@ -282,39 +484,162 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
         <View style={{ width: 40 }} />
       </View>
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      ) : (
-        <FlatList
-          data={items}
-          // WR-03 fix — defensively coerce to String; the upstream PropertyService
-          // mapping already does this, but a belt-and-suspenders String() here
-          // protects against future regressions if items ever flow in unmapped.
-          keyExtractor={(item) => String(item.id)}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => {
-                setRefreshing(true);
-                load();
-              }}
-              tintColor={colors.primary}
-              colors={[colors.primary]}
-            />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                {t('moderation.queue.empty')}
-              </Text>
-            </View>
-          }
-        />
-      )}
+      {/* Plan 02-03: 2-tab segmented control (Tradeoff §B). */}
+      <View
+        style={[styles.tabsRow, { borderBottomColor: colors.border }]}
+        testID="moderation-queue-tabs"
+      >
+        <TouchableOpacity
+          testID="moderation-queue-tab-listings"
+          onPress={() => setActiveTab('listings')}
+          activeOpacity={0.8}
+          style={[
+            styles.tabButton,
+            activeTab === 'listings' && {
+              borderBottomColor: colors.accent,
+              borderBottomWidth: 2,
+            },
+          ]}
+          accessibilityRole="button"
+          accessibilityState={{ selected: activeTab === 'listings' }}
+        >
+          <Text
+            style={[
+              styles.tabLabel,
+              {
+                color: activeTab === 'listings' ? colors.text : colors.textSecondary,
+                fontWeight: activeTab === 'listings' ? '600' : '500',
+              },
+            ]}
+          >
+            {listingsTabLabel}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          testID="moderation-queue-tab-locations"
+          onPress={() => setActiveTab('locations')}
+          activeOpacity={0.8}
+          style={[
+            styles.tabButton,
+            activeTab === 'locations' && {
+              borderBottomColor: colors.accent,
+              borderBottomWidth: 2,
+            },
+          ]}
+          accessibilityRole="button"
+          accessibilityState={{ selected: activeTab === 'locations' }}
+        >
+          <Text
+            style={[
+              styles.tabLabel,
+              {
+                color: activeTab === 'locations' ? colors.text : colors.textSecondary,
+                fontWeight: activeTab === 'locations' ? '600' : '500',
+              },
+            ]}
+          >
+            {locationsTabLabel}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Pitfall 3 mitigation: keep BOTH lists mounted with display:'none' (matches
+          RenterListingsScreen.tsx:184-196 keep-alive pattern). Listings surface is
+          unchanged from M2 Phase 3; this is purely additive UI per Plan 02-03 Tradeoff §B. */}
+      <View
+        style={{ flex: 1, display: activeTab === 'listings' ? 'flex' : 'none' }}
+        testID="moderation-queue-tab-body-listings"
+      >
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        ) : (
+          <FlatList
+            data={items}
+            // WR-03 fix — defensively coerce to String; the upstream PropertyService
+            // mapping already does this, but a belt-and-suspenders String() here
+            // protects against future regressions if items ever flow in unmapped.
+            keyExtractor={(item) => String(item.id)}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={() => {
+                  setRefreshing(true);
+                  load();
+                }}
+                tintColor={colors.primary}
+                colors={[colors.primary]}
+              />
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                  {t('moderation.queue.empty')}
+                </Text>
+              </View>
+            }
+          />
+        )}
+      </View>
+
+      <View
+        style={{ flex: 1, display: activeTab === 'locations' ? 'flex' : 'none' }}
+        testID="moderation-queue-tab-body-locations"
+      >
+        {loadingLocations ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        ) : pendingCities.length === 0 && pendingDistricts.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              {t('moderation.queue.locations.empty')}
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={[]}
+            keyExtractor={() => '__locations__'}
+            renderItem={() => null}
+            contentContainerStyle={styles.listContent}
+            ListHeaderComponent={
+              <View>
+                {pendingCities.map((c) =>
+                  renderLocationRow(
+                    'city',
+                    c._id,
+                    `${c.label.ru} / ${c.label.en}`,
+                    c.country,
+                  ),
+                )}
+                {pendingDistricts.map((d) => {
+                  const cid = d.cityId as
+                    | string
+                    | { _id: string; slug: string; label: { ru: string; en: string } };
+                  const parent = typeof cid === 'string' ? cid : cid.slug;
+                  return renderLocationRow(
+                    'district',
+                    d._id,
+                    `${d.label.ru} / ${d.label.en}`,
+                    parent,
+                  );
+                })}
+              </View>
+            }
+            refreshControl={
+              <RefreshControl
+                refreshing={loadingLocations}
+                onRefresh={loadLocations}
+                tintColor={colors.primary}
+                colors={[colors.primary]}
+              />
+            }
+          />
+        )}
+      </View>
 
       <RejectListingModal
         visible={!!rejectTarget}
@@ -322,6 +647,86 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
         onSubmit={handleRejectSubmit}
         submitting={submittingReject}
       />
+
+      {/* Lightweight reject modal for Locations tab — re-uses common copy. */}
+      {rejectLocationTarget ? (
+        <View
+          style={styles.locationRejectOverlay}
+          testID="moderation-queue-location-reject-modal"
+        >
+          <View
+            style={[
+              styles.locationRejectSheet,
+              { backgroundColor: colors.background, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.headerTitle, { color: colors.text }]}>
+              {t('moderation.action.reject')}
+            </Text>
+            <Text style={{ color: colors.textSecondary, marginTop: 4 }}>
+              {rejectLocationTarget.label}
+            </Text>
+            <TextInput
+              testID="moderation-queue-location-reject-note"
+              value={rejectLocationNote}
+              onChangeText={setRejectLocationNote}
+              multiline
+              placeholder={t('common.cancel') as string}
+              placeholderTextColor={colors.textTertiary}
+              style={{
+                marginTop: 12,
+                minHeight: 80,
+                borderWidth: 1,
+                borderRadius: 10,
+                borderColor: colors.border,
+                color: colors.text,
+                backgroundColor: colors.inputBackground,
+                padding: 10,
+                textAlignVertical: 'top',
+              }}
+            />
+            <View style={[styles.actionsRowTop, { marginTop: 12 }]}>
+              <TouchableOpacity
+                style={[
+                  styles.actionBtn,
+                  styles.actionBtnHalf,
+                  {
+                    backgroundColor: colors.surface,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                  },
+                ]}
+                onPress={() => {
+                  setRejectLocationTarget(null);
+                  setRejectLocationNote('');
+                }}
+                disabled={submittingLocationReject}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.actionBtnText, { color: colors.text }]}>
+                  {t('common.cancel')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.actionBtn,
+                  styles.actionBtnHalf,
+                  { backgroundColor: colors.error },
+                ]}
+                onPress={submitLocationReject}
+                disabled={submittingLocationReject}
+                activeOpacity={0.7}
+              >
+                {submittingLocationReject ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <Text style={styles.actionBtnText}>{t('moderation.action.reject')}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 };
@@ -377,6 +782,43 @@ const styles = StyleSheet.create({
   emptyContainer: { paddingVertical: 60, alignItems: 'center' },
   // Empty-state heading per UI-SPEC revision 2026-05-01: 14/600/20 (was 15/600/20).
   emptyText: { fontSize: 14, fontWeight: '600', lineHeight: 20 },
+  // Plan 02-03: 2-tab segmented control styles (Tradeoff §B). Mirrors
+  // RenterListingsScreen.tsx tabsScroll/tabButton/tabLabel pattern (M2 Phase 2 D-09).
+  tabsRow: {
+    flexDirection: 'row',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomColor: 'transparent',
+    borderBottomWidth: 2,
+  },
+  tabLabel: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  // Plan 02-03: Locations tab reject modal — lightweight bottom-sheet overlay.
+  locationRejectOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  locationRejectSheet: {
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+  },
 });
 
 export default ModerationQueueScreen;
