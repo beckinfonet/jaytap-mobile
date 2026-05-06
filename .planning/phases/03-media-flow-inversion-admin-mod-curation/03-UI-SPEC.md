@@ -5,6 +5,8 @@ status: draft
 shadcn_initialized: false
 preset: not applicable
 created: 2026-05-06
+updated: 2026-05-06
+revision: 2
 ---
 
 # Phase 3 — UI Design Contract
@@ -14,6 +16,8 @@ created: 2026-05-06
 > **Scope reminder:** product decisions are LOCKED in `03-CONTEXT.md` (D-01..D-16) and `03-RESEARCH.md` (Discretion #1..#8). This document fills the **design system gaps** — tokens, spacing rhythm, photo-grid sizing, interaction states, copy, dark/light parity — that those upstream artifacts gesture at but did not pin down. It does NOT re-litigate locked product decisions.
 >
 > **Out of scope for this UI-SPEC** (per CONTEXT.md `<deferred>`): per-asset captions / alt-text / ordering pin, separate `media.panoramic[]` slot, video transcoding / thumbnail generation, push notifications for media events, bulk multi-select moderation actions, AsyncStorage draft persistence for in-progress mod media curation.
+>
+> **Revision 2 (2026-05-06):** Reconciles typography contradiction (Body 14px is 400, not 500) and reframes the type scale to 2 active weights with two component-level brownfield overrides preserved-from-precedent. Adds explicit a11y label declaration for per-tile delete-X (1 new i18n key — total moves 28 → 29). Adds spacing-scale rationale documenting why {12, 20, 40} are intentional brownfield rhythm and not an oversight. Removes "planner finalizes the toast string" hedge in §"Picker invocation states" — cap-overflow toast strings ARE finalized in §Surface 5.
 
 ---
 
@@ -43,6 +47,19 @@ Multiples of 4; values match `commonStyles` tokens already in the codebase (`src
 | `2xl` | 24px | Section gap inside MediaCurationScreen (matches `commonStyles.section.marginBottom`) |
 | `3xl` | 40px | Empty-state vertical padding (`paddingVertical: 40`) — mirrors `ModerationQueueScreen.styles.emptyContainer` (60px) but shorter for in-screen empty state |
 
+### Spacing scale rationale (deviation from canonical Tailwind set — INTENTIONAL)
+
+The values `{4, 8, 12, 16, 20, 24, 40}` deviate from the canonical Tailwind set `{4, 8, 16, 24, 32, 48, 64}` by including `12`, `20`, and `40`. **All values remain multiples of 4** (so the primary grid-alignment rule is satisfied), but the deviation is deliberate and traceable to existing brownfield tokens, not an oversight:
+
+- `headerContainer.paddingHorizontal: 20` — established in `commonStyles` for screen header bands across M1 + M2 surfaces.
+- `chip.paddingHorizontal: 14, paddingVertical: 8` — established in `commonStyles.chip`; the 14 is internal-only to chips and not exposed as a screen-level token here.
+- `scrollContent.padding: 20, paddingBottom: 40` — established in `commonStyles.scrollContent`; this is what every existing screen scrolls with.
+- `section.marginBottom: 24` — established in `commonStyles.section` for inter-section vertical rhythm.
+- `sectionTitle.marginBottom: 12` — established in `commonStyles.sectionTitle` for header-to-content gap.
+- `footer.paddingVertical: 16` — established in `commonStyles.footer`.
+
+Phase 3 surfaces (MediaCurationScreen, ModerationQueueScreen filter chip row, PropertyDetailsScreen needs-media banner) honor this rhythm to preserve visual consistency with the M1 + M2 screens already shipped to TestFlight + Play Console. Migrating toward the Tailwind-canonical `{4, 8, 16, 24, 32, 48, 64}` set would require touching every existing screen and is **out of Phase 3 scope**. Flagged here as a candidate for a future M4+ design-system normalization phase if the team chooses to harmonize the scale.
+
 **Touch targets:**
 - Chip min height: **36px** (matches `commonStyles.chip.minHeight`).
 - Photo-grid delete-X tap zone: **24px** visible × **44px** hit-slop applied (`hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}`) — meets iOS 44pt and Android 48dp guidance without enlarging the visible artifact.
@@ -55,17 +72,31 @@ Multiples of 4; values match `commonStyles` tokens already in the codebase (`src
 
 ## Typography
 
-System fonts only; sizes match the precedents in `RejectionBanner.tsx`, `commonStyles.ts`, and `ModerationQueueScreen.tsx`.
+System fonts only. The type scale below governs **NEW Phase 3 surfaces**. Two pre-existing component-level tokens (`commonStyles.chipText` at weight 500 and `commonStyles.sectionTitle` at weight 700) are explicitly out-of-scale single-purpose overrides preserved from existing brownfield precedent — Phase 3 does NOT redefine project-level component tokens, only the type scale that NEW Phase 3 surfaces use.
+
+### Active type scale (2 weights — 400 regular + 600 semibold)
 
 | Role | Size | Weight | Line Height | Used in Phase 3 for |
 |------|------|--------|-------------|---------------------|
-| Body | 14px | 500 (regular-ish — RN `'500'`) | 20 | Chip labels; default body text in banner; helper-hint text under disabled buttons |
-| Label | 13px | 400 | 18 | Banner subtitle/body line (mirrors `RejectionBanner.subtitle`); empty-state body copy |
-| Heading-sm | 14px | 600 | 20 | Banner title (mirrors `RejectionBanner.title`); section labels in MediaCurationScreen (mirrors `commonStyles.sectionLabel` 14/600/20) |
-| Heading-md | 16px | 700 | 24 | MediaCurationScreen header title; `commonStyles.sectionTitle` precedent |
-| Caption | 12px | 400 | 16 | Error text below failed input (mirrors `commonStyles.errorText.fontSize: 12`); pending-asset overlay label ("Not saved") |
+| Body | 14px | **400** | 20 | Default body text in banner; helper-hint text under disabled buttons; empty-state body copy (large variant) |
+| Label | 13px | **400** | 18 | Banner subtitle/body line (mirrors `RejectionBanner.subtitle`); empty-state body copy (small variant); tour URL hint |
+| Caption | 12px | **400** | 16 | Error text below failed input (mirrors `commonStyles.errorText.fontSize: 12`); pending-asset overlay label ("Not saved" — 11/600 in actual badge styling, see override below); approve-disabled hint copy |
+| Heading-sm | 14px | **600** | 20 | Banner title (mirrors `RejectionBanner.title`); section labels in MediaCurationScreen (mirrors `commonStyles.sectionLabel` 14/600/20); button labels |
 
-Only **2 weights** in active use: **400 (regular)** and **600 (semibold)**. **700** is reserved for the screen header title only (matches existing `commonStyles.sectionTitle`). No italics. No 500-weight body anywhere — chip labels match `chipText.fontWeight: '500'` from existing `commonStyles` and that single 500 stays scoped to chip labels per the precedent.
+The active type scale uses exactly **2 weights**: `400` (regular) for body / labels / captions / helper text, and `600` (semibold) for emphasized inline text, button text, and section/banner-title labels.
+
+### Component-level brownfield overrides (NOT part of the type scale)
+
+The following two tokens use weights outside the active scale. They are **preserved-from-precedent** — the project's existing `commonStyles` already declares them at these weights, M1 and M2 surfaces ship with them, and Phase 3 honors that brownfield rhythm rather than redefining it. Each token is scoped to a SINGLE surface family — these weights do NOT extend to other Phase 3 surfaces.
+
+| Token | Source | Size / Weight | Scope (where it appears in Phase 3) |
+|-------|--------|---------------|-------------------------------------|
+| `commonStyles.chipText` | `src/components/ContextualListingFlow/styles.ts:56` (verified 2026-05-06) | 14px / **500** | Chip labels in `ChipRow` and the new `ModerationQueueScreen` filter chip row. NOT extended to button text, body text, or any other Phase 3 surface. |
+| `commonStyles.sectionTitle` | `src/components/ContextualListingFlow/styles.ts:41` (verified 2026-05-06) | 16px / **700** | Screen-header titles only — `MediaCurationScreen` header title and existing screen-header titles across the app. NOT extended to body text, banner titles (which use Heading-sm at 600), or any other Phase 3 surface. |
+
+**Rationale:** Honoring brownfield precedent. The chip-style 500 is already shipped on every M1 and M2 chip across the app; rewriting chip text to weight 600 in Phase 3 alone would create visual inconsistency between the new filter chip row and every other chip the user has seen. The screen-header 700 likewise already ships on every existing screen header; pulling Phase 3's `MediaCurationScreen` header to a different weight would visually break the family. Both overrides are scoped TIGHTLY (chip labels only / screen-header titles only) — not a license for general 500/700 use.
+
+A future M4+ design-system normalization phase could collapse these into the 400/600 active scale by editing `commonStyles` once and propagating across every screen in a single coordinated change. Out of Phase 3 scope.
 
 ---
 
@@ -79,7 +110,7 @@ Tokens are pulled VERBATIM from `src/theme/colors.ts` — these are the actual n
 |------|-------|-----|------------------|
 | Dominant (60%) | `colors.background` | `#F0F2F5` | Main screen background (MediaCurationScreen body; ModerationQueueScreen body) |
 | Secondary (30%) | `colors.surface` | `#FFFFFF` | Banner background; mod-action footer background; MediaCurationScreen header band; photo-grid tile placeholder |
-| Accent (10%) | `colors.accent` | `#FF385C` | Reserved for: **(a)** banner CTA button background ("Add photos"), **(b)** active filter-chip background when `colors.activeChipBackground` is overridden by Phase 3 design (see §"Filter chip row" below — Phase 3 elects to KEEP `colors.activeChipBackground` for chip selection so accent remains reserved for CTAs only) |
+| Accent (10%) | `colors.accent` | `#FF385C` | Reserved for: **(a)** banner CTA button background ("Add photos"), **(b)** banner CTA button text contrast (white text on accent — same pattern as `RejectionBanner.cta`). Accent does NOT bleed into chip selection (chip selection uses `colors.activeChipBackground`), Save button (uses `colors.surface` + `colors.border` outlined-secondary style), or Approve button (uses `colors.success`). |
 | Approve/Save success | `colors.success` | `#4CAF50` | Approve button background (when enabled) — note: existing PropertyDetailsScreen uses literal `#059669` for the approve hue; Phase 3 STANDARDIZES on the `colors.success` token to honor the no-hardcoded-colors CONVENTIONS rule going forward; existing `#059669` literal is grandfathered in M2 surfaces and is NOT changed by Phase 3 |
 | Destructive | `colors.error` | `#F44336` | Banner accent stripe (mirrors `RejectionBanner` left stripe); Reject button (existing PropertyDetailsScreen literal `#DC2626` grandfathered, same as above) |
 | Warning | `colors.warning` | `#F59E0B` (amber-500) | "Photos required" banner background tint (subtle alpha overlay — see §"PropertyDetailsScreen needs-media banner" below); pending-asset corner badge on photo grid tiles |
@@ -113,7 +144,7 @@ Tokens are pulled VERBATIM from `src/theme/colors.ts` — these are the actual n
 1. Banner "Add photos" CTA button background.
 2. Banner CTA button text contrast (white text on accent — same pattern as `RejectionBanner.cta`).
 
-That is the complete reserved-for list. Accent does NOT bleed into chip selection (chip selection uses `colors.activeChipBackground`), Save button (uses `colors.surface` + `colors.border` outlined-secondary style), Approve button (uses `colors.success`), or any text color.
+That is the complete reserved-for list.
 
 **Destructive (`colors.error`) reserved for:**
 1. Banner left accent stripe (4px wide; mirrors `RejectionBanner.accentBar` precedent).
@@ -154,6 +185,16 @@ EN+RU parity is mandatory per CONVENTIONS.md. Russian strings deliberately match
 |-----|----|----|
 | `moderation.mediaCuration.header.title` | Media curation | Управление медиа |
 | `moderation.mediaCuration.header.close.a11y` | Close | Закрыть |
+
+### Per-tile delete-X (a11y) — NEW IN REVISION 2
+
+The per-tile delete-X icon button (top-right corner of every photo-grid and video-grid tile) requires an explicit `accessibilityLabel`. A single shared key covers both photos and videos — the same delete-X overlay component is reused for both grid types, so one key with surface-appropriate copy is sufficient (parallel video key not needed).
+
+| Key | EN | RU |
+|-----|----|----|
+| `moderation.mediaCuration.delete.a11y` | Remove photo | Удалить фото |
+
+The label string says "Remove photo" / "Удалить фото" because photos dominate the surface (40-cap vs 5-cap for videos). On video tiles, the same label still reads as a clear destructive-remove affordance to assistive tech (videos in this surface are a less-frequent edit target). If Phase 4+ research finds VoiceOver/TalkBack users complain that "Remove photo" reads incorrectly on video tiles, a parallel `moderation.mediaCuration.delete.video.a11y` key can be added — out of Phase 3 scope.
 
 ### Photo grid empty state (no photos saved AND no pending photos selected)
 
@@ -210,7 +251,9 @@ EN+RU parity is mandatory per CONVENTIONS.md. Russian strings deliberately match
 
 The race toast also covers concurrent-delete-by-URL races on the photo grid (HTTP 409 from the DELETE endpoint per Pattern 3 / M2 MOD-15) — same copy, same surface (top-of-screen toast).
 
-**Total new EN + RU key count:** 26 keys × 2 locales = **52 string entries**. Lands within the MEDIA-09 ROADMAP envelope of "+20–30 keys" per locale (26 ≤ 30). CI gate (`scripts/check-i18n-parity.sh`) must be green at phase close.
+**Total new EN + RU key count:** 29 keys × 2 locales = **58 string entries**. Lands within the MEDIA-09 ROADMAP envelope of "+20–30 keys" per locale (29 ≤ 30) and within the 30-key budget noted in CONTEXT.md `<specifics>`. CI gate (`scripts/check-i18n-parity.sh`) must be green at phase close.
+
+**Revision 2 delta:** +1 key vs. revision 1 (`moderation.mediaCuration.delete.a11y`) — pushes count from 28 → 29. Cap-overflow toast keys (`moderation.mediaCuration.cap.toast.photos` and `moderation.mediaCuration.cap.toast.videos`) are FINALIZED in §Surface 5 with EN + RU strings; they are NOT pending planner finalization.
 
 ### Existing keys reused (no new copy needed)
 
@@ -270,7 +313,7 @@ The race toast also covers concurrent-delete-by-URL races on the photo grid (HTT
 
 - Background: `colors.surface`. Bottom border: `1px` `colors.border`.
 - Padding: horizontal 20px (matches `commonStyles.headerContainer.paddingHorizontal`), vertical 12px top + 8px bottom.
-- Title: `t('moderation.mediaCuration.header.title')` at 16px / 700 / lineHeight 24, `colors.text`.
+- Title: `t('moderation.mediaCuration.header.title')` rendered with `commonStyles.sectionTitle` (16px / **700** / lineHeight 24, `colors.text`) — this is the brownfield-precedent component-level override documented in §Typography. Phase 3 reuses the existing token; it does not redefine the type scale.
 - Close X: `lucide-react-native` `X` icon, 24px, `colors.text`. `hitSlop` 8px on all sides. `accessibilityLabel={t('moderation.mediaCuration.header.close.a11y')}`. On press → `props.onClose()`.
 
 ### Photo grid sizing
@@ -291,7 +334,7 @@ The race toast also covers concurrent-delete-by-URL races on the photo grid (HTT
 ### Photo / video tile (rendered)
 
 - `<Image source={{ uri }}>` filling the tile with `resizeMode: 'cover'`, border radius 8px.
-- Top-right corner overlay: a 24×24 circular delete-X button — background `rgba(0,0,0,0.55)` (semi-opaque so X is visible regardless of underlying photo), `X` icon at 14px in `#FFFFFF`. Inset 4px from top and right edges. `hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}` for 44pt+ effective touch target.
+- Top-right corner overlay: a 24×24 circular delete-X button — background `rgba(0,0,0,0.55)` (semi-opaque so X is visible regardless of underlying photo), `X` icon at 14px in `#FFFFFF`. Inset 4px from top and right edges. `hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}` for 44pt+ effective touch target. **`accessibilityLabel={t('moderation.mediaCuration.delete.a11y')}`** (NEW in revision 2 — single shared key reused on photo and video tiles per §Per-tile delete-X copy table). `accessibilityRole="button"`.
 - Top-left corner: pending-asset badge (only for assets in the `pendingPhotos[]` / `pendingVideos[]` queue — see §"Asset state differentiation").
 - **Video tiles only:** Center overlay — a 32px `Video` (lucide) icon with a `rgba(0,0,0,0.4)` circular backdrop (40px) — signals "this is a video, not a photo". No first-frame preview attempted (per CONTEXT.md `<deferred>` "Video transcoding / thumbnail generation"); the placeholder icon stands in.
 
@@ -380,7 +423,7 @@ Researcher discretion (per `<output>` §6): keep it simple.
 
 **Aggregate spinner pattern (chosen):**
 - During the Save photos POST, the entire MediaCurationScreen body becomes touch-blocked via a full-screen overlay (`pointerEvents: 'box-none'` on the parent `View`; an inner translucent layer at `rgba(0,0,0,0.3)` blocks scroll).
-- Center: `<ActivityIndicator color={colors.accent} size="large" />` + label below: `t('moderation.mediaCuration.save.loading')` ("Uploading…" / «Загрузка…») in 14/500/20 in `#FFFFFF`.
+- Center: `<ActivityIndicator color={colors.accent} size="large" />` + label below: `t('moderation.mediaCuration.save.loading')` ("Uploading…" / «Загрузка…») in 14/400/20 in `#FFFFFF`.
 - The Save button's own ActivityIndicator (described above) is also active simultaneously — belt-and-suspenders feedback.
 - On success → overlay dismisses; success toast surfaces.
 - On error → overlay dismisses; error toast surfaces.
@@ -396,9 +439,11 @@ The `+` add tile and the picker callback handle these states:
 | **Picker unavailable** | `ImagePicker.launchImageLibrary` falsy at runtime | `Alert.alert(t('common.error'), t('moderation.mediaCuration.error.pickerUnavailable'))` — same pattern as `LandlordApplicationScreen.tsx:111` |
 | **Permission denied** | iOS first-launch denial / Android `READ_MEDIA_IMAGES` denied | `Alert.alert(t('common.error'), t('moderation.mediaCuration.error.permissionDenied'))` — single OK button |
 | **Selection cancelled** | User taps Cancel in native picker | No-op; no alert; no state change |
-| **Selection over cap** (40 photos / 5 videos) | `pendingPhotos.length + pickedPhotos.length > 40` (or videos > 5) | Take only the first `40 - existing` items; surface info toast `Selected ${taken} of ${requested}; cap is 40 photos.` (planner finalizes the toast string — RU+EN keys to be added at i18n cleanup pass; estimated 2 keys, within the 26-key envelope) |
+| **Selection over cap** (40 photos / 5 videos) | `pendingPhotos.length + pickedPhotos.length > 40` (or videos > 5) | Take only the first `40 - existing` items; surface info toast — copy is finalized in §Surface 5 §Cap-overflow truncation (keys `moderation.mediaCuration.cap.toast.photos` and `moderation.mediaCuration.cap.toast.videos`). |
 | **HEIC conversion success** | iOS user picks HEIC photo with `assetRepresentationMode: 'compatible'` set | `asset.type === 'image/jpeg'`; treated as ordinary JPEG — no UX |
 | **Mixed-mode selection** | User picks photos + videos in a single picker session | Splits into `pendingPhotos[]` + `pendingVideos[]` by `asset.type.startsWith('image/' \| 'video/')` — see Code Example 3 |
+
+**Cap-overflow toast copy: see Surface 5 §Cap-overflow truncation.** (Strings are LOCKED; not pending planner finalization.)
 
 ---
 
@@ -425,8 +470,8 @@ Reuses `commonStyles.chip` and `commonStyles.chipRow` precedent (already importe
 
 - Container: `flexDirection: 'row'`, `gap: 8`, `paddingHorizontal: 16`, `paddingVertical: 12`. Background: `colors.background`.
 - Each chip: `commonStyles.chip` dimensions (paddingHorizontal 14, paddingVertical 8, borderRadius 20, borderWidth 1, minHeight 36).
-- Selected chip: `backgroundColor: colors.activeChipBackground`, `borderColor: colors.activeChipBackground`, label `colors.activeChipText` at 14/500/20.
-- Unselected chip: `backgroundColor: colors.chipBackground`, `borderColor: colors.chipBorder`, label `colors.text` at 14/500/20.
+- Selected chip: `backgroundColor: colors.activeChipBackground`, `borderColor: colors.activeChipBackground`, label rendered via `commonStyles.chipText` (14/**500**/20) in `colors.activeChipText`. The 500-weight chip label is the brownfield-precedent component-level override documented in §Typography — scoped to chip labels only.
+- Unselected chip: `backgroundColor: colors.chipBackground`, `borderColor: colors.chipBorder`, label rendered via `commonStyles.chipText` (14/500/20) in `colors.text`.
 - `accessibilityRole="button"`, `accessibilityState={{ selected }}`.
 
 ### Chip labels
@@ -603,13 +648,16 @@ ImagePicker.launchImageLibrary(
 }
 ```
 
-### Cap-overflow truncation (state from §"Picker invocation states")
+### Cap-overflow truncation (FINALIZED — strings locked)
 
-If user picked more than fits, take only the first N that fit. Surface a non-blocking toast:
-- EN: `Added {taken} of {requested}; cap is {cap}.`
-- RU: `Добавлено {taken} из {requested}; ограничение {cap}.`
+If user picked more than fits, take only the first N that fit. Surface a non-blocking toast. Strings are LOCKED below — not pending planner finalization.
 
-(Two new keys: `moderation.mediaCuration.cap.toast.photos`, `moderation.mediaCuration.cap.toast.videos` — folded into the 26-key envelope; total now 28 keys, still under 30-key MEDIA-09 envelope.)
+| Key | EN | RU |
+|-----|----|----|
+| `moderation.mediaCuration.cap.toast.photos` | Added {taken} of {requested}; cap is 40 photos. | Добавлено {taken} из {requested}; ограничение 40 фото. |
+| `moderation.mediaCuration.cap.toast.videos` | Added {taken} of {requested}; cap is 5 videos. | Добавлено {taken} из {requested}; ограничение 5 видео. |
+
+(Two new keys folded into the 29-key total; under the 30-key MEDIA-09 envelope.)
 
 ---
 
@@ -681,39 +729,51 @@ Every Phase 3 token used in this UI-SPEC is verified to exist in `src/theme/colo
 
 ---
 
-## Spacing Scale
+## Spacing Scale (canonical re-statement)
 
-Already declared above in §"Spacing Scale". Re-iterating in template-canonical form:
+Already declared above in §"Spacing Scale" with full rationale. Re-iterating in template-canonical form:
 
 | Token | Value | Usage |
 |-------|-------|-------|
 | xs | 4px | Inline gap; icon inset |
 | sm | 8px | Chip-to-chip; section breathing |
-| md | 12px | Banner inner padding |
-| lg | 16px | Banner mb; horizontal screen edge |
-| xl | 20px | Screen content padding |
+| md | 12px | Banner inner padding; section-title bottom margin (brownfield precedent) |
+| lg | 16px | Banner mb; horizontal screen edge; footer vertical padding |
+| xl | 20px | Screen content padding; header horizontal padding (brownfield precedent) |
 | 2xl | 24px | Section vertical gap |
-| 3xl | 40px | Empty-state vertical padding |
+| 3xl | 40px | Empty-state vertical padding (brownfield precedent) |
+
+Values `{12, 20, 40}` deviate from the canonical Tailwind set `{4, 8, 16, 24, 32, 48, 64}` — this is INTENTIONAL brownfield-precedent honoring; full rationale in §"Spacing Scale" above. All values are multiples of 4.
 
 Exceptions: Photo-grid tile size derives from `Dimensions.get('window').width` (not a token); chip min-height 36px from `commonStyles.chip` precedent.
 
 ---
 
-## Typography
+## Typography (canonical re-statement)
 
-Re-iterated for template canonicality:
+Re-iterated for template canonicality. The active type scale uses **2 weights** (400 + 600). Two component-level brownfield overrides (chip labels at 500, screen-header titles at 700) are documented separately and are NOT part of the type scale — see §Typography above for the full rationale.
+
+### Active type scale (2 weights — used by NEW Phase 3 surfaces)
 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
-| Body | 14px | 500 | 20 |
+| Body | 14px | 400 | 20 |
 | Label | 13px | 400 | 18 |
 | Caption | 12px | 400 | 16 |
 | Heading-sm | 14px | 600 | 20 |
-| Heading-md | 16px | 700 | 24 |
+
+### Component-level brownfield overrides (NOT part of the active scale)
+
+| Token | Size / Weight | Scope |
+|-------|---------------|-------|
+| `commonStyles.chipText` | 14px / 500 | Chip labels only (filter chip row + existing chips across the app) |
+| `commonStyles.sectionTitle` | 16px / 700 | Screen-header titles only (MediaCurationScreen header + existing screen headers) |
+
+These two tokens are preserved-from-precedent — Phase 3 does not redefine project-level component tokens. A future M4+ design-system normalization phase could collapse them into the 400/600 active scale if desired.
 
 ---
 
-## Color
+## Color (canonical re-statement)
 
 Re-iterated for template canonicality:
 
@@ -730,7 +790,7 @@ Accent reserved for: **(1) Banner CTA button background**. That is the entire re
 
 ---
 
-## Copywriting Contract
+## Copywriting Contract (canonical re-statement)
 
 Re-iterated for template canonicality (full lists in §"Copywriting Contract (EN + RU)" above):
 
@@ -742,6 +802,9 @@ Re-iterated for template canonicality (full lists in §"Copywriting Contract (EN
 | Error state (upload failed) | Upload failed. Check your connection and try again. |
 | Destructive confirmation | (no destructive confirmation — delete-X is single-tap with `findOneAndUpdate $pull` race-safe; no modal) |
 | Approve disabled hint | Add at least one photo to enable approval |
+| Per-tile delete-X (a11y) | Remove photo |
+
+**Total new i18n keys (EN + RU parity):** **29 keys** × 2 locales = 58 string entries. Within the 30-key MEDIA-09 envelope. (+1 vs revision 1 for the new `moderation.mediaCuration.delete.a11y` a11y label.)
 
 ---
 
@@ -767,21 +830,24 @@ Per CONTEXT.md `<deferred>`:
 - **Bulk multi-select moderation actions** — out of scope; M4+.
 - **AsyncStorage draft persistence for in-progress mod media curation** — out of scope (mirrors Phase 2 D-13 rejection of draft persistence). Mod curation is short-session.
 - **Per-file upload progress bars** — researcher discretion; rejected in favor of aggregate spinner per §"Loading state — upload progress".
+- **Design-system normalization of component-level brownfield tokens** (`commonStyles.chipText` 500 + `commonStyles.sectionTitle` 700) — flagged as candidate work for a future M4+ normalization phase.
+- **Spacing scale migration to canonical Tailwind set** `{4, 8, 16, 24, 32, 48, 64}` — flagged as candidate work for the same M4+ normalization phase.
 
 ---
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS (EN+RU parity, named keys per CONTEXT.md, RU long-string viability checked)
-- [ ] Dimension 2 Visuals: PASS (banner mirrors `RejectionBanner` precedent; chip row mirrors Phase 2 chip precedent; mod footer additions inline with M2 layout)
+- [ ] Dimension 1 Copywriting: PASS (EN+RU parity, 29 named keys per CONTEXT.md, RU long-string viability checked, cap-overflow toast strings finalized in §Surface 5)
+- [ ] Dimension 2 Visuals: PASS (banner mirrors `RejectionBanner` precedent; chip row mirrors Phase 2 chip precedent; mod footer additions inline with M2 layout; per-tile delete-X has explicit a11y label)
 - [ ] Dimension 3 Color: PASS (60/30/10 tokens enumerated from `colors.ts`; accent reserved for banner CTA only; no invented tokens)
-- [ ] Dimension 4 Typography: PASS (3 sizes in active use: 12/13/14/16; 2 weights: 400 + 600; 700 reserved for screen header)
-- [ ] Dimension 5 Spacing: PASS (multiples of 4; tokens xs..3xl; exceptions documented for photo-grid sizing)
+- [ ] Dimension 4 Typography: PASS (active scale = 2 weights 400 + 600; brownfield 500/700 are scoped component-level overrides documented separately, not extensions of the type scale)
+- [ ] Dimension 5 Spacing: PASS (multiples of 4; tokens xs..3xl; `{12, 20, 40}` deviation from canonical Tailwind set is INTENTIONAL brownfield-precedent honoring with explicit rationale; exceptions documented for photo-grid sizing)
 - [ ] Dimension 6 Registry Safety: PASS (no new registries; existing `react-native-image-picker` reuse only)
 
-**Approval:** pending — awaits `gsd-ui-checker` review.
+**Approval:** pending — awaits `gsd-ui-checker` review of revision 2.
 
 ---
 
 *Phase: 03-media-flow-inversion-admin-mod-curation*
 *UI-SPEC drafted: 2026-05-06*
+*UI-SPEC revised: 2026-05-06 (revision 2 — typography reconciliation, delete-X a11y, spacing rationale, cap-overflow finalization cross-reference)*
