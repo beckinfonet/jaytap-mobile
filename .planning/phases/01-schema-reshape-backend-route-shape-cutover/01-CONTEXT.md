@@ -258,7 +258,181 @@ Reshape the `Property` Mongoose schema in `JayTap-services` from M2's flat shape
 
 </deferred>
 
+<rollback>
+## Rollback (D-17 operator runbook)
+
+**Status:** drafted by `/gsd-plan-phase 1` (Plan 05 Task 2). The Atlas snapshot timestamp + cutover commit SHA are filled in by the operator at deploy time.
+
+### Atlas tier confirmation (Wave 0 of execute-phase — RESEARCH Pitfall 5)
+
+Before running ANY migration command, the operator must confirm the JayTap MongoDB Atlas tier so the snapshot path is known:
+
+1. Log into Atlas console (https://cloud.mongodb.com) → JayTap cluster.
+2. Read the cluster's tier from the cluster card. Branch:
+   - **M10+ paid tier:** ✅ On-demand snapshot UI is available. Capture via Atlas UI → Backup → "Take a snapshot now". Record timestamp below.
+   - **Flex (Serverless) tier:** ⚠️ Atlas takes daily snapshots automatically; cannot trigger on-demand. Note the timestamp of the most-recent automatic snapshot. Record below.
+   - **M0 free tier:** ❌ Snapshot UI is NOT available. MUST use `mongodump` fallback (see §"Atlas M0 fallback" below). Record `mongodump` archive path below.
+3. Record the chosen path:
+
+> **Atlas tier (operator fills in):** ___________________________
+> **Snapshot timestamp OR mongodump archive path:** ___________________________
+> **Captured at (UTC):** ___________________________
+
+### Atlas M0 fallback — `mongodump`
+
+If Atlas tier is M0 (free), use `mongodump` to capture a local backup BEFORE migration. Source: RESEARCH §"Code Example 6".
+
+```bash
+# 1. Dump full DB to ./mongodump-pre-m3-{timestamp}/
+cd /Users/beckmaldinVL/development/mobileApps/backend-services/JayTap-services
+nvm use 24
+TIMESTAMP=$(date -u +%Y%m%dT%H%M%SZ)
+mongodump --uri "$MONGO_URI" --out "./mongodump-pre-m3-${TIMESTAMP}"
+
+# 2. Tar + compress for archival
+tar -czf "mongodump-pre-m3-${TIMESTAMP}.tar.gz" "./mongodump-pre-m3-${TIMESTAMP}"
+
+# 3. Verify archive integrity
+tar -tzf "mongodump-pre-m3-${TIMESTAMP}.tar.gz" | head -5
+```
+
+**Restore command (rollback path — keep handy):**
+```bash
+mongorestore --uri "$MONGO_URI" --drop "./mongodump-pre-m3-${TIMESTAMP}"
+# --drop wipes the existing collection before restore; without it, mongorestore appends.
+```
+
+### Pre-cutover tester comms (RESEARCH Pitfall 7)
+
+Send to internal testers (TestFlight build 27 / Play Internal versionCode 30) BEFORE the cutover commit deploys. Copy-paste template:
+
+> **Subject:** JayTap M3 Phase 1 cutover — temporary client breakage expected ({YYYY-MM-DD})
+>
+> **Body:**
+> Hi team,
+>
+> Heads-up: backend cutover lands on **{date}** for the M3 schema reshape (flat→nested). Expect the M2 builds (TestFlight build 27 / Play Internal versionCode 30) to show blank lists or errors on Home, Favorites, RenterListings, OwnerListings, PropertyDetails — this is by design (atomic-break per Phase 1 D-01; no transformer / no compat window).
+>
+> Phase 2 client build (TestFlight ~28 / Play Internal ~31) ships **{date+N}** with nested-aware reads — install when notified. Until then, no need to file bug reports about list screens; we know.
+>
+> Action items: nothing on your end. Just don't be surprised by blank lists for ~{N} days.
+>
+> Cheers,
+> {operator name}
+
+### Operator command sequence (D-02 verbatim — M2 Plan 02-02 adapted)
+
+**Step 1 — Pre-flight: confirm MONGO_URI is exported in operator's shell:**
+```bash
+cd /Users/beckmaldinVL/development/mobileApps/backend-services/JayTap-services
+nvm use 24
+node -e "console.log('MONGO_URI present:', !!process.env.MONGO_URI, 'starts with:', (process.env.MONGO_URI || '').slice(0, 25))"
+# If MONGO_URI is missing OR points at staging/localhost: ABORT. Set MONGO_URI=mongodb+srv://... per HF-02 secret-rotation runbook.
+```
+
+**Step 2 — Atlas snapshot (or mongodump fallback per tier above) captured. Timestamp recorded.**
+
+**Step 3 — Dry-run:**
+```bash
+cd /Users/beckmaldinVL/development/mobileApps/backend-services/JayTap-services && nvm use 24 && \
+  npm run migrate:listings-m3 -- --dry-run 2>&1 | tee /tmp/jaytap-migrate-listings-m3-dryrun.log
+```
+
+**Operator visually inspects the dry-run output** (operator must pipe stdout to a private terminal session, not a shared Slack/screen-share — sample preview may include ownerUid / instagramUrl from real docs):
+- `Docs needing migration: <N>` — does N match expectations? M1+M2 mock data is ~dozens-to-low-hundreds.
+- 3 propertyType-biased sample blocks (apartment + commercial + hotel) — do BEFORE/AFTER JSON shapes look correct?
+  - apartment sample: `BEFORE` has flat `address`/`bedrooms`/`rooms` (numeric); `AFTER` has nested `location.{city, district, coordinates}`, `basics.rooms` ('1'/'2'/'3'/'4+').
+  - commercial sample: similar shape; `basics.rooms` populated.
+  - hotel sample: `basics.hotelRooms` populated (NOT `basics.rooms`); `location.showExactAddress: true`.
+- If any sample looks wrong (e.g., `dealType: undefined` for legacy `type:'rent'` row, missing `media.photos[0]` when legacy `images[0]` had a value), ABORT and investigate.
+
+**Step 4 — Live migration (operator approval required between Step 3 and Step 4):**
+```bash
+cd /Users/beckmaldinVL/development/mobileApps/backend-services/JayTap-services && nvm use 24 && \
+  npm run migrate:listings-m3 2>&1 | tee /tmp/jaytap-migrate-listings-m3-live.log
+```
+Acceptance line in stdout: `ACCEPTANCE MET (SCHEMA-02): db.properties.countDocuments({location:{$exists:false}}) === 0`.
+
+**Step 5 — Verify gate (REQUIREMENTS.md SCHEMA-02 verbatim):**
+```bash
+cd /Users/beckmaldinVL/development/mobileApps/backend-services/JayTap-services && nvm use 24 && \
+  npm run migrate:listings-m3 -- --verify=PASS 2>&1 | tee /tmp/jaytap-migrate-listings-m3-verify.log; \
+  echo "VERIFY EXIT CODE: $?"
+```
+Exit code 0 = PASS. Exit code 1 = FAIL (stragglers exist; investigate). Exit code 2 = misuse (re-run with `=PASS` suffix).
+
+**Step 6 — Cutover commit deploy:**
+```bash
+# In the BACKEND repo:
+cd /Users/beckmaldinVL/development/mobileApps/backend-services/JayTap-services
+git push  # Railway pulls + redeploys (Plan 03 + Plan 04 commits land at this push)
+```
+The cutover commit SHA is the FIRST commit after the migration runs successfully (ROADMAP SC #4). Plan 03 propertyRoutes cutover lands at `c4bf01d`; Plan 04 moderationRoutes cutover lands at `f8197ba` — combined post-Plan-04 backend SHA `f8197ba` is the cutover head. Record below:
+
+> **Cutover commit SHA (operator fills in):** ___________________________
+> **Pushed at (UTC):** ___________________________
+
+**Step 7 — Smoke test (RESEARCH Pitfall 6 — retry/backoff for Railway redeploy timing window):**
+```bash
+# Retry loop — Railway redeploy may take 30s-3min; first 502 is not a failure
+for i in 1 2 3 4 5; do
+  echo "--- Smoke test attempt $i ---"
+  # Anonymous list — expect array of nested-shape docs
+  curl -s "https://${RAILWAY_PROD_URL}/api/properties" | jq '.[0] | {location, basics, content, address}' | tee /tmp/smoke-list-attempt-$i.json
+  # Anonymous deep-link (replace <listing-id> with seed-listing-id from --verify output)
+  curl -s "https://${RAILWAY_PROD_URL}/api/properties/<listing-id>" | jq '{location, basics, owner, address}' | tee /tmp/smoke-detail-attempt-$i.json
+  # Mod-token queue
+  curl -s -H "Authorization: Bearer ${MOD_TOKEN}" "https://${RAILWAY_PROD_URL}/api/moderation/queue" | jq '.items[0] | {location, basics, address}' | tee /tmp/smoke-queue-attempt-$i.json
+
+  # Acceptance check: each response has .location.city defined AND .address undefined
+  if jq -e '.location.city != null and .address == null' /tmp/smoke-list-attempt-$i.json && \
+     jq -e '.location.city != null and .address == null' /tmp/smoke-detail-attempt-$i.json && \
+     jq -e '.location.city != null and .address == null' /tmp/smoke-queue-attempt-$i.json; then
+    echo "SMOKE TEST PASS on attempt $i"
+    break
+  fi
+  sleep 30
+done
+```
+
+Acceptance: each response has `.location.city` populated AND `.address` undefined (no flat-shape leakage). Optional second-tier check: POST a flat-shape body to `/api/properties` and assert the response code is `M3_NESTED_BODY_REQUIRED` (Plan 03 atomic-break sentinel) — confirms route layer is on the cutover commit, not stale.
+
+### Reverse-rollback procedure (D-16 — Atlas snapshot is the rollback mechanism, NOT a reverse migration script)
+
+If smoke test fails OR a downstream issue surfaces post-cutover:
+
+1. **Revert the cutover commit on the backend repo:**
+   ```bash
+   cd /Users/beckmaldinVL/development/mobileApps/backend-services/JayTap-services
+   git revert <CUTOVER_COMMIT_SHA>
+   git push  # Railway redeploys with M2 flat-shape route reads
+   ```
+
+2. **Restore the Mongo data from snapshot:**
+   - **M10+ tier:** Atlas UI → Backup → "Restore" → select the snapshot timestamp recorded above → confirm.
+   - **Flex tier:** Atlas UI → Backup → select most-recent automatic snapshot → restore.
+   - **M0 free tier:** `mongorestore --uri "$MONGO_URI" --drop "./mongodump-pre-m3-${TIMESTAMP}"` (with `--drop` flag — wipes nested-shape data, restores flat).
+
+3. **Verify rollback:**
+   ```bash
+   cd /Users/beckmaldinVL/development/mobileApps/backend-services/JayTap-services && nvm use 24 && \
+     node -e "const M = require('./src/models/Property'); M.countDocuments({address: {\$exists: true}}).then(c => console.log('Flat-shape docs (address top-level):', c)); process.exit(0);"
+   # Should return > 0 (flat shape restored).
+   ```
+
+4. **Tester comms (post-rollback):** Send a follow-up to internal testers — "Phase 1 cutover rolled back; M2 builds work again; investigating; new ETA TBD."
+
+**Loss profile:** Any data written between the snapshot capture (Step 2) and the rollback execution is LOST. Acceptable per CONTEXT.md D-16: M1+M2 listings are mock data; tester writes during the cutover window are accepted-loss.
+
+**What this runbook does NOT cover (out of scope per CONTEXT.md Deferred Ideas):**
+- Per-doc `_legacyFlat:{...}` snapshot field for local reverse migration — REJECTED via D-16.
+- `migrate-listings-m3.js --reverse` script — REJECTED via D-16.
+- Standalone `01-RUNBOOK.md` file — REJECTED via D-17 (this section IS the runbook).
+- Auto-deploy migration via Railway hook — REJECTED via D-02 (operator-supervised one-shot).
+</rollback>
+
 ---
 
 *Phase: 01-schema-reshape-backend-route-shape-cutover*
 *Context gathered: 2026-05-05*
+*Rollback runbook appended: 2026-05-05 (Plan 05 Task 2)*
