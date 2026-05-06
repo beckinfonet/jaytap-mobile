@@ -13,10 +13,12 @@ import { ResetPasswordScreen } from './src/screens/ResetPasswordScreen';
 import { parseOobCodeFromResetInput } from './src/utils/parseOobCode';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { AccountSettingsScreen } from './src/screens/AccountSettingsScreen';
-import { CreateListingScreen } from './src/screens/CreateListingScreen';
-// Plan 02-07: new 6-step contextual flow. CreateListingScreen import stays for
-// the admin verificationOnly branch + atomic-invariant per Plan 02-09.
+// Plan 02-09 (FLOW-14 / D-22): legacy CreateListingScreen + CreateListingForm
+// barrel deleted atomically in this commit. The admin verificationOnly branch
+// migrated to a standalone AdminVerificationScreen so the deletion does not
+// drop admin doc-verification (PATCH /api/properties/:id/verifications).
 import { ContextualListingFlow } from './src/components/ContextualListingFlow';
+import { AdminVerificationScreen } from './src/screens/AdminVerificationScreen';
 import { LandlordApplicationScreen } from './src/screens/LandlordApplicationScreen';
 import { LandlordApplicationQueueScreen } from './src/screens/LandlordApplicationQueueScreen';
 import { RenterListingsScreen } from './src/screens/RenterListingsScreen';
@@ -52,9 +54,10 @@ function AppContent() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false);
   // Phase 02 Plan 02-07 (D-11): replaces the prior single-screen create flag.
-  // Single overlay flag for the new 6-step ContextualListingFlow. The
-  // admin verificationOnly branch (CreateListingScreen) shares this flag —
-  // render-time switch on isAdminVerificationMode picks which component mounts.
+  // Single overlay flag for the new 6-step ContextualListingFlow. Plan 02-09
+  // migrated the admin verificationOnly branch to AdminVerificationScreen —
+  // both branches still share this flag, render-time switch on
+  // isAdminVerificationMode picks which component mounts.
   const [isContextualListingFlowOpen, setIsContextualListingFlowOpen] = useState(false);
   const [isLandlordApplicationOpen, setIsLandlordApplicationOpen] = useState(false);
   const [isLandlordApplicationQueueOpen, setIsLandlordApplicationQueueOpen] = useState(false);
@@ -322,7 +325,8 @@ function AppContent() {
       }
       if (isContextualListingFlowOpen) {
         // W-04: orchestrator owns hardware back when the new flow is mounted
-        // (non-admin path). Admin verificationOnly still uses CreateListingScreen.
+        // (non-admin path). Admin verificationOnly uses AdminVerificationScreen
+        // and stays on the App.tsx-owned hardware-back path.
         if (!isAdminVerificationMode) {
           return false;
         }
@@ -995,10 +999,12 @@ function AppContent() {
           </View>
         )}
         {!!user && isContextualListingFlowOpen && isAdminVerificationMode && (
-          // Plan 02-07: admin verificationOnly path stays on CreateListingScreen
-          // (PATCH /api/properties/:id/verifications). M4+ owns re-architecture.
+          // Plan 02-09 (FLOW-14 / D-22): admin verificationOnly path migrated
+          // from the now-deleted CreateListingScreen to a standalone screen.
+          // Same flag semantics — single overlay flag (isContextualListingFlowOpen)
+          // disambiguated by isAdminVerificationMode.
           <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
-            <CreateListingScreen
+            <AdminVerificationScreen
               onBack={() => {
                 setIsContextualListingFlowOpen(false);
                 setPropertyToEdit(null);
@@ -1019,15 +1025,7 @@ function AppContent() {
                 skipRenterListingsReopenRef.current = false;
               }}
               propertyToEdit={propertyToEdit || undefined}
-              verificationOnly={true}
               moderatorContext={moderatorContext || undefined}
-              onNavigateToAccountSettings={() => {
-                setIsContextualListingFlowOpen(false);
-                setPropertyToEdit(null);
-                setIsAdminVerificationMode(false);
-                setModeratorContext(null);
-                setIsAccountSettingsOpen(true);
-              }}
             />
           </View>
         )}
