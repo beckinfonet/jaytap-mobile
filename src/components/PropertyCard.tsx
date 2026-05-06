@@ -61,6 +61,18 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const { user } = useAuth();
   const { t } = useLanguage();
 
+  // Phase 2 D-20 nested-shape derivations (Phase 1 D-04..D-15)
+  const title = property.content?.title ?? '';
+  const heroPhoto = property.media?.photos?.[0];
+  const cityLabel = property.location?.city ?? '';
+  const districtLabel = property.location?.district ?? '';
+  // Address line synthesized from nested location (no flat property.address on M3 shape).
+  // Render slug-as-is — M4 owns dynamic-dictionary label lookup per D-10.
+  const addressDisplay = [districtLabel, cityLabel].filter(Boolean).join(', ');
+  // Tradeoff §K: hospitality strip uses dealType !== 'sale'; PropertyCard's M2 status
+  // badge maps the sale/rent split via the same rule so it renders correctly on M3 data.
+  const isSale = property.dealType === 'sale';
+
   const handleShare = async (e: any) => {
     e.stopPropagation(); // Prevent card press
 
@@ -70,19 +82,19 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
     // Create share message
     const priceText = formatPrice(property, t('property.perMonth'));
-    const shareMessage = `${property.title}\n${property.address}\n${priceText}\n\n${shareUrl}`;
+    const shareMessage = `${title}\n${addressDisplay}\n${priceText}\n\n${shareUrl}`;
 
     try {
       const result = await Share.share({
         message: shareMessage,
         url: shareUrl, // iOS will use this for universal links
-        title: property.title,
+        title,
       });
 
       if (result.action === Share.sharedAction) {
         if (result.activityType) {
           // Shared with activity type
-        } 
+        }
       }
     } catch (error: any) {
       console.error('Error sharing:', error.message);
@@ -100,7 +112,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         {/* Image Section */}
         <View style={[styles.imageWrapper, groupWithFooter && styles.imageWrapperGroupedFooter]}>
           <Image
-            source={{ uri: property.imageUrl || (property.images && property.images.length > 0 ? property.images[0] : 'https://via.placeholder.com/400') }}
+            source={{ uri: heroPhoto || 'https://via.placeholder.com/400' }}
             style={styles.image}
             resizeMode="cover"
           />
@@ -108,7 +120,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           <View style={styles.topBadges}>
             <View style={[styles.badge, styles.statusBadge]}>
               <Text style={styles.statusText}>
-                {property.type === 'rent' ? t('property.forRent') : t('property.forSale')}
+                {isSale ? t('property.forSale') : t('property.forRent')}
               </Text>
             </View>
             {/* D-19: status pill stacked below rent/sale badge (top-left), avoids collision with top-right share+heart actions */}
@@ -168,15 +180,15 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         <View style={styles.contentContainer}>
           <View style={styles.mainInfo}>
             <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
-              {property.title} • {property.address.split(',')[1]?.trim() || 'Bishkek'}
+              {title}{districtLabel ? ` • ${districtLabel}` : cityLabel ? ` • ${cityLabel}` : ''}
             </Text>
             <ListingMetaTable
               listingId={property.listingId}
-              availableDate={(property as any).availableDate}
+              availableDate={property.availableDate}
               compact
             />
             {(() => {
-              const formatted = formatAddress(property.address);
+              const formatted = formatAddress(addressDisplay);
               return (
                 <>
                   <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
@@ -268,12 +280,20 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               <View style={[styles.specsContainer, { backgroundColor: colors.chipBackground, borderColor: colors.chipBorder }]}>
                 <View style={styles.specItem}>
                   <Bed size={16} color={colors.textSecondary} strokeWidth={2} />
-                  <Text style={[styles.specValue, { color: colors.text }]}>{property.specs?.beds ?? 0}</Text>
+                  <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.rooms ?? '-'}</Text>
                 </View>
                 <View style={[styles.specDivider, { backgroundColor: colors.border }]} />
                 <View style={styles.specItem}>
                   <Bath size={16} color={colors.textSecondary} strokeWidth={2} />
-                  <Text style={[styles.specValue, { color: colors.text }]}>{property.specs?.baths ?? 0}</Text>
+                  <Text style={[styles.specValue, { color: colors.text }]}>
+                    {property.basics?.bathroom === 'private'
+                      ? t('property.bathroomPrivate' as any)
+                      : property.basics?.bathroom === 'shared'
+                        ? t('property.bathroomShared' as any)
+                        : property.basics?.bathroom === 'none'
+                          ? t('property.bathroomNone' as any)
+                          : '-'}
+                  </Text>
                 </View>
               </View>
             )}
