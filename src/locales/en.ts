@@ -773,6 +773,32 @@ export const en = {
   'contextualListing.step5.descriptionLabel': 'Description',
   'contextualListing.step5.descriptionRequired': 'Add a description',
   'contextualListing.step5.descriptionPlaceholder': 'Tell prospective tenants what makes this listing special',
+
+  // Phase 2 (Plan 02-04b) — ContextualListingFlow Step 6: Deal conditions matrix (FLOW-11 + D-19).
+  // dealType-gated rendering: sale → negotiable + deposit; rent_long → negotiable + deposit +
+  // prepaymentMonths (0/1/2/Custom int) + minTerm; rent_daily → deposit only (D-19 thin step).
+  // B-03 reconciliation: 18 keys shipped (RESEARCH first listed 17; the would-be missing key
+  // is `contextualListing.step6.prepayment.custom` — the Custom chip label per CONTEXT
+  // specifics §"Step 6 prepayment custom integer" + Pitfall 6). RESEARCH miscounted by 1
+  // when tallying. Cumulative running count: Plan 02-04a (-1, B-02) + this (+1, B-03) = net 0.
+  'contextualListing.step6.title': 'Deal conditions',
+  'contextualListing.step6.negotiableLabel': 'Bargain (negotiable)?',
+  'contextualListing.step6.negotiableRequired': 'Pick yes or no',
+  'contextualListing.step6.negotiable.yes': 'Yes',
+  'contextualListing.step6.negotiable.no': 'No',
+  'contextualListing.step6.depositLabel': 'Deposit (optional)',
+  'contextualListing.step6.depositPlaceholder': 'Amount',
+  'contextualListing.step6.prepaymentLabel': 'Prepayment',
+  'contextualListing.step6.prepaymentRequired': 'Pick a prepayment',
+  'contextualListing.step6.prepayment.0': 'No prepayment',
+  'contextualListing.step6.prepayment.1': '1 month',
+  'contextualListing.step6.prepayment.2': '2 months',
+  'contextualListing.step6.prepayment.custom': 'Custom',
+  'contextualListing.step6.prepayment.customPlaceholder': 'Months',
+  'contextualListing.step6.minTermLabel': 'Minimum rental term',
+  'contextualListing.step6.minTermRequired': 'Pick a minimum term',
+  'contextualListing.step6.minTerm.1_month': '1 month',
+  'contextualListing.step6.minTerm.3_months': '3 months',
 } as const;
 
 export type TranslationKeys = keyof typeof en;

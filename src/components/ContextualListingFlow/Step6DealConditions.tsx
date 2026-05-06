@@ -86,11 +86,13 @@ export function Step6DealConditions({ values, onChange, errors }: SectionProps) 
   // without a currency. The W-01 sentinel guard at Step 3 ensures basics.currency is
   // already in {'KGS','USD','EUR'} by the time Step 6 mounts (validator gated).
   useEffect(() => {
+    // The W-01 sentinel guard at Step 3 (Plan 02-02 Test 7) rejects currency===''
+    // before Step 6 ever renders, so values.basics.currency here is one of
+    // 'KGS' | 'USD' | 'EUR' | '' — the truthy check eliminates ''.
     if (
       values.terms.deposit &&
       !values.terms.deposit.currency &&
-      values.basics.currency &&
-      values.basics.currency !== ''
+      values.basics.currency
     ) {
       setTerms({
         deposit: {

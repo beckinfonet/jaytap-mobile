@@ -773,4 +773,27 @@ export const ru: Record<TranslationKeys, string> = {
   'contextualListing.step5.descriptionLabel': 'Описание',
   'contextualListing.step5.descriptionRequired': 'Добавьте описание',
   'contextualListing.step5.descriptionPlaceholder': 'Расскажите потенциальным арендаторам, чем особенно это объявление',
+
+  // Phase 2 (Plan 02-04b) — ContextualListingFlow Шаг 6: Условия сделки (FLOW-11 + D-19).
+  // Матрица по dealType: sale → торг + депозит; rent_long → торг + депозит + предоплата
+  // (0/1/2/Своё) + минимальный срок; rent_daily → только депозит (D-19 — тонкий шаг).
+  // B-03: 18 ключей (RESEARCH насчитал 17; недостающий — `prepayment.custom` метка чипа).
+  'contextualListing.step6.title': 'Условия сделки',
+  'contextualListing.step6.negotiableLabel': 'Торг',
+  'contextualListing.step6.negotiableRequired': 'Выберите да или нет',
+  'contextualListing.step6.negotiable.yes': 'Да',
+  'contextualListing.step6.negotiable.no': 'Нет',
+  'contextualListing.step6.depositLabel': 'Депозит (необязательно)',
+  'contextualListing.step6.depositPlaceholder': 'Сумма',
+  'contextualListing.step6.prepaymentLabel': 'Предоплата',
+  'contextualListing.step6.prepaymentRequired': 'Выберите предоплату',
+  'contextualListing.step6.prepayment.0': 'Без предоплаты',
+  'contextualListing.step6.prepayment.1': '1 месяц',
+  'contextualListing.step6.prepayment.2': '2 месяца',
+  'contextualListing.step6.prepayment.custom': 'Своё',
+  'contextualListing.step6.prepayment.customPlaceholder': 'Месяцев',
+  'contextualListing.step6.minTermLabel': 'Минимальный срок аренды',
+  'contextualListing.step6.minTermRequired': 'Выберите минимальный срок',
+  'contextualListing.step6.minTerm.1_month': '1 месяц',
+  'contextualListing.step6.minTerm.3_months': '3 месяца',
 };
