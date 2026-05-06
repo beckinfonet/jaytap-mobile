@@ -90,8 +90,20 @@ Plans:
   4. Step 6 renders only the deal-type-appropriate fields per SPEC §6 matrix (Sale → bargain + optional deposit; Long-term rent → bargain + optional deposit + prepaymentMonths preset 0/1/2/custom + minTerm; Daily rent → optional deposit only) — switching deal type at Step 1 reflows Step 6 cleanly.
   5. A moderator using the M2 `moderatorContext` edit-on-behalf path (M2 MOD-14) sees the same 6-step UI with a banner stripe at the TOP of Step 1, can edit any field on a pending or rejected listing, and submission flips status appropriately (M2 MOD-14 semantics preserved). The old `CreateListingScreen.tsx` is deleted in the same commit chain that ships the new flow.
 
-**Plans**: TBD
+**Plans:** 9 plans
 **UI hint**: yes
+
+Plans:
+- [ ] 02-01-PLAN.md — Backend Location dictionary (City + District models + locationRoutes.js + moderationRoutes.js extension + seed-locations-m3.js + supertest cases + middleware extract)
+- [ ] 02-02-PLAN.md — <ContextualListingFlow> skeleton + Step 1 + types/validators/adapters + ~24 i18n keys + Wave 0 test scaffolds
+- [ ] 02-03-PLAN.md — Step 2 (Location chips + map pin + Other modal) + Step 3 (BasicInfo conditional sub-fields) + ModerationQueueScreen Locations tab + ~49 i18n keys
+- [ ] 02-04a-PLAN.md — Step 4 (ConditionAmenities) + Step 5 (TitleDescription) + Step 4/5 validator tests + ~18 i18n keys
+- [ ] 02-04b-PLAN.md — Step 6 (DealConditions matrix per dealType) + integration test (Step 1→6 + edit-mod cell) + real submit dispatch + ~18 i18n keys
+- [ ] 02-05-PLAN.md — Read-path cutover Wave 1: HomeScreen + FavoritesScreen + RenterListingsScreen + OwnerListingsScreen + PropertyCard + HospitalityCard + HospitalitySection + ListingMetaTable + PropertyMap → nested shape
+- [ ] 02-06-PLAN.md — Read-path cutover: PropertyDetailsScreen (1680 LOC own plan) → nested shape
+- [ ] 02-07-PLAN.md — Wire <ContextualListingFlow> into App.tsx (replace isCreateListingOpen flag; mode discriminated-union dispatch per D-15/D-17)
+- [ ] 02-08-PLAN.md — Operator dry-run on iPhone 15 Pro Max + Moto G XT2513V (checkpoint plan; verifies all 3 modes + Pitfall 1 map-drag + mod-banner persistence + Locations tab — BEFORE atomic deletion)
+- [ ] 02-09-PLAN.md — Atomic deletion: DELETE CreateListingScreen.tsx + CreateListingForm/ barrel + App.tsx import; ADD scripts/check-create-listing-screen-removed.sh sentinel + package.json check:atomic-deletion script + final i18n cleanup of orphaned createListing.* keys
 
 ### Phase 3: Media Flow Inversion (Admin/Mod Curation)
 
@@ -161,7 +173,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Schema Reshape + Backend Route Shape Cutover | 5/5 | Complete (4 operator UAT pending) | 2026-05-06 |
-| 2. 6-Step Contextual Listing Flow (Client) | 0/TBD | Not started | — |
+| 2. 6-Step Contextual Listing Flow (Client) | 0/9 | Planning complete (ready to execute) | — |
 | 3. Media Flow Inversion (Admin/Mod Curation) | 0/TBD | Not started | — |
 | 4. M2 Carry-Forward Bug Fixes | 0/TBD | Not started | — |
 | 5. Hardening + Manual Physical-Device QA + Release v3.0.0 | 0/TBD | Not started | — |
