@@ -137,3 +137,76 @@ describe('Phase 2 validators — Step 3 (Plan 02-03)', () => {
     expect(r.errors['basics.rooms']).toBeUndefined();
   });
 });
+
+// V8..V11 — Step 4 cases (Plan 02-04a). FLOW-09 + CONTEXT §Decisions Log #4:
+// condition + furnished are required for every propertyType (including hotel/hostel).
+// furnished is tri-state (true / false / null) — null counts as missing; false IS valid.
+describe('Phase 2 validators — Step 4 (Plan 02-04a)', () => {
+  test('V8: emptyFormBag → 2 errors (condition + furnished)', () => {
+    const r = validateStep(4, emptyFormBag());
+    expect(r.isValid).toBe(false);
+    expect(r.errors['conditionAndAmenities.condition']).toBe(
+      'contextualListing.step4.conditionRequired',
+    );
+    expect(r.errors['conditionAndAmenities.furnished']).toBe(
+      'contextualListing.step4.furnishedRequired',
+    );
+  });
+
+  test('V9: condition set + furnished=null → still error on furnished (null = missing)', () => {
+    const bag = {
+      ...emptyFormBag(),
+      conditionAndAmenities: { condition: 'good' as const, furnished: null },
+    };
+    const r = validateStep(4, bag);
+    expect(r.errors['conditionAndAmenities.furnished']).toBeDefined();
+    expect(r.errors['conditionAndAmenities.condition']).toBeUndefined();
+  });
+
+  test('V10: condition + furnished=true → isValid', () => {
+    const bag = {
+      ...emptyFormBag(),
+      conditionAndAmenities: { condition: 'good' as const, furnished: true },
+    };
+    expect(validateStep(4, bag).isValid).toBe(true);
+  });
+
+  test('V11: condition + furnished=false → isValid (false is valid; only null is missing)', () => {
+    const bag = {
+      ...emptyFormBag(),
+      conditionAndAmenities: { condition: 'good' as const, furnished: false },
+    };
+    expect(validateStep(4, bag).isValid).toBe(true);
+  });
+});
+
+// V12..V14 — Step 5 cases (Plan 02-04a). FLOW-10: title + description are required
+// strings; the validator uses .trim() — whitespace-only fails.
+describe('Phase 2 validators — Step 5 (Plan 02-04a)', () => {
+  test('V12: emptyFormBag → 2 errors (title + description)', () => {
+    const r = validateStep(5, emptyFormBag());
+    expect(r.isValid).toBe(false);
+    expect(r.errors['content.title']).toBe('contextualListing.step5.titleRequired');
+    expect(r.errors['content.description']).toBe('contextualListing.step5.descriptionRequired');
+  });
+
+  test('V13: whitespace-only title fails .trim() check', () => {
+    const bag = {
+      ...emptyFormBag(),
+      content: { title: '   ', description: 'X', language: 'en' as const },
+    };
+    const r = validateStep(5, bag);
+    expect(r.errors['content.title']).toBeDefined();
+    expect(r.errors['content.description']).toBeUndefined();
+  });
+
+  test('V14: title + description set → isValid', () => {
+    const bag = {
+      ...emptyFormBag(),
+      content: { title: 'Cozy 2-bed', description: 'Sunny apartment', language: 'en' as const },
+    };
+    const r = validateStep(5, bag);
+    expect(r.isValid).toBe(true);
+    expect(r.errors).toEqual({});
+  });
+});

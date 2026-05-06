@@ -27,6 +27,8 @@ import { useLanguage } from '../../context/LanguageContext';
 import { Step1DealAndPropertyType } from './Step1DealAndPropertyType';
 import { Step2Location } from './Step2Location';
 import { Step3BasicInfo } from './Step3BasicInfo';
+import { Step4ConditionAmenities } from './Step4ConditionAmenities';
+import { Step5TitleDescription } from './Step5TitleDescription';
 import { commonStyles } from './styles';
 import { validateStep, emptyFormBag } from './validators';
 import { propertyToFormBag, formBagToPropertyPayload } from './adapters';
@@ -150,9 +152,9 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
       case 3:
         return <Step3BasicInfo values={values} onChange={onChange} errors={errors} />;
       case 4:
-        return <Text style={{ color: colors.text }}>{'Step 4 — coming in Plan 02-04a'}</Text>;
+        return <Step4ConditionAmenities values={values} onChange={onChange} errors={errors} />;
       case 5:
-        return <Text style={{ color: colors.text }}>{'Step 5 — coming in Plan 02-04a'}</Text>;
+        return <Step5TitleDescription values={values} onChange={onChange} errors={errors} />;
       case 6:
         return <Text style={{ color: colors.text }}>{'Step 6 — coming in Plan 02-04b'}</Text>;
     }
