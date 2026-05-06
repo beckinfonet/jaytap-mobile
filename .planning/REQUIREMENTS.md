@@ -37,11 +37,11 @@ The user-facing 6-step listing creation flow. Replaces the existing single-scree
 - [x] **FLOW-08** Step 3 — Conditional sub-fields per property type (per SPEC §"Conditional sub-fields"): apartment + house → rooms (1/2/3/4+); office + commercial → rooms + bathroom (private/none/shared) + kitchen (private/none/shared); hotel + hostel → hotelRooms (1/2/3/4+) + hotelClass (economy/standard/comfort/premium).
 - [x] **FLOW-09** Step 4 — Always shown: condition (rough/whitebox/good/euro) + furnished (boolean). Both required, including for hotel/hostel.
 - [x] **FLOW-10** Step 5 — Title + Description (long-text). Both required.
-- [ ] **FLOW-11** Step 6 — Deal Conditions gated by deal type per SPEC §6 matrix: Sale → bargain + optional deposit; Long-term rent → bargain + optional deposit + prepaymentMonths (preset 0/1/2 + custom integer) + minTerm (1_month / 3_months); Daily rent → optional deposit only (minTerm implicit `1_day`).
-- [ ] **FLOW-12** Per-step validation matches SPEC §"Validation Rules" exactly. Pure `validateStep(stepN, formState)` single source of truth (matches M1 Phase 5 `validateByCategory()` pattern).
-- [ ] **FLOW-13** Submit fires `editAsModerator` (mod-context, M2 MOD-14 carry) OR `submitForModeration` (owner). Status flips to `pending`. M2 `RejectionBanner` rendering preserved on edit-resubmit path.
+- [x] **FLOW-11** Step 6 — Deal Conditions gated by deal type per SPEC §6 matrix: Sale → bargain + optional deposit; Long-term rent → bargain + optional deposit + prepaymentMonths (preset 0/1/2 + custom integer) + minTerm (1_month / 3_months); Daily rent → optional deposit only (minTerm implicit `1_day`).
+- [x] **FLOW-12** Per-step validation matches SPEC §"Validation Rules" exactly. Pure `validateStep(stepN, formState)` single source of truth (matches M1 Phase 5 `validateByCategory()` pattern).
+- [x] **FLOW-13** Submit fires `editAsModerator` (mod-context, M2 MOD-14 carry) OR `submitForModeration` (owner). Status flips to `pending`. M2 `RejectionBanner` rendering preserved on edit-resubmit path.
 - [ ] **FLOW-14** Old `CreateListingScreen.tsx` deleted atomically when new flow ships. No dual-flow window. CreateListingForm/ sub-component barrel from M1 Phase 4 either re-used or torn down with cleanup commit.
-- [ ] **FLOW-15** Edit-on-behalf (M2 MOD-14 `moderatorContext` prop) wired into new 6-step flow. Mod can edit any field on a pending listing through the same conditional UI; banner stripe at TOP of flow when `moderatorContext` is set.
+- [x] **FLOW-15** Edit-on-behalf (M2 MOD-14 `moderatorContext` prop) wired into new 6-step flow. Mod can edit any field on a pending listing through the same conditional UI; banner stripe at TOP of flow when `moderatorContext` is set.
 - [ ] **FLOW-16** EN+RU locale parity for all new flow strings — estimated +80–120 keys to the post-M2 baseline. CI gate (`scripts/check-i18n-parity.sh`) enforces.
 
 ### Schema (Phase 1) — Mongo migration + nested shape
