@@ -77,6 +77,7 @@ import { useAuth } from '../context/AuthContext';
 import { useRole } from '../hooks/useRole';
 import { Gated } from '../components/Gated';
 import { RejectionBanner } from '../components/RejectionBanner';
+import { NeedsMediaBanner } from '../components/NeedsMediaBanner';
 import { StatusPill } from '../components/StatusPill';
 import RejectListingModal from '../components/RejectListingModal';
 import ArchiveListingModal from '../components/ArchiveListingModal';
@@ -112,6 +113,12 @@ interface PropertyDetailsScreenProps {
    *  optional callback gives the parent a hook for additional side-effects
    *  like queue refetch). */
   onRefreshProperty?: () => Promise<void>;
+  /** Phase 3 Plan 03-06 Task 2 — NeedsMediaBanner CTA target. App.tsx wires this to
+   *  the openMediaCuration callback (Plan 03-05) so the mod can curate photos
+   *  inline. Optional: when undefined, the banner is hidden (the showNeedsMediaBanner
+   *  predicate gates the entire mount, but the prop's optionality keeps existing
+   *  call sites tsc-green pre-wire). */
+  onOpenMediaCuration?: (listingId: string) => void;
 }
 
 const { width, height } = Dimensions.get('window');
@@ -206,6 +213,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   onEditListing,
   onEditOnBehalfPressed,
   onRefreshProperty,
+  onOpenMediaCuration,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -281,6 +289,19 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const [isHardDeleteModalOpen, setIsHardDeleteModalOpen] = useState(false);
   const [submittingAction, setSubmittingAction] = useState(false);
   const showModFooter = can('approveListings') && property.status === 'pending';
+  // Phase 3 Plan 03-06 Task 2 — NeedsMediaBanner trigger condition (UI-SPEC §"Trigger
+  // conditions"). Renders ABOVE the existing mod action footer when the moderator
+  // is viewing a pending listing that has no photos. Mutually exclusive with
+  // RejectionBanner (pending != rejected) so no co-render stacking required.
+  const photoCount = property?.media?.photos?.length ?? 0;
+  const showNeedsMediaBanner =
+    can('approveListings') &&
+    property?.status === 'pending' &&
+    photoCount === 0;
+  // Phase 3 Plan 03-06 Task 2 / D-12 — Approve button enabled-state logic.
+  // Client-side disable is UX guidance ONLY; backend Plan 03-03's MEDIA_REQUIRED
+  // gate is the trust boundary (T-02 defense-in-depth).
+  const isApproveEnabled = photoCount > 0;
   // Phase 4 Plan 07 D-06 — mod/admin Archive/Restore/Hard-Delete render predicates.
   // Backend HARD_DELETE_REQUIRES_ARCHIVED still gates non-archived listings via the
   // backend route's 400 response (Plan 04-04); the client predicate is permissive so
@@ -1474,10 +1495,49 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         </View>
       )}
 
+      {/* Phase 3 Plan 03-06 Task 2 — NeedsMediaBanner. Renders ABOVE the mod
+          action footer when the moderator views a pending listing with no
+          photos. CTA dispatches the App.tsx-forwarded openMediaCuration callback. */}
+      {showNeedsMediaBanner && (
+        <NeedsMediaBanner
+          onAddPhotos={() => onOpenMediaCuration?.(String(property.id))}
+        />
+      )}
+
+      {/* Phase 3 Plan 03-06 Task 2 — Approve disabled hint. Rendered ABOVE the
+          3-button row (NOT below — UI-SPEC §Surface 4c — placement above so
+          Reject / Edit-on-behalf are not pushed off-screen on small devices).
+          Reuses the Plan 03-05 hint key (already in en.ts + ru.ts). */}
+      {showModFooter && !isApproveEnabled && (
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingTop: 8,
+            paddingBottom: 0,
+            backgroundColor: colors.surface,
+          }}
+          testID="property-details-approve-disabled-hint"
+        >
+          <Text
+            style={{
+              fontSize: 12,
+              fontWeight: '400',
+              lineHeight: 16,
+              color: colors.textSecondary,
+            }}
+          >
+            {t('moderation.mediaCuration.approve.disabled.hint')}
+          </Text>
+        </View>
+      )}
+
       {/* Phase 3 Plan 06 Task 02 — moderation action footer.
           Mounts when can('approveListings') AND property.status === 'pending'.
           Belt-and-suspenders with backend's requireMinRole('moderator') gate.
-          Footer auto-hides after refetchProperty() flips status off 'pending'. */}
+          Footer auto-hides after refetchProperty() flips status off 'pending'.
+          Phase 3 Plan 03-06 Task 2 / D-12: Approve button is additionally disabled
+          (with 0.5 opacity) when photoCount === 0 — UX guidance for the backend
+          MEDIA_REQUIRED gate. */}
       {showModFooter && (
         <View
           style={[
@@ -1490,12 +1550,18 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           ]}
         >
           <TouchableOpacity
-            style={[styles.modActionBtn, { backgroundColor: '#059669' /* success green */ }]}
+            style={[
+              styles.modActionBtn,
+              { backgroundColor: '#059669' /* success green */ },
+              !isApproveEnabled && { opacity: 0.5 },
+            ]}
             onPress={handleApprove}
-            disabled={submittingAction}
+            disabled={submittingAction || !isApproveEnabled}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('moderation.action.approve')}
+            accessibilityState={{ disabled: submittingAction || !isApproveEnabled }}
+            testID="property-details-approve-btn"
           >
             {submittingAction ? (
               <ActivityIndicator color="#FFF" size="small" />

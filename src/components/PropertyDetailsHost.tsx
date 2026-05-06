@@ -37,6 +37,10 @@ interface PropertyDetailsHostProps {
   // surfaces that depend on listing status (e.g., ModerationQueueScreen list,
   // pendingModerationCount badge).
   onRefreshProperty?: () => Promise<void>;
+  // Phase 3 Plan 03-06 Task 2 — entry-point wiring for NeedsMediaBanner CTA.
+  // App.tsx forwards openMediaCuration here; this host passes it through to
+  // PropertyDetailsScreen unchanged.
+  onOpenMediaCuration?: (listingId: string) => void;
 }
 
 const PropertyDetailsHost: React.FC<PropertyDetailsHostProps> = ({
@@ -55,6 +59,7 @@ const PropertyDetailsHost: React.FC<PropertyDetailsHostProps> = ({
   onEditListing,
   onEditOnBehalfPressed,
   onRefreshProperty,
+  onOpenMediaCuration,
 }) => {
   return (
     <View style={styles.fullScreenOverlay}>
@@ -74,6 +79,7 @@ const PropertyDetailsHost: React.FC<PropertyDetailsHostProps> = ({
         onEditListing={onEditListing}
         onEditOnBehalfPressed={onEditOnBehalfPressed}
         onRefreshProperty={onRefreshProperty}
+        onOpenMediaCuration={onOpenMediaCuration}
       />
     </View>
   );

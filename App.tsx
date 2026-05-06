@@ -996,6 +996,11 @@ function AppContent() {
               setSelectedProperty(null);
               setIsContextualListingFlowOpen(true);
             }}
+            // Phase 3 Plan 03-06 Task 2 — NeedsMediaBanner CTA wiring (UI-SPEC §Surface 3).
+            // The banner mounts above the mod footer when can('approveListings') &&
+            // status === 'pending' && photos.length === 0; tapping CTA dispatches the
+            // MediaCurationScreen overlay (declared in Plan 03-05).
+            onOpenMediaCuration={openMediaCuration}
           />
         )}
         {(renterListingsEverMounted || isRenterListingsOpen) && (
