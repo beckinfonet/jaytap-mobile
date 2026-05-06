@@ -44,7 +44,7 @@ Full M2 details: `.planning/milestones/v2.0-ROADMAP.md`
 **Phase numbering reset to 1** for M3, matching the M1 → M2 precedent. Anchor SPEC: `.planning/phases/999.1-contextual-listing-flow-m3-anchor/SPEC.md` (Version 2). All 38 v1 requirements (16 FLOW + 5 SCHEMA + 9 MEDIA + 2 CARRY + 6 REL) map to exactly one phase.
 
 - [x] **Phase 1: Schema Reshape + Backend Route Shape Cutover** (5/5 plans) — completed 2026-05-06 — Mongoose nested-shape migration (`location.*`/`basics.*`/`conditionAndAmenities.*`/`content.*`/`terms.*`/`media.*`) + operator-supervised one-shot `migrate-listings-m3.js` + backend route read/write cutover. Foundation for Phase 2 client work. *(4 operator items pending in `01-HUMAN-UAT.md`: Atlas live migration, restore-snapshot drill, tester comms delivery, RN client whole-project tsc capture in Phase 2.)*
-- [ ] **Phase 2: 6-Step Contextual Listing Flow (Client)** — New `<ContextualListingFlow>` 6-step UI replacing `CreateListingScreen.tsx` atomically; per-step `validateStep()` single-source-of-truth; conditional sub-fields per property type; mod edit-on-behalf wired via M2 `moderatorContext` prop; +80–120 EN+RU keys.
+- [x] **Phase 2: 6-Step Contextual Listing Flow (Client)** (10/10 plan files; Plan 02-08 deferred by user; Plan 02-09 final atomic deletion) — completed 2026-05-06 — New `<ContextualListingFlow>` 6-step UI replaced `CreateListingScreen.tsx` atomically; per-step `validateStep()` single-source-of-truth; conditional sub-fields per property type; mod edit-on-behalf wired via M2 `moderatorContext` prop. Plan 02-09 closing artifact: 3 atomic commits (sentinel + atomic-delete + i18n cleanup) — deleted 13 files / 3449 LOC (CreateListingScreen.tsx 996 + CreateListingForm/ barrel 11 files / 2453 LOC); created src/screens/AdminVerificationScreen.tsx (preserves admin doc-verification surface as standalone, zero CreateListingForm dependency); removed 82 of 83 createListing.* i18n keys in lockstep en.ts + ru.ts (parity gate green). Sentinel `scripts/check-create-listing-screen-removed.sh` exits 0. *(12 deferred operator walks tracked in `02-HUMAN-UAT.md` for Phase 5 REL-03 coverage.)*
 - [ ] **Phase 3: Media Flow Inversion (Admin/Mod Curation)** — Mod queue extension with media-curation view; `POST /api/moderation/listings/:id/media` endpoint; ModerationLog `'media-upload'` action; S3 IAM policy update (admin/mod gain upload rights, user upload rights revoked); "needs media" queue filter + `MEDIA_REQUIRED` 400 invariant blocking approval.
 - [ ] **Phase 4: M2 Carry-Forward Bug Fixes** — CARRY-01 ROLE-11 frontend mid-action 403 popup-recovery across 5+ submit handlers + CARRY-02 Phase 4.5 landlord-application uid-mismatch fix with anti-spoofing grep gate + repair migration.
 - [ ] **Phase 5: Hardening + Manual Physical-Device QA + Release v3.0.0** — Atomic v3.0.0 version bump (M1 D-02 + M2 Wave-1 query-first pattern); manual physical-device QA matrix on iPhone 15 Pro Max + Moto G XT2513V; bilingual EN+RU release notes ≤500 chars; ASC TestFlight Internal + Play Console Internal Testing submission.
@@ -90,7 +90,7 @@ Plans:
   4. Step 6 renders only the deal-type-appropriate fields per SPEC §6 matrix (Sale → bargain + optional deposit; Long-term rent → bargain + optional deposit + prepaymentMonths preset 0/1/2/custom + minTerm; Daily rent → optional deposit only) — switching deal type at Step 1 reflows Step 6 cleanly.
   5. A moderator using the M2 `moderatorContext` edit-on-behalf path (M2 MOD-14) sees the same 6-step UI with a banner stripe at the TOP of Step 1, can edit any field on a pending or rejected listing, and submission flips status appropriately (M2 MOD-14 semantics preserved). The old `CreateListingScreen.tsx` is deleted in the same commit chain that ships the new flow.
 
-**Plans:** 9 plans
+**Plans:** 10 plan files (Plan 02-04 split into 02-04a + 02-04b during planning; final count = 10)
 **UI hint**: yes
 
 Plans:
@@ -103,7 +103,7 @@ Plans:
 - [x] 02-06-PLAN.md — Read-path cutover: PropertyDetailsScreen (1680 LOC own plan) → nested shape — completed 2026-05-06 (1 atomic commit 07bc5f0; 13 flat-field families swapped; 2 map embed sites read location.coordinates.lat/lng; 5 basics?.* reads; 3 media?.* reads; D-21 maxGuests + amenities preserved; FLOW-13 RejectionBanner mounting preserved; 0 TS errors in file post-cutover, was 55; npm test 335 pass / 4 fail baseline preserved)
 - [x] 02-07-PLAN.md — Wire <ContextualListingFlow> into App.tsx (replace isCreateListingOpen flag; mode discriminated-union dispatch per D-15/D-17)
 - [x] 02-08-PLAN.md — Operator dry-run on iPhone 15 Pro Max + Moto G XT2513V (checkpoint plan; verifies all 3 modes + Pitfall 1 map-drag + mod-banner persistence + Locations tab — BEFORE atomic deletion)
-- [ ] 02-09-PLAN.md — Atomic deletion: DELETE CreateListingScreen.tsx + CreateListingForm/ barrel + App.tsx import; ADD scripts/check-create-listing-screen-removed.sh sentinel + package.json check:atomic-deletion script + final i18n cleanup of orphaned createListing.* keys
+- [x] 02-09-PLAN.md — Atomic deletion: DELETE CreateListingScreen.tsx + CreateListingForm/ barrel + App.tsx import; ADD scripts/check-create-listing-screen-removed.sh sentinel + package.json check:atomic-deletion script + final i18n cleanup of orphaned createListing.* keys
 
 ### Phase 3: Media Flow Inversion (Admin/Mod Curation)
 
@@ -173,7 +173,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Schema Reshape + Backend Route Shape Cutover | 5/5 | Complete (4 operator UAT pending) | 2026-05-06 |
-| 2. 6-Step Contextual Listing Flow (Client) | 7/9 | In progress (Plans 02-01 + 02-02 + 02-03 + 02-04a + 02-04b + 02-05 + 02-06 complete; Plans 02-07/08/09 remaining; operator deploys pending) | — |
+| 2. 6-Step Contextual Listing Flow (Client) | 10/10 | ✅ Complete (Plan 02-08 operator rehearsal deferred by user; 12 walks tracked in 02-HUMAN-UAT.md) | 2026-05-06 |
 | 3. Media Flow Inversion (Admin/Mod Curation) | 0/TBD | Not started | — |
 | 4. M2 Carry-Forward Bug Fixes | 0/TBD | Not started | — |
 | 5. Hardening + Manual Physical-Device QA + Release v3.0.0 | 0/TBD | Not started | — |
