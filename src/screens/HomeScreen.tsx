@@ -163,9 +163,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
 
   const filteredProperties = useMemo(() => {
     return properties.filter((p) => {
+      // Phase 2 D-20 read-path swap: M2 flat `p.type` → M3 nested `p.dealType`.
+      // Tradeoff §K rule: rent strip = `dealType !== 'sale'`; sale strip = `dealType === 'sale'`.
       // 1. Transaction Type Filter (Rent vs Sale)
-      const pType = p.type?.toLowerCase();
-      if (pType && pType !== transactionType) return false;
+      const isSale = p.dealType === 'sale';
+      if (transactionType === 'sale' && !isSale) return false;
+      if (transactionType === 'rent' && isSale) return false;
 
       // 2. Category Filter (D-04 / D-24: tri-state via propertyTypeToCategory)
       if (propertyTypeToCategory(p.propertyType) !== selectedCategory) return false;
@@ -176,38 +179,35 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         if (pPropertyType !== selectedType.toLowerCase()) return false;
       }
 
-      // 4. District Filter
+      // 4. District Filter (D-10: chips stay HARDCODED — only the listing-render reads
+      // switch to nested. Match against location.district + location.city + content.description.)
       if (selectedDistrict !== 'Bishkek (All)') {
-        // Search for district name in address or description since we don't have a district field yet
         const searchDistrict = selectedDistrict.toLowerCase();
-        const addressMatch = p.address?.toLowerCase().includes(searchDistrict);
-        const descMatch = p.description?.toLowerCase().includes(searchDistrict);
-
-        // Simple heuristic: if the district name is specific (like "Jal"), match it.
-        // For numbered microdistricts, we need to be careful not to match random numbers,
-        // but for now simple inclusion is a good start.
-        if (!addressMatch && !descMatch) return false;
+        const districtMatch = p.location?.district?.toLowerCase().includes(searchDistrict);
+        const cityMatch = p.location?.city?.toLowerCase().includes(searchDistrict);
+        const descMatch = p.content?.description?.toLowerCase().includes(searchDistrict);
+        if (!districtMatch && !cityMatch && !descMatch) return false;
       }
 
-      // 5. Search Query (including listingId, name, city, neighborhood, address)
+      // 5. Search Query (listingId, title, city, district, description)
       if (searchQuery) {
         const query = searchQuery.toLowerCase().trim();
         // Remove dashes and spaces for listingId search (e.g., "123-456" or "123456" both work)
         const queryWithoutDashes = query.replace(/[-\s]/g, '');
-
-        // Extract potential neighborhood from address (everything after the first comma)
-        const addressParts = p.address?.toLowerCase().split(',') || [];
-        const neighborhood = addressParts.length > 1 ? addressParts[1].trim() : '';
+        const titleLc = p.content?.title?.toLowerCase() ?? '';
+        const cityLc = p.location?.city?.toLowerCase() ?? '';
+        const districtLc = p.location?.district?.toLowerCase() ?? '';
+        const descLc = p.content?.description?.toLowerCase() ?? '';
 
         return (
-          // Search by title/name
-          p.title.toLowerCase().includes(query) ||
-          // Search by full address
-          p.address.toLowerCase().includes(query) ||
-          // Search by city
-          (p.city && p.city.toLowerCase().includes(query)) ||
-          // Search by neighborhood (part of address after first comma)
-          neighborhood.includes(query) ||
+          // Search by title
+          titleLc.includes(query) ||
+          // Search by city slug (M4 owns dynamic-dictionary label lookup per D-10)
+          cityLc.includes(query) ||
+          // Search by district slug
+          districtLc.includes(query) ||
+          // Search inside description body
+          descLc.includes(query) ||
           // Search by listing ID (with or without dashes)
           (p.listingId && (
             p.listingId.toLowerCase().includes(query) ||
@@ -219,12 +219,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
     });
   }, [properties, transactionType, selectedCategory, selectedType, selectedDistrict, searchQuery]);
 
-  // Pitfall 2: hospitalityProperties derived AFTER transactionType filter — strip count
-  // changes when toggling Rent/Sell. NOT derived from raw properties.
+  // Tradeoff §K caller-side hospitality derivation — `dealType !== 'sale'` replaces
+  // M2 `transactionType === 'rent'` semantics. Strip count tracks the Rent/Sell toggle.
   const hospitalityProperties = useMemo(
     () => properties.filter((p) =>
       propertyTypeToCategory(p.propertyType) === 'Hospitality'
-      && (!p.type || p.type === transactionType)
+      && (transactionType === 'rent' ? p.dealType !== 'sale' : p.dealType === 'sale')
     ),
     [properties, transactionType],
   );
@@ -234,7 +234,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   };
 
   const handleViewTour = async (property: Property) => {
-    if (property.tours && property.tours.length > 0) {
+    // Phase 1 D-12: tours[] flattened to media.tourUrl (first-tour wins).
+    if (property.media?.tourUrl) {
       onOpenTours(property);
     } else {
       Alert.alert('Info', 'No 3D Tour available for this property.');
@@ -242,10 +243,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   };
 
   const handleViewVideo = async (property: Property) => {
-    if (property.videoUrl) {
-      const supported = await Linking.canOpenURL(property.videoUrl);
+    // Phase 1 D-12: videos[] also lives under media. First entry wins for the legacy single-video CTA.
+    const videoUrl = property.media?.videos?.[0];
+    if (videoUrl) {
+      const supported = await Linking.canOpenURL(videoUrl);
       if (supported) {
-        await Linking.openURL(property.videoUrl);
+        await Linking.openURL(videoUrl);
       } else {
         Alert.alert('Error', 'Cannot open Video URL');
       }

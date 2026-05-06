@@ -76,7 +76,8 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
   };
 
   const handleViewTour = async (property: Property) => {
-    if (property.tours && property.tours.length > 0) {
+    // Phase 1 D-12: tours[] flattened to media.tourUrl (first-tour wins).
+    if (property.media?.tourUrl) {
       onOpenTours(property);
     } else {
       Alert.alert(t('common.info'), t('tour.notAvailable'));
@@ -84,10 +85,12 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
   };
 
   const handleViewVideo = async (property: Property) => {
-    if (property.videoUrl) {
-      const supported = await Linking.canOpenURL(property.videoUrl);
+    // Phase 1 D-12: videos[] under media. First entry wins for the legacy single-video CTA.
+    const videoUrl = property.media?.videos?.[0];
+    if (videoUrl) {
+      const supported = await Linking.canOpenURL(videoUrl);
       if (supported) {
-        await Linking.openURL(property.videoUrl);
+        await Linking.openURL(videoUrl);
       } else {
         Alert.alert('Error', 'Cannot open Video URL');
       }
@@ -101,9 +104,14 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
     await loadFavorites();
   };
 
-  // D-06: split data into hospitality strip + non-hospitality vertical list
+  // D-06: split data into hospitality strip + non-hospitality vertical list.
+  // Tradeoff §K: hospitality strip filters to `dealType !== 'sale'` (rent-only),
+  // mirroring HomeScreen + RenterListings + OwnerListings caller-side derivation.
   const hospitalityProperties = useMemo(
-    () => properties.filter((p) => propertyTypeToCategory(p.propertyType) === 'Hospitality'),
+    () =>
+      properties.filter(
+        (p) => propertyTypeToCategory(p.propertyType) === 'Hospitality' && p.dealType !== 'sale',
+      ),
     [properties],
   );
   const otherProperties = useMemo(

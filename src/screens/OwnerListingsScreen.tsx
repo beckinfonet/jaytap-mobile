@@ -64,7 +64,8 @@ export const OwnerListingsScreen: React.FC<OwnerListingsScreenProps> = ({
   };
 
   const handleViewTour = async (property: Property) => {
-    if (property.tours && property.tours.length > 0) {
+    // Phase 1 D-12: tours[] flattened to media.tourUrl (first-tour wins).
+    if (property.media?.tourUrl) {
       onOpenTours(property);
     } else {
       Alert.alert('Info', 'No 3D Tour available for this property.');
@@ -72,10 +73,11 @@ export const OwnerListingsScreen: React.FC<OwnerListingsScreenProps> = ({
   };
 
   const handleViewVideo = async (property: Property) => {
-    if (property.videoUrl) {
-      const supported = await Linking.canOpenURL(property.videoUrl);
+    const videoUrl = property.media?.videos?.[0];
+    if (videoUrl) {
+      const supported = await Linking.canOpenURL(videoUrl);
       if (supported) {
-        await Linking.openURL(property.videoUrl);
+        await Linking.openURL(videoUrl);
       } else {
         Alert.alert('Error', 'Cannot open Video URL');
       }
@@ -85,9 +87,13 @@ export const OwnerListingsScreen: React.FC<OwnerListingsScreenProps> = ({
   };
 
   // D-06: split data into hospitality strip + non-hospitality vertical list
-  // (no owner-context chrome — viewer is NOT the owner of these listings)
+  // (no owner-context chrome — viewer is NOT the owner of these listings).
+  // Tradeoff §K: hospitality strip = `dealType !== 'sale'`.
   const hospitalityProperties = useMemo(
-    () => properties.filter((p) => propertyTypeToCategory(p.propertyType) === 'Hospitality'),
+    () =>
+      properties.filter(
+        (p) => propertyTypeToCategory(p.propertyType) === 'Hospitality' && p.dealType !== 'sale',
+      ),
     [properties],
   );
   const otherProperties = useMemo(

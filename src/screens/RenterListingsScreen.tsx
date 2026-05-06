@@ -89,7 +89,8 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
   };
 
   const handleViewTour = async (property: Property) => {
-    if (property.tours && property.tours.length > 0) {
+    // Phase 1 D-12: tours[] flattened to media.tourUrl (first-tour wins).
+    if (property.media?.tourUrl) {
       onOpenTours(property);
     } else {
       Alert.alert('Info', 'No 3D Tour available for this property.');
@@ -97,10 +98,11 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
   };
 
   const handleViewVideo = async (property: Property) => {
-    if (property.videoUrl) {
-      const supported = await Linking.canOpenURL(property.videoUrl);
+    const videoUrl = property.media?.videos?.[0];
+    if (videoUrl) {
+      const supported = await Linking.canOpenURL(videoUrl);
       if (supported) {
-        await Linking.openURL(property.videoUrl);
+        await Linking.openURL(videoUrl);
       } else {
         Alert.alert('Error', 'Cannot open Video URL');
       }
@@ -191,8 +193,13 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
 
   // D-10: HospitalitySection mounts inside each tab's FlatList ListHeaderComponent,
   // filtered to that tab's status (so Pending tab shows pending Hospitality only, etc.).
+  // Tradeoff §K: hospitality strip = `dealType !== 'sale'` — caller-side derivation
+  // mirrors HomeScreen / FavoritesScreen / OwnerListingsScreen.
   const hospitalityProperties = useMemo(
-    () => tabFilteredProperties.filter((p) => propertyTypeToCategory(p.propertyType) === 'Hospitality'),
+    () =>
+      tabFilteredProperties.filter(
+        (p) => propertyTypeToCategory(p.propertyType) === 'Hospitality' && p.dealType !== 'sale',
+      ),
     [tabFilteredProperties],
   );
   const otherProperties = useMemo(
