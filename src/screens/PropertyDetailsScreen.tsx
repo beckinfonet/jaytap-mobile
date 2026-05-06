@@ -454,10 +454,24 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
     }
   };
 
-  // Consolidate images into a single array
-  const images = property.images && property.images.length > 0
-    ? property.images
-    : (property.imageUrl ? [property.imageUrl] : ['https://via.placeholder.com/800']);
+  // Phase 2 D-20 nested-shape derivations (Phase 1 D-04..D-15) — declared once at the top
+  // of the render body so every downstream read site can consume the same locals. Safe-default
+  // every nested chain so legacy listings missing nested data render without crashing.
+  const titleText = property.content?.title ?? '';
+  const descriptionText = property.content?.description ?? '';
+  const cityLabel = property.location?.city ?? '';
+  const districtLabel = property.location?.district ?? '';
+  // Address line synthesized from nested location (no flat property.address on M3 shape).
+  // Render slug-as-is — M4 owns dynamic-dictionary label lookup (Plan 02-05 D-10).
+  const addressDisplay = [districtLabel, cityLabel].filter(Boolean).join(', ');
+  const photos = property.media?.photos ?? [];
+  const tourUrl = property.media?.tourUrl;
+  const videoUrl = property.media?.videos?.[0];
+
+  // Consolidate images into a single array. M3 nested = media.photos[]; if empty, fall back to placeholder.
+  const images = photos.length > 0
+    ? photos
+    : ['https://via.placeholder.com/800'];
 
   const handleShare = async () => {
     // Generate shareable URL
@@ -466,13 +480,13 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
     // Create share message
     const priceText = formatPrice(property, t('property.perMonth'));
-    const shareMessage = `${property.title}\n${property.address}\n${priceText}\n\n${shareUrl}`;
+    const shareMessage = `${titleText}\n${addressDisplay}\n${priceText}\n\n${shareUrl}`;
 
     try {
       const result = await Share.share({
         message: shareMessage,
         url: shareUrl, // iOS will use this for universal links
-        title: property.title,
+        title: titleText,
       });
 
       if (result.action === Share.sharedAction) {
@@ -508,7 +522,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
     // Clean phone number: remove all non-numeric characters
     const cleanPhone = owner.whatsapp.replace(/\D/g, '');
 
-    const message = `Hi, I'm interested in your property: ${property.title}`;
+    const message = `Hi, I'm interested in your property: ${titleText}`;
     const whatsappUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
 
     Linking.canOpenURL(whatsappUrl)
@@ -543,7 +557,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       return;
     }
 
-    const message = `Hi, I'm interested in your property: ${property.title}`;
+    const message = `Hi, I'm interested in your property: ${titleText}`;
     const webUrl = `https://t.me/${username}?text=${encodeURIComponent(message)}`;
 
     // Try opening web URL directly as it handles redirection well
@@ -561,8 +575,8 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       return;
     }
 
-    const subject = encodeURIComponent(`Inquiry about: ${property.title}`);
-    const body = encodeURIComponent(`Hi,\n\nI'm interested in your property: ${property.title}\n\nAddress: ${property.address}\n\nPlease let me know if it's still available.\n\nThank you!`);
+    const subject = encodeURIComponent(`Inquiry about: ${titleText}`);
+    const body = encodeURIComponent(`Hi,\n\nI'm interested in your property: ${titleText}\n\nAddress: ${addressDisplay}\n\nPlease let me know if it's still available.\n\nThank you!`);
     const emailUrl = `mailto:${owner.email}?subject=${subject}&body=${body}`;
 
     Linking.openURL(emailUrl).catch(err => {
@@ -599,13 +613,17 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
     setActiveSlide(roundIndex);
   };
 
-  // Get property coordinates - use real coordinates if available, otherwise generate mock coordinates
+  // Get property coordinates - use real nested coordinates if available, otherwise generate mock.
+  // Phase 2 D-20 cutover: reads `location?.coordinates?.lat/lng` (nested) per Phase 1 D-04..D-15.
+  // Hash-fallback preserved verbatim from PropertyMap.tsx (Plan 02-05) so listings without
+  // coordinates render a stable demo pin within Bishkek.
   const getPropertyCoordinates = () => {
-    // If property has real coordinates, use them
-    if (property.latitude && property.longitude) {
+    const lat = property.location?.coordinates?.lat;
+    const lng = property.location?.coordinates?.lng;
+    if (lat != null && lng != null) {
       return {
-        latitude: property.latitude,
-        longitude: property.longitude,
+        latitude: lat,
+        longitude: lng,
       };
     }
 
@@ -734,7 +752,9 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           <View style={styles.imageOverlay}>
             <View style={[styles.statusBadge, { backgroundColor: colors.surface }]}>
               <Text style={[styles.statusText, { color: colors.text }]}>
-                {property.type === 'rent' ? t('property.forRent') : t('property.forSale')}
+                {/* Phase 2 D-20 cutover: M2 flat `type === 'rent'` → M3 nested `dealType !== 'sale'`.
+                    Tradeoff §K mirror — same caller-side derivation as Plan 02-05's list screens. */}
+                {property.dealType !== 'sale' ? t('property.forRent') : t('property.forSale')}
               </Text>
             </View>
 
@@ -752,10 +772,13 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
           {/* Media Buttons - Redesigned: Hero 3D Tour + 2x2 Grid */}
           <View style={styles.mediaButtonsContainer}>
-            {/* Hero 3D Tour Card - platform-specific component */}
+            {/* Hero 3D Tour Card - platform-specific component.
+                Phase 2 D-20 cutover: M2 flat `is3DTourAvailable && tours[]` → M3 nested
+                `media.tourUrl` (Phase 1 D-12 first-tour-wins flatten). Single string ⇒
+                tourCount is always 0 or 1. */}
             <TourHeroCard
-              isActive={!!(property.is3DTourAvailable && property.tours.length > 0)}
-              tourCount={property.tours.length}
+              isActive={!!tourUrl}
+              tourCount={tourUrl ? 1 : 0}
               isDark={isDark}
               inputBackground={colors.inputBackground}
               textSecondary={colors.textSecondary}
@@ -783,32 +806,43 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 <ChevronRight size={20} color={property.instagramUrl ? colors.textSecondary : colors.textTertiary} />
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[
-                  styles.mediaGridCard,
-                  { backgroundColor: colors.surface, borderColor: colors.border },
-                  (!property.panoramicPhotosUrl || !onOpenPhotos) && { opacity: 0.6 }
-                ]}
-                onPress={property.panoramicPhotosUrl && onOpenPhotos ? () => onOpenPhotos(property.panoramicPhotosUrl!) : undefined}
-                disabled={!onOpenPhotos || !property.panoramicPhotosUrl}
-              >
-                <ImageIcon size={24} color={(property.panoramicPhotosUrl && onOpenPhotos) ? colors.text : colors.textSecondary} />
-                <Text style={[styles.mediaGridLabel, { color: (property.panoramicPhotosUrl && onOpenPhotos) ? colors.text : colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">{t('property.photos')}</Text>
-                <ChevronRight size={20} color={(property.panoramicPhotosUrl && onOpenPhotos) ? colors.textSecondary : colors.textTertiary} />
-              </TouchableOpacity>
+              {/* Photos tile — M3 nested has no separate panoramic URL field; use the first
+                  hero photo from media.photos[0] as the open-target. If no photos, tile is disabled.
+                  Phase 2 D-20 cutover (panoramicPhotosUrl deprecated; not in nested Property type). */}
+              {(() => {
+                const photoTarget = photos[0];
+                const photoActive = !!photoTarget && !!onOpenPhotos;
+                return (
+                  <TouchableOpacity
+                    style={[
+                      styles.mediaGridCard,
+                      { backgroundColor: colors.surface, borderColor: colors.border },
+                      !photoActive && { opacity: 0.6 }
+                    ]}
+                    onPress={photoActive ? () => onOpenPhotos!(photoTarget!) : undefined}
+                    disabled={!photoActive}
+                  >
+                    <ImageIcon size={24} color={photoActive ? colors.text : colors.textSecondary} />
+                    <Text style={[styles.mediaGridLabel, { color: photoActive ? colors.text : colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">{t('property.photos')}</Text>
+                    <ChevronRight size={20} color={photoActive ? colors.textSecondary : colors.textTertiary} />
+                  </TouchableOpacity>
+                );
+              })()}
 
+              {/* Videos tile — Phase 2 D-20 cutover: M2 flat `property.videoUrl` → M3 nested
+                  `media.videos[0]` (Phase 1 schema). Local `videoUrl` const captured above. */}
               <TouchableOpacity
                 style={[
                   styles.mediaGridCard,
                   { backgroundColor: colors.surface, borderColor: colors.border },
-                  !property.videoUrl && { opacity: 0.6 }
+                  !videoUrl && { opacity: 0.6 }
                 ]}
-                onPress={property.videoUrl ? () => handleOpenLink(property.videoUrl, t('property.videos')) : undefined}
-                disabled={!property.videoUrl}
+                onPress={videoUrl ? () => handleOpenLink(videoUrl, t('property.videos')) : undefined}
+                disabled={!videoUrl}
               >
-                <Video size={24} color={property.videoUrl ? colors.text : colors.textSecondary} />
-                <Text style={[styles.mediaGridLabel, { color: property.videoUrl ? colors.text : colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">{t('property.videos')}</Text>
-                <ChevronRight size={20} color={property.videoUrl ? colors.textSecondary : colors.textTertiary} />
+                <Video size={24} color={videoUrl ? colors.text : colors.textSecondary} />
+                <Text style={[styles.mediaGridLabel, { color: videoUrl ? colors.text : colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">{t('property.videos')}</Text>
+                <ChevronRight size={20} color={videoUrl ? colors.textSecondary : colors.textTertiary} />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -830,7 +864,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           {/* Title, ID, Availability, Address - in a card */}
           <View style={styles.section}>
             <View style={[styles.listingInfoCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <Text style={[styles.title, { color: colors.text }]}>{property.title}</Text>
+              <Text style={[styles.title, { color: colors.text }]}>{titleText}</Text>
               {/* D-19 / MOD-07: status pill inline below title for non-live statuses.
                   Owner sees this for pending/rejected/archived; mods/admins see it via D-06
                   visibility branch. Anonymous never reaches a non-live listing (server 404). */}
@@ -839,13 +873,17 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                   <StatusPill status={property.status} />
                 </View>
               )}
+              {/* Phase 2 D-20 cutover: ListingMetaTable now opts in to extras grid via the
+                  optional `property` prop (basics + conditionAndAmenities + terms rows).
+                  Plan 02-05 added the prop; PropertyDetailsScreen is the call site that uses it. */}
               <ListingMetaTable
                 listingId={property.listingId}
-                availableDate={(property as any).availableDate}
+                availableDate={property.availableDate}
                 showAvailabilityDot
+                property={property}
               />
               {(() => {
-                const formatted = formatAddress(property.address);
+                const formatted = formatAddress(addressDisplay);
                 return (
                   <View style={styles.addressRow}>
                     <View style={{ marginRight: 6, marginTop: 2 }}>
@@ -863,35 +901,47 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             </View>
           </View>
 
-          {/* Specs (Residential / Commercial only — Hospitality uses rooms/maxGuests/amenities semantics) */}
+          {/* Specs (Residential / Commercial only — Hospitality uses rooms/maxGuests/amenities semantics).
+              Phase 2 D-20 cutover: M2 flat `specs.{beds,baths,sqft}` → M3 nested
+              `basics.{rooms,bathroom,areaSqm}`. Bathroom enum (private/shared/none) rendered
+              via the same i18n keys Plan 02-05 added. Numeric/string fallback to '-' so legacy
+              listings without basics still render the row. */}
           {!isHospitality && (
             <View style={[styles.specsContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={styles.specItem}>
                 <Text style={styles.specIcon}>🛏</Text>
-                <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.beds}</Text>
+                <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.rooms ?? '-'}</Text>
                 <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.beds')}</Text>
               </View>
               <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
               <View style={styles.specItem}>
                 <Text style={styles.specIcon}>🚿</Text>
-                <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.baths}</Text>
+                <Text style={[styles.specValue, { color: colors.text }]}>
+                  {property.basics?.bathroom === 'private'
+                    ? t('property.bathroomPrivate' as any)
+                    : property.basics?.bathroom === 'shared'
+                      ? t('property.bathroomShared' as any)
+                      : property.basics?.bathroom === 'none'
+                        ? t('property.bathroomNone' as any)
+                        : '-'}
+                </Text>
                 <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.baths')}</Text>
               </View>
               <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
               <View style={styles.specItem}>
                 <Text style={styles.specIcon}>📐</Text>
-                <Text style={[styles.specValue, { color: colors.text }]}>{property.specs.sqft}</Text>
+                <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.areaSqm ?? '-'}</Text>
                 <Text style={[styles.specLabel, { color: colors.textSecondary }]}>m²</Text>
               </View>
             </View>
           )}
 
-          {/* Description */}
+          {/* Description — Phase 2 D-20 cutover: M2 flat `description` → M3 nested `content.description`. */}
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('property.description')}</Text>
             <View style={[styles.sectionContentBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <Text style={[styles.description, { color: colors.text }]}>
-                {property.description}
+                {descriptionText}
               </Text>
             </View>
           </View>
@@ -929,7 +979,8 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('property.whatThisPlaceOffers')}</Text>
               <View style={[styles.sectionContentBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <View style={styles.featuresGrid}>
-                  {property.features.map((feature, index) => {
+                  {/* Phase 2 D-20 cutover: optional-chain on `features` (top-level optional in M3 type). */}
+                  {(property.features ?? []).map((feature, index) => {
                     const IconComponent = getFeatureIcon(feature);
                     return (
                       <View key={index} style={styles.featureItem}>
@@ -954,7 +1005,8 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             <View style={styles.locationHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('property.location')}</Text>
             </View>
-            <Text style={[styles.address, { color: colors.textSecondary, marginBottom: 12 }]}>{property.address}</Text>
+            {/* Phase 2 D-20 cutover: M2 flat `address` → derived nested `addressDisplay` (location.city + district). */}
+            <Text style={[styles.address, { color: colors.textSecondary, marginBottom: 12 }]}>{addressDisplay}</Text>
             <View style={[styles.mapContainer, { borderColor: colors.border }]}>
               <MapView
                 provider={PROVIDER_DEFAULT}
@@ -971,10 +1023,11 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 mapType="mutedStandard"
                 userInterfaceStyle={isDark ? 'dark' : 'light'}
               >
+                {/* Map embed site #1 — propertyCoordinates already reads location?.coordinates?.lat/lng. */}
                 <Marker
                   coordinate={propertyCoordinates}
-                  title={property.title}
-                  description={property.address}
+                  title={titleText}
+                  description={addressDisplay}
                 />
               </MapView>
               {/* Elegant floating button to open full screen */}
@@ -1048,31 +1101,39 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             );
           })()}
 
-          {/* Agent Info */}
-          {property.agent && (
-            <View style={[styles.agentContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <View style={styles.agentInfo}>
-                <View style={[styles.agentAvatar, { backgroundColor: colors.inputBackground }]}>
-                  <Text style={[styles.agentInitial, { color: colors.textSecondary }]}>
-                    {property.agent.name?.charAt(0) || '?'}
-                  </Text>
-                </View>
-                <View>
-                  <Text style={[styles.agentName, { color: colors.text }]}>
-                    {property.agent.name || 'Contact Owner'}
-                  </Text>
-                  {property.agent.rating && property.agent.reviews && (
-                    <Text style={[styles.agentRating, { color: colors.textSecondary }]}>
-                      ⭐ {property.agent.rating} ({property.agent.reviews} reviews)
+          {/* Agent Info — Phase 2 D-20 cutover: M2 demo `property.agent` field deprecated;
+              not present on the M3 nested Property type. Block kept as `as any` legacy guard so
+              that any latent flat-shape data still renders the historical card; new M3 listings
+              skip this section (owner is rendered separately in the footer/sticky-bar via
+              `property.owner`). */}
+          {(() => {
+            const legacyAgent = (property as any).agent;
+            if (!legacyAgent) return null;
+            return (
+              <View style={[styles.agentContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <View style={styles.agentInfo}>
+                  <View style={[styles.agentAvatar, { backgroundColor: colors.inputBackground }]}>
+                    <Text style={[styles.agentInitial, { color: colors.textSecondary }]}>
+                      {legacyAgent.name?.charAt(0) || '?'}
                     </Text>
-                  )}
+                  </View>
+                  <View>
+                    <Text style={[styles.agentName, { color: colors.text }]}>
+                      {legacyAgent.name || 'Contact Owner'}
+                    </Text>
+                    {legacyAgent.rating && legacyAgent.reviews && (
+                      <Text style={[styles.agentRating, { color: colors.textSecondary }]}>
+                        ⭐ {legacyAgent.rating} ({legacyAgent.reviews} reviews)
+                      </Text>
+                    )}
+                  </View>
                 </View>
+                <TouchableOpacity style={[styles.messageButton, { backgroundColor: colors.primaryLight }]}>
+                  <Text style={{ fontSize: 18, color: colors.text }}>✉️</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity style={[styles.messageButton, { backgroundColor: colors.primaryLight }]}>
-                <Text style={{ fontSize: 18, color: colors.text }}>✉️</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+            );
+          })()}
 
         </View>
       </ScrollView>
@@ -1177,10 +1238,11 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               mapType="mutedStandard"
               userInterfaceStyle={isDark ? 'dark' : 'light'}
             >
+              {/* Map embed site #2 — propertyCoordinates already reads location?.coordinates?.lat/lng. */}
               <Marker
                 coordinate={propertyCoordinates}
-                title={property.title}
-                description={property.address}
+                title={titleText}
+                description={addressDisplay}
               />
             </MapView>
 
@@ -1194,9 +1256,9 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Address info at bottom */}
+          {/* Address info at bottom — Phase 2 D-20 cutover: M2 flat `address` → derived `addressDisplay`. */}
           <View style={[styles.fullScreenMapFooter, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-            <Text style={[styles.fullScreenMapAddress, { color: colors.text }]}>{property.address}</Text>
+            <Text style={[styles.fullScreenMapAddress, { color: colors.text }]}>{addressDisplay}</Text>
           </View>
         </SafeAreaView>
       </Modal>
