@@ -94,7 +94,7 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 02-01-PLAN.md — Backend Location dictionary (City + District models + locationRoutes.js + moderationRoutes.js extension + seed-locations-m3.js + supertest cases + middleware extract)
+- [x] 02-01-PLAN.md — Backend Location dictionary (City + District models + locationRoutes.js + moderationRoutes.js extension + seed-locations-m3.js + supertest cases + middleware extract) — completed 2026-05-06 (3 operator items pending: Phase 1 Atlas migration confirmation, Plan 02-01 Railway deploy, prod Atlas seed run)
 - [ ] 02-02-PLAN.md — <ContextualListingFlow> skeleton + Step 1 + types/validators/adapters + ~24 i18n keys + Wave 0 test scaffolds
 - [ ] 02-03-PLAN.md — Step 2 (Location chips + map pin + Other modal) + Step 3 (BasicInfo conditional sub-fields) + ModerationQueueScreen Locations tab + ~49 i18n keys
 - [ ] 02-04a-PLAN.md — Step 4 (ConditionAmenities) + Step 5 (TitleDescription) + Step 4/5 validator tests + ~18 i18n keys
@@ -173,7 +173,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Schema Reshape + Backend Route Shape Cutover | 5/5 | Complete (4 operator UAT pending) | 2026-05-06 |
-| 2. 6-Step Contextual Listing Flow (Client) | 0/9 | Planning complete (ready to execute) | — |
+| 2. 6-Step Contextual Listing Flow (Client) | 1/9 | In progress (Plan 02-01 complete; operator deploys pending) | — |
 | 3. Media Flow Inversion (Admin/Mod Curation) | 0/TBD | Not started | — |
 | 4. M2 Carry-Forward Bug Fixes | 0/TBD | Not started | — |
 | 5. Hardening + Manual Physical-Device QA + Release v3.0.0 | 0/TBD | Not started | — |
