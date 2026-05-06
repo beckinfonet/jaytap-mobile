@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: "Contextual Forms"
-status: executing
-last_updated: "2026-05-06T20:55:00Z"
-last_activity: 2026-05-06 -- Phase 03 COMPLETE (7/7 plans + paired-gate verifier+reviewer cleared + HG-01 fixed inline)
+status: Phase 3 closed 2026-05-06; ready to start Phase 4 (M2 Carry-Forward Bug Fixes — CARRY-01 ROLE-11 + CARRY-02 Phase 4.5 uid-mismatch).
+last_updated: "2026-05-06T22:20:21.135Z"
+last_activity: 2026-05-06 -- Phase 03 CLOSED (7/7 plans + paired-gate verifier+reviewer cleared + HG-01 fixed inline)
 progress:
-  total_phases: 5
+  total_phases: 4
   completed_phases: 3
-  total_plans: 29
-  completed_plans: 28
-  percent: 97
+  total_plans: 22
+  completed_plans: 22
+  percent: 100
 ---
 
 # STATE: JayTap
@@ -370,7 +370,7 @@ Tracked from M1 v1.0.4 close-out (`08-VERIFICATION.md` Section I + retrospective
 
 ## Session Continuity
 
-**Last session:** 2026-05-06T15:07:53.412Z
+**Last session:** 2026-05-06T22:20:21.124Z
 
 **Resume with:** `/gsd-plan-phase 1` to research + plan the Schema Reshape + Backend Route Shape Cutover phase. CONTEXT.md anchors the planner's task breakdown into the M2 Plan 02-02 wave structure: Wave-0 backend test scaffolds + Mongoose schema reshape (`Property.js` flat → nested per D-04..D-15); Wave-1 migration script `JayTap-services/src/scripts/migrate-listings-m3.js` (--dry-run + --verify=PASS + idempotent skip-filter + 3-doc sample preview); Wave-2 backend route cutover across `propertyRoutes.js` (lines 44/58/105/265/296/354) + `moderationRoutes.js` (queue/approve/reject/edit-on-behalf endpoints) + `requireListingCapability` body-shape adjustment + RN client `src/types/Property.ts` lightweight type-stub; Wave-3 backend test updates (researcher/planner discretion on scope per Claude's-Discretion D-tag); Wave-4 §Rollback runbook landing in CONTEXT.md (operator-supervised step-by-step) + smoke-test commands. CONTEXT.md `<canonical_refs>` lists the M3 anchor SPEC §"Suggested Data Shape" + REQUIREMENTS.md SCHEMA-01..05 + ROADMAP.md Phase 1 + M2 Plan 02-02 CONTEXT/PLAN/SUMMARY (pattern source) + backend Property.js / migrate-listings-m2.js / propertyRoutes.js / moderationRoutes.js + RN client Property.ts + 8 auto-memory pointers (no-firebase-sdk, identity-vs-user-store, backend-repo-location, backend-node-version, m2-shipped-2026-05-05, gsd-verifier-misses-regressions, aws-iam-jaytap-prod-s3, geographic-scope, geocoder-nominatim-hang). Per memory `gsd-verifier-misses-regressions.md`: route-shape cutover is exactly the regression class the verifier missed in M2 Phase 1 — paired-gates discipline (`/gsd-verify-work 1` + `/gsd-code-review 1`) is mandatory after `/gsd-execute-phase 1`. **Open triage:** none. CARRY-01 (ROLE-11 popup-recovery) + CARRY-02 (Phase 4.5 uid-mismatch) explicitly deferred to Phase 4 per CONTEXT.md `<deferred>`.
 
