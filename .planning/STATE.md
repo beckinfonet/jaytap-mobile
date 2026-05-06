@@ -3,26 +3,38 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: "Contextual Forms"
 status: executing
-last_updated: "2026-05-06T20:19:44Z"
-last_activity: 2026-05-06 -- Phase 03 Plan 06 complete (RN client entry-points: 6 EN+RU i18n keys + NeedsMediaBanner + ModerationQueueScreen filter chips + W2 conditional row-tap + PropertyDetailsScreen banner + Approve disabled on 3 surfaces D-12 + 5-case RTL smoke 5/5 + App.tsx prop forwards; tsc baseline 17 preserved)
+last_updated: "2026-05-06T20:55:00Z"
+last_activity: 2026-05-06 -- Phase 03 COMPLETE (7/7 plans + paired-gate verifier+reviewer cleared + HG-01 fixed inline)
 progress:
-  total_phases: 4
-  completed_phases: 2
-  total_plans: 22
-  completed_plans: 21
-  percent: 95
+  total_phases: 5
+  completed_phases: 3
+  total_plans: 29
+  completed_plans: 28
+  percent: 97
 ---
 
 # STATE: JayTap
 
 ## Current Position
 
-Phase: 3
-Plan: 07 (next)
-Status: In progress (Plans 03-01 + 03-02 + 03-03 + 03-04 + 03-05 + 03-06 complete)
-Last activity: 2026-05-06 -- Phase 03 Plan 06 complete (RN client entry-points: 6 verbatim EN+RU keys (banner 3 + filter 3) bringing Phase 3 cumulative to 32 keys per locale + NEW NeedsMediaBanner.tsx (122 LOC, W6 zero-hex via inline-on-JSX colors.onAccent token) + ModerationQueueScreen 3-chip filter row (default 'all-pending' D-03) above Listings tab FlatList + useMemo predicate considering ONLY photos.length per RESEARCH §Open Question #1 + W2 conditional row-tap encoding D-01+D-04 read together (photoCount === 0 -> openMediaCuration; otherwise onOpenPropertyDetails) + PropertyDetailsScreen NeedsMediaBanner trigger (can('approveListings') && status === 'pending' && photos.length === 0) ABOVE existing mod footer + Approve disabled-state with hint text on PropertyDetailsScreen + Rule-2 deviation: D-12 surface 3 (ModerationQueueScreen row inline-Approve also gated; final D-12 surface count = 3, not 2 or 4) + 5-case RTL smoke (3 chip predicate cases verifying tourUrl/videos exclusion per Open Question #1 + 2 W2 row-tap branch cases) + App.tsx forwards openMediaCuration as onOpenMediaCuration to BOTH ModerationQueueScreen + PropertyDetailsHost mounts; tsc baseline 17 preserved; i18n parity gate green; 9/9 Phase 3 screen RTL tests pass)
+Phase: 4 (next)
+Plan: not started
+Status: Phase 3 closed 2026-05-06; ready to start Phase 4 (M2 Carry-Forward Bug Fixes — CARRY-01 ROLE-11 + CARRY-02 Phase 4.5 uid-mismatch).
+Last activity: 2026-05-06 -- Phase 03 CLOSED (7/7 plans + paired-gate verifier+reviewer cleared + HG-01 fixed inline)
 
-Progress: [██████████] 100% of executable plans through wave 5 (21 of 21 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 6/7 (03-01 + 03-02 + 03-03 + 03-04 + 03-05 + 03-06 complete; 03-07 pending))
+Progress: [██████████] 100% (28 of 28 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 7/7 + HG-01 inline fix; M3 progress 3/5 phases shipped)
+
+**Phase 3 close artifact (2026-05-06T20:55:00Z):**
+
+- All 7 plans shipped: 03-01 (s3Upload factory + 2 sentinels) → 03-02 (POST/DELETE media endpoints + 26 supertest cases) → 03-03 (MEDIA_REQUIRED gate at /approve + edit-on-behalf + 7 supertest cases) → 03-04 (multer strip from propertyRoutes + 6 MEDIA-02/MEDIA-08 regression cases + sentinel chain in npm test) → 03-05 (MediaCurationService + MediaCurationScreen 959 LOC + 26 EN+RU keys + onAccent/scrim tokens + 4-case RTL) → 03-06 (filter chips + NeedsMediaBanner + W2 conditional row-tap + 6 EN+RU keys + 5-case RTL + D-12 3-surface gate) → 03-07 (paired-gate verification doc 254 LOC).
+- 4 sentinels green: anti-spoofing (backend), media-stripped (backend), i18n parity (RN), create-listing-removed (RN — Phase 2 atomic-deletion preserved).
+- Backend tests: 258/258 (was 219 pre-Phase-3; +39 supertest cases). RN client tests: 386/4 (4 pre-existing M2-baseline failures preserved; 9/9 Phase 3 screen RTL tests added).
+- Phase 3 cumulative i18n: 32 keys per locale (26 mediaCuration + 6 banner/filter; +2 cap-overflow over original 20-30 envelope, MEDIA-09-bound).
+- Paired-gate verdicts: gsd-verifier `human_needed` (9/9 MEDIA-* + 5/5 SCs evidenced; 6 device walks deferred to Phase 5 REL-03 per CONTEXT.md `<deferred>`); gsd-code-reviewer `issues` (1 HIGH HG-01 hooks-order in MediaCurationScreen + 4 MEDIUM + 4 LOW + 4 INFO; 0 CRITICAL). HG-01 fixed inline in commit `c16ac9b` by hoisting all hooks above the `if (!can('approveListings'))` gate, with regression test asserting role-flip-mid-session does not throw `Invariant Violation`. 4 MEDIUM findings (i18n drift, comment doc-drift, CastError → 400 normalization, sentinel regex tightening) deferred to Phase 4 carry-forward bucket.
+- D-14 atomic-break reinterpreted: API-surface removal IS the IAM rotation (per memory `aws-iam-jaytap-prod-s3.md` — JayTap users do not have personal S3 credentials; the dedicated `jaytap-prod-s3` IAM user is the sole S3 actor). Literal key rotation NOT performed; reopens only if Phase 5 REL-05 audit finds key-leak evidence.
+- ModerationLog audit row shape locked: `action: 'media-upload'` (Discretion #8 — both add and remove operations reuse the same enum value; diff direction signals intent), actorUid sourced exclusively from `req.firebaseUid`, count-only diff `{ 'media.photos.length', 'media.videos.length', 'media.tourUrl.set' }`.
+- Paired-gate artifacts: `03-VERIFICATION.md` (verifier independent assessment) + `03-REVIEW.md` (reviewer findings + Fix Status addendum) + `03-PHASE-VERIFICATION.md` (executor self-claim cross-checked) all preserved on disk.
+- Phase 3 SUMMARY pointer: `.planning/phases/03-media-flow-inversion-admin-mod-curation/03-07-SUMMARY.md`.
 
 **Phase 3 Plan 06 closing artifact (2026-05-06T20:19:44Z):**
 

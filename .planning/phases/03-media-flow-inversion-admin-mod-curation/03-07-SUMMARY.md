@@ -35,7 +35,7 @@ metrics:
 
 # Phase 3 Plan 07: Phase-Close Verification Summary
 
-**Status:** Task 1 COMPLETE; Task 2 (`checkpoint:human-verify`) PENDING — orchestrator must present `03-PHASE-VERIFICATION.md` to user, await approval, then run paired-gate verifier+reviewer per memory `gsd-verifier-misses-regressions.md` BEFORE marking Phase 3 closed in ROADMAP.md / STATE.md / REQUIREMENTS.md.
+**Status:** Task 1 COMPLETE; Task 2 (`checkpoint:human-verify`) RESOLVED 2026-05-06T20:55:00Z — user approved phase close after reviewing the verification doc; orchestrator ran paired-gate verifier (`03-VERIFICATION.md` `human_needed` — 9/9 + 5/5 evidenced, 6 device walks deferred to Phase 5 REL-03) AND code-reviewer (`03-REVIEW.md` `issues` — 1 HIGH HG-01 + 4 MEDIUM, 0 CRITICAL); HG-01 fixed inline in commit `c16ac9b` (hoist hooks above mod-role gate + regression test); 4 MEDIUM deferred to Phase 4 carry-forward bucket. Phase 3 marked `[x]` in ROADMAP.md; STATE.md advanced to Phase 4 next; REQUIREMENTS.md MEDIA-01 marked `[x]` (MEDIA-02..09 already marked from prior plans).
 
 ## One-liner
 
