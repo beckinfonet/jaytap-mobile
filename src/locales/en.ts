@@ -748,6 +748,18 @@ export const en = {
   'moderation.mediaCuration.error.mediaRequired': 'At least one photo is required before approval.',
   'moderation.mediaCuration.cap.toast.photos': 'Added {taken} of {requested}; cap is 40 photos.',
   'moderation.mediaCuration.cap.toast.videos': 'Added {taken} of {requested}; cap is 5 videos.',
+
+  // Phase 3 Plan 03-06 — entry-point UX (banner + filter chips). Combined with the
+  // 26 mediaCuration-namespace keys above, Phase 3 total = 32 keys per locale (revision 2 W1).
+  // Banner: rendered on PropertyDetailsScreen mod footer when can('approveListings') &&
+  // status === 'pending' && photos.length === 0. CTA fires onAddPhotos -> openMediaCuration.
+  // Filter chips: 3-segment row above ModerationQueueScreen Listings tab FlatList; default 'all-pending'.
+  'moderation.needsMediaBanner.title': 'Photos required before approval',
+  'moderation.needsMediaBanner.body': 'Add at least one photo before this listing can go live.',
+  'moderation.needsMediaBanner.action': 'Add photos',
+  'moderation.filter.allPending': 'All pending',
+  'moderation.filter.needsMedia': 'Needs media',
+  'moderation.filter.hasMedia': 'Has media',
 } as const;
 
 export type TranslationKeys = keyof typeof en;

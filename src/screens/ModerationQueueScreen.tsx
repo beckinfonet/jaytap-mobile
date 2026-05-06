@@ -22,7 +22,7 @@
 // This screen is mounted by App.tsx in Plan 03-06 (App.tsx is NOT touched in Plan 03-04).
 // The 3 callback props (onBack, onOpenPropertyDetails, onEditOnBehalf) define the
 // contract Plan 06 will wire.
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -60,7 +60,19 @@ interface ModerationQueueScreenProps {
   onBack: () => void;
   onOpenPropertyDetails: (property: Property) => void;
   onEditOnBehalf: (property: Property) => void;
+  // Phase 3 Plan 03-06 — entry-point wiring. App.tsx's openMediaCuration callback
+  // (declared in Plan 03-05) is forwarded here so the row-tap conditional branch
+  // (W2 — D-01 + D-04 read together) can dispatch needs-media listings to the
+  // MediaCurationScreen overlay instead of PropertyDetailsScreen. Optional to keep
+  // pre-wire compatibility (deep-links / future call sites that don't pass it yet).
+  onOpenMediaCuration?: (listingId: string) => void;
 }
+
+// Phase 3 Plan 03-06 — filter chip predicate (UI-SPEC §"Filter predicate").
+// `'all-pending'` is the default (D-03 — preserves M2 first-render behavior).
+// `'needs-media'` / `'has-media'` are derived purely from media.photos.length;
+// tourUrl + videos do NOT factor into the predicate (RESEARCH §Open Question #1).
+type ModFilterChip = 'all-pending' | 'needs-media' | 'has-media';
 
 // Per-screen AppState cooldown — sibling to AuthContext's refreshRole cooldown
 // (PATTERNS §E). Each AppState consumer uses its OWN cooldown ref because they perform
@@ -71,6 +83,7 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
   onBack,
   onOpenPropertyDetails,
   onEditOnBehalf,
+  onOpenMediaCuration,
 }) => {
   const { colors, isDark } = useTheme();
   const { t } = useLanguage();
@@ -87,6 +100,13 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
   // matches RenterListingsScreen.tsx:184-196 keep-alive pattern). Listings
   // surface is unchanged; this is purely additive UI.
   const [activeTab, setActiveTab] = useState<'listings' | 'locations'>('listings');
+
+  // Phase 3 Plan 03-06 — Listings tab filter chip state (default 'all-pending'
+  // per D-03; preserves M2 first-render behavior — every row visible until the
+  // mod taps a different chip). Chip row renders ONLY in the Listings tab body
+  // (UI-SPEC §"Placement"); auto-hidden via the existing keep-alive display:'none'
+  // wrapping the Listings FlatList.
+  const [activeFilter, setActiveFilter] = useState<ModFilterChip>('all-pending');
   const [pendingCities, setPendingCities] = useState<City[]>([]);
   const [pendingDistricts, setPendingDistricts] = useState<DistrictWithCity[]>([]);
   const [loadingLocations, setLoadingLocations] = useState(false);
@@ -256,6 +276,39 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
   const handleViewTour = (property: Property) => onOpenPropertyDetails(property);
   const handleViewVideo = (property: Property) => onOpenPropertyDetails(property);
 
+  // Phase 3 Plan 03-06 — W2 conditional row-tap branch (encodes D-01 + D-04 read
+  // together). Listings with photos.length === 0 route to MediaCurationScreen
+  // (curation surface — D-01 needs-media row); listings with photos.length > 0
+  // route to PropertyDetailsScreen (mod-action surface preserves Approve / Reject /
+  // Edit-on-behalf for has-media listings — D-04). The forwarded App.tsx callback
+  // (`onOpenMediaCuration`) was declared in Plan 03-05.
+  const handleRowTap = useCallback(
+    (listing: Property) => {
+      const photoCount = listing.media?.photos?.length ?? 0;
+      if (photoCount === 0 && onOpenMediaCuration) {
+        // Curation surface — D-01 needs-media row routes to MediaCurationScreen.
+        onOpenMediaCuration(String(listing.id));
+        return;
+      }
+      // Mod-action surface — D-04 has-media (or missing callback fallback).
+      onOpenPropertyDetails(listing);
+    },
+    [onOpenMediaCuration, onOpenPropertyDetails],
+  );
+
+  // Phase 3 Plan 03-06 — Listings tab filter predicate (UI-SPEC §"Filter predicate").
+  // Pure client-side filter; predicate considers ONLY media.photos.length per RESEARCH
+  // §Open Question #1 — tourUrl + videos do NOT count toward "has media".
+  const filteredItems = useMemo(() => {
+    return items.filter((listing) => {
+      if (activeFilter === 'all-pending') return true;
+      const photoCount = listing.media?.photos?.length ?? 0;
+      if (activeFilter === 'needs-media') return photoCount === 0;
+      if (activeFilter === 'has-media') return photoCount > 0;
+      return true;
+    });
+  }, [items, activeFilter]);
+
   const renderItem = ({ item }: { item: Property }) => {
     const isActing = actingId === item.id;
     return (
@@ -264,10 +317,11 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
           styles.queueItemShell,
           { borderColor: colors.border, backgroundColor: colors.surface },
         ]}
+        testID={`moderation-queue-row-${String(item.id)}`}
       >
         <PropertyCard
           property={item}
-          onPress={onOpenPropertyDetails}
+          onPress={handleRowTap}
           onViewTour={handleViewTour}
           onViewVideo={handleViewVideo}
           groupWithFooter
@@ -550,13 +604,58 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
         style={{ flex: 1, display: activeTab === 'listings' ? 'flex' : 'none' }}
         testID="moderation-queue-tab-body-listings"
       >
+        {/* Phase 3 Plan 03-06 — 3-chip filter row (UI-SPEC §Surface 2). Renders
+            ONLY inside the Listings tab body (auto-hidden when Locations tab
+            active via the parent's display:'none' wrapper). Chip pattern
+            mirrors Step4ConditionAmenities (visual continuity). */}
+        <View style={chipStyles.chipRow} testID="moderation-filter-chip-row">
+          {(['all-pending', 'needs-media', 'has-media'] as const).map((chip) => {
+            const isActive = activeFilter === chip;
+            const labelKey: TranslationKeys =
+              chip === 'all-pending'
+                ? 'moderation.filter.allPending'
+                : chip === 'needs-media'
+                ? 'moderation.filter.needsMedia'
+                : 'moderation.filter.hasMedia';
+            return (
+              <TouchableOpacity
+                key={chip}
+                testID={`moderation-filter-chip-${chip}`}
+                style={[
+                  chipStyles.chip,
+                  {
+                    backgroundColor: isActive
+                      ? colors.activeChipBackground
+                      : colors.chipBackground,
+                    borderColor: isActive
+                      ? colors.activeChipBackground
+                      : colors.chipBorder,
+                  },
+                ]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isActive }}
+                onPress={() => setActiveFilter(chip)}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    chipStyles.chipText,
+                    { color: isActive ? colors.activeChipText : colors.text },
+                  ]}
+                >
+                  {t(labelKey)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : (
           <FlatList
-            data={items}
+            data={filteredItems}
             // WR-03 fix — defensively coerce to String; the upstream PropertyService
             // mapping already does this, but a belt-and-suspenders String() here
             // protects against future regressions if items ever flow in unmapped.
@@ -821,4 +920,40 @@ const styles = StyleSheet.create({
   },
 });
 
+// Phase 3 Plan 03-06 — chip row stylesheet. Mirrors ContextualListingFlow
+// commonStyles.chip{Row,Text} verbatim (visual continuity); colors are applied
+// inline at consumption per CONVENTIONS.md "no hardcoded colors in static styles"
+// rule. Inlined as a separate StyleSheet.create rather than imported from
+// ContextualListingFlow/styles.ts to avoid the import-chain dependency on a
+// flow-internal styles module (the chips here are a moderation surface, not part
+// of the contextual listing flow — keeping the dimensional tokens local makes
+// the screen self-contained).
+const chipStyles = StyleSheet.create({
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    minHeight: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chipText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+});
+
+// Named export added in Plan 03-06 so the new RTL test (and any future direct
+// imports) can use the named-import pattern; default export preserved for
+// existing call sites.
+export { ModerationQueueScreen };
 export default ModerationQueueScreen;

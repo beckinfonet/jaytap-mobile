@@ -1185,6 +1185,10 @@ function AppContent() {
                 });
                 setIsContextualListingFlowOpen(true);
               }}
+              // Phase 3 Plan 03-06 — W2 conditional row-tap entry-point. The
+              // ModerationQueueScreen Listings-tab row branches on photo count;
+              // photoCount === 0 calls this callback to dispatch MediaCurationScreen.
+              onOpenMediaCuration={openMediaCuration}
             />
           </View>
         )}

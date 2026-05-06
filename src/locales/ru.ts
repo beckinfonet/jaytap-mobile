@@ -742,4 +742,13 @@ export const ru: Record<TranslationKeys, string> = {
   'moderation.mediaCuration.error.mediaRequired': 'Перед одобрением нужно добавить хотя бы одно фото.',
   'moderation.mediaCuration.cap.toast.photos': 'Добавлено {taken} из {requested}; ограничение 40 фото.',
   'moderation.mediaCuration.cap.toast.videos': 'Добавлено {taken} из {requested}; ограничение 5 видео.',
+
+  // Phase 3 Plan 03-06 — точка входа (баннер + чипы фильтра). В сумме с 26 ключами
+  // mediaCuration выше это даёт 32 ключа на локаль (revision 2 W1).
+  'moderation.needsMediaBanner.title': 'Перед одобрением требуются фото',
+  'moderation.needsMediaBanner.body': 'Добавьте хотя бы одно фото, чтобы это объявление стало активным.',
+  'moderation.needsMediaBanner.action': 'Добавить фото',
+  'moderation.filter.allPending': 'Все ожидающие',
+  'moderation.filter.needsMedia': 'Требуются фото',
+  'moderation.filter.hasMedia': 'С фото',
 };
