@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: "Contextual Forms"
 status: executing
-last_updated: "2026-05-06T19:30:15Z"
-last_activity: 2026-05-06 -- Phase 03 Plan 03 complete (MEDIA_REQUIRED gate at /approve + edit-on-behalf — 252/252 backend pass)
+last_updated: "2026-05-06T20:05:00Z"
+last_activity: 2026-05-06 -- Phase 03 Plan 04 complete (multer stripped from user-side propertyRoutes; both backend sentinels chained into npm test; 258/258 backend pass)
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 22
-  completed_plans: 18
-  percent: 82
+  completed_plans: 19
+  percent: 86
 ---
 
 # STATE: JayTap
@@ -18,11 +18,23 @@ progress:
 ## Current Position
 
 Phase: 3
-Plan: 04 (next)
-Status: In progress (Plans 03-01 + 03-02 + 03-03 complete)
-Last activity: 2026-05-06 -- Phase 03 Plan 03 complete (MEDIA_REQUIRED 400 invariant landed at 2 surfaces — POST /properties/:id/approve + PUT /listings/:id edit-on-behalf flip; 7 new supertest cases; 252/252 backend pass)
+Plan: 05 (next)
+Status: In progress (Plans 03-01 + 03-02 + 03-03 + 03-04 complete)
+Last activity: 2026-05-06 -- Phase 03 Plan 04 complete (D-13 atomic-break: multer fully stripped from user-side POST/PUT /api/properties; check-property-routes-media-stripped sentinel FLIPPED FAIL→PASS and chained into npm test; explicit `media: { photos: [], videos: [], tourUrl: undefined }` literal landed; 6 new MEDIA-02 + MEDIA-08 supertest cases; 258/258 backend pass)
 
-Progress: [██████████] 100% of executable plans through wave 2 (18 of 18 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 3/7 (03-01 + 03-02 + 03-03 complete; 03-04..03-07 pending))
+Progress: [██████████] 100% of executable plans through wave 3 (19 of 19 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 4/7 (03-01 + 03-02 + 03-03 + 03-04 complete; 03-05..03-07 pending))
+
+**Phase 3 Plan 04 closing artifact (2026-05-06T20:05:00Z):**
+
+- 2 atomic commits in backend repo: `2be38d3` refactor(03-04) strip multer from user-side propertyRoutes (POST + PUT) — atomic-break per D-13 (Tasks 1+2 atomic per revision-2 I2: code strip + 6 new supertest cases in a single commit so `main` never sees a transient red `npm test`) → `339c8ce` chore(03-04) chain check-property-routes-media-stripped sentinel into npm test.
+- 3 files modified: `src/routes/propertyRoutes.js` (746 → 717 LOC, −29 net — multer require deleted, factory consumer deleted, upload.array middleware deleted from POST + PUT, media body destructure deleted, imageUrls + parsedMedia blocks deleted, MulterError catch deleted, PUT req.files merge deleted; preserved verbyFirebaseToken + requireListingCapability + CR-01 mass-assignment strip + CR-02 partial-subtree deep-merge); `src/__tests__/propertyRoutes.test.js` (959 → 1164 LOC, +205 net — 2 new top-level describe blocks: 3 MEDIA-02 + 3 MEDIA-08 cases); `package.json` (`test` script chains both sentinels before jest).
+- Sentinel state at commit time: `check-no-actoruid-spoofing.sh` exit 0 (still green); `check-property-routes-media-stripped.sh` exit 0 (**FLIPPED FAIL→PASS** in commit `2be38d3` — completes the M1 P4 → M3 P2 → P3 P03-04 armed-FAIL-then-flip lineage). Both sentinel headers print OK to stdout BEFORE jest runs.
+- Strip-evidence greps all green: `upload\.array|multer|multerS3` count = 0; `media: clientMedia` count = 0; `imageUrls` count = 0; `MulterError` count = 0; `media: { photos: [], videos: []` literal count = 1 (the explicit Step C item 5 literal); POST + PUT handlers still present (1 + 1).
+- 6 new supertest cases (MEDIA-02 POST/PUT/PUT-empty + MEDIA-08 GET/PUT-no-body/PUT-with-body): 252/252 (pre-plan) → 258/258 (post-plan, +6 = exact count of new tests). PUT MEDIA-02 case validates that body `media.{...}` keys are silently ignored AND existing media is preserved (mod's curated state cannot be overwritten by owner edit). PUT MEDIA-08 with-body case proves D-13 strip wins over attacker-supplied media body.
+- **Two auto-deviations:** (1) Rule 1 — initial doc-comment above POST handler contained the literal token sequence `media: { photos: [], videos: [], tourUrl: undefined }` which produced 2 grep matches instead of the required 1; rewrote the comment to use prose ("writes empty photos/videos arrays + undefined tourUrl") so only the actual code line counts. (2) Rule 1 — comment lines mentioning `multer` (e.g., "auth pipeline order matters — multer parses multipart body") tripped the sentinel grep (which is purely textual); rewrote those comments to preserve behavioral context (Phase 4.5's requireListingCapability, JWKS verifyFirebaseToken pipeline, Phase 1 D-01 atomic-break) without using the trigger token. Both deviations folded into the same atomic commit `2be38d3`.
+- Step F (it.skip TODOs) was a no-op for this codebase: pre-strip grep `grep -nE "\.attach\(" src/__tests__/propertyRoutes.test.js` returned 0 matches — the test file never used multer for parsing, so no existing tests needed skipping/deletion. The 6 new MEDIA-02 + MEDIA-08 cases are pure additions.
+- Pre-existing unrelated flake: `adminRoutes.test.js ADMIN-07 GET /users without auth returns 401` had ONE intermittent fail-then-pass on full-suite runs (matches M3 carry-forward flake pattern documented in `02-deferred-items.md`); resolved on re-run; isolation run = 17/17 green; not a Plan 03-04 regression and out-of-scope per scope-boundary rule.
+- T-03 mitigation in effect: per D-14, the API surface that mapped HTTP request → S3 PutObject is GONE. This IS the IAM "rotation" — surface removal eliminates the user-facing attack vector. SUMMARY at `.planning/phases/03-media-flow-inversion-admin-mod-curation/03-04-SUMMARY.md`.
 
 **Phase 3 Plan 03 closing artifact (2026-05-06T19:30:15Z):**
 
