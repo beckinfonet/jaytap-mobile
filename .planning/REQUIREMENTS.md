@@ -28,8 +28,8 @@
 The user-facing 6-step listing creation flow. Replaces the existing single-screen `CreateListingScreen` atomically.
 
 - [x] **FLOW-01** 6-step container component with header progress indicator (Step N of 6), Back / Next navigation, and per-step validation gating advance. Replaces `CreateListingScreen.tsx`. Mounts via existing `App.tsx` overlay pattern.
-- [ ] **FLOW-02** Step 1A — Deal Type single-select chips: Sale (`sale`) / Long-term rent (`rent_long`) / Daily rent (`rent_daily`). Required to advance.
-- [ ] **FLOW-03** Step 1B — Property Type single-select chips. Reframed onto M1's 9-type 3-category taxonomy (Residential: apartment + house; Commercial: office + commercial; Hospitality: hotel + hostel). All combinations of deal type × property type allowed. Required to advance.
+- [x] **FLOW-02** Step 1A — Deal Type single-select chips: Sale (`sale`) / Long-term rent (`rent_long`) / Daily rent (`rent_daily`). Required to advance.
+- [x] **FLOW-03** Step 1B — Property Type single-select chips. Reframed onto M1's 9-type 3-category taxonomy (Residential: apartment + house; Commercial: office + commercial; Hospitality: hotel + hostel). All combinations of deal type × property type allowed. Required to advance.
 - [x] **FLOW-04** Step 2 — Location: city autocomplete + district selector (district options dependent on city). Required to advance. *(Backend dictionary shipped in Phase 2 Plan 01, 2026-05-06: City + District Mongoose models, GET/POST /api/locations/* with HF-03 anti-spoof + landlord-capability gate + dedupe semantics, mod approve/reject/queue routes, seed-locations-m3.js with 11 KG/KZ/UZ cities + 19 Bishkek districts. Client autocomplete UI ships in Plan 02-03.)*
 - [x] **FLOW-05** Step 2 — Map pin via existing map abstraction (no 2GIS bridge — out of scope). Coordinates `{lat, lng}` required to advance.
 - [x] **FLOW-06** Step 2 — Conditional exact-address toggle. Toggle hidden when `propertyType ∈ {hotel, hostel}` (forced true). For all other types, default false → display approximate 200–300m radius.
@@ -42,7 +42,7 @@ The user-facing 6-step listing creation flow. Replaces the existing single-scree
 - [x] **FLOW-13** Submit fires `editAsModerator` (mod-context, M2 MOD-14 carry) OR `submitForModeration` (owner). Status flips to `pending`. M2 `RejectionBanner` rendering preserved on edit-resubmit path.
 - [x] **FLOW-14** Old `CreateListingScreen.tsx` deleted atomically when new flow ships. No dual-flow window. CreateListingForm/ sub-component barrel from M1 Phase 4 either re-used or torn down with cleanup commit.
 - [x] **FLOW-15** Edit-on-behalf (M2 MOD-14 `moderatorContext` prop) wired into new 6-step flow. Mod can edit any field on a pending listing through the same conditional UI; banner stripe at TOP of flow when `moderatorContext` is set.
-- [ ] **FLOW-16** EN+RU locale parity for all new flow strings — estimated +80–120 keys to the post-M2 baseline. CI gate (`scripts/check-i18n-parity.sh`) enforces.
+- [x] **FLOW-16** EN+RU locale parity for all new flow strings — estimated +80–120 keys to the post-M2 baseline. CI gate (`scripts/check-i18n-parity.sh`) enforces.
 
 ### Schema (Phase 1) — Mongo migration + nested shape
 
