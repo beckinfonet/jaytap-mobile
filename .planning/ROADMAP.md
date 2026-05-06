@@ -120,8 +120,17 @@ Plans:
   4. The new `<ContextualListingFlow>` (Phase 2) ships zero media fields on the user-facing flow — no upload affordance is visible to a non-admin/non-moderator user creating or editing a listing.
   5. Existing M1+M2 listings with user-uploaded photos survive Phase 1's migration verbatim (already validated in SCHEMA-02 acceptance) and remain visible in Home/Favorites/RenterListings/OwnerListings; the user-account S3 upload rights are revoked at Phase 3 close (no in-flight user uploads possible after the rotation).
 
-**Plans**: TBD
+**Plans:** 7 plans
 **UI hint**: yes
+
+Plans:
+- [ ] 03-01-PLAN.md — Backend foundation: extract shared S3 factory module + extend ModerationLog enum + add Property.media.tourUrl Mongoose validator + create 2 sentinel scripts (actorUid spoofing + propertyRoutes media-stripped) — wave 0
+- [ ] 03-02-PLAN.md — Backend new POST + DELETE moderation media endpoints (race-safe $push/$pull, multipart upload, tourUrl validation, ModerationLog audit) + 8+ supertest cases — wave 1
+- [ ] 03-03-PLAN.md — Backend MEDIA_REQUIRED gate at /approve + edit-on-behalf flip-to-live + 4+ supertest cases (D-09 + D-10) — wave 2
+- [ ] 03-04-PLAN.md — Backend user-side multer strip from POST/PUT propertyRoutes (D-13 atomic-break; sentinel flips to green) + MEDIA-02 + MEDIA-08 supertest regressions + chain both sentinels into npm test — wave 2
+- [ ] 03-05-PLAN.md — RN MediaCurationService + MediaCurationScreen (~500 LOC photo grid + tour URL + 2-button action footer) + App.tsx overlay state machine wiring + RTL smoke + 26 EN+RU mediaCuration-namespace i18n keys — wave 3
+- [ ] 03-06-PLAN.md — RN ModerationQueueScreen filter chip row + PropertyDetailsScreen NeedsMediaBanner + Approve disable on 3 surfaces + 6 EN+RU banner+filter i18n keys + RTL chip-predicate test — wave 4
+- [ ] 03-07-PLAN.md — Phase-close verification doc (sentinel matrix + test tallies + requirement/decision/discretion evidence map) + paired-gate handoff checkpoint — wave 5
 
 ### Phase 4: M2 Carry-Forward Bug Fixes
 
