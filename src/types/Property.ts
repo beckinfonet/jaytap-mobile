@@ -1,13 +1,18 @@
+// src/types/Property.ts — Phase 1 type-stub update
+// Per D-01 atomic-break, the M2 client breaks against the new backend until Phase 2.
+// This file ships the canonical NESTED shape so Phase 2 PR drafts compile against it.
+//
+// Recommendation (Claude's Discretion #3 — researcher RECOMMENDED): ship the full nested
+// type, NOT a LegacyFlat | NestedShape union. Rationale: a union forces every consumer
+// to discriminate between the two shapes, but the M2 client is already broken per D-01 —
+// the union just preserves a half-broken state with extra type-narrowing burden.
+// The full nested type is the simpler shape that Phase 2 can consume directly.
+
 import type { HospitalityAmenity } from '../utils/hospitalityAmenities';
 
-export interface Tour {
-  id: string;
-  title: string;
-  url: string;
-  thumbnailUrl?: string;
-}
-
-/** Platform (MoveIn) trust signals — writable only by admin in API */
+/** Platform (MoveIn) trust signals — writable only by admin via PATCH /api/properties/:id/verifications.
+ * D-10 keep set — preserved verbatim from M2 (consumed by `<Gated>` admin checks across mod queue + details view).
+ */
 export interface PlatformVerifications {
   ownershipDocuments?: boolean;
   ownerIdentityVerified?: boolean;
@@ -15,39 +20,91 @@ export interface PlatformVerifications {
 }
 
 export interface Property {
+  // === Core identity ===
   id: string;
-  listingId?: string; // 6-digit listing ID in format "123-456"
-  title: string;
-  price: number | string;
-  currency: string;
-  period?: string; // e.g., 'month' for rent
-  address: string;
-  city?: string; // Added city
-  latitude?: number; // Property coordinates for map display
-  longitude?: number; // Property coordinates for map display
-  description: string;
-  specs: {
-    beds: number;
-    baths: number;
-    sqft: number;
+  listingId?: string;
+
+  // === Top-level (preserved per D-09/D-10) ===
+  dealType?: 'sale' | 'rent_long' | 'rent_daily';
+  propertyType?: 'apartment' | 'house' | 'office' | 'commercial' | 'hotel' | 'hostel';
+  ownerUid?: string;
+  instagramUrl?: string;
+  availableDate?: string;
+  features?: string[];
+  maxGuests?: number;                 // D-09 hospitality preserve
+  amenities?: HospitalityAmenity[];   // D-09 hospitality preserve
+
+  // === Nested location (SPEC §"Step 2 — Location") ===
+  location?: {
+    city?: string;
+    district?: string;
+    coordinates?: { lat: number; lng: number };
+    showExactAddress?: boolean;
   };
-  features: string[];
-  imageUrl: string;
-  images?: string[]; // Optional, if we want to show carousel
-  videoUrl?: string; // Added videoUrl
-  agent?: {
-    name: string;
-    rating: number;
-    reviews: number;
-    imageUrl?: string;
+
+  // === Nested basics (SPEC §"Step 3 — Basic Information") ===
+  basics?: {
+    areaSqm?: number;
+    price?: number;
+    currency?: 'KGS' | 'USD' | 'EUR';
+    rooms?: '1' | '2' | '3' | '4+';
+    bathroom?: 'private' | 'none' | 'shared';
+    kitchen?: 'private' | 'none' | 'shared';
+    hotelRooms?: '1' | '2' | '3' | '4+';
+    hotelClass?: 'economy' | 'standard' | 'comfort' | 'premium';
   };
-  is3DTourAvailable: boolean;
-  tours: Tour[]; // Changed from singular matterportUrl to array of Tours
-  type: 'rent' | 'sale';
-  propertyType?: string; // Added propertyType (apartment, house, office, etc.)
-  matterportUrl?: string; // Kept for backward compatibility if needed, but prefer tours[]
-  instagramUrl?: string; // Instagram URL for renter contact
-  panoramicPhotosUrl?: string; // Ricoh 360 panoramic photos URL (one URL holds all photos)
+
+  // === Nested conditionAndAmenities (SPEC §"Step 4") ===
+  conditionAndAmenities?: {
+    condition?: 'rough' | 'whitebox' | 'good' | 'euro';
+    furnished?: boolean;
+  };
+
+  // === Nested content (SPEC §"Step 5") ===
+  content?: {
+    title?: string;
+    description?: string;
+    language?: 'ru' | 'en';
+  };
+
+  // === Nested terms (SPEC §"Step 6") ===
+  terms?: {
+    negotiable?: boolean;
+    deposit?: { amount: number; currency: 'KGS' | 'USD' | 'EUR' };
+    prepaymentMonths?: number;
+    minTerm?: '1_day' | '1_month' | '3_months';
+  };
+
+  // === Nested media (Phase 3 inversion target) ===
+  media?: {
+    photos: string[];
+    videos: string[];
+    tourUrl?: string;
+  };
+
+  // === Top-level admin trust signals (D-10 keep) ===
+  platformVerifications?: PlatformVerifications;
+  verificationUpdatedAt?: string;
+  verificationUpdatedByUid?: string;
+
+  // === M2 status enum + audit fields — VERBATIM PRESERVED at top level (SCHEMA-03/04) ===
+  // Audit fields stay TOP LEVEL — never under terms.* (Pitfall 4 / SCHEMA-04 client-side enforcement).
+  // The 11-field set: submittedAt + approvedAt/byUid + rejectedAt/byUid/ReasonCode/Note + archivedAt/byUid/ReasonCode/Note.
+  // Phase 2 PR drafts read submittedAt + rejectionReasonCode + rejectionReasonNote at minimum.
+  status?: 'pending' | 'live' | 'rejected' | 'archived';
+  submittedAt?: string;
+  approvedAt?: string;
+  approvedByUid?: string | null;
+  rejectedAt?: string;
+  rejectedByUid?: string | null;
+  rejectionReasonCode?: string | null;
+  rejectionReasonNote?: string | null;
+  archivedAt?: string;
+  archivedByUid?: string | null;
+  archivedReasonCode?: string | null;
+  archivedReasonNote?: string | null;
+
+  // === Owner enrichment (populated server-side at GET /:id; preserved verbatim from M2) ===
   owner?: {
     uid?: string;
     email?: string;
@@ -57,35 +114,13 @@ export interface Property {
     firstName?: string;
     lastName?: string;
   };
-  /** ISO date string - when the property becomes available (for rent). If within 1 month, shows "now" */
-  availableDate?: string;
-  platformVerifications?: PlatformVerifications;
-  verificationUpdatedAt?: string;
-  verificationUpdatedByUid?: string;
-  /** Listing publication state. 4-state moderation lifecycle (M2):
-   *   pending  — submitted, awaiting moderator review (default for new submissions)
-   *   live     — approved and publicly browsable
-   *   rejected — moderator rejected with a reasonCode/reasonNote (owner sees rejection banner)
-   *   archived — soft-deleted (hidden from browse). Phase 4 reintroduces archive actions.
-   * `status?:` (optional) is preserved during the cutover window — defensive `?? 'live'` coalesce
-   * (D-07) at every read site absorbs any legacy null until backend migration completes.
-   */
-  status?: 'pending' | 'live' | 'rejected' | 'archived';
-  // D-21: audit fields. Phase 2 only reads submittedAt + rejectionReasonCode + rejectionReasonNote.
-  // approvedAt / rejectedAt / archivedAt + *ByUid are Phase 3/4 reads — adding them now would
-  // tempt premature client surface area.
-  submittedAt?: string;
-  rejectionReasonCode?: string | null;
-  rejectionReasonNote?: string | null;
-  // Phase 4 D-20 — archive audit fields (mirrors backend Property.js schema additions in Plan 01).
-  // Optional (?:) per Phase 2 D-07 belt-and-suspenders posture; legacy listings without these read undefined.
-  // archivedByUid is the type prerequisite for Plan 07's canSelfRestore helper (PATTERNS §11).
-  archivedAt?: string;
-  archivedByUid?: string | null;
-  archivedReasonCode?: string | null;
-  archivedReasonNote?: string | null;
-  // Phase 6 (HOSP-05 / D-20 / Gap 9.1) — Hospitality top-level fields (NOT inside specs)
-  rooms?: number;
-  maxGuests?: number;
-  amenities?: HospitalityAmenity[];
+
+  // === Schema version marker (Claude's Discretion #5 — RECOMMENDED) ===
+  schemaVersion?: 'm3-nested-v1';
 }
+
+// === DELETED in Phase 1 ===
+// `Tour` interface — replaced by string `media.tourUrl` per D-12.
+// Other helpers (specs, etc.) — Phase 2 client doesn't need them; per-screen TypeScript
+// errors elsewhere in the project are EXPECTED (D-01 atomic break) and will be resolved
+// in Phase 2's screen-rewrite plans.
