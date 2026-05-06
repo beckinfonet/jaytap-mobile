@@ -35,8 +35,8 @@ The user-facing 6-step listing creation flow. Replaces the existing single-scree
 - [x] **FLOW-06** Step 2 — Conditional exact-address toggle. Toggle hidden when `propertyType ∈ {hotel, hostel}` (forced true). For all other types, default false → display approximate 200–300m radius.
 - [x] **FLOW-07** Step 3 — Always-shown: area (m²) + price + currency chip (KGS / USD / EUR). All three required.
 - [x] **FLOW-08** Step 3 — Conditional sub-fields per property type (per SPEC §"Conditional sub-fields"): apartment + house → rooms (1/2/3/4+); office + commercial → rooms + bathroom (private/none/shared) + kitchen (private/none/shared); hotel + hostel → hotelRooms (1/2/3/4+) + hotelClass (economy/standard/comfort/premium).
-- [ ] **FLOW-09** Step 4 — Always shown: condition (rough/whitebox/good/euro) + furnished (boolean). Both required, including for hotel/hostel.
-- [ ] **FLOW-10** Step 5 — Title + Description (long-text). Both required.
+- [x] **FLOW-09** Step 4 — Always shown: condition (rough/whitebox/good/euro) + furnished (boolean). Both required, including for hotel/hostel.
+- [x] **FLOW-10** Step 5 — Title + Description (long-text). Both required.
 - [ ] **FLOW-11** Step 6 — Deal Conditions gated by deal type per SPEC §6 matrix: Sale → bargain + optional deposit; Long-term rent → bargain + optional deposit + prepaymentMonths (preset 0/1/2 + custom integer) + minTerm (1_month / 3_months); Daily rent → optional deposit only (minTerm implicit `1_day`).
 - [ ] **FLOW-12** Per-step validation matches SPEC §"Validation Rules" exactly. Pure `validateStep(stepN, formState)` single source of truth (matches M1 Phase 5 `validateByCategory()` pattern).
 - [ ] **FLOW-13** Submit fires `editAsModerator` (mod-context, M2 MOD-14 carry) OR `submitForModeration` (owner). Status flips to `pending`. M2 `RejectionBanner` rendering preserved on edit-resubmit path.
