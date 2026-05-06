@@ -9,13 +9,13 @@
  * Mod-context banner (D-18) renders ABOVE the step body across Steps 1-6.
  * Progress indicator (D-14) renders "Step N of 6" + 6-segment bar.
  *
- * Submit dispatch (D-16):
- *   mode='create'      → POST /api/properties (server defaults status: 'pending')
- *   mode='edit-owner'  → PUT /api/properties/:id (M2 D-22 auto-flip preserved)
- *   mode='edit-mod'    → PropertyService.editAsModerator(...) (M2 MOD-14)
+ * Submit dispatch (D-16) — wired in Plan 02-04b:
+ *   mode='create'      → PropertyService.createProperty(payload)         (server defaults status:'pending')
+ *   mode='edit-owner'  → PropertyService.updateProperty(id, payload)     (M2 D-22 auto-flip preserved)
+ *   mode='edit-mod'    → PropertyService.editAsModerator(id, payload, [], reason) (M2 MOD-14)
  *
- * THIS PLAN ships Step 1 + the orchestrator. Steps 2-6 render placeholder text
- * "Step N — coming in Plan 02-XX". Plans 02-03, 02-04a, 02-04b replace placeholders.
+ * Steps 1-6 are all wired. Plan 02-07 mounts the orchestrator into App.tsx
+ * (replacing CreateListingScreen).
  */
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
@@ -29,9 +29,11 @@ import { Step2Location } from './Step2Location';
 import { Step3BasicInfo } from './Step3BasicInfo';
 import { Step4ConditionAmenities } from './Step4ConditionAmenities';
 import { Step5TitleDescription } from './Step5TitleDescription';
+import { Step6DealConditions } from './Step6DealConditions';
 import { commonStyles } from './styles';
 import { validateStep, emptyFormBag } from './validators';
 import { propertyToFormBag, formBagToPropertyPayload } from './adapters';
+import { PropertyService } from '../../services/PropertyService';
 import type { FormBag, FormErrorBag, ContextualListingFlowProps } from './types';
 
 const TOTAL_STEPS = 6 as const;
@@ -78,6 +80,15 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
           hotelClass: undefined,
         };
       }
+      // ROADMAP SC#4 (Plan 02-04b): switching dealType in Step 1 reflows Step 6 —
+      // clear leftover terms.* fields. Step 6 fields (negotiable / deposit /
+      // prepaymentMonths / minTerm) are dealType-gated per the matrix in
+      // Step6DealConditions.tsx, so a switch from e.g. rent_long → sale must drop
+      // any prior prepaymentMonths/minTerm to avoid submitting a sale listing
+      // with stale rent fields.
+      if (field === 'dealType' && prev.dealType !== value) {
+        next.terms = {};
+      }
       return next;
     });
   }, []);
@@ -110,23 +121,62 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep((s) => (s + 1) as StepIndex);
     } else {
-      // Submit (D-16). Stub for Plan 02-02; real wiring in Plan 02-04b/02-07.
+      // Submit (D-16) — real PropertyService dispatch by mode.
+      //   create     → POST /api/properties (server defaults status:'pending', M2 D-22 sanitizer)
+      //   edit-owner → PUT /api/properties/:id (M2 D-22 rejected→pending auto-flip preserved)
+      //   edit-mod   → editAsModerator (M2 MOD-14, status flips to 'live' server-side)
+      // Phase 2 does NOT ship media — Phase 3 owns that. PropertyService methods take
+      // `images = []` by default, so we omit the second arg.
       setIsSubmitting(true);
       try {
         const payload = formBagToPropertyPayload(values);
-        // TODO(plan-02-04b): wire PropertyService.{create,update,editAsModerator} here per D-16.
-        // For Plan 02-02 we just log so the surface compiles + tests can mock the function.
-        // eslint-disable-next-line no-console
-        console.log('[ContextualListingFlow] submit payload:', payload, 'mode:', mode);
+        let resultId: string;
+        if (mode === 'create') {
+          const created = await PropertyService.createProperty(payload);
+          resultId =
+            (created as { id?: string; _id?: string }).id ??
+            (created as { _id?: string })._id ??
+            '';
+        } else if (mode === 'edit-owner') {
+          const editProps = props as { initialListing: { id: string } };
+          const updated = await PropertyService.updateProperty(
+            editProps.initialListing.id,
+            payload,
+          );
+          resultId =
+            (updated as { id?: string; _id?: string }).id ??
+            (updated as { _id?: string })._id ??
+            editProps.initialListing.id;
+        } else {
+          // edit-mod — editAsModerator(propertyId, propertyData, images?, reason?)
+          const modProps = props as {
+            initialListing: { id: string };
+            moderatorContext: { reason?: string };
+          };
+          const updated = await PropertyService.editAsModerator(
+            modProps.initialListing.id,
+            payload,
+            [],
+            modProps.moderatorContext.reason,
+          );
+          resultId =
+            (updated as { id?: string; _id?: string }).id ??
+            (updated as { _id?: string })._id ??
+            modProps.initialListing.id;
+        }
         if ((props as { onSuccess?: (id: string) => void }).onSuccess) {
-          (props as { onSuccess: (id: string) => void }).onSuccess('stub-id');
+          (props as { onSuccess: (id: string) => void }).onSuccess(resultId);
         }
         onClose();
+      } catch (e: unknown) {
+        const msg =
+          (e as { message?: string }).message ?? t('common.errorGeneric');
+        Alert.alert(t('common.error'), msg);
       } finally {
         setIsSubmitting(false);
       }
     }
-  }, [currentStep, values, mode, props, onClose]);
+  }, [currentStep, values, mode, props, onClose, t]);
 
   // D-13 (W-04): Android hardware back. Single-ownership in the orchestrator
   // (NOT in App.tsx). At currentStep > 1 → step back; at currentStep === 1 →
@@ -156,9 +206,9 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
       case 5:
         return <Step5TitleDescription values={values} onChange={onChange} errors={errors} />;
       case 6:
-        return <Text style={{ color: colors.text }}>{'Step 6 — coming in Plan 02-04b'}</Text>;
+        return <Step6DealConditions values={values} onChange={onChange} errors={errors} />;
     }
-  }, [currentStep, values, onChange, errors, colors.text]);
+  }, [currentStep, values, onChange, errors]);
 
   const submitLabel =
     currentStep < TOTAL_STEPS
