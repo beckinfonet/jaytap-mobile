@@ -66,7 +66,14 @@ Full M2 details: `.planning/milestones/v2.0-ROADMAP.md`
   4. Backend read paths (`GET /api/properties` + `GET /api/properties/:id` + `GET /api/moderation/queue`) return the nested shape exclusively after the route-shape cutover commit; the cutover commit lands strictly AFTER the migration runs successfully.
   5. Rollback procedure (revert route-shape cutover commit while leaving the migrated DB in place) is documented in the phase CONTEXT.md and validated against a Mongo Atlas restore-snapshot timestamp captured pre-migration.
 
-**Plans**: TBD
+**Plans:** 5 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Reshape Property.js to nested schema (location/basics/conditionAndAmenities/content/terms/media); status enum + 11 audit fields stay top-level; Property.test.js updated
+- [ ] 01-02-PLAN.md — migrate-listings-m3.js + migrate-listings-m3.test.js + package.json npm script (dry-run + verify=PASS + idempotent + D-04..D-15 mapping + audit-field preservation)
+- [ ] 01-03-PLAN.md — propertyRoutes.js cutover (POST/PUT body to nested; D-22 sanitizer + auto-flip + CR-01 + MOD-13 + PATCH /:id/verifications preserved verbatim) + propertyRoutes.test.js updated
+- [ ] 01-04-PLAN.md — moderationRoutes.js cutover (PUT edit-on-behalf body to nested; MOD-14 mass-assignment strip extended; MOD-15 race-cell + queue FIFO + ARCH-01..ARCH-05 + HF-03 actorUid preserved verbatim) + moderationRoutes.test.js updated
+- [ ] 01-05-PLAN.md — RN client src/types/Property.ts type-stub (full nested type per Claude Discretion #3) + 01-CONTEXT.md §Rollback subsection (D-17 — Atlas tier checklist + operator runbook + tester comms + reverse-rollback procedure)
 
 ### Phase 2: 6-Step Contextual Listing Flow (Client)
 
