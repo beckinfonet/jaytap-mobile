@@ -641,6 +641,40 @@ export const en = {
   'admin.roles.error.roleAlreadyChanged': 'Another admin already updated this user.',
   'admin.roles.error.userNotFound': 'This user no longer exists.',
   'admin.roles.error.network': 'Network error. Please try again.',
+
+  // Phase 2 (Plan 02-02) — common-namespace addition required by ContextualListingFlow Next button.
+  'common.next': 'Next',
+
+  // Phase 2 (Plan 02-02) — ContextualListingFlow Step 1: Deal type + Property type chips.
+  'contextualListing.step1.title': 'About your listing',
+  'contextualListing.step1.dealTypeLabel': 'Deal type',
+  'contextualListing.step1.dealTypeRequired': 'Pick a deal type to continue',
+  'contextualListing.step1.dealType.sale': 'Sale',
+  'contextualListing.step1.dealType.rent_long': 'Long-term rent',
+  'contextualListing.step1.dealType.rent_daily': 'Daily rent',
+  'contextualListing.step1.propertyTypeLabel': 'Property type',
+  'contextualListing.step1.propertyTypeRequired': 'Pick a property type to continue',
+  'contextualListing.step1.propertyType.apartment': 'Apartment',
+  'contextualListing.step1.propertyType.house': 'House',
+  'contextualListing.step1.propertyType.office': 'Office',
+  'contextualListing.step1.propertyType.commercial': 'Commercial',
+  'contextualListing.step1.propertyType.hotel': 'Hotel',
+  'contextualListing.step1.propertyType.hostel': 'Hostel',
+
+  // Phase 2 (Plan 02-02) — ContextualListingFlow progress indicator + submit labels.
+  'contextualListing.progress.stepOf': 'Step {current} of {total}',
+  'contextualListing.submit.create': 'Submit for review',
+  'contextualListing.submit.modEdit': 'Save and approve',
+
+  // Phase 2 (Plan 02-02) — ContextualListingFlow discard-confirm dialog (X / Step-1 hardware back).
+  'contextualListing.discardConfirm.title': 'Discard this listing?',
+  'contextualListing.discardConfirm.body': 'Your progress will be lost. This cannot be undone.',
+  'contextualListing.discardConfirm.confirm': 'Discard',
+
+  // Phase 2 (Plan 02-02) — Mod queue Locations tab keys (consumed by Plan 02-03; added here for parity-gate single edit).
+  'moderation.queue.tabs.listings': 'Listings ({count})',
+  'moderation.queue.tabs.locations': 'Locations ({count})',
+  'moderation.queue.locations.empty': 'No pending locations.',
 } as const;
 
 export type TranslationKeys = keyof typeof en;

@@ -644,4 +644,38 @@ export const ru: Record<TranslationKeys, string> = {
   'admin.roles.error.roleAlreadyChanged': 'Другой администратор уже изменил роль этого пользователя.',
   'admin.roles.error.userNotFound': 'Этот пользователь больше не существует.',
   'admin.roles.error.network': 'Ошибка сети. Попробуйте ещё раз.',
+
+  // Phase 2 (Plan 02-02) — common.next, обязательно для кнопки Next в ContextualListingFlow.
+  'common.next': 'Далее',
+
+  // Phase 2 (Plan 02-02) — ContextualListingFlow Шаг 1: чипы типа сделки и типа недвижимости.
+  'contextualListing.step1.title': 'О вашем объявлении',
+  'contextualListing.step1.dealTypeLabel': 'Тип сделки',
+  'contextualListing.step1.dealTypeRequired': 'Выберите тип сделки',
+  'contextualListing.step1.dealType.sale': 'Продажа',
+  'contextualListing.step1.dealType.rent_long': 'Долгосрочная аренда',
+  'contextualListing.step1.dealType.rent_daily': 'Посуточная аренда',
+  'contextualListing.step1.propertyTypeLabel': 'Тип недвижимости',
+  'contextualListing.step1.propertyTypeRequired': 'Выберите тип недвижимости',
+  'contextualListing.step1.propertyType.apartment': 'Квартира',
+  'contextualListing.step1.propertyType.house': 'Дом',
+  'contextualListing.step1.propertyType.office': 'Офис',
+  'contextualListing.step1.propertyType.commercial': 'Коммерческое',
+  'contextualListing.step1.propertyType.hotel': 'Отель',
+  'contextualListing.step1.propertyType.hostel': 'Хостел',
+
+  // Phase 2 (Plan 02-02) — индикатор прогресса + подписи кнопки отправки в ContextualListingFlow.
+  'contextualListing.progress.stepOf': 'Шаг {current} из {total}',
+  'contextualListing.submit.create': 'Отправить на проверку',
+  'contextualListing.submit.modEdit': 'Сохранить и одобрить',
+
+  // Phase 2 (Plan 02-02) — диалог подтверждения отмены (X / аппаратная Назад на Шаге 1).
+  'contextualListing.discardConfirm.title': 'Отменить создание объявления?',
+  'contextualListing.discardConfirm.body': 'Прогресс будет потерян. Это действие нельзя отменить.',
+  'contextualListing.discardConfirm.confirm': 'Отменить',
+
+  // Phase 2 (Plan 02-02) — ключи вкладки «Локации» очереди модерации (потребляются Plan 02-03; добавлены здесь для одного diff под parity-гейт).
+  'moderation.queue.tabs.listings': 'Объявления ({count})',
+  'moderation.queue.tabs.locations': 'Локации ({count})',
+  'moderation.queue.locations.empty': 'Нет ожидающих локаций.',
 };
