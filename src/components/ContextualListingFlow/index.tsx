@@ -25,6 +25,8 @@ import { X, ChevronLeft } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { Step1DealAndPropertyType } from './Step1DealAndPropertyType';
+import { Step2Location } from './Step2Location';
+import { Step3BasicInfo } from './Step3BasicInfo';
 import { commonStyles } from './styles';
 import { validateStep, emptyFormBag } from './validators';
 import { propertyToFormBag, formBagToPropertyPayload } from './adapters';
@@ -56,7 +58,26 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
   void emptyFormBag;
 
   const onChange = useCallback(<K extends keyof FormBag>(field: K, value: FormBag[K]) => {
-    setValues((prev) => ({ ...prev, [field]: value }));
+    setValues((prev) => {
+      const next = { ...prev, [field]: value };
+      // ROADMAP SC#3 (Plan 02-03): switching propertyType in Step 1 reflows Step 3 —
+      // clear leftover sub-fields from the prior selection (rooms/bathroom/kitchen/
+      // hotelRooms/hotelClass). Step 3 sub-fields are mutually exclusive across the
+      // FLOW-08 matrix (apartment/house vs office/commercial vs hotel/hostel), so a
+      // switch from e.g. apartment→hotel must drop the prior `rooms` value to avoid
+      // submitting a hotel listing with a stale `rooms` field.
+      if (field === 'propertyType' && prev.propertyType !== value) {
+        next.basics = {
+          ...prev.basics,
+          rooms: undefined,
+          bathroom: undefined,
+          kitchen: undefined,
+          hotelRooms: undefined,
+          hotelClass: undefined,
+        };
+      }
+      return next;
+    });
   }, []);
 
   // D-13: silent Back; confirm on X / Step-1 hardware back
@@ -125,9 +146,9 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
       case 1:
         return <Step1DealAndPropertyType values={values} onChange={onChange} errors={errors} />;
       case 2:
-        return <Text style={{ color: colors.text }}>{'Step 2 — coming in Plan 02-03'}</Text>;
+        return <Step2Location values={values} onChange={onChange} errors={errors} />;
       case 3:
-        return <Text style={{ color: colors.text }}>{'Step 3 — coming in Plan 02-03'}</Text>;
+        return <Step3BasicInfo values={values} onChange={onChange} errors={errors} />;
       case 4:
         return <Text style={{ color: colors.text }}>{'Step 4 — coming in Plan 02-04a'}</Text>;
       case 5:
