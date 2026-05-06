@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
+import type { Property } from '../types/Property';
 
 function availabilityValueFromRaw(
   raw: unknown,
@@ -34,6 +35,16 @@ export interface ListingMetaTableProps {
   compact?: boolean;
   /** Green dot before availability value (property details) */
   showAvailabilityDot?: boolean;
+  /**
+   * Phase 2 D-20: optional full-property prop. When provided, the table also
+   * surfaces rooms/bathroom/area (basics.*), condition/furnished
+   * (conditionAndAmenities.*), and minTerm/deposit/prepaymentMonths/negotiable
+   * (terms.*) below the existing ID + availability row. Backward-compatible:
+   * existing PropertyCard call sites (listingId + availableDate only) continue
+   * to render exactly as before. PropertyDetailsScreen (Plan 02-06) will pass
+   * the full property to surface the meta rows.
+   */
+  property?: Property;
 }
 
 export const ListingMetaTable: React.FC<ListingMetaTableProps> = ({
@@ -41,6 +52,7 @@ export const ListingMetaTable: React.FC<ListingMetaTableProps> = ({
   availableDate,
   compact = false,
   showAvailabilityDot = false,
+  property,
 }) => {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -50,7 +62,31 @@ export const ListingMetaTable: React.FC<ListingMetaTableProps> = ({
   const hasId = Boolean(listingId?.trim());
   const hasAvail = availValue != null;
 
-  if (!hasId && !hasAvail) return null;
+  // Phase 2 D-20 nested-shape reads (Phase 1 D-04..D-15). All optional —
+  // gating booleans below decide whether each row renders. No flat-shape
+  // fallbacks: M2 listings without nested data simply skip extra rows.
+  const rooms = property?.basics?.rooms;
+  const bathroom = property?.basics?.bathroom;
+  const areaSqm = property?.basics?.areaSqm;
+  const condition = property?.conditionAndAmenities?.condition;
+  const furnished = property?.conditionAndAmenities?.furnished;
+  const negotiable = property?.terms?.negotiable;
+  const deposit = property?.terms?.deposit;
+  const prepaymentMonths = property?.terms?.prepaymentMonths;
+  const minTerm = property?.terms?.minTerm;
+
+  const hasExtras =
+    rooms != null ||
+    bathroom != null ||
+    areaSqm != null ||
+    condition != null ||
+    furnished != null ||
+    negotiable != null ||
+    deposit != null ||
+    prepaymentMonths != null ||
+    minTerm != null;
+
+  if (!hasId && !hasAvail && !hasExtras) return null;
 
   const rowPadV = compact ? 8 : 10;
   const rowPadH = compact ? 12 : 12;
@@ -119,6 +155,62 @@ export const ListingMetaTable: React.FC<ListingMetaTableProps> = ({
           </View>
         )}
       </View>
+      {/* Phase 2 D-20: extra meta rows from nested basics + conditionAndAmenities + terms.
+          Renders only when `property` prop supplied (PropertyDetailsScreen path);
+          PropertyCard's compact use-case skips these rows because property is undefined. */}
+      {hasExtras && (
+        <View style={styles.extrasGrid}>
+          {rooms != null && (
+            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
+              {t('property.beds')}: {rooms}
+            </Text>
+          )}
+          {bathroom != null && (
+            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
+              {t('property.baths')}: {bathroom === 'private'
+                ? t('property.bathroomPrivate' as any)
+                : bathroom === 'shared'
+                  ? t('property.bathroomShared' as any)
+                  : t('property.bathroomNone' as any)}
+            </Text>
+          )}
+          {areaSqm != null && (
+            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
+              {areaSqm} m²
+            </Text>
+          )}
+          {condition != null && (
+            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
+              {t('property.metaCondition' as any)}: {condition}
+            </Text>
+          )}
+          {furnished != null && (
+            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
+              {furnished ? t('property.metaFurnishedYes' as any) : t('property.metaFurnishedNo' as any)}
+            </Text>
+          )}
+          {minTerm != null && (
+            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
+              {t('property.metaMinTerm' as any)}: {minTerm}
+            </Text>
+          )}
+          {deposit != null && (
+            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
+              {t('property.metaDeposit' as any)}: {deposit.amount} {deposit.currency}
+            </Text>
+          )}
+          {prepaymentMonths != null && prepaymentMonths > 0 && (
+            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
+              {t('property.metaPrepayment' as any)}: {prepaymentMonths}
+            </Text>
+          )}
+          {negotiable === true && (
+            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
+              {t('property.metaNegotiable' as any)}
+            </Text>
+          )}
+        </View>
+      )}
     </View>
   );
 };
@@ -190,5 +282,14 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#22C55E',
     flexShrink: 0,
+  },
+  extrasGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginTop: 8,
+  },
+  extraText: {
+    fontWeight: '500',
   },
 });

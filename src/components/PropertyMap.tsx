@@ -37,10 +37,14 @@ export const PropertyMap: React.FC<PropertyMapProps> = ({ properties, onSelectPr
       >
         {/* Property Markers */}
         {properties.map((property) => {
-          // Use real coordinates if available, otherwise generate deterministic mock coordinates
+          // Phase 2 D-20 read-path: nested `location.coordinates.{lat,lng}`
+          // (Phase 1 D-04..D-15) replaces flat `latitude`/`longitude`.
+          // Hash-fallback for missing coords PRESERVED verbatim.
           let coordinates;
-          if (property.latitude && property.longitude) {
-            coordinates = { latitude: property.latitude, longitude: property.longitude };
+          const lat = property.location?.coordinates?.lat;
+          const lng = property.location?.coordinates?.lng;
+          if (lat != null && lng != null) {
+            coordinates = { latitude: lat, longitude: lng };
           } else {
             // Generate consistent coordinates based on property ID (not random, so they're stable)
             const idHash = (property.id || property.listingId || '0').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
