@@ -210,3 +210,70 @@ describe('Phase 2 validators — Step 5 (Plan 02-04a)', () => {
     expect(r.errors).toEqual({});
   });
 });
+
+// V15..V20 — Step 6 cases (Plan 02-04b). FLOW-11 + D-19:
+//   sale       → negotiable required (deposit optional)
+//   rent_long  → negotiable + prepaymentMonths (>=0) + minTerm required (deposit optional)
+//   rent_daily → no required fields (D-19 thin step)
+describe('Phase 2 validators — Step 6 (Plan 02-04b)', () => {
+  test('V15: sale + empty terms → negotiable error', () => {
+    const bag = { ...emptyFormBag(), dealType: 'sale' as const };
+    const r = validateStep(6, bag);
+    expect(r.isValid).toBe(false);
+    expect(r.errors['terms.negotiable']).toBe(
+      'contextualListing.step6.negotiableRequired',
+    );
+  });
+
+  test('V16: sale + negotiable set → isValid (deposit optional)', () => {
+    const bag = {
+      ...emptyFormBag(),
+      dealType: 'sale' as const,
+      terms: { negotiable: true },
+    };
+    expect(validateStep(6, bag).isValid).toBe(true);
+  });
+
+  test('V17: rent_long + empty terms → 3 errors (negotiable + prepayment + minTerm)', () => {
+    const bag = { ...emptyFormBag(), dealType: 'rent_long' as const };
+    const r = validateStep(6, bag);
+    expect(r.errors['terms.negotiable']).toBe(
+      'contextualListing.step6.negotiableRequired',
+    );
+    expect(r.errors['terms.prepaymentMonths']).toBe(
+      'contextualListing.step6.prepaymentRequired',
+    );
+    expect(r.errors['terms.minTerm']).toBe('contextualListing.step6.minTermRequired');
+  });
+
+  test('V18: rent_long + all required set → isValid', () => {
+    const bag = {
+      ...emptyFormBag(),
+      dealType: 'rent_long' as const,
+      terms: {
+        negotiable: true,
+        prepaymentMonths: 1,
+        minTerm: '1_month' as const,
+      },
+    };
+    expect(validateStep(6, bag).isValid).toBe(true);
+  });
+
+  test('V19: rent_long + prepaymentMonths=0 → isValid (>=0 is valid; 0 means "no prepayment")', () => {
+    const bag = {
+      ...emptyFormBag(),
+      dealType: 'rent_long' as const,
+      terms: {
+        negotiable: true,
+        prepaymentMonths: 0,
+        minTerm: '1_month' as const,
+      },
+    };
+    expect(validateStep(6, bag).isValid).toBe(true);
+  });
+
+  test('V20: rent_daily + empty terms → isValid (D-19 thin step — no required fields)', () => {
+    const bag = { ...emptyFormBag(), dealType: 'rent_daily' as const };
+    expect(validateStep(6, bag).isValid).toBe(true);
+  });
+});
