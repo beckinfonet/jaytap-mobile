@@ -18,6 +18,17 @@ export const colors = {
     error: '#F44336',
     warning: '#F59E0B', // amber-500 — banner background (Phase 1 ROLE-10 / D-13)
     onWarning: '#FFFFFF', // text on warning bg
+    // Phase 3 Plan 03-05 (revision 2 W6) — semantic tokens for media-curation surface.
+    // onAccent: text/icon foreground on accent CTA backgrounds (e.g. Approve & publish
+    // button label, NeedsMediaBanner CTA). White reads correctly on success / accent
+    // hues in light mode.
+    onAccent: '#FFFFFF',
+    // scrim: semi-opaque overlay above tile photos for delete-X affordance + the
+    // upload loading-overlay backdrop. 0.55 opacity matches UI-SPEC §"Photo / video
+    // tile (rendered)" verbatim — same hue in light + dark since it's a black
+    // overlay above an arbitrary image (legibility is a function of contrast with
+    // the image, not the theme background).
+    scrim: 'rgba(0,0,0,0.55)',
     cardShadow: '#1A1A1A',
     buttonText: '#5D5045',
   },
@@ -40,6 +51,13 @@ export const colors = {
     error: '#EF5350',
     warning: '#F59E0B', // amber-500 (same hue, dark mode)
     onWarning: '#0F172A', // dark slate text on warning bg in dark mode
+    // Phase 3 Plan 03-05 (revision 2 W6) — accent CTA still renders white text in
+    // dark mode (matches RejectionBanner precedent — accent is a bright pink hue
+    // and white text passes AA on it in both light + dark modes).
+    onAccent: '#FFFFFF',
+    // scrim: identical hue (semi-opaque black) — its contrast is with the
+    // underlying photo, not the theme surface, so the same value works in dark.
+    scrim: 'rgba(0,0,0,0.55)',
     cardShadow: '#000000',
     buttonText: '#E0E0E0',
   },

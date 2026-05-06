@@ -716,6 +716,38 @@ export const en = {
   'contextualListing.step6.minTermRequired': 'Pick a minimum term',
   'contextualListing.step6.minTerm.1_month': '1 month',
   'contextualListing.step6.minTerm.3_months': '3 months',
+
+  // Phase 3 Plan 03-05 — MediaCurationScreen (mod-only) + media-upload + tour-URL UX.
+  // 26 keys; mirrors UI-SPEC §"Copywriting Contract (EN + RU)" verbatim. Plan 03-06
+  // adds 6 more (banner + filter chip) for a phase total of 32 mediaCuration-namespace
+  // keys per locale. Cap-overflow toast keys (cap.toast.{photos,videos}) are MEDIA-09
+  // acceptance-bound — Discretion #5 (cap-overflow UX add).
+  'moderation.mediaCuration.header.title': 'Media curation',
+  'moderation.mediaCuration.header.close.a11y': 'Close',
+  'moderation.mediaCuration.delete.a11y': 'Remove photo',
+  'moderation.mediaCuration.empty.title': 'No photos yet',
+  'moderation.mediaCuration.empty.body': 'Tap the + tile to add photos and videos from the device library.',
+  'moderation.mediaCuration.photos.section': 'Photos ({count}/40)',
+  'moderation.mediaCuration.videos.section': 'Videos ({count}/5)',
+  'moderation.mediaCuration.pending.badge': 'Not saved',
+  'moderation.mediaCuration.tourUrl.label': '3D tour URL',
+  'moderation.mediaCuration.tourUrl.placeholder': 'https://my.matterport.com/show/?m=…',
+  'moderation.mediaCuration.tourUrl.hint': 'Paste a Matterport, Asteroom, or other https:// tour link. Optional.',
+  'moderation.mediaCuration.tourUrl.invalid': 'Tour URL must start with https://',
+  'moderation.mediaCuration.save.button': 'Save photos',
+  'moderation.mediaCuration.save.loading': 'Uploading…',
+  'moderation.mediaCuration.save.success': 'Photos saved',
+  'moderation.mediaCuration.approve.button': 'Approve & publish',
+  'moderation.mediaCuration.approve.disabled.hint': 'Add at least one photo to enable approval',
+  'moderation.mediaCuration.error.invalidType': 'Some files were rejected. Use JPEG, PNG, WebP, MP4, or MOV.',
+  'moderation.mediaCuration.error.invalidTourUrl': 'Tour URL is not a valid https:// link.',
+  'moderation.mediaCuration.error.tooLarge': 'File too large. Max 25 MB per file, 45 MB total.',
+  'moderation.mediaCuration.error.uploadFailed': 'Upload failed. Check your connection and try again.',
+  'moderation.mediaCuration.error.permissionDenied': 'Photo library access denied. Enable in Settings.',
+  'moderation.mediaCuration.error.pickerUnavailable': 'Photo picker unavailable on this device.',
+  'moderation.mediaCuration.error.mediaRequired': 'At least one photo is required before approval.',
+  'moderation.mediaCuration.cap.toast.photos': 'Added {taken} of {requested}; cap is 40 photos.',
+  'moderation.mediaCuration.cap.toast.videos': 'Added {taken} of {requested}; cap is 5 videos.',
 } as const;
 
 export type TranslationKeys = keyof typeof en;
