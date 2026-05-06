@@ -125,7 +125,7 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md — Backend foundation: extract shared S3 factory module + extend ModerationLog enum + add Property.media.tourUrl Mongoose validator + create 2 sentinel scripts (actorUid spoofing + propertyRoutes media-stripped) — wave 0 — completed 2026-05-06 (3 atomic backend commits 239de75 / a29f163 / ae611ca; 219/219 backend tests preserved; check-no-actoruid-spoofing chained into npm test green; check-property-routes-media-stripped armed FAIL-by-design for Plan 03-04 to flip)
-- [ ] 03-02-PLAN.md — Backend new POST + DELETE moderation media endpoints (race-safe $push/$pull, multipart upload, tourUrl validation, ModerationLog audit) + 8+ supertest cases — wave 1
+- [x] 03-02-PLAN.md — Backend new POST + DELETE moderation media endpoints (race-safe $push/$pull, multipart upload, tourUrl validation, ModerationLog audit) + 26 supertest cases (10 describe blocks) — wave 1 — completed 2026-05-06 (3 atomic backend commits 47fb4ac RED → 2667bc7 POST handler → fc96aee DELETE handler; 245/245 backend tests pass post-plan from 219/219 baseline; check-no-actoruid-spoofing.sh chained green; check-property-routes-media-stripped.sh still FAIL by design for Plan 03-04)
 - [ ] 03-03-PLAN.md — Backend MEDIA_REQUIRED gate at /approve + edit-on-behalf flip-to-live + 4+ supertest cases (D-09 + D-10) — wave 2
 - [ ] 03-04-PLAN.md — Backend user-side multer strip from POST/PUT propertyRoutes (D-13 atomic-break; sentinel flips to green) + MEDIA-02 + MEDIA-08 supertest regressions + chain both sentinels into npm test — wave 2
 - [ ] 03-05-PLAN.md — RN MediaCurationService + MediaCurationScreen (~500 LOC photo grid + tour URL + 2-button action footer) + App.tsx overlay state machine wiring + RTL smoke + 26 EN+RU mediaCuration-namespace i18n keys — wave 3
@@ -183,7 +183,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Schema Reshape + Backend Route Shape Cutover | 5/5 | Complete (4 operator UAT pending) | 2026-05-06 |
 | 2. 6-Step Contextual Listing Flow (Client) | 10/10 | ✅ Complete (Plan 02-08 operator rehearsal deferred by user; 12 walks tracked in 02-HUMAN-UAT.md) | 2026-05-06 |
-| 3. Media Flow Inversion (Admin/Mod Curation) | 1/7 | Executing (Plan 03-01 complete; 03-02..03-07 next) | — |
+| 3. Media Flow Inversion (Admin/Mod Curation) | 2/7 | Executing (Plans 03-01 + 03-02 complete; 03-03..03-07 next) | — |
 | 4. M2 Carry-Forward Bug Fixes | 0/TBD | Not started | — |
 | 5. Hardening + Manual Physical-Device QA + Release v3.0.0 | 0/TBD | Not started | — |
 
