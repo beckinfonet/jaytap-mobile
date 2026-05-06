@@ -290,7 +290,14 @@ If any of these signatures differ in the actual current code, adjust the orchest
                 if (cleaned === '') {
                   setTerms({ deposit: undefined });
                 } else {
-                  setTerms({ deposit: { amount: cleaned, currency: values.terms.deposit?.currency ?? (values.basics.currency || 'KGS') as DepositCur } });
+                  // W-01 FIX: Step 3 validator (Plan 02-02 Test 7) gates Step 6 — values.basics.currency is
+                  // guaranteed non-empty here. Use it directly; do NOT silently coerce '' to 'KGS' via `||`.
+                  // If the assertion fires, the Step 3 gate has been bypassed (planner-level bug to surface, not silently mask).
+                  if (!values.basics.currency) {
+                    throw new Error('Step 6 deposit fallback unreachable: basics.currency is empty (Step 3 validator gate broken).');
+                  }
+                  const depositCurrency: DepositCur = values.terms.deposit?.currency ?? (values.basics.currency as DepositCur);
+                  setTerms({ deposit: { amount: cleaned, currency: depositCurrency } });
                 }
               }}
               keyboardType="decimal-pad"
@@ -754,7 +761,7 @@ If any of these signatures differ in the actual current code, adjust the orchest
   <action>
     Append all 17 Step 6 keys (verbatim from RESEARCH §"Step 6 (17)") to BOTH `src/locales/en.ts` AND `src/locales/ru.ts` in a SINGLE diff.
 
-    Keys (17):
+    Keys (18 — RESEARCH counted 17; planner ships 18 per B-03 reconciliation: `contextualListing.step6.prepayment.custom` chip label was missing in RESEARCH's count):
     ```
     contextualListing.step6.title
     contextualListing.step6.negotiableLabel
@@ -775,7 +782,7 @@ If any of these signatures differ in the actual current code, adjust the orchest
     contextualListing.step6.minTerm.1_month
     contextualListing.step6.minTerm.3_months
     ```
-    (Note: 18 keys above — RESEARCH §Total Count says 17. The list is what matters; RESEARCH miscounted by 1. Use the 18-key list above.)
+    **B-03 RECONCILIATION (per checker, planner-revision iteration 1):** RESEARCH §Total Count line says 17; the canonical key list above ships 18 (delta = +1). The 18th key is `contextualListing.step6.prepayment.custom` — the chip label for the Custom prepayment chip (per CONTEXT specifics §"Step 6 prepayment custom integer" + Pitfall 6). RESEARCH's count missed this label when tallying. Cumulative count remains within RESEARCH's 80–120 range: Plan 02-04a shipped −1 (B-02) and this plan ships +1 (B-03), net 0; 107 keys total. SUMMARY.md MUST document this +1 delta and the rationale.
 
     EN+RU values: copy from RESEARCH §"Step 6 (17)" lines 1221-1239 verbatim.
 
@@ -818,7 +825,8 @@ If any of these signatures differ in the actual current code, adjust the orchest
 <output>
 .planning/phases/02-6-step-contextual-listing-flow-client/02-04b-SUMMARY.md captures:
 - Test counts after this plan (validators ≥ 26 cases; integration ≥ 3 cases — total ≥ 80 in flow's __tests__ dir).
-- Cumulative i18n key count: 108 keys × 2 languages = 216 entries.
+- Cumulative i18n key count: 108 keys × 2 languages = 216 entries (or 107 if reconciled with Plan 02-04a's −1; verify against parity gate output).
+- **B-03 reconciliation (MANDATORY):** Step 6 ships 18 keys (RESEARCH's first count was 17). The +1 delta is `contextualListing.step6.prepayment.custom` — the Custom chip label per CONTEXT specifics §"Step 6 prepayment custom integer" + Pitfall 6. RESEARCH miscounted by 1; planner caught it during scaffold authoring. Cumulative running count: 02-02 (23) + 02-03 (49) + 02-04a (11; B-02 −1) + this (18; B-03 +1) = 101 keys within the flow's `contextualListing.*` namespace. Add ~6 outside-namespace keys (mod-queue Locations tab in 02-02; banner key reuse in 02-04b) → 107 total within RESEARCH's 80–120 range.
 - Verified PropertyService method signatures (createProperty / updateProperty / editAsModerator) — note exact return shape for use by Plan 02-07's App.tsx wire-through.
 - Note for Plan 02-07: orchestrator's onClose + onSuccess shape verified; App.tsx will pass these to refresh RenterListings + ModerationQueue per D-17.
 </output>

@@ -108,6 +108,7 @@ values.content: {
   </files>
   <read_first>
     - src/components/CreateListingForm/HospitalitySection.tsx (chip + tri-state pattern per PATTERNS.md row 20)
+    - src/components/HospitalitySection.tsx (W-07 FIX, per planner-revision iteration 1: top-level read-path Hospitality component — verify whether the analog tri-state in the form's HospitalitySection actually uses `boolean | null` semantics OR a different shape such as enum/discriminator. If it uses a different shape, mention the deviation in the action body and either (a) keep the `boolean | null` shape per CONTEXT D-04 + ROADMAP SC validator semantics, OR (b) align with whatever the analog uses. Recommend (a) — the validator + Step4 RTL test both encode `boolean | null` per Plan 02-02 Task 2's validateStep(4) implementation; deviating means changing the validator. The executor MUST confirm pattern shape before transplanting.)
     - src/components/ContextualListingFlow/Step1DealAndPropertyType.tsx (Plan 02-02 — chip-row pattern source for this plan; copy the chip render shape)
     - src/components/ContextualListingFlow/styles.ts (commonStyles tokens)
   </read_first>
@@ -453,7 +454,11 @@ values.content: {
   <action>
     Append all keys from RESEARCH.md §"Step 4 (12)" and §"Step 5 (7)" sections to BOTH `src/locales/en.ts` AND `src/locales/ru.ts` in a SINGLE diff.
 
-    Step 4 keys (11; the §Total Count §"Step 4: 11" line is the canonical number — RESEARCH wrote both "12" and "11" inconsistently; pick the actual key list which has 11 items: title, conditionLabel, conditionRequired, condition.rough, condition.whitebox, condition.good, condition.euro, furnishedLabel, furnishedRequired, furnished.yes, furnished.no):
+    Step 4 keys (11 — see B-02 reconciliation note below). RESEARCH wrote both "12" and "11" inconsistently. The canonical list has 11 items: title, conditionLabel, conditionRequired, condition.rough, condition.whitebox, condition.good, condition.euro, furnishedLabel, furnishedRequired, furnished.yes, furnished.no.
+
+    **B-02 RECONCILIATION (per checker, planner-revision iteration 1):** RESEARCH §Step 4 first count was 12; canonical key list shipped is 11 (delta = −1). The 12th key would have been a label for the "unset" furnished state (e.g., `contextualListing.step4.furnished.unset`). Per CONTEXT D-04, the validator treats `furnished: null` as missing/unset; UI does NOT render an "unset" chip — both Yes and No render as inactive when `furnished === null` (no displayable copy needed). Therefore, no 12th key is required. SUMMARY.md MUST document this −1 delta. Cumulative count remains within RESEARCH's 80–120 range when paired with Plan 02-04b's +1 delta (B-03 cancels B-02; net 0; 107 keys total).
+
+    11 keys:
     ```
     contextualListing.step4.title
     contextualListing.step4.conditionLabel
@@ -518,5 +523,6 @@ values.content: {
 .planning/phases/02-6-step-contextual-listing-flow-client/02-04a-SUMMARY.md captures:
 - Test counts after this plan (validators ≥ 20 cases now).
 - Cumulative i18n key count: 90 keys × 2 languages = 180 entries.
+- **B-02 reconciliation (MANDATORY):** Step 4 ships 11 keys (RESEARCH's first count was 12). The −1 delta drops the would-be `contextualListing.step4.furnished.unset` label because the validator treats `furnished: null` as unset and the UI shows BOTH Yes and No as inactive in that state (no copy needed). This delta is offset by Plan 02-04b's +1 (B-03), keeping the cumulative count at 107 within RESEARCH's 80–120 range.
 - Note for Plan 02-04b: stepBody case 6 still renders placeholder; Step6DealConditions.tsx + integration.test.tsx + 17 Step 6 keys remain.
 </output>

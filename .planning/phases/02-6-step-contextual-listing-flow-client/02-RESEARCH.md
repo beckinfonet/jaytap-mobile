@@ -1301,9 +1301,13 @@ Distribution (rough):
 
 ---
 
-## Open Questions for Planner
+## Open Questions (RESOLVED by Planner)
+
+I-02 fix (per planner-revision iteration 1): All 6 open questions are RESOLVED below. Resolutions reflected in Plan 02-01 through Plan 02-09 frontmatter, must_haves, and task actions.
 
 1. **Phase 1 Atlas migration deploy state** — has `01-HUMAN-UAT.md` item #1 ("Atlas live migration deploy") run? If NO, planner blocks Plan 02-01 backend deploy until operator runs it. Recommendation: Plan 02-01 Wave-0 task verifies via SSH-into-Railway curl + smoke test on a known seed listing-id.
+
+   **RESOLVED:** Plan 02-01 Task 9 (Step 3 — pre-deploy operator handoff) explicitly defers backend Railway deploy until operator confirms Atlas migration. The plan's `<context>` block already references `.planning/phases/01-schema-reshape-backend-route-shape-cutover/01-HUMAN-UAT.md` so the executor can verify the deploy state at run time.
 
 2. **Starter city list for `seed-locations-m3-data.json`** — researcher proposes the following minimum starter set (pulled from public sources per CONTEXT.md D-06):
 
@@ -1326,13 +1330,23 @@ Distribution (rough):
 
    Planner finalizes; user reviews on PR per D-06.
 
+   **RESOLVED:** The above starter list is adopted as the canonical seed source. Plan 02-01 Task 7 produces `src/scripts/seed-locations-m3-data.json` from this list. User reviews + edits on the PR before Task 9 operator-runs the seed against production Atlas (per D-06 + Plan 02-01 Task 9 Step 3).
+
 3. **`platformConfig.depositsEnabled` — read at Phase 2 ship time?** SPEC §"Admin-Level Configuration" mentions a platform-wide toggle. CONTEXT.md says "if not, default to true". Planner picks: ship default-true behavior (no admin toggle UI in Phase 2) OR add a thin `GET /api/platform-config` endpoint with `{ depositsEnabled: true }` response. Recommend: default to `true` in client; defer admin toggle to M4.
+
+   **RESOLVED:** Default to `true` in client; defer admin toggle to M4 per recommendation. Plan 02-04b Step 6 deposit input is always rendered as optional regardless of platformConfig (no fetch on mount). M4 owns the `GET /api/platform-config` endpoint + admin UI.
 
 4. **Step 6 `prepaymentMonths` Custom-int upper bound** — should there be a max? E.g., 36 months? Planner picks. Recommend: no hard cap; UX warns if > 12.
 
+   **RESOLVED:** No hard cap shipped in Phase 2. UX warning copy for > 12 deferred to M4 polish (out of Phase 2 scope per CONTEXT D-04 Phase-5-only QA matrix). Plan 02-04b Task 1's Custom-int input accepts any non-negative integer.
+
 5. **`propertyToFormBag` for edit-mod when listing has missing nested-shape fields** (e.g., legacy listing migrated with `location.district === ''` per Phase 1 D-06) — should adapter throw, default-to-empty, or surface a warning to mod? Recommend: default-to-empty (mod fills in via the form; no throw).
 
+   **RESOLVED:** Default-to-empty per recommendation. Plan 02-02 Task 3 `propertyToFormBag()` builder uses defensive defaults (empty strings + null for tri-state + empty terms object) for any missing nested-shape field. No throw, no warning. Mod fills in missing fields via the form on edit-mod.
+
 6. **Seed migration timing** — D-06 says "Operator runs seed against production Atlas BEFORE Phase 2 backend cutover ships (so the chip lists are non-empty on first user open)." Planner confirms ordering: seed-locations-m3.js runs **after** Plan 02-01's locationRoutes.js Atlas-deploys but **before** the new flow ships in Plan 02-07. If the seed runs early and the model schema later changes, re-seed needed.
+
+   **RESOLVED:** Ordering per recommendation. Plan 02-01 Task 9 Step 3 explicitly sequences: backend Railway deploy → operator runs `seed:locations --dry-run` → operator runs `seed:locations` (live) → operator runs `seed:locations --verify=PASS`. Plan 02-07 (App.tsx wire-through) does not ship until this sequence completes (Plan 02-07 frontmatter `depends_on: ["02-04b", "02-05", "02-06"]` indirectly enforces via Wave 1 backend-first ordering).
 
 ---
 
