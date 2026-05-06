@@ -153,7 +153,11 @@ function findAllTextNodesContaining(
 ): ReactTestInstance[] {
   const matches: ReactTestInstance[] = [];
   root.findAll((n) => {
-    if (typeof n.type === 'string' && n.type === 'Text') {
+    // react-test-renderer host-component types are string literals (e.g. 'Text', 'View').
+    // TS narrows `type` to a string-literal union of intrinsic JSX names that doesn't
+    // include 'Text' — cast to string for the comparison.
+    const typeStr = typeof n.type === 'string' ? (n.type as string) : '';
+    if (typeStr === 'Text') {
       const children = Array.isArray(n.children) ? n.children : [n.children];
       const textChild = children.find((c) => typeof c === 'string') as string | undefined;
       if (textChild && textChild.includes(needle)) {
