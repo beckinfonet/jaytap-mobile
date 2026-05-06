@@ -311,6 +311,14 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
 
   const renderItem = ({ item }: { item: Property }) => {
     const isActing = actingId === item.id;
+    // Phase 3 Plan 03-06 / D-12 — Approve disabled-state (3rd surface). The
+    // inline Approve button on each queue row is gated by photoCount > 0 (UX
+    // guidance only; backend Plan 03-03 MEDIA_REQUIRED is the actual trust
+    // boundary — T-02 defense-in-depth). When disabled, visual opacity 0.5
+    // signals "not actionable yet"; the row-tap conditional (handleRowTap)
+    // routes the mod to MediaCurationScreen so they can curate photos first.
+    const rowPhotoCount = item.media?.photos?.length ?? 0;
+    const isApproveEnabled = rowPhotoCount > 0;
     return (
       <View
         style={[
@@ -329,10 +337,16 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
         <View style={[styles.actionsBlock, { borderTopColor: colors.border }]}>
           <View style={styles.actionsRowTop}>
             <TouchableOpacity
-              style={[styles.actionBtn, styles.actionBtnHalf, { backgroundColor: colors.success }]}
+              style={[
+                styles.actionBtn,
+                styles.actionBtnHalf,
+                { backgroundColor: colors.success },
+                !isApproveEnabled && { opacity: 0.5 },
+              ]}
               onPress={() => handleApprove(item)}
-              disabled={isActing}
+              disabled={isActing || !isApproveEnabled}
               activeOpacity={0.7}
+              accessibilityState={{ disabled: isActing || !isApproveEnabled }}
             >
               {isActing ? (
                 <ActivityIndicator color="#FFF" size="small" />
