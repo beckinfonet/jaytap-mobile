@@ -23,7 +23,7 @@
 
 ## v1 (M3) Requirements
 
-### Contextual flow (Phase 1 + Phase 2) — 6-step UI
+### Contextual flow (Phase 2) — 6-step UI
 
 The user-facing 6-step listing creation flow. Replaces the existing single-screen `CreateListingScreen` atomically.
 
@@ -75,7 +75,7 @@ Two genuine M2 carry-forward bugs folded into M3 per `phase06-m3-carry-forward.m
 - [ ] **CARRY-01** ROLE-11 frontend mid-action 403 popup-recovery. When a user is demoted while a moderator action popup is OPEN, the popup's submit handler currently doesn't catch 403/PermissionDeniedError — loading spinner stays on; popup hangs; RoleRefreshBanner doesn't surface. Fix scope: catch 403 in mod-action submit handlers across `ModerationQueueScreen` approve/reject + `RejectListingModal` + `ArchiveListingModal` + `PropertyDetailsScreen` mod-action footer + `DeleteListingModal` + `RoleManagementScreen` (M2 Phase 5). On catch: reset loading state, surface `RoleRefreshBanner`, force re-login. Acceptance: demoting a moderator while their action popup is open results in popup closing + banner surfacing within 1s + tap-to-reload working without app restart.
 - [ ] **CARRY-02** Phase 4.5 landlord-application uid-mismatch fix. Submit endpoint currently lands the application in Mongo with a `uid` that doesn't match the submitting Firebase uid. Root cause: body-supplied uid trusted instead of JWKS-verified `req.firebaseUid`. Fix: `POST /api/landlord-applications` sources uid exclusively from `req.firebaseUid` (matches M2 Phase 1 HF-03 pattern + anti-spoofing grep gate). Migration script repairs existing mismatched rows. Acceptance: anti-spoofing grep gate `grep -nE "uid:\s*req\.(body|headers)" src/routes/landlordApplicationRoutes.js` returns 0; migration script flips mismatched rows to JWKS-verified uid; supertest case verifies post-fix.
 
-### Release & store submission (Phase 6)
+### Release & store submission (Phase 5)
 
 - [ ] **REL-01** RN client `package.json` bumped to `3.0.0`.
 - [ ] **REL-02** iOS `MARKETING_VERSION 3.0.0` + Android `versionName "3.0.0"`. Build numbers per **M1 D-02 lesson**: query `06-STORE-HISTORY.md` (re-run pattern from M2 Phase 6) for `next_ios_build_number = max(local, store) + 1` and `next_android_version_code = max(local, store) + 1` BEFORE the atomic version-bump commit. Avoids reactive bumps at archive time.
@@ -128,15 +128,62 @@ Explicit exclusions, with reasoning:
 
 ## Traceability
 
-*Filled by `/gsd-roadmapper` when ROADMAP.md is created.*
+Every M3 v1 requirement maps to exactly one phase. Coverage gate clean (zero orphans, zero duplicates). Filled by `/gsd-roadmapper` 2026-05-05.
 
-| Phase | Requirements |
-|-------|--------------|
-| TBD | TBD |
+| Phase | Requirements | Count |
+|-------|--------------|-------|
+| Phase 1 — Schema Reshape + Backend Route Shape Cutover | SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04, SCHEMA-05 | 5 |
+| Phase 2 — 6-Step Contextual Listing Flow (Client) | FLOW-01, FLOW-02, FLOW-03, FLOW-04, FLOW-05, FLOW-06, FLOW-07, FLOW-08, FLOW-09, FLOW-10, FLOW-11, FLOW-12, FLOW-13, FLOW-14, FLOW-15, FLOW-16 | 16 |
+| Phase 3 — Media Flow Inversion (Admin/Mod Curation) | MEDIA-01, MEDIA-02, MEDIA-03, MEDIA-04, MEDIA-05, MEDIA-06, MEDIA-07, MEDIA-08, MEDIA-09 | 9 |
+| Phase 4 — M2 Carry-Forward Bug Fixes | CARRY-01, CARRY-02 | 2 |
+| Phase 5 — Hardening + Manual Physical-Device QA + Release v3.0.0 | REL-01, REL-02, REL-03, REL-04, REL-05, REL-06 | 6 |
 
-**Coverage:** TBD (every M3 v1 requirement should map to exactly one phase; no orphans, no duplicates).
+**Coverage:** 38/38 v1 requirements mapped to exactly one phase (16 FLOW + 5 SCHEMA + 9 MEDIA + 2 CARRY + 6 REL = 38). Zero orphans. Zero duplicates.
+
+### Per-requirement → phase index
+
+| REQ-ID | Phase |
+|--------|-------|
+| FLOW-01 | Phase 2 |
+| FLOW-02 | Phase 2 |
+| FLOW-03 | Phase 2 |
+| FLOW-04 | Phase 2 |
+| FLOW-05 | Phase 2 |
+| FLOW-06 | Phase 2 |
+| FLOW-07 | Phase 2 |
+| FLOW-08 | Phase 2 |
+| FLOW-09 | Phase 2 |
+| FLOW-10 | Phase 2 |
+| FLOW-11 | Phase 2 |
+| FLOW-12 | Phase 2 |
+| FLOW-13 | Phase 2 |
+| FLOW-14 | Phase 2 |
+| FLOW-15 | Phase 2 |
+| FLOW-16 | Phase 2 |
+| SCHEMA-01 | Phase 1 |
+| SCHEMA-02 | Phase 1 |
+| SCHEMA-03 | Phase 1 |
+| SCHEMA-04 | Phase 1 |
+| SCHEMA-05 | Phase 1 |
+| MEDIA-01 | Phase 3 |
+| MEDIA-02 | Phase 3 |
+| MEDIA-03 | Phase 3 |
+| MEDIA-04 | Phase 3 |
+| MEDIA-05 | Phase 3 |
+| MEDIA-06 | Phase 3 |
+| MEDIA-07 | Phase 3 |
+| MEDIA-08 | Phase 3 |
+| MEDIA-09 | Phase 3 |
+| CARRY-01 | Phase 4 |
+| CARRY-02 | Phase 4 |
+| REL-01 | Phase 5 |
+| REL-02 | Phase 5 |
+| REL-03 | Phase 5 |
+| REL-04 | Phase 5 |
+| REL-05 | Phase 5 |
+| REL-06 | Phase 5 |
 
 ---
 
 *Requirements drafted: 2026-05-05*
-*Total v1 (M3) requirements: 38 (16 flow + 5 schema + 9 media + 2 carry-forward + 6 release-and-submission). 25% smaller than M2's 51 v1 reqs; reflects M3's tighter scope (one feature surface — listing creation flow — vs. M2's cross-cutting role + lifecycle + admin work).*
+*Total v1 (M3) requirements: 38 (16 flow + 5 schema + 9 media + 2 carry-forward + 6 release-and-submission). Traceability filled by `/gsd-roadmapper` 2026-05-05; 100% coverage across 5 phases (zero orphans, zero duplicates). 25% smaller than M2's 51 v1 reqs; reflects M3's tighter scope (one feature surface — listing creation flow — vs. M2's cross-cutting role + lifecycle + admin work).*
