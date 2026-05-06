@@ -67,25 +67,38 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
   const { colors, isDark } = useTheme();
   const { t } = useLanguage();
 
-  // Hero source order (D-08): tour thumbnail first, fallback chain
+  // Phase 2 D-20 nested-shape derivations (Phase 1 D-04..D-15).
+  // D-21 PRESERVED: top-level maxGuests + amenities reads stay verbatim.
+  const title = property.content?.title ?? '';
+  const cityLabel = property.location?.city ?? '';
+  const districtLabel = property.location?.district ?? '';
+  const addressDisplay = [districtLabel, cityLabel].filter(Boolean).join(', ');
+
+  // Hero source order (D-08): media.photos[0] (Phase 1 D-12 first-photo wins flatten)
+  // — tour thumbnail flattened to media.tourUrl is just a URL string, not a thumbnail
+  // image, so the hero image source order collapses to the photos array.
   const heroUri =
-    property.tours?.[0]?.thumbnailUrl ||
-    property.imageUrl ||
-    (property.images && property.images.length > 0
-      ? property.images[0]
+    (property.media?.photos && property.media.photos.length > 0
+      ? property.media.photos[0]
       : 'https://via.placeholder.com/400');
 
-  // Bottom-left 3D Tour badge — only when a tour with thumbnail exists
-  const hasTour =
-    (property.tours?.length ?? 0) > 0 && !!property.tours?.[0]?.thumbnailUrl;
+  // Bottom-left 3D Tour badge — only when media.tourUrl exists (Phase 1 D-12 first-tour-wins flatten).
+  const hasTour = !!property.media?.tourUrl;
 
-  // D-09: type badge label (Hostel / Hotel)
+  // D-09: type badge label. M3 propertyType enum is lowercase ('hotel'|'hostel') —
+  // case-insensitive comparison covers both M3 and any latent M2 'Hostel'/'Hotel' rows.
+  const ptype = (property.propertyType ?? '').toString().toLowerCase();
   const typeBadgeLabel =
-    property.propertyType === 'Hostel'
+    ptype === 'hostel'
       ? t('hospitality.badge.hostel')
       : t('hospitality.badge.hotel');
 
-  // D-10: amenity preview — first 3 + "+N more" overflow
+  // D-21 / Phase 1 D-12: hotelClass moved under basics. Surfaced as an optional
+  // suffix on the type badge (no UI before — additive read).
+  const hotelClass = property.basics?.hotelClass;
+
+  // D-10 / D-21 PRESERVED: amenity preview reads top-level property.amenities verbatim
+  // (Phase 1 D-09 — top-level retained).
   const amenities = (property.amenities ?? []) as HospitalityAmenity[];
   const previewAmenities = amenities.slice(0, 3);
   const overflowCount = Math.max(0, amenities.length - 3);
@@ -95,12 +108,12 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
     e.stopPropagation();
     const propertyId = property.id || property.listingId || '';
     const shareUrl = getPropertyShareUrl(propertyId);
-    const shareMessage = `${property.title}\n${property.address}\n\n${shareUrl}`;
+    const shareMessage = `${title}\n${addressDisplay}\n\n${shareUrl}`;
     try {
       await Share.share({
         message: shareMessage,
         url: shareUrl,
-        title: property.title,
+        title,
       });
     } catch (error: any) {
       console.error('Error sharing:', error?.message);
@@ -114,14 +127,14 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
         <View style={styles.imageWrapper}>
           <Image source={{ uri: heroUri }} style={styles.image} resizeMode="cover" />
 
-          {/* D-09: top-left type badge */}
+          {/* D-09: top-left type badge. hotelClass appended when present (basics.hotelClass). */}
           <View style={styles.topBadges}>
             <View style={[styles.typeBadge, { backgroundColor: colors.surface }]}>
               <Text
                 style={[styles.typeBadgeText, { color: colors.text }]}
                 numberOfLines={1}
               >
-                {typeBadgeLabel}
+                {hotelClass ? `${typeBadgeLabel} · ${hotelClass}` : typeBadgeLabel}
               </Text>
             </View>
           </View>
@@ -158,13 +171,12 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* D-08: bottom-LEFT 3D Tour badge (NOT right like PropertyCard's commented-out variant) */}
+          {/* D-08: bottom-LEFT 3D Tour badge — Phase 1 D-12 flattened tours[] → media.tourUrl
+              (single tour). Multi-tour M2 listings reduced to 1; pluralization removed. */}
           {hasTour && (
             <View style={styles.bottomBadges}>
               <View style={[styles.mediaBadge, styles.tour3DBadge]}>
-                <Text style={styles.tour3DBadgeText}>
-                  {(property.tours?.length ?? 0) > 1 ? '3D Tours' : '3D Tour'}
-                </Text>
+                <Text style={styles.tour3DBadgeText}>3D Tour</Text>
               </View>
             </View>
           )}
@@ -173,10 +185,10 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
         {/* Body */}
         <View style={styles.contentContainer}>
           <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
-            {property.title}
+            {title}
           </Text>
           {(() => {
-            const formatted = formatAddress(property.address);
+            const formatted = formatAddress(addressDisplay);
             return (
               <>
                 <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
@@ -191,9 +203,11 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
             );
           })()}
 
-          {/* D-10: rooms + maxGuests meta — no price formatter, no beds/baths/sqft meta table */}
+          {/* D-10: rooms + maxGuests meta — no price formatter, no beds/baths/sqft meta table.
+              hotelRooms (basics.hotelRooms) takes precedence for hotel/hostel; falls back to
+              generic basics.rooms. maxGuests stays TOP-LEVEL per D-21 (Phase 1 D-09 preserved). */}
           <Text style={[styles.meta, { color: colors.textSecondary }]} numberOfLines={1}>
-            {property.rooms ?? 0} {t('hospitality.rooms')} · {property.maxGuests ?? 0}{' '}
+            {(property.basics?.hotelRooms ?? property.basics?.rooms ?? '-')} {t('hospitality.rooms')} · {property.maxGuests ?? 0}{' '}
             {t('hospitality.maxGuests')}
           </Text>
 
