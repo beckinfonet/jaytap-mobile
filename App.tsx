@@ -14,6 +14,9 @@ import { parseOobCodeFromResetInput } from './src/utils/parseOobCode';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { AccountSettingsScreen } from './src/screens/AccountSettingsScreen';
 import { CreateListingScreen } from './src/screens/CreateListingScreen';
+// Plan 02-07: new 6-step contextual flow. CreateListingScreen import stays for
+// the admin verificationOnly branch + atomic-invariant per Plan 02-09.
+import { ContextualListingFlow } from './src/components/ContextualListingFlow';
 import { LandlordApplicationScreen } from './src/screens/LandlordApplicationScreen';
 import { LandlordApplicationQueueScreen } from './src/screens/LandlordApplicationQueueScreen';
 import { RenterListingsScreen } from './src/screens/RenterListingsScreen';
@@ -48,7 +51,11 @@ function AppContent() {
   const [isLoginView, setIsLoginView] = useState(true);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false);
-  const [isCreateListingOpen, setIsCreateListingOpen] = useState(false);
+  // Phase 02 Plan 02-07 (D-11): replaces the prior single-screen create flag.
+  // Single overlay flag for the new 6-step ContextualListingFlow. The
+  // admin verificationOnly branch (CreateListingScreen) shares this flag —
+  // render-time switch on isAdminVerificationMode picks which component mounts.
+  const [isContextualListingFlowOpen, setIsContextualListingFlowOpen] = useState(false);
   const [isLandlordApplicationOpen, setIsLandlordApplicationOpen] = useState(false);
   const [isLandlordApplicationQueueOpen, setIsLandlordApplicationQueueOpen] = useState(false);
   // Phase 3 Plan 06 — moderation queue overlay + edit-on-behalf mod-context.
@@ -123,7 +130,7 @@ function AppContent() {
   const OVERLAY_FLAGS = [
     !!selectedProperty,
     isRenterListingsOpen,
-    !!user && isCreateListingOpen,
+    !!user && isContextualListingFlowOpen,
     !!activeTourUrl,
     !!activePhotosUrl,
     !!user && isModerationQueueOpen, // Phase 3 Plan 06 — moderation queue overlay
@@ -246,11 +253,11 @@ function AppContent() {
   }, [user?.localId]);
 
   useEffect(() => {
-    if (!isCreateListingOpen || user) return;
+    if (!isContextualListingFlowOpen || user) return;
     setAuthPromptMessage(t('auth.pleaseSignInToCreateListing'));
     setShowAuthPrompt(true);
-    setIsCreateListingOpen(false);
-  }, [isCreateListingOpen, user, t]);
+    setIsContextualListingFlowOpen(false);
+  }, [isContextualListingFlowOpen, user, t]);
 
   const [renterListingsEverMounted, setRenterListingsEverMounted] = useState(false);
   useEffect(() => {
@@ -313,9 +320,15 @@ function AppContent() {
         setOwnerListingsName('');
         return true;
       }
-      if (isCreateListingOpen) {
-        setIsCreateListingOpen(false);
+      if (isContextualListingFlowOpen) {
+        // W-04: orchestrator owns hardware back when the new flow is mounted
+        // (non-admin path). Admin verificationOnly still uses CreateListingScreen.
+        if (!isAdminVerificationMode) {
+          return false;
+        }
+        setIsContextualListingFlowOpen(false);
         setPropertyToEdit(null);
+        setIsAdminVerificationMode(false);
         return true;
       }
       // Phase 4.5 nav fix: Landlord Application overlays sit ABOVE Profile in
@@ -397,7 +410,8 @@ function AppContent() {
     activePhotosUrl,
     isRenterListingsOpen,
     ownerListingsUid,
-    isCreateListingOpen,
+    isContextualListingFlowOpen,
+    isAdminVerificationMode,
     isLandlordApplicationOpen,
     isLandlordApplicationQueueOpen,
     isModerationQueueOpen,
@@ -522,7 +536,7 @@ function AppContent() {
     }
     setIsAdminVerificationMode(false);
     setPropertyToEdit(null);
-    setIsCreateListingOpen(true);
+    setIsContextualListingFlowOpen(true);
   }, [user, t]);
   const onProfileApplyLandlord = useCallback(() => {
     setIsProfileOpen(false);
@@ -851,7 +865,7 @@ function AppContent() {
                 }
                 setIsAdminVerificationMode(false);
                 setPropertyToEdit(null);
-                setIsCreateListingOpen(true);
+                setIsContextualListingFlowOpen(true);
                 return;
               }
               if (tab === 'favorites') {
@@ -933,16 +947,16 @@ function AppContent() {
               skipRenterListingsReopenRef.current = true;
               setPropertyToEdit(p);
               setIsAdminVerificationMode(true);
-              setIsCreateListingOpen(true);
+              setIsContextualListingFlowOpen(true);
               setSelectedProperty(null);
             }}
             onEditListing={(property) => {
               setIsAdminVerificationMode(false);
               setPropertyToEdit(property);
               setSelectedProperty(null);
-              setIsCreateListingOpen(true);
+              setIsContextualListingFlowOpen(true);
             }}
-            // Phase 3 Plan 06 — mod footer "Edit on behalf" -> CreateListingScreen with moderatorContext.
+            // Phase 3 Plan 06 — mod footer "Edit on behalf" -> ContextualListingFlow with moderatorContext.
             onEditOnBehalfPressed={(p) => {
               setIsAdminVerificationMode(false);
               setPropertyToEdit(p);
@@ -951,7 +965,7 @@ function AppContent() {
                 ownerEmail: p.owner?.email,
               });
               setSelectedProperty(null);
-              setIsCreateListingOpen(true);
+              setIsContextualListingFlowOpen(true);
             }}
           />
         )}
@@ -973,30 +987,30 @@ function AppContent() {
                 setIsAdminVerificationMode(false);
                 setPropertyToEdit(property);
                 setIsRenterListingsOpen(false);
-                setIsCreateListingOpen(true);
+                setIsContextualListingFlowOpen(true);
               }}
               refreshKey={renterListingsRefreshKey}
               onListingMutated={() => setHomeRefreshKey((k) => k + 1)}
             />
           </View>
         )}
-        {!!user && isCreateListingOpen && (
+        {!!user && isContextualListingFlowOpen && isAdminVerificationMode && (
+          // Plan 02-07: admin verificationOnly path stays on CreateListingScreen
+          // (PATCH /api/properties/:id/verifications). M4+ owns re-architecture.
           <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
             <CreateListingScreen
               onBack={() => {
-                setIsCreateListingOpen(false);
+                setIsContextualListingFlowOpen(false);
                 setPropertyToEdit(null);
                 setIsAdminVerificationMode(false);
-                // Phase 3 Plan 06 — clear mod-context so owner self-edit doesn't inherit it.
                 setModeratorContext(null);
                 skipRenterListingsReopenRef.current = false;
               }}
               onSuccess={() => {
-                setIsCreateListingOpen(false);
+                setIsContextualListingFlowOpen(false);
                 setPropertyToEdit(null);
                 setIsAdminVerificationMode(false);
-                setModeratorContext(null); // Phase 3 Plan 06 — D-12 status->'live' server-side
-                // Refresh Home so newly-published listings (and edits that flip draft↔live) appear without remount.
+                setModeratorContext(null);
                 setHomeRefreshKey((k) => k + 1);
                 if (!skipRenterListingsReopenRef.current) {
                   setRenterListingsRefreshKey((k) => k + 1);
@@ -1005,17 +1019,87 @@ function AppContent() {
                 skipRenterListingsReopenRef.current = false;
               }}
               propertyToEdit={propertyToEdit || undefined}
-              verificationOnly={isAdminVerificationMode}
+              verificationOnly={true}
               moderatorContext={moderatorContext || undefined}
-              // Phase 5 D-11: Hospitality contact recovery — close CreateListing, open AccountSettings
               onNavigateToAccountSettings={() => {
-                setIsCreateListingOpen(false);
+                setIsContextualListingFlowOpen(false);
                 setPropertyToEdit(null);
                 setIsAdminVerificationMode(false);
                 setModeratorContext(null);
                 setIsAccountSettingsOpen(true);
               }}
             />
+          </View>
+        )}
+        {!!user && isContextualListingFlowOpen && !isAdminVerificationMode && (
+          // Plan 02-07 (D-11/D-15/D-17): new 6-step ContextualListingFlow.
+          // Mode discriminator: moderatorContext+propertyToEdit → 'edit-mod';
+          // propertyToEdit → 'edit-owner'; neither → 'create'. Orchestrator
+          // owns Android hardware back (W-04).
+          <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
+            {moderatorContext && propertyToEdit ? (
+              <ContextualListingFlow
+                mode="edit-mod"
+                initialListing={propertyToEdit}
+                moderatorContext={moderatorContext}
+                onClose={() => {
+                  setIsContextualListingFlowOpen(false);
+                  setPropertyToEdit(null);
+                  setModeratorContext(null);
+                  skipRenterListingsReopenRef.current = false;
+                }}
+                onSuccess={() => {
+                  setIsContextualListingFlowOpen(false);
+                  setPropertyToEdit(null);
+                  setModeratorContext(null);
+                  // D-17 edit-mod destination: refresh moderation queue.
+                  setModerationCountRefreshKey((k) => k + 1);
+                  setHomeRefreshKey((k) => k + 1);
+                  skipRenterListingsReopenRef.current = false;
+                }}
+              />
+            ) : propertyToEdit ? (
+              <ContextualListingFlow
+                mode="edit-owner"
+                initialListing={propertyToEdit}
+                onClose={() => {
+                  setIsContextualListingFlowOpen(false);
+                  setPropertyToEdit(null);
+                  skipRenterListingsReopenRef.current = false;
+                }}
+                onSuccess={() => {
+                  setIsContextualListingFlowOpen(false);
+                  setPropertyToEdit(null);
+                  // D-17 edit-owner: land on RenterListings 'pending' tab + refresh.
+                  setRenterListingsDefaultTab('pending');
+                  setRenterListingsRefreshKey((k) => k + 1);
+                  setHomeRefreshKey((k) => k + 1);
+                  if (!skipRenterListingsReopenRef.current) {
+                    setIsRenterListingsOpen(true);
+                  }
+                  skipRenterListingsReopenRef.current = false;
+                }}
+              />
+            ) : (
+              <ContextualListingFlow
+                mode="create"
+                onClose={() => {
+                  setIsContextualListingFlowOpen(false);
+                  skipRenterListingsReopenRef.current = false;
+                }}
+                onSuccess={() => {
+                  setIsContextualListingFlowOpen(false);
+                  // D-17 create destination: RenterListings 'pending' tab + refresh.
+                  setRenterListingsDefaultTab('pending');
+                  setRenterListingsRefreshKey((k) => k + 1);
+                  setHomeRefreshKey((k) => k + 1);
+                  if (!skipRenterListingsReopenRef.current) {
+                    setIsRenterListingsOpen(true);
+                  }
+                  skipRenterListingsReopenRef.current = false;
+                }}
+              />
+            )}
           </View>
         )}
         {/* Phase 4.5 — Landlord Application screen (user) */}
@@ -1076,7 +1160,7 @@ function AppContent() {
                   editingOwnerUid: (p.owner?.uid || (p as any).ownerUid || '') as string,
                   ownerEmail: p.owner?.email,
                 });
-                setIsCreateListingOpen(true);
+                setIsContextualListingFlowOpen(true);
               }}
             />
           </View>
