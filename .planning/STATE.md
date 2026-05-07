@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: "Contextual Forms"
 status: executing
-last_updated: "2026-05-07T17:11:11.242Z"
-last_activity: 2026-05-07 -- Phase 5 planning complete
+last_updated: "2026-05-07T17:30:37Z"
+last_activity: 2026-05-07 -- Phase 05 Plan 04 (release notes EN+RU) shipped; 1/7 plans complete
 progress:
   total_phases: 4
   completed_phases: 4
@@ -17,13 +17,26 @@ progress:
 
 ## Current Position
 
-Phase: 5 (hardening-manual-qa-release-v3) — context gathered; ready for /gsd-plan-phase 5
-Plan: 0 of TBD (M2 Phase 6 7-plan precedent expected)
-Status: Ready to execute
-Last activity: 2026-05-07 -- Phase 5 planning complete
+Phase: 05 (hardening-manual-qa-release-v3) — EXECUTING
+Plan: 1 of 7 complete (Plan 05-04 release notes draft); 6 remaining (05-01 pre-flight, 05-02 store-history, 05-03 atomic version bump, 05-05 QA matrix walk, 05-06 paired-gate audit, 05-07 dual-store submission)
+Status: Executing Phase 05 — Wave 1 (parallel: 05-01 + 05-02 + 05-04 [DONE])
+Last activity: 2026-05-07 -- Phase 05 Plan 04 shipped (release notes EN+RU drafted, 489/492 chars)
 Resume file: .planning/phases/05-hardening-manual-qa-release-v3/05-CONTEXT.md
 
-Progress: [██████████] 100% (33 of 33 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 7/7 + HG-01 inline fix; Phase 4: 5/5 with 2 device walks deferred to Phase 5 REL-03; M3 progress 4/5 phases landed pending REL-03)
+Progress: [██████████] 100% (34 of 34 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 7/7 + HG-01 inline fix; Phase 4: 5/5 with 2 device walks deferred to Phase 5 REL-03; Phase 5: 1/7 (05-04 release notes drafted); M3 progress 4/5 phases landed pending REL-03)
+
+**Phase 5 Plan 04 closing artifact (2026-05-07T17:30:37Z):**
+
+- 1 atomic commit on `main`: `309e8ba` docs(05-04) draft v3.0.0 release notes (EN+RU, ≤500 chars/locale). Documentation-only, paste-only artifact per M1 D-11 precedent.
+- 1 file created: `.planning/phases/05-hardening-manual-qa-release-v3/05-RELEASE-NOTES.md` (145 lines) — bilingual EN+RU release notes with frontmatter (target_version: 3.0.0, paste_only: true, languages: [en, ru]), `## EN` body 489 chars, `## RU` body 492 chars (both under Play Console's 500-char binding limit per `wc -m` via documented awk slice + `wc -m` pipeline), Submission instructions block, Character counts table with actual integers, re-runnable verification commands, Re-open conditions, Cross-references.
+- Content honors M1 D-10 order: **What's new** (6-step contextual listing flow + KG/KZ/UZ city dictionary as expansion enabler hint + mod media curation framed as "photos and 3D tours reviewed by our team before going live") → **Improvements** (smoother session handling and recovery) → **Bug fixes** catch-all closer (no fabricated specific-fix names).
+- Geographic invariant per memory `geographic-scope.md` honored: zero `Bishkek` / `Бишкек` matches across the entire file (user-facing bodies + meta-prose). EN ↔ RU parity preserved (same content, same order, same number of bullets per section).
+- Three Rule-1 deviations auto-fixed and folded into the single atomic commit: (a) first-draft EN body 501 chars (1 over) and RU 522 chars (22 over) — trimmed per the plan's documented trim priority list to 489/492; (b) M2-verbatim RU closer "Мелкие исправления и шлифовка интерфейса." tripped the binding `грекс -icE 'исправлен[а-я]* [а-я]+'` over-broad regex (the Russian root `исправлен` is shared between generic catch-all and specific-bug senses) — rephrased to "Прочие улучшения стабильности и полировка." (synonymous catch-all, no stem match, M1-D-10 spirit preserved); (c) initial draft's meta-prose included three "Bishkek-only" guardrail callouts that tripped the file-wide `grep -ic 'bishkek\|бишкек'`=0 criterion — rephrased to "no single-city anchor in user-facing copy" / "Geographic invariant per memory `geographic-scope.md`".
+- All 17 plan acceptance criteria PASS. Plan-level `<verify><automated>` gate PASS.
+- REL-04 ("drafted + pasted") is NOT yet fully complete — Plan 05-04 satisfies the "drafted" half. The "pasted" half is owned by Plan 05-07 (dual-store submission), which reads the `## EN` and `## RU` body slices via the documented awk commands and pastes into ASC + Play Console. REQUIREMENTS.md REL-04 checkbox stays `[ ]` until 05-07 closes.
+- Frontmatter status flags are placeholders that flip when other Phase 5 plans close: `walk_disposition: pending` flips to APPROVED at 05-05 close; `bug_fix_loop_triggered: pending` flips at 05-05 close; `walked_against_sha: pending` flips at 05-03 atomic bump close.
+- Forward signal: Plan 05-07 paste step at submission time uses these two awk commands verbatim (documented in 05-RELEASE-NOTES.md "Verification commands" subsection) for deterministic byte-for-byte body extraction.
+- SUMMARY at `.planning/phases/05-hardening-manual-qa-release-v3/05-04-SUMMARY.md`.
 
 **Phase 4 close artifact (2026-05-07T09:15:00Z):**
 
@@ -150,7 +163,7 @@ Progress: [██████████] 100% (33 of 33 plans complete — Pha
 See: .planning/PROJECT.md (updated 2026-05-05 at M2 close + M3 milestone discovery)
 
 **Core value:** Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek properties on a phone without UI blockers.
-**Current focus:** Phase 4 close pending REL-03 device walks → next: Phase 5 (Hardening + v3.0.0 Release)
+**Current focus:** Phase 05 — hardening-manual-qa-release-v3
 
 ---
 
