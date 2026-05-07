@@ -37,7 +37,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { UserService, type AdminUserListItem, type UserRole } from '../services/UserService';
 import RoleChangeModal, { type RoleChangeErrorCode } from '../components/RoleChangeModal';
-import { PermissionDeniedError } from '../hooks/useRole';
+import { useModActionGuard } from '../hooks/useModActionGuard';
 
 interface RoleManagementScreenProps {
   onBack: () => void;
@@ -50,6 +50,11 @@ const RoleManagementScreen: React.FC<RoleManagementScreenProps> = ({ onBack }) =
   const { colors, isDark } = useTheme();
   const { t } = useLanguage();
   const { user: currentUser } = useAuth();
+  // Phase 4 CARRY-01 D-02 — shared 403 detection + recovery for handleRoleSubmit.
+  // Drops the bespoke Alert.alert(t('errors.permissionDenied')) + onBack() in favor
+  // of the unified banner-driven flow (RESEARCH Open Decisions #7). RoleRefreshBanner
+  // auto-surfaces from the AuthContext role-change mutation.
+  const { is403PermissionError, onPermissionDenied } = useModActionGuard();
 
   const [query, setQuery] = useState<string>('');
   const [items, setItems] = useState<AdminUserListItem[]>([]);
@@ -92,9 +97,17 @@ const RoleManagementScreen: React.FC<RoleManagementScreenProps> = ({ onBack }) =
       } catch (err: any) {
         if (myId !== requestIdRef.current || !isMountedRef.current) return;
         console.error('Failed to search users', err);
-        if (err instanceof PermissionDeniedError || err?.message === 'E_PERMISSION_DENIED') {
-          Alert.alert(t('common.error'), t('errors.permissionDenied'));
-          onBack();
+        // Phase 4 CARRY-01 D-02 — load-path 403 unified through useModActionGuard.
+        // BEHAVIOR CHANGE (RESEARCH Open Decisions #7): the previous Alert + onBack
+        // is replaced by silent recovery + banner-driven flow, matching the
+        // submit-path (handleRoleSubmit) and the other 9 mod-action handlers.
+        // The matcher also widens detection to include axios in-flight 403
+        // (`code: 'insufficient-role'`) which instanceof-only previously missed.
+        if (is403PermissionError(err)) {
+          await onPermissionDenied({
+            closeModal: () => {},
+            resetLoading: () => setLoading(false),
+          });
           return;
         }
         Alert.alert(
@@ -141,14 +154,24 @@ const RoleManagementScreen: React.FC<RoleManagementScreenProps> = ({ onBack }) =
       setSelectedUser(null);
       Alert.alert('', t('admin.roles.success.toast'));
     } catch (err: any) {
-      // WR-02: surface mid-flight role revocation explicitly instead of
-      // collapsing it into the generic NETWORK toast. Mirrors runSearch's
-      // handling at lines 82-86.
-      if (err instanceof PermissionDeniedError || err?.message === 'E_PERMISSION_DENIED') {
-        setSelectedUser(null);
-        setModalErrorCode(null);
-        Alert.alert(t('common.error'), t('errors.permissionDenied'));
-        onBack();
+      // Phase 4 CARRY-01 D-02 — unified 403 catch via useModActionGuard hook.
+      // BEHAVIOR CHANGE (RESEARCH Open Decisions #7): drops the bespoke
+      // Alert.alert(t('errors.permissionDenied')) + onBack() that previously
+      // fired here in favor of the silent close + banner-driven flow that the
+      // other 9 mod-action handlers use. The globally-mounted RoleRefreshBanner
+      // auto-surfaces within ~1s of refreshRole(); user recovers via banner-tap
+      // without an app restart. UX is now consistent across all 10 handlers.
+      // The matcher also widens detection to include axios in-flight 403
+      // (`code: 'insufficient-role'`) which the previous instanceof-only branch
+      // missed.
+      if (is403PermissionError(err)) {
+        await onPermissionDenied({
+          closeModal: () => {
+            setSelectedUser(null);
+            setModalErrorCode(null);
+          },
+          resetLoading: () => setSubmittingRole(false),
+        });
         return;
       }
       const code = err?.response?.data?.code as string | undefined;

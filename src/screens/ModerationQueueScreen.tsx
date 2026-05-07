@@ -44,6 +44,7 @@ import { PropertyService } from '../services/PropertyService';
 import { PropertyCard } from '../components/PropertyCard';
 import RejectListingModal, { RejectReasonCode } from '../components/RejectListingModal';
 import { PermissionDeniedError } from '../hooks/useRole';
+import { useModActionGuard } from '../hooks/useModActionGuard';
 import type { Property } from '../types/Property';
 // Plan 02-03: Locations tab — service for the new location-curation queue.
 import {
@@ -87,6 +88,12 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
 }) => {
   const { colors, isDark } = useTheme();
   const { t } = useLanguage();
+  // Phase 4 CARRY-01 D-02 — shared 403 detection + recovery for the 4 mod-action
+  // handlers below (handleApprove, handleRejectSubmit, handleApproveLocation,
+  // submitLocationReject). Hook drives close-modal + reset-loading + refreshRole;
+  // RoleRefreshBanner auto-surfaces from the AuthContext role-change mutation.
+  // Precedence in each catch: 403 > 409 > generic.
+  const { is403PermissionError, onPermissionDenied } = useModActionGuard();
 
   const [items, setItems] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -222,6 +229,14 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
               // resolves successfully (PATTERNS §"Pitfall 7: Pessimistic UI").
               setItems((prev) => prev.filter((p) => p.id !== property.id));
             } catch (err: any) {
+              // Phase 4 CARRY-01 D-02 — 403 branch precedes 409: precedence 403 > 409 > generic.
+              if (is403PermissionError(err)) {
+                await onPermissionDenied({
+                  closeModal: () => {},
+                  resetLoading: () => setActingId(null),
+                });
+                return;
+              }
               if (err?.response?.status === 409) {
                 await handleRaceConflict();
                 return;
@@ -255,6 +270,14 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
       setItems((prev) => prev.filter((p) => p.id !== rejectTarget.id));
       setRejectTarget(null);
     } catch (err: any) {
+      // Phase 4 CARRY-01 D-02 — 403 branch precedes 409: precedence 403 > 409 > generic.
+      if (is403PermissionError(err)) {
+        await onPermissionDenied({
+          closeModal: () => setRejectTarget(null),
+          resetLoading: () => setSubmittingReject(false),
+        });
+        return;
+      }
       if (err?.response?.status === 409) {
         await handleRaceConflict();
         return;
@@ -406,6 +429,14 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
                 setPendingDistricts((prev) => prev.filter((d) => d._id !== id));
               }
             } catch (err: any) {
+              // Phase 4 CARRY-01 D-02 — 403 branch precedes 409: precedence 403 > 409 > generic.
+              if (is403PermissionError(err)) {
+                await onPermissionDenied({
+                  closeModal: () => {},
+                  resetLoading: () => setActingLocationId(null),
+                });
+                return;
+              }
               if (err?.response?.status === 409) {
                 // Race-conflict — refetch the queue and surface a generic
                 // already-moderated toast (reuses the listings race copy).
@@ -447,6 +478,17 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
       setRejectLocationTarget(null);
       setRejectLocationNote('');
     } catch (err: any) {
+      // Phase 4 CARRY-01 D-02 — 403 branch precedes 409: precedence 403 > 409 > generic.
+      if (is403PermissionError(err)) {
+        await onPermissionDenied({
+          closeModal: () => {
+            setRejectLocationTarget(null);
+            setRejectLocationNote('');
+          },
+          resetLoading: () => setSubmittingLocationReject(false),
+        });
+        return;
+      }
       if (err?.response?.status === 409) {
         Alert.alert(t('moderation.race.title'), t('moderation.race.toast'));
         await loadLocations();

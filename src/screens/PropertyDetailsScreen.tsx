@@ -75,6 +75,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { PropertyService } from '../services/PropertyService';
 import { useAuth } from '../context/AuthContext';
 import { useRole } from '../hooks/useRole';
+import { useModActionGuard } from '../hooks/useModActionGuard';
 import { Gated } from '../components/Gated';
 import { RejectionBanner } from '../components/RejectionBanner';
 import { NeedsMediaBanner } from '../components/NeedsMediaBanner';
@@ -219,6 +220,12 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const { user } = useAuth();
   const { t } = useLanguage();
   const { can } = useRole();
+  // Phase 4 CARRY-01 D-02 — shared 403 detection + recovery for the 5 mod-action
+  // handlers below (handleApprove, handleRejectSubmit, handleModArchiveSubmit,
+  // handleRestore, confirmHardDelete). Hook drives close-modal + reset-loading +
+  // refreshRole; RoleRefreshBanner auto-surfaces from the AuthContext role-change
+  // mutation. Precedence in each catch: 403 > 409 > generic.
+  const { is403PermissionError, onPermissionDenied } = useModActionGuard();
   const [property, setProperty] = useState<Property>(initialProperty);
   const [activeSlide, setActiveSlide] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -348,6 +355,14 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               await PropertyService.approveListing(property.id);
               await refetchProperty();
             } catch (err: any) {
+              // Phase 4 CARRY-01 D-02 — 403 branch precedes 409: precedence 403 > 409 > generic.
+              if (is403PermissionError(err)) {
+                await onPermissionDenied({
+                  closeModal: () => {},
+                  resetLoading: () => setSubmittingAction(false),
+                });
+                return;
+              }
               if (err?.response?.status === 409) {
                 await handleRaceConflict();
                 return;
@@ -374,6 +389,14 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       setIsRejectModalOpen(false);
       await refetchProperty();
     } catch (err: any) {
+      // Phase 4 CARRY-01 D-02 — 403 branch precedes 409: precedence 403 > 409 > generic.
+      if (is403PermissionError(err)) {
+        await onPermissionDenied({
+          closeModal: () => setIsRejectModalOpen(false),
+          resetLoading: () => setSubmittingAction(false),
+        });
+        return;
+      }
       if (err?.response?.status === 409) {
         await handleRaceConflict();
         return;
@@ -403,6 +426,14 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       setIsArchiveModalOpen(false);
       await refetchProperty();
     } catch (err: any) {
+      // Phase 4 CARRY-01 D-02 — 403 branch precedes 409: precedence 403 > 409 > generic.
+      if (is403PermissionError(err)) {
+        await onPermissionDenied({
+          closeModal: () => setIsArchiveModalOpen(false),
+          resetLoading: () => setSubmittingAction(false),
+        });
+        return;
+      }
       if (err?.response?.status === 409) {
         await handleRaceConflict();
         return;
@@ -435,6 +466,14 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               await PropertyService.restoreListing(property.id);
               await refetchProperty();
             } catch (err: any) {
+              // Phase 4 CARRY-01 D-02 — 403 branch precedes 409: precedence 403 > 409 > generic.
+              if (is403PermissionError(err)) {
+                await onPermissionDenied({
+                  closeModal: () => {},
+                  resetLoading: () => setSubmittingAction(false),
+                });
+                return;
+              }
               if (err?.response?.status === 409) {
                 await handleRaceConflict();
                 return;
@@ -466,6 +505,14 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         try { await onRefreshProperty(); } catch { /* parent's problem */ }
       }
     } catch (err: any) {
+      // Phase 4 CARRY-01 D-02 — 403 first; this handler has no 409 branch (admin-only path).
+      if (is403PermissionError(err)) {
+        await onPermissionDenied({
+          closeModal: () => setIsHardDeleteModalOpen(false),
+          resetLoading: () => setSubmittingAction(false),
+        });
+        return;
+      }
       Alert.alert(
         t('common.error'),
         err?.response?.data?.message || err?.message || t('common.errorGeneric'),

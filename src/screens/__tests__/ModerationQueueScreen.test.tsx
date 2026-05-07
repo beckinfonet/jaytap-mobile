@@ -87,6 +87,17 @@ jest.mock('../../context/LanguageContext', () => ({
   }),
 }));
 
+// Phase 4 CARRY-01 D-02 — useModActionGuard reads useAuth().refreshRole at render
+// time. Provide a no-op mock so the screen mounts; the recovery flow itself is
+// covered by src/hooks/__tests__/useModActionGuard.test.tsx and the canonical
+// PropertyDetailsScreen-mod-403 RTL surface.
+jest.mock('../../context/AuthContext', () => ({
+  useAuth: () => ({
+    user: { localId: 'mod-uid', backendProfile: { userType: 'moderator' } },
+    refreshRole: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+
 jest.mock('react-native-safe-area-context', () => {
   const React = jest.requireActual('react');
   const RN = jest.requireActual('react-native');
