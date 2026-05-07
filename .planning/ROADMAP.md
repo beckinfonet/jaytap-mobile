@@ -146,8 +146,15 @@ Plans:
   3. A re-submission of the landlord application by an authenticated user lands in Mongo with `uid` matching the submitting Firebase token's `sub` (JWKS-verified `req.firebaseUid`), validated by a backend supertest case + a manual physical-device walk on iPhone 15 Pro Max.
   4. The repair migration (`migrate-landlord-app-uid-mismatch.js`) flips every existing mismatched row's stored `uid` to the JWKS-verified token's `sub` (or marks it as un-repairable + logs evidence), is idempotent, and runs operator-supervised with `--dry-run` + `--verify=PASS` matching the M2 Plan 02-02 pattern.
 
-**Plans**: TBD
+**Plans:** 5 plans
 **UI hint**: yes
+
+Plans:
+- [ ] 04-01-PLAN.md — Backend CARRY-02 verification chain: anti-spoofing sentinel (D-07) + landlordApplicationRoutes.test.js with 3 D-08 supertest cases + diagnostic console.log block deletion (D-06) + npm test chain extension — wave 1
+- [ ] 04-02-PLAN.md — Backend CARRY-02 repair migration (D-09 + D-11): migrate-landlord-app-uid-mismatch.js (--dry-run / --verify=PASS / idempotent) + 6-branch test (4 unit + 6 spawn-integration) + LandlordApplication.status enum +orphaned + LandlordApplicationAuditLog.action enum +uid-repair/+uid-orphan-mark — wave 1
+- [ ] 04-03-PLAN.md — Backend Phase 3 MEDIUM polish: MD-02 moderationRoutes.js comment doc-drift fix + MD-03 CastError → 400 INVALID_ID pre-check on DELETE /listings/:id/media (DELETE-only scope) + MD-04 sentinel regex tightening — wave 1
+- [ ] 04-04-PLAN.md — RN client CARRY-01 hook + 10-handler sweep: useModActionGuard hook (D-02) + 4 ModerationQueueScreen + 5 PropertyDetailsScreen + 1 RoleManagementScreen handler wired through is403PermissionError + canonical RTL smoke on PropertyDetailsScreen.handleRejectSubmit — wave 2
+- [ ] 04-05-PLAN.md — RN client MD-01 i18n key split: error.tooLarge (per-file size) + new error.tooManyFiles (per-upload count) + dispatch site split in MediaCurationScreen.tsx; EN+RU lockstep with parity gate green — wave 2
 
 ### Phase 5: Hardening + Manual Physical-Device QA + Release v3.0.0
 
@@ -184,7 +191,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Schema Reshape + Backend Route Shape Cutover | 5/5 | Complete (4 operator UAT pending) | 2026-05-06 |
 | 2. 6-Step Contextual Listing Flow (Client) | 10/10 | ✅ Complete (Plan 02-08 operator rehearsal deferred by user; 12 walks tracked in 02-HUMAN-UAT.md) | 2026-05-06 |
 | 3. Media Flow Inversion (Admin/Mod Curation) | 6/7 | Executing (Plans 03-01 + 03-02 + 03-03 + 03-04 + 03-05 + 03-06 complete; 03-07 next — paired-gate verifier+reviewer) | — |
-| 4. M2 Carry-Forward Bug Fixes | 0/TBD | Not started | — |
+| 4. M2 Carry-Forward Bug Fixes | 0/5 | Not started | — |
 | 5. Hardening + Manual Physical-Device QA + Release v3.0.0 | 0/TBD | Not started | — |
 
 ## Backlog

@@ -1,10 +1,11 @@
 ---
 phase: 4
 slug: m2-carry-forward-bug-fixes
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-05-06
+approved: 2026-05-07
 ---
 
 # Phase 4 — Validation Strategy
@@ -112,7 +113,7 @@ Files MUST be created in Wave 0 of the phase (before any executable test samplin
 **Backend:**
 - [ ] `scripts/check-no-landlord-uid-spoofing.sh` — sentinel script (CARRY-02 D-07)
 - [ ] `src/__tests__/landlordApplicationRoutes.test.js` — supertest cases (CARRY-02 D-08); does NOT exist today
-- [ ] `scripts/migrate-landlord-app-uid-mismatch.js` — repair migration (CARRY-02 D-09 + D-11)
+- [ ] `src/scripts/migrate-landlord-app-uid-mismatch.js` — repair migration (CARRY-02 D-09 + D-11)
 - [ ] `src/__tests__/migrate-landlord-app-uid-mismatch.test.js` — migration test
 - [ ] Schema edits: `src/models/LandlordApplication.js` (status enum +`'orphaned'`); `src/models/LandlordApplicationAuditLog.js` (action enum +`'uid-repair'`+`'uid-orphan-mark'`)
 - [ ] `package.json` — extend `npm test` chain to call new sentinel
