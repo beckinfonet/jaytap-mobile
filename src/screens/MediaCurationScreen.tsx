@@ -317,13 +317,15 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
           t('common.error'),
           t('moderation.mediaCuration.error.invalidTourUrl'),
         );
-      } else if (
-        code === 'MEDIA_FILE_TOO_LARGE' ||
-        code === 'MEDIA_TOO_MANY_FILES'
-      ) {
+      } else if (code === 'MEDIA_FILE_TOO_LARGE') {
         Alert.alert(
           t('common.error'),
           t('moderation.mediaCuration.error.tooLarge'),
+        );
+      } else if (code === 'MEDIA_TOO_MANY_FILES') {
+        Alert.alert(
+          t('common.error'),
+          t('moderation.mediaCuration.error.tooManyFiles'),
         );
       } else {
         Alert.alert(
