@@ -3,26 +3,38 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: "Contextual Forms"
 status: executing
-last_updated: "2026-05-07T07:31:55.071Z"
-last_activity: 2026-05-07 -- Phase 4 planning complete
+last_updated: "2026-05-07T09:15:00.000Z"
+last_activity: 2026-05-07 -- Phase 4 paired-gates cleared (2 device walks deferred to Phase 5 REL-03)
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 27
-  completed_plans: 22
-  percent: 81
+  completed_plans: 27
+  percent: 100
 ---
 
 # STATE: JayTap
 
 ## Current Position
 
-Phase: 4 (next)
-Plan: not started
-Status: Ready to execute
-Last activity: 2026-05-07 -- Phase 4 planning complete
+Phase: 4 (m2-carry-forward-bug-fixes) — paired-gates cleared (verifier human_needed; reviewer GREEN); 2 device walks deferred to Phase 5 REL-03
+Plan: 5 of 5 complete
+Status: Phase 4 ready-to-close pending REL-03 device walks
+Last activity: 2026-05-07 -- Phase 4 paired-gates cleared (2 device walks deferred to Phase 5 REL-03)
 
-Progress: [██████████] 100% (28 of 28 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 7/7 + HG-01 inline fix; M3 progress 3/5 phases shipped)
+Progress: [██████████] 100% (33 of 33 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 7/7 + HG-01 inline fix; Phase 4: 5/5 with 2 device walks deferred to Phase 5 REL-03; M3 progress 4/5 phases landed pending REL-03)
+
+**Phase 4 close artifact (2026-05-07T09:15:00Z):**
+
+- All 5 plans shipped across 2 waves: 04-01 (CARRY-02 D-06+D-07+D-08 — diagnostic log delete + anti-spoofing sentinel + 3 supertest cases) → 04-02 (CARRY-02 D-09+D-10+D-11 — uid-mismatch repair migration + status/audit-log enum extensions + 10-case test) → 04-03 (MD-02+MD-03+MD-04 — moderationRoutes comment fix + DELETE CastError 400 + media-stripped sentinel regex tighten) || 04-04 (CARRY-01 D-02 — useModActionGuard hook + is403PermissionError matcher + 11 handlers wired across 3 screens; RoleManagementScreen Alert+onBack DROPPED for banner-driven flow) || 04-05 (MD-01 i18n key split — error.tooLarge for LIMIT_FILE_SIZE vs error.tooManyFiles for LIMIT_FILE_COUNT, en+ru lockstep). Wave 1 sequential (cross-repo backend, can't worktree-isolate); Wave 2 parallel.
+- 4 sentinels still green post-phase: anti-spoofing-actoruid (backend), anti-spoofing-landlord-uid (backend, NEW this phase), media-stripped (backend, regex tightened MD-04), i18n parity (RN), create-listing-removed (RN). `nvm use 24 && npm test` chain order in backend: `actoruid → landlord-uid → media-stripped → jest`.
+- Backend tests: 273/273 (was 258 pre-Phase-4; +15 jest cases — 3 D-08 supertest + 10 migration cases + 2 MD-03 ObjectId 400 cases). RN client tests: 42/42 in focused suite (useModActionGuard + PropertyDetailsScreen-mod-403 + MediaCurationScreen + ModerationQueueScreen); 4 pre-existing M2-baseline failures preserved (useRole.test.ts:106, PropertyService.test.ts setup) — tracked in 04-VALIDATION.md and not regressions.
+- tsc baseline preserved: 17 → 17 errors (no new errors from Phase 4).
+- Cross-repo HEADs: RN client `fe3b888` (6 commits — 5 plan/feat + 1 SUMMARY-bundle docs); JayTap-services backend `46d2ef4` (8 atomic commits descending from `339c8ce` via 3222d96 → fb6fcfd → b9e7c70 → 71a2123 → be071c0 → 2209ecc → 304fdcd → 46d2ef4).
+- Paired-gate verdicts (per memory `gsd-verifier-misses-regressions.md` — verifier+reviewer required): gsd-verifier `human_needed` (12/14 truths verified — all automatable parts PASS; 2 device walks deferred: CARRY-01 SC#1 banner-latency on iPhone, CARRY-02 SC#3 live Atlas uid match — both scheduled for Phase 5 REL-03); gsd-code-reviewer `GREEN` (no CRITICAL/HIGH; 2 MEDIUM + 2 LOW). MEDIUM-01 = `--verify=PASS` runs live writes before probing (diverges from migrate-listings-m3.js's early-exit pattern; harmless on post-migration DB due to idempotency, but operator-UX papercut on first invocation). MEDIUM-02 = ObjectId 400 pre-check scoped to DELETE only (5 other moderationRoutes handlers still leak CastError 500 — explicitly per plan; carry-forward candidate). LOW-01 = sentinel regex `uid:\s*req\.(body|headers)` has latent false-positive risk if future code legitimately reads non-spoof uid from body. LOW-02 = ModerationQueueScreen `load`-path catch still uses bespoke PermissionDeniedError + onBack instead of banner-driven flow (pre-existing, defensible).
+- ROADMAP row stays `[ ]` until paired-gates fully clear (precedent from M2 Phase 5 `phase05-admin-role-mgmt-shipped.md` memory).
+- Paired-gate artifacts: `04-VERIFICATION.md` + `04-REVIEW.md` (both authored by sonnet, on disk in phase dir).
+- Phase 4 SUMMARY pointers: 04-01-SUMMARY.md → 04-05-SUMMARY.md, all in `.planning/phases/04-m2-carry-forward-bug-fixes/`.
 
 **Phase 3 close artifact (2026-05-06T20:55:00Z):**
 
@@ -137,7 +149,7 @@ Progress: [██████████] 100% (28 of 28 plans complete — Pha
 See: .planning/PROJECT.md (updated 2026-05-05 at M2 close + M3 milestone discovery)
 
 **Core value:** Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek properties on a phone without UI blockers.
-**Current focus:** Phase 02 — 6-step-contextual-listing-flow-client
+**Current focus:** Phase 4 close pending REL-03 device walks → next: Phase 5 (Hardening + v3.0.0 Release)
 
 ---
 
