@@ -175,7 +175,7 @@ Plans:
 
 Plans:
 - [ ] 05-01-PLAN.md — Operator-supervised pre-flight runbook (Atlas snapshot + 2 migrations + Railway deploy + locations seed + tsc baseline) + folded MEDIUM-01 (uid-repair verify hoist) + MEDIUM-02 (5 moderationRoutes INVALID_ID guards) — wave 1
-- [ ] 05-02-PLAN.md — Store-history capture (ASC TestFlight + Play Console) + version-baseline math per M1 D-02 lesson; produces 05-STORE-HISTORY.md — wave 1
+- [x] 05-02-PLAN.md — Store-history capture (ASC TestFlight + Play Console) + version-baseline math per M1 D-02 lesson; produces 05-STORE-HISTORY.md — wave 1 — completed 2026-05-07 (Path B web-UI user-relay; derived next_ios_build_number=28 + next_android_version_code=31; both platforms local-ahead by 1; m2_anchor_observed_in_stores=false flagged for Plan 05-07 retry-on-reject)
 - [ ] 05-03-PLAN.md — Atomic v3.0.0 version bump (package.json + iOS pbxproj + Android build.gradle in single commit) — wave 2
 - [x] 05-04-PLAN.md — Bilingual EN+RU release notes draft ≤500 chars per locale, M1 D-10 content order, no Bishkek-only phrasing; produces 05-RELEASE-NOTES.md — wave 1 — completed 2026-05-07 (EN 489 / RU 492 chars, paste-only artifact at .planning/phases/05-hardening-manual-qa-release-v3/05-RELEASE-NOTES.md)
 - [ ] 05-05-PLAN.md — QA matrix walk on iPhone 15 Pro Max + Moto G XT2513V (~60 cells across 7 matrices); satisfies-tag dual-coverage closes 12 Phase 2 + 6 Phase 3 + 2 Phase 4 deferred walks per D-07; produces 05-QA-MATRIX.md — wave 3
@@ -201,7 +201,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. 6-Step Contextual Listing Flow (Client) | 10/10 | ✅ Complete (Plan 02-08 operator rehearsal deferred by user; 12 walks tracked in 02-HUMAN-UAT.md) | 2026-05-06 |
 | 3. Media Flow Inversion (Admin/Mod Curation) | 6/7 | Executing (Plans 03-01 + 03-02 + 03-03 + 03-04 + 03-05 + 03-06 complete; 03-07 next — paired-gate verifier+reviewer) | — |
 | 4. M2 Carry-Forward Bug Fixes | 0/5 | Not started | — |
-| 5. Hardening + Manual Physical-Device QA + Release v3.0.0 | 1/7 | Executing (Plan 05-04 release notes drafted; 05-01 + 05-02 + 05-03 + 05-05 + 05-06 + 05-07 remaining) | — |
+| 5. Hardening + Manual Physical-Device QA + Release v3.0.0 | 2/7 | Executing (Plan 05-02 store-history captured + Plan 05-04 release notes drafted; 05-01 + 05-03 + 05-05 + 05-06 + 05-07 remaining) | — |
 
 ## Backlog
 

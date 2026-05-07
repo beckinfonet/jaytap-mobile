@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: "Contextual Forms"
 status: executing
-last_updated: "2026-05-07T17:30:37Z"
-last_activity: 2026-05-07 -- Phase 05 Plan 04 (release notes EN+RU) shipped; 1/7 plans complete
+last_updated: "2026-05-07T20:12:41Z"
+last_activity: 2026-05-07 -- Phase 05 Plan 02 (store-history capture, Path B user-relay) shipped; 2/7 plans complete
 progress:
   total_phases: 4
   completed_phases: 4
@@ -18,12 +18,26 @@ progress:
 ## Current Position
 
 Phase: 05 (hardening-manual-qa-release-v3) — EXECUTING
-Plan: 1 of 7 complete (Plan 05-04 release notes draft); 6 remaining (05-01 pre-flight, 05-02 store-history, 05-03 atomic version bump, 05-05 QA matrix walk, 05-06 paired-gate audit, 05-07 dual-store submission)
-Status: Executing Phase 05 — Wave 1 (parallel: 05-01 + 05-02 + 05-04 [DONE])
-Last activity: 2026-05-07 -- Phase 05 Plan 04 shipped (release notes EN+RU drafted, 489/492 chars)
+Plan: 2 of 7 complete (Plan 05-02 store-history + Plan 05-04 release notes draft); 5 remaining (05-01 pre-flight, 05-03 atomic version bump, 05-05 QA matrix walk, 05-06 paired-gate audit, 05-07 dual-store submission)
+Status: Executing Phase 05 — Wave 1 (parallel: 05-01 + 05-02 [DONE] + 05-04 [DONE])
+Last activity: 2026-05-07 -- Phase 05 Plan 02 shipped (store-history capture, Path B user-relay; next_ios_build_number=28 / next_android_version_code=31; m2_anchor_observed_in_stores=false)
 Resume file: .planning/phases/05-hardening-manual-qa-release-v3/05-CONTEXT.md
 
-Progress: [██████████] 100% (34 of 34 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 7/7 + HG-01 inline fix; Phase 4: 5/5 with 2 device walks deferred to Phase 5 REL-03; Phase 5: 1/7 (05-04 release notes drafted); M3 progress 4/5 phases landed pending REL-03)
+Progress: [██████████] 100% (35 of 35 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 7/7 + HG-01 inline fix; Phase 4: 5/5 with 2 device walks deferred to Phase 5 REL-03; Phase 5: 2/7 (05-02 store-history + 05-04 release notes drafted); M3 progress 4/5 phases landed pending REL-03)
+
+**Phase 5 Plan 02 closing artifact (2026-05-07T20:12:41Z):**
+
+- 1 atomic commit on `main`: `61228da` docs(05-02) capture store-history (Path B web-UI user-relay) — derive next iOS build 28 / Android versionCode 31. Documentation-only; no source-file mutation.
+- 1 file created: `.planning/phases/05-hardening-manual-qa-release-v3/05-STORE-HISTORY.md` (263 lines) — Wave-1 query-live artifact with frontmatter (`ios.query_method: asc_web_ui_user_relay` + `android.query_method: play_console_web_ui_user_relay` + `derived_targets.next_ios_build_number: 28` + `derived_targets.next_android_version_code: 31` + `phase_4_paired_gates_prerequisite.status: clear` + `m2_anchor_observed_in_stores: false`) + body sections (ASC TestFlight table, Play Console multi-track table, derived bump targets with anchor-line citations, Math table `local | store | max | + 1 | next`, M1 D-02 lesson application prose, **M2 anchor discrepancy disclosure**, Phase 4 paired-gates prerequisite block, Re-open conditions, Re-runnable verification commands, Cross-references).
+- Path A probed and recorded as unavailable on both platforms (no `~/.private_keys/AuthKey_*.p8` for iOS; `gcloud` not installed for Android). Path B (web-UI user-relay) used: operator opened https://appstoreconnect.apple.com → JayTap → TestFlight builds list (max=26) and https://play.google.com/console → JayTap → multi-track sweep (Production v1.0.20 code 21; Closed Alpha v1.0.29 code **29** dated 2026-05-03 — binding store-side max; Internal Testing v1.0.25 code 26 dated 2026-04-23). Both platforms `local-ahead` by 1 (NOT local-equal as 05-PATTERNS.md hypothesized).
+- **M2 anchor discrepancy surfaced**: memory `m2-shipped-2026-05-05.md` claim of "iOS in TestFlight (build 27)" + "Android in Play Console Internal Testing (versionCode 30)" contradicted by 2026-05-07 live-store reality. Play Console has NOTHING at v2.0.0 — every track shows v1.0.x. TestFlight max is 26 not 27. Likely the M2 atomic version-bump commit landed in source on 2026-05-05 but the actual `.ipa` / `.aab` upload either failed, was rejected, or was never attempted. Implication: v3.0.0 build 28 (iOS) / versionCode 31 (Android) will effectively be the FIRST 2.x-style version artifacts the stores accept. Forward signal to Plan 05-07: retry-on-reject if either store rejects with "version already used". Memory remediation candidate noted.
+- 3 Rule-2 / Rule-1 deviations auto-fixed (all folded into commit `61228da`): (a) **Rule 2** added prominent `## M2 anchor discrepancy` section + `m2_anchor_observed_in_stores: false` frontmatter key (without it, hypothesis-vs-reality drift would silently propagate to Plan 05-07); (b) **Rule 2** added `## Re-runnable verification commands` section so Plan 05-03 can read `derived_targets` programmatically without prose parsing; (c) **Rule 1** added track-disambiguation note paragraph below the ASC table (operator looked at the global TestFlight builds list, not specifically Internal-vs-External — note clarifies why the global max is the binding constraint regardless of group).
+- All 13 acceptance criteria PASS. Plan-level `<verify><automated>` gate PASS (file exists + next_ios_build_number INT line + next_android_version_code INT line + phase_4_paired_gates_prerequisite present + rationale references M1 D-02).
+- REL-02 marked complete (`[x]`) in REQUIREMENTS.md — the actual atomic version bump (REL-01 + REL-02 source-file mutations) is owned by Plan 05-03; this REQ checkbox flips on the basis of the binding bump-targets being recorded for Plan 05-03 to consume.
+- ROADMAP row Plan 05-02 → `[x]`; Phase 5 progress 1/7 → 2/7.
+- Forward signal to Plan 05-03: read derived_targets via the documented grep commands (`grep -E '^\s*next_ios_build_number:\s*[0-9]+' ... | awk '{print $2}'` returns `28`; same shape for next_android_version_code returns `31`). Plan 05-03 atomic commit must touch `package.json` line 3 + `ios/JayTap.xcodeproj/project.pbxproj` lines 274/283/308/316 + `android/app/build.gradle` lines 91/92.
+- Continuation context: prior agent `ab243cb9f6e885a2b` probed Path A + correctly returned a `human-action` checkpoint when Path A was unavailable on both platforms. Orchestrator collected Path B values from operator. This continuation agent consumed the relayed values, ran Task 1 to completion, and made all commits.
+- SUMMARY at `.planning/phases/05-hardening-manual-qa-release-v3/05-02-SUMMARY.md`.
 
 **Phase 5 Plan 04 closing artifact (2026-05-07T17:30:37Z):**
 
