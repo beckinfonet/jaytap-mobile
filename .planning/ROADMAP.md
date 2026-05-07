@@ -171,7 +171,16 @@ Plans:
   4. Backend is live and healthy on Railway with M3 changes deployed; `firebase-admin` confirmed absent from backend `package.json`; MongoDB Atlas + AWS IAM credentials confirmed unchanged from the M2 baseline (HF-02 remains closed; AWS IAM cross-project residual remains documented PARTIAL — re-open condition unchanged).
   5. v3.0.0 is visible in App Store Connect TestFlight Internal Testing track AND Google Play Console Internal Testing track. M1 D-13 inheritance descope honored (privacy manifest unchanged; no new data-collecting SDK introduced in M3).
 
-**Plans**: TBD
+**Plans:** 7 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Operator-supervised pre-flight runbook (Atlas snapshot + 2 migrations + Railway deploy + locations seed + tsc baseline) + folded MEDIUM-01 (uid-repair verify hoist) + MEDIUM-02 (5 moderationRoutes INVALID_ID guards) — wave 1
+- [ ] 05-02-PLAN.md — Store-history capture (ASC TestFlight + Play Console) + version-baseline math per M1 D-02 lesson; produces 05-STORE-HISTORY.md — wave 1
+- [ ] 05-03-PLAN.md — Atomic v3.0.0 version bump (package.json + iOS pbxproj + Android build.gradle in single commit) — wave 2
+- [ ] 05-04-PLAN.md — Bilingual EN+RU release notes draft ≤500 chars per locale, M1 D-10 content order, no Bishkek-only phrasing; produces 05-RELEASE-NOTES.md — wave 1
+- [ ] 05-05-PLAN.md — QA matrix walk on iPhone 15 Pro Max + Moto G XT2513V (~60 cells across 7 matrices); satisfies-tag dual-coverage closes 12 Phase 2 + 6 Phase 3 + 2 Phase 4 deferred walks per D-07; produces 05-QA-MATRIX.md — wave 3
+- [ ] 05-06-PLAN.md — Paired-gate /gsd-verify-work + /gsd-code-review + descope-by-inheritance audit; produces 05-INHERITANCE-AUDIT.md with proceed_with_inheritance + paired_gate_verdict — wave 4
+- [ ] 05-07-PLAN.md — Dual-store submission (TestFlight Internal + Play Console Internal Testing) with Android reanimated prefab workaround documented inline; produces 05-SUBMISSION-LOG.md — wave 5
 
 ## Progress
 
@@ -192,7 +201,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. 6-Step Contextual Listing Flow (Client) | 10/10 | ✅ Complete (Plan 02-08 operator rehearsal deferred by user; 12 walks tracked in 02-HUMAN-UAT.md) | 2026-05-06 |
 | 3. Media Flow Inversion (Admin/Mod Curation) | 6/7 | Executing (Plans 03-01 + 03-02 + 03-03 + 03-04 + 03-05 + 03-06 complete; 03-07 next — paired-gate verifier+reviewer) | — |
 | 4. M2 Carry-Forward Bug Fixes | 0/5 | Not started | — |
-| 5. Hardening + Manual Physical-Device QA + Release v3.0.0 | 0/TBD | Not started | — |
+| 5. Hardening + Manual Physical-Device QA + Release v3.0.0 | 0/7 | Not started | — |
 
 ## Backlog
 
