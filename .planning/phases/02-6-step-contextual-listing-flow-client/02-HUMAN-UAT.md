@@ -7,6 +7,8 @@ updated: 2026-05-06T13:41:37Z
 reason: "Operator deferred at /gsd-execute-phase 2 checkpoint — chose 'Defer 02-08 + run 02-09 anyway'. Plan 02-09 ran without rehearsal."
 ---
 
+> **NOTE 2026-05-08: Rolled into `.planning/phases/05-hardening-manual-qa-release-v3/05-QA-MATRIX.md` for M3 release walks (D-06). This file no longer accepts status updates.** The 12 deferred walks (W1-W6 × iOS+Android) are now distributed across Matrices 1 + 2 of the canonical matrix per D-07 walk-once-count-for-both. Each cell row carries a `satisfies: Phase 2 W*` tag for greppable dual-coverage audit.
+
 ## Current Test
 
 [awaiting operator device walks — backend deploy + Atlas seed prerequisites must complete first]

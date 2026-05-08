@@ -6,6 +6,8 @@ started: 2026-05-06T04:55:00Z
 updated: 2026-05-06T04:55:00Z
 ---
 
+> **NOTE 2026-05-08: Rolled into `.planning/phases/05-hardening-manual-qa-release-v3/05-QA-MATRIX.md` for M3 release walks (D-06). This file no longer accepts status updates.** The 4 Phase 1 operator items here are CLOSED in Plan 05-01's pre-flight runbook (Sections 1, 4, 0, 13 of `05-PREFLIGHT.md`); they are operator-runbook items, not device walks. Header note added for archive cleanliness only.
+
 ## Current Test
 
 [awaiting human testing — operator must run §Rollback runbook in 01-CONTEXT.md against production Atlas before cutover deploy can be declared shipped]

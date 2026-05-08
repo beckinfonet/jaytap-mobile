@@ -15,6 +15,8 @@ human_verification:
 
 # Phase 4: M2 Carry-Forward Bug Fixes Verification Report
 
+> **NOTE 2026-05-08: The 2 deferred device walks listed in `human_verification:` (CARRY-01 banner-latency on iPhone + CARRY-02 SC#3 live Atlas uid match) are rolled into `.planning/phases/05-hardening-manual-qa-release-v3/05-QA-MATRIX.md` (Matrix 4 cell 4.1 + Matrix 5 cell 5.1) for M3 release walks (D-06). This verification report's automated assessment stands; deferred-walk status updates land in 05-QA-MATRIX.md from now on.**
+
 **Phase Goal:** Close CARRY-01 (RN client mid-action 403 recovery) and CARRY-02 (backend landlord-application uid-mismatch fix + verification chain) plus 4 MEDIUM-severity findings from Phase 3 review (MD-01..MD-04).
 **Verified:** 2026-05-07T08:34:00Z
 **Status:** human_needed

@@ -1,4 +1,6 @@
 ---
+deferred_walks_status: rolled-into-05-QA-MATRIX
+deferred_walks_rolled_at: 2026-05-08
 phase: 03-media-flow-inversion-admin-mod-curation
 verified: 2026-05-06T20:43:19Z
 status: human_needed
@@ -38,6 +40,8 @@ deferred:
 ---
 
 # Phase 3 — Media Flow Inversion: Independent Verifier Report
+
+> **NOTE 2026-05-08: The 6 deferred device walks listed in `human_verification:` + `## Manual Physical-Device QA Items (deferred to Phase 5 REL-03)` are rolled into `.planning/phases/05-hardening-manual-qa-release-v3/05-QA-MATRIX.md` (Matrix 3) for M3 release walks (D-06). This verification report's automated assessment stands; deferred-walk status updates land in 05-QA-MATRIX.md from now on.**
 
 **Phase Goal (from ROADMAP.md Phase 3 entry):**
 > Invert the user-uploads-to-S3 workflow so users submit metadata only; admin/mod uploads photos / videos / 3D-tour URL via a new mod-queue media-curation view after metadata review — and approval is blocked until at least one photo exists. Existing M1+M2 listings retain their user-uploaded media verbatim through the SCHEMA-02 migration.
