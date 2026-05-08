@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: "Contextual Forms"
 status: executing
-last_updated: "2026-05-07T20:12:41Z"
-last_activity: 2026-05-07 -- Phase 05 Plan 02 (store-history capture, Path B user-relay) shipped; 2/7 plans complete
+last_updated: "2026-05-08T01:30:00Z"
+last_activity: 2026-05-08 -- Phase 05 Plan 01 (pre-flight runbook, 14 sections, 2 D-03 deviations) shipped; 3/7 plans complete
 progress:
   total_phases: 4
   completed_phases: 4
@@ -18,12 +18,31 @@ progress:
 ## Current Position
 
 Phase: 05 (hardening-manual-qa-release-v3) — EXECUTING
-Plan: 2 of 7 complete (Plan 05-02 store-history + Plan 05-04 release notes draft); 5 remaining (05-01 pre-flight, 05-03 atomic version bump, 05-05 QA matrix walk, 05-06 paired-gate audit, 05-07 dual-store submission)
-Status: Executing Phase 05 — Wave 1 (parallel: 05-01 + 05-02 [DONE] + 05-04 [DONE])
-Last activity: 2026-05-07 -- Phase 05 Plan 02 shipped (store-history capture, Path B user-relay; next_ios_build_number=28 / next_android_version_code=31; m2_anchor_observed_in_stores=false)
+Plan: 3 of 7 complete (Plan 05-01 pre-flight runbook + Plan 05-02 store-history + Plan 05-04 release notes draft); 4 remaining (05-03 atomic version bump, 05-05 QA matrix walk, 05-06 paired-gate audit, 05-07 dual-store submission)
+Status: Executing Phase 05 — Wave 1 complete (05-01 [DONE] + 05-02 [DONE] + 05-04 [DONE]); ready for Wave 2 (05-03 atomic version bump)
+Last activity: 2026-05-08 -- Phase 05 Plan 01 shipped (pre-flight runbook GREEN-WITH-DEVIATIONS; 14 sections; 2 D-03 deviations operator-approved in-flight; railway_deploy_sha=5bf23fe; rn_tsc_baseline=17; 2 M3 backlog items surfaced)
 Resume file: .planning/phases/05-hardening-manual-qa-release-v3/05-CONTEXT.md
 
-Progress: [██████████] 100% (35 of 35 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 7/7 + HG-01 inline fix; Phase 4: 5/5 with 2 device walks deferred to Phase 5 REL-03; Phase 5: 2/7 (05-02 store-history + 05-04 release notes drafted); M3 progress 4/5 phases landed pending REL-03)
+Progress: [██████████] 100% (36 of 36 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 7/7 + HG-01 inline fix; Phase 4: 5/5 with 2 device walks deferred to Phase 5 REL-03; Phase 5: 3/7 (05-01 pre-flight + 05-02 store-history + 05-04 release notes drafted); M3 progress 4/5 phases landed pending REL-03)
+
+**Phase 5 Plan 01 closing artifact (2026-05-08T01:30:00Z):**
+
+- 4 atomic commits across 2 repos: backend `JayTap-services` 3 commits — `414c415` fix(05-01) hoist verify-mode probe in migrate-landlord-app-uid-mismatch.js (MEDIUM-01) + `5bf23fe` fix(05-01) INVALID_ID guard on 5 moderationRoutes handlers (MEDIUM-02) + `87dc0e9` fix(05-01) seed-locations-m3.js env-var fallback + dbName override (D-03 deviation #2 mid-runbook patch); RN-client this repo 1 commit `ee3b4f7` docs(05-01) complete pre-flight runbook (REL-05) — 14 sections + 2 D-03 deviations + cross-repo backend polish.
+- 2 files created: `.planning/phases/05-hardening-manual-qa-release-v3/05-PREFLIGHT.md` (14 numbered sections — Section 0 tester comms + Sections 1-13 D-02 locked sequence; frontmatter populated with all required real timestamps + integers; D-03 deviation disclosure + M3 backlog + Re-open Conditions + Cross-references) + `05-01-SUMMARY.md`.
+- Pre-flight disposition: **GREEN-WITH-DEVIATIONS**. All 14 sections walked; all 4 verify-PASS gates green (`listings_m3_migration_verify_pass_at: 2026-05-07T23:53:07Z`; `landlord_uid_repair_migration_verify_pass_at: 2026-05-08T00:00:00Z`; `locations_seed_verify_pass_at: 2026-05-08T00:33:00Z`; `mongo_atlas_snapshot_at: 2026-05-07T23:35:41Z` recorded with `mongo_atlas_snapshot_disposition: skipped-d-03-operator-approved`). Backend `railway_deploy_sha: 5bf23fe` deployed to `https://jaytap-services-production.up.railway.app` with `health_check_status: 200`. RN client `rn_tsc_baseline_error_count: 17` — exact match with Phase 4 baseline (no regression). D-04 chronology invariant satisfied (comms `2026-05-07T23:29:35Z` BEFORE snapshot timestamp).
+- **2 D-03 deviations operator-approved in-flight**: (a) **Atlas snapshot SKIPPED** — operator lacks dashboard backup permission; production cluster contains mock/test data only; rollback path = drop affected collections + re-run idempotent migrate / seed scripts. Single-instance deviation; future production-data releases need a different insurance mechanism. (b) **2 latent bugs in `seed-locations-m3.js` patched mid-runbook** — Bug #1: script read `process.env.MONGODB_URI` while `.env` defines `MONGO_URI` → `FATAL: MONGODB_URI env not set.`; Bug #2: script called `mongoose.connect(mongoUri)` directly bypassing `src/config/db.js`'s `dbName: 'bizdinkonush'` override → seed wrote to `JayTap` database while API reads from `bizdinkonush` (API returned `{"cities":[]}` despite seed claiming success). Single fix commit `87dc0e9` (3 insertions, 3 deletions); live + verify re-run from clean state landed all 11 cities + 19 districts in the correct database.
+- **2 M3 backlog items surfaced**: (a) `JayTap-orphan-data-cleanup` — 11 cities + 19 districts left in `JayTap.cities` + `JayTap.districts` from the pre-patch live run; not blocking (API ignores them); cleanup runbook documented in 05-PREFLIGHT.md ## M3 Backlog. (b) `ATLAS-CRED-ROTATION` — defense-in-depth recommendation: during `cat .env` debug step the MongoDB password for `becktatibekov_db_user` was visible in operator shell output + orchestrator transcript; rotate via Atlas → Database Access → autogenerate + update both backend `.env` AND Railway env. Not blocking for v3.0.0 (no compromise evidence; local-shell-only exposure). Both tracked in 05-PREFLIGHT.md frontmatter `m3_backlog:` array.
+- Atlas migrations both verify-PASS: listings schema migration flipped 21 docs with the script's printed acceptance line `db.properties.countDocuments({location:{$exists:false}}) === 0` confirming SCHEMA-02 invariant; landlord-app uid-repair migration idempotent no-op (skipped=6, flipped=0, orphaned=0) confirming Phase 4.5's data-side fix is durable in production. With Task 1's MEDIUM-01 hoist applied, `--verify=PASS` is now a pure read-only probe (sibling-script symmetry restored).
+- Locations seed (after D-03 deviation #2 patch): 11 cities + 19 districts seeded to `bizdinkonush` db. Geographic invariant honored — 5 KG (Bishkek, Cholpon-Ata, Karakol, Naryn, Osh) + 3 KZ (Almaty, Astana, Shymkent) + 3 UZ (Bukhara, Samarkand, Tashkent) per memory `geographic-scope.md`. Bishkek districts only in v1 (19 total).
+- Smoke-curls confirm `/api/properties` returns nested shape (`location.{city,district,showExactAddress}`, `basics.{price,currency}`, `content.*`, `media.*`) with http_code 200; `/api/locations/cities` returns 11 docs all `status: 'approved'` with `label.{ru,en}` + `country` + `centroid.{lat,lng}`.
+- 3 deviations recorded (1 architectural-D-03 / 1 bug-fix-D-03 / 1 backlog-surfacing-Rule-2 — all operator-approved or auto-applied per deviation rules; none scope creep).
+- Cross-repo HEAD divergence at submission: Railway deployed at `5bf23fe` (Tasks 1+2); backend HEAD is now `87dc0e9` (one commit ahead, seed-script-only operator tooling). Documented as known-harmless divergence in 05-PREFLIGHT.md Section 8 + Re-open Conditions; recommend (but do not require) Railway redeploy at `87dc0e9` for origin/main consistency. Plan 05-07 will read this artifact's `railway_deploy_sha` and decide.
+- All plan acceptance criteria PASS or `manual-evidence-recorded` (plan declares some operator-relayed observations rather than automated assertions). Plan-level `<verify><automated>` gates evaluated; secret-leak grep returns 0 matches.
+- ROADMAP row Plan 05-01 → `[x]`; Phase 5 progress 2/7 → 3/7.
+- REL-05 partial close — pre-flight sub-criterion satisfied; global REL-05 checkbox in REQUIREMENTS.md stays `[ ]` until Plan 05-05 (live device walks) and Plan 05-07 (dual-store submission) close.
+- Forward signals: Plan 05-03 (atomic version bump) UNBLOCKED — proceed with `next_ios_build_number=28` + `next_android_version_code=31` from 05-STORE-HISTORY.md. Plan 05-05 (QA matrix walks) UNBLOCKED — all binding gates from `05-PREFLIGHT.md` frontmatter green; QA-walker hits patched moderationRoutes (no CastError 500) and cleaned uid-repair script. Plan 05-07 (dual-store submission) RAILWAY DOMAIN CAPTURED — `https://jaytap-services-production.up.railway.app` recorded in Section 8 + frontmatter for any submission-time smoke-curl.
+- Continuation context: prior agent `a4eaa16a5a8ab2fc1` completed Tasks 1+2 (MEDIUM-01 + MEDIUM-02) and Section 13 of Task 3 (RN tsc baseline) autonomously, then returned a `human-action` checkpoint for Sections 0–12 of the operator-supervised runbook. Orchestrator drove the user through all sections via paired-tooling. This continuation agent authored the 14-section artifact + SUMMARY + tracking updates.
+- SUMMARY at `.planning/phases/05-hardening-manual-qa-release-v3/05-01-SUMMARY.md`.
 
 **Phase 5 Plan 02 closing artifact (2026-05-07T20:12:41Z):**
 
