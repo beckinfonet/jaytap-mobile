@@ -3,8 +3,9 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: "Contextual Forms"
 status: executing
-last_updated: "2026-05-08T01:30:00Z"
-last_activity: 2026-05-08 -- Phase 05 Plan 01 (pre-flight runbook, 14 sections, 2 D-03 deviations) shipped; 3/7 plans complete
+last_updated: "2026-05-08T01:25:00Z"
+last_activity: 2026-05-08 -- Phase 05 Plan 05 SCAFFOLDED (05-QA-MATRIX.md authored; 60 cells in pending state; ~7h operator runbook fatigue → walks deferred to next session); 4/7 plans complete + 05-05 IN PROGRESS
+resume_marker: "RESUME HERE — Plan 05-05 matrix scaffolded; physical-device walks pending. Run /gsd-execute-phase 5 next session."
 progress:
   total_phases: 4
   completed_phases: 4
@@ -18,12 +19,35 @@ progress:
 ## Current Position
 
 Phase: 05 (hardening-manual-qa-release-v3) — EXECUTING
-Plan: 4 of 7 complete (Plan 05-01 pre-flight runbook + Plan 05-02 store-history + Plan 05-04 release notes draft + Plan 05-03 atomic v3.0.0 version bump); 3 remaining (05-05 QA matrix walk, 05-06 paired-gate audit, 05-07 dual-store submission)
-Status: Executing Phase 05 — Waves 1+2 complete (05-01 [DONE] + 05-02 [DONE] + 05-04 [DONE] + 05-03 [DONE]); ready for Wave 3 (05-05 QA matrix walks against bump SHA `531e279`)
-Last activity: 2026-05-08 — Phase 05 Plan 03 shipped (atomic v3.0.0 version bump in single commit `531e279`; 5 surgical edits across 3 files; 10/10 grep assertions PASS; 2/2 CI sentinel gates PASS; iOS build 28 + Android versionCode 31 from 05-STORE-HISTORY.md derived_targets per M1 D-02 lesson; DEF-01 jest-pollution logged out-of-scope)
-Resume file: .planning/phases/05-hardening-manual-qa-release-v3/05-CONTEXT.md
+Plan: 4 of 7 complete + Plan 05-05 IN PROGRESS (matrix scaffolded; walks pending). Remaining: 05-05 walks (~60 cells × ~5 min × 2 devices ≈ 10 device-hours), then 05-06 paired-gate audit, then 05-07 dual-store submission.
+Status: Plan 05-05 SCAFFOLDED 2026-05-08T01:25Z — 05-QA-MATRIX.md committed at `c0ff25b` with 7 matrices + 60 cells in `verdict: pending`. 4 prior HUMAN-UAT/VERIFICATION files tagged with "rolled into" header note (D-06). Walks themselves are physical-device operator work; user is at ~7h fatigue and explicitly chose option 2 (scaffold tonight, walk later).
+Last activity: 2026-05-08T01:25Z — Plan 05-05 Task 1 (scaffold) complete. Atomic commit `c0ff25b` (5 files / +314 / 1 created). Task 2 (walks) pending physical-device session next.
 
-Progress: [██████████] 100% (36 of 36 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 7/7 + HG-01 inline fix; Phase 4: 5/5 with 2 device walks deferred to Phase 5 REL-03; Phase 5: 4/7 (05-01 pre-flight + 05-02 store-history + 05-04 release notes drafted + 05-03 atomic version bump); M3 progress 4/5 phases landed pending REL-03)
+**How to resume:**
+
+1. Run `/gsd-execute-phase 5` next session — orchestrator detects Plan 05-05 IN PROGRESS state and routes to walk continuation.
+2. Build + install v3.0.0 on both devices first (iOS build 28 / Android versionCode 31 — see 05-QA-MATRIX.md frontmatter `devices:`).
+3. Walk every cell in `05-QA-MATRIX.md` (start with Matrix 1 happy-path; satisfies-tagged for prior-phase deferred-walk dual-coverage); flip each cell from `☐ Pending` to PASS / PARTIAL / FAIL / N/A per D-09 four-state.
+4. On walk close: flip frontmatter `walk_disposition: BLOCKED-PENDING-WALKS` → `APPROVED` (zero blocking FAILs) or `BLOCKED-BY-FAIL`. Populate `totals:` integers + `walked:` ISO timestamp.
+5. Plan 05-05 SUMMARY.md is authored AFTER walks close (not yet created). Then ROADMAP row Plan 05-05 → `[x]`; Phase 5 progress 4/7 → 5/7.
+
+Resume file: .planning/phases/05-hardening-manual-qa-release-v3/05-QA-MATRIX.md
+
+Progress: [██████████] 100% (36 of 36 plans complete — Phase 1: 5/5; Phase 2: 10/10 with 02-08 deferred; Phase 3: 7/7 + HG-01 inline fix; Phase 4: 5/5 with 2 device walks deferred to Phase 5 REL-03; Phase 5: 4/7 + 05-05 IN PROGRESS-SCAFFOLD-ONLY; M3 progress 4/5 phases landed pending REL-03 walks)
+
+**Phase 5 Plan 05 SCAFFOLD-ONLY artifact (2026-05-08T01:25:00Z):**
+
+- 1 atomic commit on `main`: `c0ff25b` docs(05-05) scaffold 05-QA-MATRIX.md (REL-03 walks pending) — D-06 rolls 4 prior HUMAN-UAT/VERIFICATION files into canonical matrix. 5 files / +314 / 1 created / 0 deletions.
+- 1 file created: `.planning/phases/05-hardening-manual-qa-release-v3/05-QA-MATRIX.md` (314 lines) — 7 matrices + 60 cells in `☐ Pending` + DEFERRED-USER-APPROVED block (4 race cells per M2 Phase 6 precedent) + Sign-off + Re-open conditions + Cross-references.
+- 4 files modified with one-line "rolled into" header note (D-06): `01-HUMAN-UAT.md` (operator items closed in 05-PREFLIGHT.md, header for archive cleanliness); `02-HUMAN-UAT.md` (12 deferred walks → Matrices 1+2); `03-VERIFICATION.md` (6 deferred walks → Matrix 3); `04-VERIFICATION.md` (2 deferred walks → Matrices 4+5).
+- Frontmatter binding values: `walked_against_sha: 531e279` (Plan 05-03 atomic v3.0.0 bump); `backend_walked_against_sha: 5bf23fe` (Railway deploy SHA from 05-PREFLIGHT.md); `walk_disposition: BLOCKED-PENDING-WALKS` (flips to APPROVED at walk close iff FAIL=0); `verdict_taxonomy: [PASS, PARTIAL, DEFERRED-USER-APPROVED, FAIL]` per D-09; `paired_gates_prerequisite_clear: true` (Phase 4 paired-gates closed).
+- Cell inventory: Matrix 1 happy-path 6-step flow = 30 cells (15 combos × 2 devices); Matrix 2 edit-mode = 12 cells; Matrix 3 mod-media-curation = 8 cells (4 walks × 2 devices); Matrix 4 ROLE-11 demote-mid-action = 2 paired-device cells; Matrix 5 Phase 4.5 uid-mismatch = 1 cell (live Atlas); Matrix 6 EN+RU parity = 8 cells; Matrix 7 dark/light parity = 8 cells. Total = 69 cell rows (≥50 target met).
+- satisfies-tag dual-coverage audit (D-07 walk-once-count-for-both): 70 `satisfies:` entries; 16 `satisfies: Phase 2`; 8 `satisfies: Phase 3`; 3 `satisfies: Phase 4` (CARRY-01 + CARRY-02 + cross-device). Greppable via `grep -c 'satisfies:' 05-QA-MATRIX.md`.
+- DEFERRED-USER-APPROVED block records 4 race cells (M3-RACE-01..04) per memory `phase06-m3-carry-forward.md` + M2 Phase 6 precedent (cells 1.7 + 2.4-2.6 + 5.6 + 5.3 mismatch path). User M2-precedent sign-off carries forward unchanged. NOT walked in Phase 5.
+- All plan acceptance criteria for Task 1 PASS: 7 matrix headers + iPhone hits + Moto hits + ≥50 cell rows + ≥50 satisfies tags + ≥6 Phase 2 closures + ≥2 Phase 3 closures + ≥2 Phase 4 closures + 1 walk_disposition + 1 paired_gates_prerequisite_clear + 1 DEFERRED-USER-APPROVED block + 1 Re-open conditions + 1 Cross-references + 1 verdict legend.
+- Task 2 (the actual physical-device walks) NOT executed in this session. User explicitly chose scaffold-only-mode after ~7h operator runbook fatigue — option 2: author the matrix tonight, walk later.
+- Plan 05-05 stays IN PROGRESS. SUMMARY.md NOT created. ROADMAP row Plan 05-05 stays `[ ]`. REQUIREMENTS.md REL-03 stays `[ ]`. Phase 5 progress stays 4/7 (does NOT advance to 5/7 until walks close + SUMMARY lands).
+- Forward signal: next session, run `/gsd-execute-phase 5`. Orchestrator detects Plan 05-05 IN PROGRESS (matrix exists, walk_disposition=BLOCKED-PENDING-WALKS, no SUMMARY) and routes to walk continuation. Walker (beckprograms@gmail.com) builds + installs v3.0.0 on both devices, walks every cell in `05-QA-MATRIX.md`, flips disposition + totals, returns `approved` resume signal. Then continuation agent authors SUMMARY.md + closes Plan 05-05.
 
 **Phase 5 Plan 03 closing artifact (2026-05-08T00:51:10Z):**
 
