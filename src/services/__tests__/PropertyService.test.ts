@@ -199,3 +199,78 @@ describe('PropertyService.updateProperty — Phase 1 cutover JSON body contract'
     expect(body?.media).toBeUndefined();
   });
 });
+
+describe('PropertyService.editAsModerator — Phase 1 cutover JSON body contract', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
+  test('PUTs a plain JS object (NOT FormData) to /moderation/listings/:id with nested SPEC shape + reason', async () => {
+    (AuthService.getUserData as jest.Mock).mockResolvedValue({
+      localId: 'uid_mod_test',
+      email: 'mod@example.com',
+      backendProfile: { userType: 'moderator' },
+    });
+    (apiClient.put as jest.Mock).mockResolvedValue({
+      data: { _id: 'listing_being_modded', listingId: '345-678' },
+    });
+
+    const specPayload = {
+      dealType: 'rent_long',
+      propertyType: 'apartment',
+      location: {
+        city: 'Bishkek',
+        district: 'Asanbay',
+        coordinates: { lat: 42.8746, lng: 74.5698 },
+        showExactAddress: false,
+      },
+      basics: { areaSqm: 45, price: 600, currency: 'USD', rooms: '1' },
+      conditionAndAmenities: { condition: 'good', furnished: true },
+      content: { title: 'Mod-corrected title', description: '', language: 'ru' },
+      terms: {},
+    };
+
+    await PropertyService.editAsModerator(
+      'listing_being_modded',
+      specPayload,
+      [],
+      'fixed-typo-in-title',
+    );
+
+    expect(apiClient.put).toHaveBeenCalledTimes(1);
+    const [url, body] = (apiClient.put as jest.Mock).mock.calls[0];
+    expect(url).toBe('/moderation/listings/listing_being_modded');
+    // Phase 5 Plan 05-05 walk uncovered the same FormData/multipart regression
+    // here: backend at moderationRoutes.js:813-815 only parses features/amenities
+    // from JSON-strings; nested subtrees (location/basics/content/terms) arrive
+    // as strings, get spread into updateData, and Mongoose rejects them.
+    // Phase 3 D-13: mod media uploads go via MediaCurationService → POST
+    // /moderation/listings/:id/media, NOT this PUT endpoint. So PUT is JSON-only.
+    expect(body).not.toBeInstanceOf(FormData);
+    expect(typeof body).toBe('object');
+    expect(body?.content?.title).toBe('Mod-corrected title');
+    expect(body?.location?.coordinates?.lat).toBe(42.8746);
+    expect(body?.basics?.price).toBe(600);
+    // reason rides in the JSON body (was previously a multipart field)
+    expect(body?.reason).toBe('fixed-typo-in-title');
+    // MOD-14 + memory phase45-landlord-application-uid-mismatch-bug.md:
+    // ownerUid + status MUST NOT be in the body (backend strips defensively but
+    // client hygiene avoids sending them).
+    expect(body?.ownerUid).toBeUndefined();
+    expect(body?.status).toBeUndefined();
+    expect(body?._id).toBeUndefined();
+    expect(body?.id).toBeUndefined();
+  });
+
+  test('throws PermissionDeniedError when user lacks editAnyListing capability', async () => {
+    (AuthService.getUserData as jest.Mock).mockResolvedValue({
+      localId: 'uid_user',
+      email: 'user@example.com',
+      backendProfile: { userType: 'user' },
+    });
+    await expect(
+      PropertyService.editAsModerator('any_id', {}),
+    ).rejects.toThrow('E_PERMISSION_DENIED');
+    expect(apiClient.put).not.toHaveBeenCalled();
+  });
+});

@@ -288,15 +288,27 @@ export const PropertyService = {
   },
 
   /**
-   * Moderator: edit listing on behalf of owner (MOD-14). Multipart for image uploads.
-   * Backend strips ownerUid + status defensively; client also avoids sending them.
-   * Backend flips status to 'live' on save (D-12 sub-decision recommendation) and writes audit log.
-   * NOTE: must NOT include ownerUid in the FormData — auto-memory phase45-landlord-application-uid-mismatch-bug.md
+   * Moderator: edit listing on behalf of owner (MOD-14). JSON body per Phase 1 cutover.
+   *
+   * Phase 1 + Phase 3 + Phase 5 Plan 05-05 walk regression-fix:
+   * Previously sent FormData (multipart) with object/array values JSON-stringified per-field.
+   * Backend at moderationRoutes.js:813-815 only parses features/amenities from JSON strings —
+   * nested subtrees (location/basics/conditionAndAmenities/content/terms) arrived as strings
+   * and Mongoose rejected them on the schema-typed nested paths. The fix mirrors the
+   * createProperty/updateProperty JSON-body cutover.
+   *
+   * Phase 3 D-13: mod media uploads route through MediaCurationService →
+   * POST /moderation/listings/:id/media. The PUT route does NOT touch media; the
+   * `images` parameter is preserved in the signature for source-compat but ignored.
+   *
+   * Backend strips ownerUid + status + 21 other forbidden keys defensively (MOD-14);
+   * client hygiene also avoids sending ownerUid/status/_id/id per auto-memory
+   * phase45-landlord-application-uid-mismatch-bug.md.
    */
   editAsModerator: async (
     propertyId: string,
     propertyData: any,
-    images: any[] = [],
+    _images: any[] = [], // Phase 3 D-13: ignored — media flows through MediaCurationService
     reason?: string,
   ): Promise<any> => {
     try {
@@ -305,29 +317,13 @@ export const PropertyService = {
         console.error('[PropertyService.editAsModerator] permission denied', { userId: userData?.localId });
         throw new PermissionDeniedError();
       }
-      const formData = new FormData();
-      // Mirror updateProperty's FormData shape, but defensively strip identity + status fields.
-      // CRITICAL: do NOT append ownerUid or status to the FormData — backend strips defensively
-      // (MOD-14) but client-side hygiene avoids sending them in the first place.
-      Object.keys(propertyData || {}).forEach((key) => {
-        if (key === 'ownerUid' || key === 'status' || key === 'id' || key === '_id') return;
-        const value = (propertyData as any)[key];
-        if (value === undefined || value === null) return;
-        if (Array.isArray(value) || (typeof value === 'object' && !(value as any).uri)) {
-          formData.append(key, JSON.stringify(value));
-        } else {
-          formData.append(key, String(value));
-        }
-      });
-      if (reason) formData.append('reason', reason);
-      images.forEach((image, index) => {
-        formData.append('images', {
-          uri: image.uri,
-          type: image.type || 'image/jpeg',
-          name: image.name || `image-${index}.jpg`,
-        } as any);
-      });
-      const response = await apiClient.put(`/moderation/listings/${propertyId}`, formData);
+      // Build JSON body — strip identity + status fields client-side (belt-and-suspenders
+      // with backend's 21-key forbidden-list strip). `reason` rides as a top-level field
+      // alongside the SPEC payload.
+      const { ownerUid, status, id, _id, ...rest } = propertyData || {};
+      const body: Record<string, unknown> = { ...rest };
+      if (reason) body.reason = reason;
+      const response = await apiClient.put(`/moderation/listings/${propertyId}`, body);
       return { ...response.data, id: response.data._id };
     } catch (error: any) {
       console.error('Error editing as moderator:', error?.message);
