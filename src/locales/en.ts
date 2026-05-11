@@ -534,7 +534,8 @@ export const en = {
   'moderation.archive.success': 'Listing archived',
   'moderation.archive.failure': 'Failed to archive listing. Please try again.',
   'moderation.race.toast': 'This listing was already reviewed by another moderator.',
-  'moderation.editOnBehalf.banner': 'Editing on behalf of {ownerEmail}',
+  'moderation.editOnBehalf.banner': 'Editing on behalf of {owner}',
+  'moderation.editOnBehalf.ownerFallback': '(owner not available)',
   'moderation.editOnBehalf.success': 'Listing updated and approved.',
   'moderation.actor.generic': 'JayTap moderator',
   // Phase 3 WR-02 fix — accessibilityLabel suffix for the Profile entry-point pending-count.

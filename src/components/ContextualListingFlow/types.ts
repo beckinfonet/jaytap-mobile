@@ -83,7 +83,7 @@ export type ContextualListingFlowProps =
   | {
       mode: 'edit-mod';
       initialListing: Property;
-      moderatorContext: { editingOwnerUid: string; reason?: string; ownerEmail?: string };
+      moderatorContext: { editingOwnerUid: string; reason?: string; ownerEmail?: string; ownerName?: string };
       onClose: () => void;
       onSuccess?: (updatedListingId: string) => void;
     };

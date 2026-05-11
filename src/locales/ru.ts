@@ -536,7 +536,8 @@ export const ru: Record<TranslationKeys, string> = {
   'moderation.archive.success': 'Объявление архивировано',
   'moderation.archive.failure': 'Не удалось архивировать объявление. Повторите попытку.',
   'moderation.race.toast': 'Это объявление уже рассмотрено другим модератором.',
-  'moderation.editOnBehalf.banner': 'Редактирование от имени {ownerEmail}',
+  'moderation.editOnBehalf.banner': 'Редактирование от имени {owner}',
+  'moderation.editOnBehalf.ownerFallback': '(владелец не указан)',
   'moderation.editOnBehalf.success': 'Объявление обновлено и одобрено.',
   'moderation.actor.generic': 'Модератор JayTap',
   // Phase 3 WR-02 fix — accessibilityLabel suffix for the Profile entry-point pending-count.

@@ -276,7 +276,15 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
           <View style={commonStyles.modContextBody}>
             <Text style={[commonStyles.modContextTitle, { color: colors.text }]}>
               {t('moderation.editOnBehalf.banner', {
-                ownerEmail: moderatorContext.ownerEmail || moderatorContext.editingOwnerUid,
+                // Plan 05-05 walk fix: never render raw uid. Prefer ownerName
+                // (firstName + lastName from User doc) → ownerEmail → fallback.
+                // Raw uid was the previous fallback and made the banner look
+                // broken when a property's ownerUid had no matching Mongo User
+                // doc (seed data, deleted users, pre-migration listings).
+                owner:
+                  moderatorContext.ownerName ||
+                  moderatorContext.ownerEmail ||
+                  t('moderation.editOnBehalf.ownerFallback'),
               })}
             </Text>
             {moderatorContext.reason ? (

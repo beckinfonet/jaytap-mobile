@@ -83,7 +83,7 @@ function AppContent() {
   const [isMediaCurationOpen, setIsMediaCurationOpen] = useState(false);
   const [currentMediaCurationListingId, setCurrentMediaCurationListingId] =
     useState<string | null>(null);
-  const [moderatorContext, setModeratorContext] = useState<{ editingOwnerUid: string; reason?: string; ownerEmail?: string } | null>(null);
+  const [moderatorContext, setModeratorContext] = useState<{ editingOwnerUid: string; reason?: string; ownerEmail?: string; ownerName?: string } | null>(null);
   const [moderationCountRefreshKey, setModerationCountRefreshKey] = useState(0);
   const [propertyToEdit, setPropertyToEdit] = useState<Property | null>(null);
   const [isAdminVerificationMode, setIsAdminVerificationMode] = useState(false);
@@ -989,9 +989,16 @@ function AppContent() {
             onEditOnBehalfPressed={(p) => {
               setIsAdminVerificationMode(false);
               setPropertyToEdit(p);
+              // Plan 05-05 walk fix: surface ownerName (firstName + lastName)
+              // so the banner doesn't fall back to a raw Firebase uid when the
+              // owner has a Mongo User doc. ownerEmail kept as second-best.
+              const ownerName = (
+                `${p.owner?.firstName?.trim() ?? ''} ${p.owner?.lastName?.trim() ?? ''}`
+              ).trim();
               setModeratorContext({
                 editingOwnerUid: (p.owner?.uid || (p as any).ownerUid || '') as string,
                 ownerEmail: p.owner?.email,
+                ownerName: ownerName || undefined,
               });
               setSelectedProperty(null);
               setIsContextualListingFlowOpen(true);
