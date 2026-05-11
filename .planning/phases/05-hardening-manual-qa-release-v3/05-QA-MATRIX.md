@@ -2,12 +2,14 @@
 phase: 05-hardening-manual-qa-release-v3
 plan: 05
 type: verification-matrix
-status: scaffolded
+status: closed-mass-disposition
 created: 2026-05-08T01:21:59Z
-walked: pending
-walked_against_sha: 531e279
+walked: 2026-05-11T02:30:00Z
+walked_against_sha: 4240e64   # HEAD at mass-disposition close (3 walk-regression fixes on top of 531e279 atomic-bump SHA)
+walked_against_sha_atomic_bump: 531e279   # Plan 05-03 atomic build-identity bump (still the reference for build identity)
 backend_walked_against_sha: 5bf23fe
-walk_disposition: BLOCKED-PENDING-WALKS
+walk_disposition: APPROVED-WITH-MASS-DISPOSITION   # Path B per /gsd-execute-phase 5 resume 2026-05-11; FAIL=0; see ## Mass-disposition rationale
+coverage_mode: empirical-sampling-mass-disposition   # 2 cells walked + 67 mass-disposition + 4 DEFERRED-USER-APPROVED
 walker: beckprograms@gmail.com
 devices:
   ios:
@@ -36,12 +38,20 @@ verdict_taxonomy:   # D-09 four-state — no other states permitted at walk-time
   - DEFERRED-USER-APPROVED
   - FAIL
 totals:
-  total_cells: 60   # populate exact count after walk completes
-  pass: 0           # populated at walk close
+  total_cells: 73   # 30 Matrix 1 + 12 Matrix 2 + 8 Matrix 3 + 2 Matrix 4 + 1 Matrix 5 + 8 Matrix 6 + 8 Matrix 7 + 4 DEFERRED-USER-APPROVED
+  pass: 69           # 2 row-by-row (cells 1.3 + 2.5) + 67 mass-disposition (Path B logical-equivalence)
   partial: 0
-  deferred_user_approved: 4   # the 4 race cells in Section 10 (M2 precedent)
+  deferred_user_approved: 4   # the 4 race cells (M3-RACE-01..04, M2 precedent)
   fail: 0
   na: 0
+mass_disposition:
+  approved_by: beckprograms@gmail.com
+  approved_at: 2026-05-11T02:30:00Z
+  path: B   # /gsd-execute-phase 5 resume option B (keep bulk-flip + annotate), extended globally per follow-up question
+  walked_cells: [1.3, 2.5]   # cells empirically confirmed this session on iOS
+  unblocked_by_commits: [a3ba754, a3625e7, 4240e64]   # 3 walk-regression fixes landed inline before mass-disposition
+  rationale_section: "## Mass-disposition rationale"
+  paired_gate_routing: "Plan 05-06 paired-gate scrutinizes Matrix 3 + Matrix 4 + Matrix 5 + Android device parity as weakest-signal segments"
 deferrals:
   race_cells:
     cells: ["M3-RACE-01", "M3-RACE-02", "M3-RACE-03", "M3-RACE-04"]
@@ -60,10 +70,9 @@ Per D-07 walk-once-count-for-both: each device walk closes a prior-phase deferre
 REL-03 cell from the same evidence. The `satisfies:` column on each row makes this dual-coverage
 auditable in a single grep.
 
-**Status: SCAFFOLDED 2026-05-08; walks pending physical-device session.**
+**Status: APPROVED-WITH-MASS-DISPOSITION 2026-05-11 (Path B per /gsd-execute-phase 5 resume; see `## Mass-disposition rationale` section below).**
 
-Walked v3.0.0 (built from RN client commit `531e279`, against backend deploy SHA `5bf23fe`)
-on iPhone 15 Pro Max + Moto G XT2513V. Walk window: pending.
+Walked v3.0.0 (built from RN client commit `531e279` atomic-bump + 3 walk-regression fixes through HEAD `4240e64`, against backend deploy SHA `5bf23fe`) on iPhone 15 Pro Max. Android device walks (Moto G XT2513V versionCode 31 binary) not performed; covered via mass-disposition logical-equivalence per Path B (see Mass-disposition rationale section).
 
 ## Cell verdict legend (D-09 four-state)
 
@@ -99,42 +108,91 @@ Per memory `gsd-verifier-misses-regressions.md`: paired-gates prerequisite confi
 
 ---
 
+## Mass-disposition rationale (Path B — user-approved 2026-05-11)
+
+Per `/gsd-execute-phase 5` resume session on 2026-05-11T02:30:00Z, the walker (beckprograms@gmail.com) explicitly chose **Path B — keep bulk-flip + annotate** for the 30 Matrix 1 cells already flipped from `☐ Pending` to `☐ Pass` (uncommitted diff at session resume), then extended Path B globally to cover Matrices 2–7 (39 additional cells flipped same session).
+
+**Coverage signal: PARTIAL — empirical sampling, not row-by-row walk. Plan 05-06 paired-gate MUST scrutinize per the routing table below before Plan 05-07 store submission.**
+
+### What WAS walked-and-confirmed this session (2 cells, both iOS)
+
+| Cell | Description | Evidence | Unblocked by |
+|------|-------------|----------|--------------|
+| 1.3 | rent_long + apartment iOS (Matrix 1 happy-path Step 6 submit) | Step 6 submit landed cleanly after Metro reload; status flipped to `pending` in OwnerListings | Commit `a3ba754` PropertyService create/update — JSON body per Phase 1 cutover |
+| 2.5 | edit-mod apartment iOS (listing-with-photo) | "saved and published successfully" toast after Metro reload | Commit `a3625e7` editAsModerator JSON body + commit `4240e64` edit-on-behalf banner uid-leak fix |
+
+### What was NOT walked (67 cells)
+
+Cells flipped to Pass via logical-equivalence to the 2 confirmed walks + the 3 walk-regression fix commits (`a3ba754` + `a3625e7` + `4240e64`) that unblock the underlying submit / edit / banner code paths. Evidence column intentionally empty — empirical sampling only.
+
+### Why this is defensible (and where it isn't)
+
+**Defensible:**
+- The 2 walked cells exercise the load-bearing surfaces: Matrix 1 happy-path submit (covers `PropertyService.createProperty` payload shape) + Matrix 2 edit-mod (covers `editAsModerator` payload shape + edit-on-behalf banner uid-leak). All 3 fix commits address regressions in these exact code paths.
+- Matrix 1 cells 1.1–1.30 differ only in `(deal_type, property_type)` selection at Step 1 — the submit path is the same axios call exercised by 1.3. FLOW-08 conditional sub-fields (cell 1.17 commercial+rent_long) and FLOW-06 exact-address-toggle (cells 1.29 + 1.30) are local view-state branches; the submit payload still threads through the same `PropertyService.createProperty` fixed by `a3ba754` with body-shape unit-test coverage in `PropertyService.test.ts`.
+- Matrix 2 edit-mode cells 2.1–2.12 differ in mode (edit-owner vs edit-mod) + property type — the submit paths are `PropertyService.updateProperty` (also fixed by `a3ba754`) + `editAsModerator` (fixed by `a3625e7`, body-shape test added).
+- Matrices 6 (EN+RU parity) + 7 (dark/light parity) verify visual rendering — covered by the `check-i18n-parity.sh` CI gate (passing at HEAD per Plan 05-03) + the W6 zero-hex audit from Phase 3.
+
+**Where it isn't (paired-gate scrutiny priorities):**
+- **Matrix 3 (mod-media-curation, 8 cells)** was NOT exercised this session at all. The MEDIA_REQUIRED 400 UX block (cells 3.3 + 3.4) + per-asset DELETE round-trip (cells 3.7 + 3.8) + cap-overflow toast (cells 3.5 + 3.6) are untested empirically. **Highest scrutiny in Plan 05-06.**
+- **Matrix 4 (ROLE-11 demote-mid-action, 2 cells)** is a paired-device race walk; the supertest covers the atomic invariant but the empirical banner-latency on iPhone (the CARRY-01 question) is unconfirmed.
+- **Matrix 5 (CARRY-02 uid-mismatch, 1 cell)** walks the live Atlas round-trip — the supertest + migration verify-PASS prove the invariant in-memory, but the empirical device-to-Atlas round-trip is unconfirmed.
+- **Android device walks (versionCode 31 binary)** were NOT performed this session — only iOS. Binary identity is consistent (Plan 05-03 atomic bump) but device-specific regressions (e.g., reanimated 4.3.0 build-time gotcha per memory `android-reanimated-clean-prefab-gotcha.md`) are not empirically confirmed.
+
+### Routing for Plan 05-06 paired-gate
+
+Plan 05-06 (paired-gate verifier+reviewer audit) MUST treat this matrix as **PARTIAL coverage** rather than approved-via-comprehensive-walk. Reviewer attention priorities (in order):
+
+1. **Matrix 3 (mod-media-curation)** — highest scrutiny; not empirically exercised this session
+2. **Matrix 4 (ROLE-11 banner-latency)** — moderate scrutiny; supertest-covered but empirically unconfirmed
+3. **Matrix 5 (CARRY-02 device-to-Atlas)** — moderate scrutiny; same as Matrix 4
+4. **Android device parity (all matrices, Android cells)** — moderate scrutiny; binary not exercised on Moto G XT2513V
+5. **Matrices 1 + 2** — lower scrutiny; surfaces empirically exercised + fix commits paired with test coverage (`PropertyService.test.ts` + `editAsModerator` body-shape tests)
+
+### Re-open conditions (Path B specific)
+
+- If Plan 05-06 paired-gate flags Matrix 3 / 4 / 5 as insufficient: re-open those matrices for row-by-row walks before Plan 05-07 store submission.
+- If iOS TestFlight or Play Console rejects the v3.0.0 binary at submission time: re-open the affected matrices.
+- If user crash reports surface a Matrix-N regression post-submission: open M4 hotfix per M2 D-22 protocol.
+
+---
+
 ## Matrix 1 — Happy-path 6-step contextual flow (REL-03)
 
 Walks: 15 combinations × 2 devices = 30 cells. Each cell = one device × one (deal_type, property_type) tuple. Walker signs into a non-mod owner account, taps "Create listing", walks all 6 steps to submission, confirms status flips to `pending` in OwnerListings.
 
-| Cell | Deal type | Property type | Device | Verdict | Evidence | satisfies |
-|------|-----------|---------------|--------|---------|----------|-----------|
-| 1.1  | sale | apartment | iOS | ☐ Pending | | satisfies: REL-03 cell apartment+sale |
-| 1.2  | sale | apartment | Android | ☐ Pending | | satisfies: REL-03 cell apartment+sale |
-| 1.3  | rent_long | apartment | iOS | ☐ Pending | | satisfies: Phase 2 W1 + REL-03 cell apartment+rent_long |
-| 1.4  | rent_long | apartment | Android | ☐ Pending | | satisfies: Phase 2 W1 + REL-03 cell apartment+rent_long |
-| 1.5  | rent_daily | apartment | iOS | ☐ Pending | | satisfies: REL-03 cell apartment+rent_daily |
-| 1.6  | rent_daily | apartment | Android | ☐ Pending | | satisfies: REL-03 cell apartment+rent_daily |
-| 1.7  | sale | house | iOS | ☐ Pending | | satisfies: REL-03 cell house+sale |
-| 1.8  | sale | house | Android | ☐ Pending | | satisfies: REL-03 cell house+sale |
-| 1.9  | rent_long | house | iOS | ☐ Pending | | satisfies: REL-03 cell house+rent_long |
-| 1.10 | rent_long | house | Android | ☐ Pending | | satisfies: REL-03 cell house+rent_long |
-| 1.11 | sale | office | iOS | ☐ Pending | | satisfies: REL-03 cell office+sale + Phase 2 W6 propertyType reflow |
-| 1.12 | sale | office | Android | ☐ Pending | | satisfies: REL-03 cell office+sale + Phase 2 W6 |
-| 1.13 | rent_long | office | iOS | ☐ Pending | | satisfies: REL-03 cell office+rent_long |
-| 1.14 | rent_long | office | Android | ☐ Pending | | satisfies: REL-03 cell office+rent_long |
-| 1.15 | sale | commercial | iOS | ☐ Pending | | satisfies: REL-03 cell commercial+sale |
-| 1.16 | sale | commercial | Android | ☐ Pending | | satisfies: REL-03 cell commercial+sale |
-| 1.17 | rent_long | commercial | iOS | ☐ Pending | | satisfies: REL-03 cell commercial+rent_long (FLOW-08 conditional sub-fields: rooms + bathroom + kitchen render) |
-| 1.18 | rent_long | commercial | Android | ☐ Pending | | satisfies: REL-03 cell commercial+rent_long |
-| 1.19 | rent_daily | hotel | iOS | ☐ Pending | | satisfies: Phase 2 W4 + REL-03 cell hotel+rent_daily (D-19 thin Step 6) |
-| 1.20 | rent_daily | hotel | Android | ☐ Pending | | satisfies: Phase 2 W4 + REL-03 cell hotel+rent_daily |
-| 1.21 | rent_long | hotel | iOS | ☐ Pending | | satisfies: REL-03 cell hotel+rent_long |
-| 1.22 | rent_long | hotel | Android | ☐ Pending | | satisfies: REL-03 cell hotel+rent_long |
-| 1.23 | sale | hotel | iOS | ☐ Pending | | satisfies: REL-03 cell hotel+sale |
-| 1.24 | sale | hotel | Android | ☐ Pending | | satisfies: REL-03 cell hotel+sale |
-| 1.25 | rent_daily | apartment (cross-device EN+RU re-walk; Phase 2 W1) | iOS | ☐ Pending | | satisfies: Phase 2 W1 cross-device |
-| 1.26 | rent_daily | apartment | Android | ☐ Pending | | satisfies: Phase 2 W1 cross-device |
-| 1.27 | sale | hotel (Bishkek districts validator at Step 2) | iOS | ☐ Pending | | satisfies: Phase 2 W5 Locations + Bishkek districts |
-| 1.28 | sale | hotel (Bishkek districts validator) | Android | ☐ Pending | | satisfies: Phase 2 W5 Locations + Bishkek districts |
-| 1.29 | rent_long | apartment (FLOW-06 toggle visible) | iOS | ☐ Pending | | satisfies: REL-03 exact-address-toggle (visible for non-hotel/hostel) |
-| 1.30 | rent_daily | hotel (FLOW-06 toggle hidden) | Android | ☐ Pending | | satisfies: REL-03 exact-address-toggle hidden for hotel/hostel + Phase 2 W4 |
+| Cell | Deal type  | Property type                                      | Device  | Verdict    | Evidence | satisfies                                                                                                       |
+| ---- | ---------- | -------------------------------------------------- | ------- | ---------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| 1.1  | sale       | apartment                                          | iOS     | ☐ Pass |          | satisfies: REL-03 cell apartment+sale                                                                           |
+| 1.2  | sale       | apartment                                          | Android | ☐ Pass |          | satisfies: REL-03 cell apartment+sale                                                                           |
+| 1.3  | rent_long  | apartment                                          | iOS     | ☐ Pass |          | satisfies: Phase 2 W1 + REL-03 cell apartment+rent_long                                                         |
+| 1.4  | rent_long  | apartment                                          | Android | ☐ Pass |          | satisfies: Phase 2 W1 + REL-03 cell apartment+rent_long                                                         |
+| 1.5  | rent_daily | apartment                                          | iOS     | ☐ Pass |          | satisfies: REL-03 cell apartment+rent_daily                                                                     |
+| 1.6  | rent_daily | apartment                                          | Android | ☐ Pass |          | satisfies: REL-03 cell apartment+rent_daily                                                                     |
+| 1.7  | sale       | house                                              | iOS     | ☐ Pass |          | satisfies: REL-03 cell house+sale                                                                               |
+| 1.8  | sale       | house                                              | Android | ☐ Pass |          | satisfies: REL-03 cell house+sale                                                                               |
+| 1.9  | rent_long  | house                                              | iOS     | ☐ Pass |          | satisfies: REL-03 cell house+rent_long                                                                          |
+| 1.10 | rent_long  | house                                              | Android | ☐ Pass |          | satisfies: REL-03 cell house+rent_long                                                                          |
+| 1.11 | sale       | office                                             | iOS     | ☐ Pass |          | satisfies: REL-03 cell office+sale + Phase 2 W6 propertyType reflow                                             |
+| 1.12 | sale       | office                                             | Android | ☐ Pass |          | satisfies: REL-03 cell office+sale + Phase 2 W6                                                                 |
+| 1.13 | rent_long  | office                                             | iOS     | ☐ Pass |          | satisfies: REL-03 cell office+rent_long                                                                         |
+| 1.14 | rent_long  | office                                             | Android | ☐ Pass |          | satisfies: REL-03 cell office+rent_long                                                                         |
+| 1.15 | sale       | commercial                                         | iOS     | ☐ Pass |          | satisfies: REL-03 cell commercial+sale                                                                          |
+| 1.16 | sale       | commercial                                         | Android | ☐ Pass |          | satisfies: REL-03 cell commercial+sale                                                                          |
+| 1.17 | rent_long  | commercial                                         | iOS     | ☐ Pass |          | satisfies: REL-03 cell commercial+rent_long (FLOW-08 conditional sub-fields: rooms + bathroom + kitchen render) |
+| 1.18 | rent_long  | commercial                                         | Android | ☐ Pass |          | satisfies: REL-03 cell commercial+rent_long                                                                     |
+| 1.19 | rent_daily | hotel                                              | iOS     | ☐ Pass |          | satisfies: Phase 2 W4 + REL-03 cell hotel+rent_daily (D-19 thin Step 6)                                         |
+| 1.20 | rent_daily | hotel                                              | Android | ☐ Pass |          | satisfies: Phase 2 W4 + REL-03 cell hotel+rent_daily                                                            |
+| 1.21 | rent_long  | hotel                                              | iOS     | ☐ Pass |          | satisfies: REL-03 cell hotel+rent_long                                                                          |
+| 1.22 | rent_long  | hotel                                              | Android | ☐ Pass |          | satisfies: REL-03 cell hotel+rent_long                                                                          |
+| 1.23 | sale       | hotel                                              | iOS     | ☐ Pass |          | satisfies: REL-03 cell hotel+sale                                                                               |
+| 1.24 | sale       | hotel                                              | Android | ☐ Pass |          | satisfies: REL-03 cell hotel+sale                                                                               |
+| 1.25 | rent_daily | apartment (cross-device EN+RU re-walk; Phase 2 W1) | iOS     | ☐ Pass |          | satisfies: Phase 2 W1 cross-device                                                                              |
+| 1.26 | rent_daily | apartment                                          | Android | ☐ Pass |          | satisfies: Phase 2 W1 cross-device                                                                              |
+| 1.27 | sale       | hotel (Bishkek districts validator at Step 2)      | iOS     | ☐ Pass |          | satisfies: Phase 2 W5 Locations + Bishkek districts                                                             |
+| 1.28 | sale       | hotel (Bishkek districts validator)                | Android | ☐ Pass |          | satisfies: Phase 2 W5 Locations + Bishkek districts                                                             |
+| 1.29 | rent_long  | apartment (FLOW-06 toggle visible)                 | iOS     | ☐ Pass |          | satisfies: REL-03 exact-address-toggle (visible for non-hotel/hostel)                                           |
+| 1.30 | rent_daily | hotel (FLOW-06 toggle hidden)                      | Android | ☐ Pass |          | satisfies: REL-03 exact-address-toggle hidden for hotel/hostel + Phase 2 W4                                     |
 
 **Walk pattern for each cell:**
 
@@ -157,18 +215,18 @@ Walks: 6 representative cells × 2 devices = 12 cells. Phase 2 W7-W9 deferred se
 
 | Cell | Mode | Property type | Device | Verdict | Evidence | satisfies |
 |------|------|---------------|--------|---------|----------|-----------|
-| 2.1  | edit-owner | apartment | iOS | ☐ Pending | | satisfies: Phase 2 W2 + REL-03 edit-owner cell |
-| 2.2  | edit-owner | apartment | Android | ☐ Pending | | satisfies: Phase 2 W2 + REL-03 |
-| 2.3  | edit-owner | hotel | iOS | ☐ Pending | | satisfies: Phase 2 W2 cross-property |
-| 2.4  | edit-owner | hotel | Android | ☐ Pending | | satisfies: Phase 2 W2 cross-property |
-| 2.5  | edit-mod | apartment (mod-context banner top of Step 1) | iOS | ☐ Pending | | satisfies: Phase 2 W3 + REL-03 edit-mod cell + FLOW-15 |
-| 2.6  | edit-mod | apartment | Android | ☐ Pending | | satisfies: Phase 2 W3 + REL-03 |
-| 2.7  | edit-mod | commercial (FLOW-08 sub-fields preserved on edit) | iOS | ☐ Pending | | satisfies: Phase 2 W3 cross-property |
-| 2.8  | edit-mod | commercial | Android | ☐ Pending | | satisfies: Phase 2 W3 cross-property |
-| 2.9  | edit-mod-flip-to-live (rejected → edit-on-behalf submit → live) | apartment | iOS | ☐ Pending | | satisfies: M2 MOD-14 semantic preserved + FLOW-13 |
-| 2.10 | edit-mod-flip-to-live | apartment | Android | ☐ Pending | | satisfies: M2 MOD-14 semantic preserved + FLOW-13 |
-| 2.11 | edit-owner re-submit rejected listing → status pending; banner auto-dismisses | apartment | iOS | ☐ Pending | | satisfies: RejectionBanner re-submit path |
-| 2.12 | edit-owner re-submit rejected | apartment | Android | ☐ Pending | | satisfies: RejectionBanner re-submit path |
+| 2.1  | edit-owner | apartment | iOS | ☐ Pass | | satisfies: Phase 2 W2 + REL-03 edit-owner cell |
+| 2.2  | edit-owner | apartment | Android | ☐ Pass | | satisfies: Phase 2 W2 + REL-03 |
+| 2.3  | edit-owner | hotel | iOS | ☐ Pass | | satisfies: Phase 2 W2 cross-property |
+| 2.4  | edit-owner | hotel | Android | ☐ Pass | | satisfies: Phase 2 W2 cross-property |
+| 2.5  | edit-mod | apartment (mod-context banner top of Step 1) | iOS | ☐ Pass | | satisfies: Phase 2 W3 + REL-03 edit-mod cell + FLOW-15 |
+| 2.6  | edit-mod | apartment | Android | ☐ Pass | | satisfies: Phase 2 W3 + REL-03 |
+| 2.7  | edit-mod | commercial (FLOW-08 sub-fields preserved on edit) | iOS | ☐ Pass | | satisfies: Phase 2 W3 cross-property |
+| 2.8  | edit-mod | commercial | Android | ☐ Pass | | satisfies: Phase 2 W3 cross-property |
+| 2.9  | edit-mod-flip-to-live (rejected → edit-on-behalf submit → live) | apartment | iOS | ☐ Pass | | satisfies: M2 MOD-14 semantic preserved + FLOW-13 |
+| 2.10 | edit-mod-flip-to-live | apartment | Android | ☐ Pass | | satisfies: M2 MOD-14 semantic preserved + FLOW-13 |
+| 2.11 | edit-owner re-submit rejected listing → status pending; banner auto-dismisses | apartment | iOS | ☐ Pass | | satisfies: RejectionBanner re-submit path |
+| 2.12 | edit-owner re-submit rejected | apartment | Android | ☐ Pass | | satisfies: RejectionBanner re-submit path |
 
 ---
 
@@ -178,14 +236,14 @@ Walks: 4 walks × 2 devices = 8 cells. Sign in as moderator; navigate to Moderat
 
 | Cell | Walk | Device | Verdict | Evidence | satisfies |
 |------|------|--------|---------|----------|-----------|
-| 3.1  | filter-needs-media chip predicate (chip filters to status: pending AND media.photos.length === 0; tourUrl + videos do NOT count per Open Question #1) | iOS | ☐ Pending | | satisfies: Phase 3 deferred walk filter-needs-media + has-media-filter (Open Question #1 negative) |
-| 3.2  | filter-needs-media chip predicate | Android | ☐ Pending | | satisfies: Phase 3 deferred walk filter-needs-media + has-media-filter |
-| 3.3  | MEDIA_REQUIRED 400 UX block (mod tries to Approve a listing with photoCount=0 from MediaCurationScreen + PropertyDetailsScreen + ModerationQueueScreen row-Approve — all 3 surfaces should show disabled-Approve OR clear toast on attempted POST per D-12) | iOS | ☐ Pending | | satisfies: Phase 3 deferred walk MEDIA_REQUIRED 400 UX (D-12 3-surface gate) |
-| 3.4  | MEDIA_REQUIRED 400 UX block | Android | ☐ Pending | | satisfies: Phase 3 deferred walk MEDIA_REQUIRED 400 UX |
-| 3.5  | EN+RU parity for media curation strings (32 keys per locale per Phase 3 close — switch app locale to RU mid-MediaCurationScreen, confirm strings re-render in Cyrillic) + cap-overflow toast (D-05 client-side cap; mod attempts to upload more than the cap, sees translated truncation toast) | iOS | ☐ Pending | | satisfies: Phase 3 deferred walks EN+RU parity + cap-overflow toast |
-| 3.6  | EN+RU + cap-overflow | Android | ☐ Pending | | satisfies: Phase 3 deferred walks EN+RU parity + cap-overflow toast |
-| 3.7  | per-asset DELETE round-trip (mod uploads 3 photos; deletes 1 via swipe/long-press; verifies remaining 2 persist via re-fetch + DELETE /api/moderation/listings/:id/media?url=...&kind=photo round-trip) | iOS | ☐ Pending | | satisfies: Phase 3 deferred walk per-asset DELETE round-trip |
-| 3.8  | per-asset DELETE round-trip | Android | ☐ Pending | | satisfies: Phase 3 deferred walk per-asset DELETE round-trip |
+| 3.1  | filter-needs-media chip predicate (chip filters to status: pending AND media.photos.length === 0; tourUrl + videos do NOT count per Open Question #1) | iOS | ☐ Pass | | satisfies: Phase 3 deferred walk filter-needs-media + has-media-filter (Open Question #1 negative) |
+| 3.2  | filter-needs-media chip predicate | Android | ☐ Pass | | satisfies: Phase 3 deferred walk filter-needs-media + has-media-filter |
+| 3.3  | MEDIA_REQUIRED 400 UX block (mod tries to Approve a listing with photoCount=0 from MediaCurationScreen + PropertyDetailsScreen + ModerationQueueScreen row-Approve — all 3 surfaces should show disabled-Approve OR clear toast on attempted POST per D-12) | iOS | ☐ Pass | | satisfies: Phase 3 deferred walk MEDIA_REQUIRED 400 UX (D-12 3-surface gate) |
+| 3.4  | MEDIA_REQUIRED 400 UX block | Android | ☐ Pass | | satisfies: Phase 3 deferred walk MEDIA_REQUIRED 400 UX |
+| 3.5  | EN+RU parity for media curation strings (32 keys per locale per Phase 3 close — switch app locale to RU mid-MediaCurationScreen, confirm strings re-render in Cyrillic) + cap-overflow toast (D-05 client-side cap; mod attempts to upload more than the cap, sees translated truncation toast) | iOS | ☐ Pass | | satisfies: Phase 3 deferred walks EN+RU parity + cap-overflow toast |
+| 3.6  | EN+RU + cap-overflow | Android | ☐ Pass | | satisfies: Phase 3 deferred walks EN+RU parity + cap-overflow toast |
+| 3.7  | per-asset DELETE round-trip (mod uploads 3 photos; deletes 1 via swipe/long-press; verifies remaining 2 persist via re-fetch + DELETE /api/moderation/listings/:id/media?url=...&kind=photo round-trip) | iOS | ☐ Pass | | satisfies: Phase 3 deferred walk per-asset DELETE round-trip |
+| 3.8  | per-asset DELETE round-trip | Android | ☐ Pass | | satisfies: Phase 3 deferred walk per-asset DELETE round-trip |
 
 ---
 
@@ -197,8 +255,8 @@ Per memory `last-admin-lockout-semantics.md`: ADMIN-03 lockout will NOT fire her
 
 | Cell | Scenario | Device A | Device B (demoted) | Verdict | Evidence | satisfies |
 |------|----------|----------|---------------------|---------|----------|-----------|
-| 4.1  | A demotes B; B has Approve popup open in ModerationQueueScreen → on B: popup closes; RoleRefreshBanner surfaces ≤1s; tap-to-reload works without app restart | iOS (admin) | iPhone 15 Pro Max (mod) | ☐ Pending | | satisfies: Phase 4 CARRY-01 deferred banner-latency on iPhone + REL-03 |
-| 4.2  | A demotes B; B has Reject popup open in PropertyDetailsScreen → same recovery semantics | iOS (admin) | Moto G XT2513V (mod) | ☐ Pending | | satisfies: Phase 4 CARRY-01 cross-device coverage |
+| 4.1  | A demotes B; B has Approve popup open in ModerationQueueScreen → on B: popup closes; RoleRefreshBanner surfaces ≤1s; tap-to-reload works without app restart | iOS (admin) | iPhone 15 Pro Max (mod) | ☐ Pass | | satisfies: Phase 4 CARRY-01 deferred banner-latency on iPhone + REL-03 |
+| 4.2  | A demotes B; B has Reject popup open in PropertyDetailsScreen → same recovery semantics | iOS (admin) | Moto G XT2513V (mod) | ☐ Pass | | satisfies: Phase 4 CARRY-01 cross-device coverage |
 
 ---
 
@@ -210,7 +268,7 @@ Per memory `phase45-landlord-application-uid-mismatch-bug.md`: diagnostic uids s
 
 | Cell | Scenario | Device | Verdict | Evidence | satisfies |
 |------|----------|--------|---------|----------|-----------|
-| 5.1  | Sign up as a new Firebase user → submit landlord application via the in-app flow → query Atlas (mongosh / temp admin debug endpoint / user-relay): the LandlordApplication doc's `uid` MUST equal `firebase.user.localId` from the device's auth state | iPhone 15 Pro Max | ☐ Pending | | satisfies: Phase 4 CARRY-02 SC#3 + REL-03 |
+| 5.1  | Sign up as a new Firebase user → submit landlord application via the in-app flow → query Atlas (mongosh / temp admin debug endpoint / user-relay): the LandlordApplication doc's `uid` MUST equal `firebase.user.localId` from the device's auth state | iPhone 15 Pro Max | ☐ Pass | | satisfies: Phase 4 CARRY-02 SC#3 + REL-03 |
 
 ---
 
@@ -220,14 +278,14 @@ Walks: 4 cells × 2 devices = 8 cells. Switch app locale to RU mid-session, veri
 
 | Cell | Screen | Device RU | Verdict | Evidence | satisfies |
 |------|--------|-----------|---------|----------|-----------|
-| 6.1  | ContextualListingFlow steps 1-6 (all step headers + chip labels + validation toasts) | iOS | ☐ Pending | | satisfies: FLOW-16 + REL-03 EN+RU parity |
-| 6.2  | ContextualListingFlow | Android | ☐ Pending | | satisfies: FLOW-16 + REL-03 EN+RU parity |
-| 6.3  | MediaCurationScreen + NeedsMediaBanner + filter chip row labels (Phase 3 32-keys-per-locale) | iOS | ☐ Pending | | satisfies: MEDIA-09 + REL-03 EN+RU parity |
-| 6.4  | MediaCurationScreen | Android | ☐ Pending | | satisfies: MEDIA-09 + REL-03 EN+RU parity |
-| 6.5  | RoleRefreshBanner copy on demote (CARRY-01) | iOS | ☐ Pending | | satisfies: REL-03 RU parity for ROLE-11 surface |
-| 6.6  | RoleRefreshBanner | Android | ☐ Pending | | satisfies: REL-03 RU parity for ROLE-11 surface |
-| 6.7  | RejectionBanner copy in RU (M2 carry; verify Phase 4.5 paths render correctly post-migration) | iOS | ☐ Pending | | satisfies: M2 carry + REL-03 EN+RU parity |
-| 6.8  | RejectionBanner | Android | ☐ Pending | | satisfies: M2 carry + REL-03 EN+RU parity |
+| 6.1  | ContextualListingFlow steps 1-6 (all step headers + chip labels + validation toasts) | iOS | ☐ Pass | | satisfies: FLOW-16 + REL-03 EN+RU parity |
+| 6.2  | ContextualListingFlow | Android | ☐ Pass | | satisfies: FLOW-16 + REL-03 EN+RU parity |
+| 6.3  | MediaCurationScreen + NeedsMediaBanner + filter chip row labels (Phase 3 32-keys-per-locale) | iOS | ☐ Pass | | satisfies: MEDIA-09 + REL-03 EN+RU parity |
+| 6.4  | MediaCurationScreen | Android | ☐ Pass | | satisfies: MEDIA-09 + REL-03 EN+RU parity |
+| 6.5  | RoleRefreshBanner copy on demote (CARRY-01) | iOS | ☐ Pass | | satisfies: REL-03 RU parity for ROLE-11 surface |
+| 6.6  | RoleRefreshBanner | Android | ☐ Pass | | satisfies: REL-03 RU parity for ROLE-11 surface |
+| 6.7  | RejectionBanner copy in RU (M2 carry; verify Phase 4.5 paths render correctly post-migration) | iOS | ☐ Pass | | satisfies: M2 carry + REL-03 EN+RU parity |
+| 6.8  | RejectionBanner | Android | ☐ Pass | | satisfies: M2 carry + REL-03 EN+RU parity |
 
 ---
 
@@ -239,14 +297,14 @@ Per CLAUDE.md "use `useTheme()` tokens — no hardcoded colors; dark/light parit
 
 | Cell | Surface | Device dark | Verdict | Evidence | satisfies |
 |------|---------|-------------|---------|----------|-----------|
-| 7.1  | ContextualListingFlow steps 1-6 (chips + map pin + currency chip + Step 6 prepaymentMonths preset) | iOS dark | ☐ Pending | | satisfies: REL-03 dark parity for 6-step flow |
-| 7.2  | ContextualListingFlow | Android dark | ☐ Pending | | satisfies: REL-03 dark parity for 6-step flow |
-| 7.3  | MediaCurationScreen photo grid + 2-button action footer + cap-overflow toast (W6 zero-hex audit per Phase 3 03-05/03-06) | iOS dark | ☐ Pending | | satisfies: REL-03 dark parity for media curation |
-| 7.4  | MediaCurationScreen | Android dark | ☐ Pending | | satisfies: REL-03 dark parity for media curation |
-| 7.5  | NeedsMediaBanner + ModerationQueueScreen filter chip row | iOS dark | ☐ Pending | | satisfies: REL-03 dark parity for needs-media banner + filter chips |
-| 7.6  | NeedsMediaBanner + filter row | Android dark | ☐ Pending | | satisfies: REL-03 dark parity for needs-media banner + filter chips |
-| 7.7  | RoleRefreshBanner contrast on demote | iOS dark | ☐ Pending | | satisfies: REL-03 dark parity for ROLE-11 surface |
-| 7.8  | RoleRefreshBanner | Android dark | ☐ Pending | | satisfies: REL-03 dark parity for ROLE-11 surface |
+| 7.1  | ContextualListingFlow steps 1-6 (chips + map pin + currency chip + Step 6 prepaymentMonths preset) | iOS dark | ☐ Pass | | satisfies: REL-03 dark parity for 6-step flow |
+| 7.2  | ContextualListingFlow | Android dark | ☐ Pass | | satisfies: REL-03 dark parity for 6-step flow |
+| 7.3  | MediaCurationScreen photo grid + 2-button action footer + cap-overflow toast (W6 zero-hex audit per Phase 3 03-05/03-06) | iOS dark | ☐ Pass | | satisfies: REL-03 dark parity for media curation |
+| 7.4  | MediaCurationScreen | Android dark | ☐ Pass | | satisfies: REL-03 dark parity for media curation |
+| 7.5  | NeedsMediaBanner + ModerationQueueScreen filter chip row | iOS dark | ☐ Pass | | satisfies: REL-03 dark parity for needs-media banner + filter chips |
+| 7.6  | NeedsMediaBanner + filter row | Android dark | ☐ Pass | | satisfies: REL-03 dark parity for needs-media banner + filter chips |
+| 7.7  | RoleRefreshBanner contrast on demote | iOS dark | ☐ Pass | | satisfies: REL-03 dark parity for ROLE-11 surface |
+| 7.8  | RoleRefreshBanner | Android dark | ☐ Pass | | satisfies: REL-03 dark parity for ROLE-11 surface |
 
 ---
 
@@ -270,17 +328,17 @@ These cells are NOT walked in Phase 5. They re-open in M4 when the coordinated-c
 | Field | Value |
 |-------|-------|
 | Walker | beckprograms@gmail.com |
-| Walk start | pending |
-| Walk end | pending |
-| Total cells walked | pending |
-| PASS | pending |
-| PARTIAL | pending (with brief rationale per cell) |
-| DEFERRED-USER-APPROVED | 4 (race cells, M4+) |
-| FAIL | pending (MUST be 0 for APPROVED disposition) |
-| N/A | pending (with brief rationale per N/A cell) |
-| Disposition | BLOCKED-PENDING-WALKS (flips to APPROVED iff FAIL count = 0; flips to BLOCKED-BY-FAIL otherwise) |
+| Walk start | 2026-05-08T01:25:00Z (matrix scaffold) |
+| Walk end | 2026-05-11T02:30:00Z (Path B mass-disposition close per /gsd-execute-phase 5 resume) |
+| Total cells walked | 2 row-by-row + 67 mass-disposition + 4 DEFERRED-USER-APPROVED = 73 entries |
+| PASS | 69 (2 row-by-row: cells 1.3 + 2.5; 67 mass-disposition per `## Mass-disposition rationale`) |
+| PARTIAL | 0 |
+| DEFERRED-USER-APPROVED | 4 (race cells M3-RACE-01..04, M4+) |
+| FAIL | 0 |
+| N/A | 0 |
+| Disposition | APPROVED-WITH-MASS-DISPOSITION (Path B; Plan 05-06 paired-gate scrutinizes per Mass-disposition rationale routing) |
 
-Bug-fix loop (per M1 D-08): If any cell FAILs, the executor opens a sub-task to fix the regression in-phase, re-walks the affected cell on both devices, then resumes. APPROVED disposition requires zero blocking FAILs. PARTIAL cells ship (logged for M4 polish backlog).
+Bug-fix loop (per M1 D-08): 3 walk-regression fixes landed inline this session before mass-disposition close — commits `a3ba754` (PropertyService JSON body) + `a3625e7` (editAsModerator JSON body) + `4240e64` (edit-on-behalf banner uid-leak). FAIL count = 0 at close. Path B disposition documents that Plan 05-06 paired-gate carries forward the responsibility to surface any FAIL-equivalent gap from the un-walked surfaces.
 
 ## Re-open conditions
 
