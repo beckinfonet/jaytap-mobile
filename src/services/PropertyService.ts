@@ -41,72 +41,20 @@ export const PropertyService = {
     }
   },
 
-  createProperty: async (propertyData: any, images: any[] = []) => {
+  // Phase 1 cutover (commit 6f815f5) + Phase 3 multer strip (commit 2be38d3): backend POST
+  // /properties expects a JSON body in nested shape (`content.title`, `location.coordinates`,
+  // `basics.price`, etc.). `propertyData` is the SPEC payload from
+  // ContextualListingFlow/adapters.ts `formBagToPropertyPayload` — already shaped correctly.
+  // Phase 3 D-13: user-side media write disabled. Mod uploads via /api/moderation/listings/:id/media.
+  // ownerUid derived server-side from req.firebaseUid (HF-03 anti-spoofing — memory
+  // phase45-landlord-application-uid-mismatch-bug.md).
+  createProperty: async (propertyData: any) => {
     try {
       const userData = await AuthService.getUserData();
       if (!userData?.localId) {
         throw new Error('User not authenticated');
       }
-
-      // Create FormData for multipart/form-data
-      const formData = new FormData();
-
-      // Legacy body field — backend (Plan 06) now derives uid from the
-      // JWKS-verified Bearer (req.user.uid). Kept for the dual-accept window
-      // (D-04) and removed when the backend cuts over in Phase 6 (D-05).
-      formData.append('firebaseUid', userData.localId);
-
-      // Add property fields
-      formData.append('title', propertyData.title);
-      formData.append('description', propertyData.description || '');
-      formData.append('address', propertyData.address);
-      formData.append('city', propertyData.city || 'Bishkek');
-      formData.append('price', propertyData.price?.toString() || '0');
-      formData.append('currency', propertyData.currency || '$');
-      formData.append('period', propertyData.period || '');
-      formData.append('type', propertyData.type || 'rent');
-      formData.append('propertyType', propertyData.propertyType || 'apartment');
-      formData.append('bedrooms', propertyData.bedrooms?.toString() || '0');
-      formData.append('bathrooms', propertyData.bathrooms?.toString() || '0');
-      formData.append('areaSqm', propertyData.areaSqm?.toString() || '0');
-      formData.append('features', JSON.stringify(propertyData.features || []));
-      formData.append('videoUrl', propertyData.videoUrl || '');
-      formData.append('panoramicPhotosUrl', propertyData.panoramicPhotosUrl || '');
-      formData.append('instagramUrl', propertyData.instagramUrl || '');
-      // Body-status removed (D-01 + D-22): backend schema default 'pending' drives status for new
-      // submissions; Plan 03's PUT/POST sanitizer strips any body-supplied status from non-mod/admin
-      // owners anyway. Sending it is wasted bytes + a contract-leak risk.
-      // Phase 6 (HOSP-05 / Gap 9.1) — Hospitality fields wired to backend
-      formData.append('rooms', propertyData.rooms?.toString() || '0');
-      formData.append('maxGuests', propertyData.maxGuests?.toString() || '0');
-      formData.append('amenities', JSON.stringify(propertyData.amenities || []));
-      if (propertyData.availableDate) {
-        formData.append('availableDate', propertyData.availableDate);
-      }
-
-      // Add Matterport tours if provided
-      if (propertyData.tours && propertyData.tours.length > 0) {
-        formData.append('tours', JSON.stringify(propertyData.tours));
-      }
-
-      if (propertyData.platformVerifications) {
-        formData.append('platformVerifications', JSON.stringify(propertyData.platformVerifications));
-      }
-
-      // Add images
-      images.forEach((image, index) => {
-        formData.append('images', {
-          uri: image.uri,
-          type: image.type || 'image/jpeg',
-          name: image.name || `image-${index}.jpg`,
-        } as any);
-      });
-
-      // No manual Content-Type header — axios auto-detects FormData and sets
-      // multipart/form-data with the correct boundary. Setting it manually
-      // strips the boundary and breaks the upload.
-      const response = await apiClient.post('/properties', formData);
-
+      const response = await apiClient.post('/properties', propertyData);
       return { ...response.data, id: response.data._id };
     } catch (error: any) {
       console.error('Error creating property:', error);
@@ -114,74 +62,17 @@ export const PropertyService = {
     }
   },
 
-  updateProperty: async (propertyId: string, propertyData: any, images: any[] = []) => {
+  // Phase 1 cutover + Phase 3 multer strip: backend PUT /properties/:id expects JSON nested-shape
+  // body. Server-side M2 D-22 sanitizer + atomic rejected→pending auto-flip remain. Phase 3 D-13:
+  // user-side media write disabled — mod uploads via /api/moderation/listings/:id/media.
+  // See createProperty for full rationale.
+  updateProperty: async (propertyId: string, propertyData: any) => {
     try {
       const userData = await AuthService.getUserData();
       if (!userData?.localId) {
         throw new Error('User not authenticated');
       }
-
-      // Create FormData for multipart/form-data
-      const formData = new FormData();
-
-      // Legacy body field — see createProperty note above.
-      formData.append('firebaseUid', userData.localId);
-
-      // Add property fields
-      formData.append('title', propertyData.title);
-      formData.append('description', propertyData.description || '');
-      formData.append('address', propertyData.address);
-      formData.append('city', propertyData.city || 'Bishkek');
-      formData.append('price', propertyData.price?.toString() || '0');
-      formData.append('currency', propertyData.currency || '$');
-      formData.append('period', propertyData.period || '');
-      formData.append('type', propertyData.type || 'rent');
-      formData.append('propertyType', propertyData.propertyType || 'apartment');
-      formData.append('bedrooms', propertyData.bedrooms?.toString() || '0');
-      formData.append('bathrooms', propertyData.bathrooms?.toString() || '0');
-      formData.append('areaSqm', propertyData.areaSqm?.toString() || '0');
-      formData.append('features', JSON.stringify(propertyData.features || []));
-      formData.append('videoUrl', propertyData.videoUrl || '');
-      formData.append('panoramicPhotosUrl', propertyData.panoramicPhotosUrl || '');
-      formData.append('instagramUrl', propertyData.instagramUrl || '');
-      // Body-status removed (D-01 + D-22): in-place owner edits do NOT re-flip status in Phase 2
-      // (Plan 03's PUT route applies an atomic rejected→pending auto-flip server-side; non-rejected
-      // PUTs are in-place edits, no re-moderation). The server-side sanitizer strips body-status
-      // from non-mod/admin owners regardless. Sending it is wasted bytes + a contract-leak risk.
-      // Phase 6 (HOSP-05 / Gap 9.1) — Hospitality fields wired to backend
-      formData.append('rooms', propertyData.rooms?.toString() || '0');
-      formData.append('maxGuests', propertyData.maxGuests?.toString() || '0');
-      formData.append('amenities', JSON.stringify(propertyData.amenities || []));
-      if (propertyData.availableDate) {
-        formData.append('availableDate', propertyData.availableDate);
-      }
-
-      // Add Matterport tours if provided
-      if (propertyData.tours && propertyData.tours.length > 0) {
-        formData.append('tours', JSON.stringify(propertyData.tours));
-      }
-
-      if (propertyData.platformVerifications) {
-        formData.append('platformVerifications', JSON.stringify(propertyData.platformVerifications));
-      }
-
-      // Add existing images (URLs) if provided (for updates)
-      if (propertyData.existingImages && propertyData.existingImages.length > 0) {
-        formData.append('existingImages', JSON.stringify(propertyData.existingImages));
-      }
-
-      // Add new images (files to upload)
-      images.forEach((image, index) => {
-        formData.append('images', {
-          uri: image.uri,
-          type: image.type || 'image/jpeg',
-          name: image.name || `image-${index}.jpg`,
-        } as any);
-      });
-
-      // No manual Content-Type header — see createProperty note above.
-      const response = await apiClient.put(`/properties/${propertyId}`, formData);
-
+      const response = await apiClient.put(`/properties/${propertyId}`, propertyData);
       return { ...response.data, id: response.data._id };
     } catch (error: any) {
       console.error('Error updating property:', error);
