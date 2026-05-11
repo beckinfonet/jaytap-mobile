@@ -538,7 +538,7 @@ export const ru: Record<TranslationKeys, string> = {
   'moderation.race.toast': 'Это объявление уже рассмотрено другим модератором.',
   'moderation.editOnBehalf.banner': 'Редактирование от имени {owner}',
   'moderation.editOnBehalf.ownerFallback': '(владелец не указан)',
-  'moderation.editOnBehalf.success': 'Объявление обновлено и одобрено.',
+  'moderation.editOnBehalf.success': 'Объявление обновлено.',
   'moderation.actor.generic': 'Модератор JayTap',
   // Phase 3 WR-02 fix — accessibilityLabel suffix for the Profile entry-point pending-count.
   'moderation.queue.entryPoint.a11yPending': '{count} ожидает проверки',
