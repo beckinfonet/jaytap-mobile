@@ -4,7 +4,8 @@
 
 - ✅ **M1 v1.0.4 "Polish + Hospitality"** — 8 phases (shipped 2026-04-28) — see [milestones/v1.0.4-ROADMAP.md](milestones/v1.0.4-ROADMAP.md)
 - ✅ **M2 v2.0 "Roles & Moderation"** — 6 phases + Phase 4.5 inserted (shipped 2026-05-05) — see [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md)
-- 🚧 **M3 v3.0 "Contextual Forms"** — 5 phases (planning started 2026-05-05) — anchor SPEC: `.planning/phases/999.1-contextual-listing-flow-m3-anchor/SPEC.md`
+- ✅ **M3 v3.0 "Contextual Forms"** — 5 phases (shipped 2026-05-11) — see [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
+- 📋 **M4** — planning pending — to be initiated via `/gsd-new-milestone`
 
 ## Phases
 
@@ -39,195 +40,53 @@ Full M2 details: `.planning/milestones/v2.0-ROADMAP.md`
 
 </details>
 
-### 🚧 M3 v3.0 "Contextual Forms" (Phases 1–5)
+<details>
+<summary>✅ M3 v3.0 "Contextual Forms" (Phases 1–5) — SHIPPED 2026-05-11</summary>
 
-**Phase numbering reset to 1** for M3, matching the M1 → M2 precedent. Anchor SPEC: `.planning/phases/999.1-contextual-listing-flow-m3-anchor/SPEC.md` (Version 2). All 38 v1 requirements (16 FLOW + 5 SCHEMA + 9 MEDIA + 2 CARRY + 6 REL) map to exactly one phase.
+- [x] Phase 1: Schema Reshape + Backend Route Shape Cutover (5/5 plans) — completed 2026-05-06
+- [x] Phase 2: 6-Step Contextual Listing Flow (Client) (10/10 plans) — completed 2026-05-06
+- [x] Phase 3: Media Flow Inversion (Admin/Mod Curation) (7/7 plans) — completed 2026-05-06
+- [x] Phase 4: M2 Carry-Forward Bug Fixes (5/5 plans) — completed 2026-05-07
+- [x] Phase 5: Hardening + Manual Physical-Device QA + Release v3.0.0 (7/7 plans) — completed 2026-05-11
 
-- [x] **Phase 1: Schema Reshape + Backend Route Shape Cutover** (5/5 plans) — completed 2026-05-06 — Mongoose nested-shape migration (`location.*`/`basics.*`/`conditionAndAmenities.*`/`content.*`/`terms.*`/`media.*`) + operator-supervised one-shot `migrate-listings-m3.js` + backend route read/write cutover. Foundation for Phase 2 client work. *(4 operator items pending in `01-HUMAN-UAT.md`: Atlas live migration, restore-snapshot drill, tester comms delivery, RN client whole-project tsc capture in Phase 2.)*
-- [x] **Phase 2: 6-Step Contextual Listing Flow (Client)** (10/10 plan files; Plan 02-08 deferred by user; Plan 02-09 final atomic deletion) — completed 2026-05-06 — New `<ContextualListingFlow>` 6-step UI replaced `CreateListingScreen.tsx` atomically; per-step `validateStep()` single-source-of-truth; conditional sub-fields per property type; mod edit-on-behalf wired via M2 `moderatorContext` prop. Plan 02-09 closing artifact: 3 atomic commits (sentinel + atomic-delete + i18n cleanup) — deleted 13 files / 3449 LOC (CreateListingScreen.tsx 996 + CreateListingForm/ barrel 11 files / 2453 LOC); created src/screens/AdminVerificationScreen.tsx (preserves admin doc-verification surface as standalone, zero CreateListingForm dependency); removed 82 of 83 createListing.* i18n keys in lockstep en.ts + ru.ts (parity gate green). Sentinel `scripts/check-create-listing-screen-removed.sh` exits 0. *(12 deferred operator walks tracked in `02-HUMAN-UAT.md` for Phase 5 REL-03 coverage.)*
-- [x] **Phase 3: Media Flow Inversion (Admin/Mod Curation)** (7/7 plans) — completed 2026-05-06 — Backend: shared `s3Upload` factory + new POST/DELETE `/api/moderation/listings/:id/media` endpoints (race-safe `$push`/`$pull` + `ModerationLog` `'media-upload'` audit) + `MEDIA_REQUIRED` 400 gate at `/approve` AND edit-on-behalf flip; multer stripped from user-side `propertyRoutes.js` (D-13 atomic-break — D-14 reinterpreted as API-surface removal per memory `aws-iam-jaytap-prod-s3.md`); 4 sentinel scripts chained into `npm test` (anti-spoofing + media-stripped + i18n-parity + create-listing-removed). RN client: new `MediaCurationScreen` overlay (959 LOC, 0 hex literals) + `MediaCurationService` + `NeedsMediaBanner` component + 3-chip mod-queue filter row + W2 conditional row-tap (zero-photo → curation, has-photo → details) + Approve disabled-state on 3 surfaces (D-12) + 32 EN+RU i18n keys per locale lockstep + 2 new theme tokens (`onAccent`, `scrim`) + 9 RTL tests. Paired-gate: verifier `human_needed` (9/9 MEDIA-* + 5/5 SCs evidenced; 6 device-walks deferred to Phase 5 REL-03 per CONTEXT.md `<deferred>`); reviewer `issues` (1 HIGH HG-01 fixed in commit `c16ac9b` by hoisting hooks above the mod-role gate + regression test for role-flip-mid-session; 4 MEDIUM deferred to Phase 4 carry-forward bucket; 0 CRITICAL). Backend tests 258/258; RN client 386/4 (4 pre-existing M2-baseline failures preserved).
-- [ ] **Phase 4: M2 Carry-Forward Bug Fixes** — CARRY-01 ROLE-11 frontend mid-action 403 popup-recovery across 5+ submit handlers + CARRY-02 Phase 4.5 landlord-application uid-mismatch fix with anti-spoofing grep gate + repair migration.
-- [ ] **Phase 5: Hardening + Manual Physical-Device QA + Release v3.0.0** — Atomic v3.0.0 version bump (M1 D-02 + M2 Wave-1 query-first pattern); manual physical-device QA matrix on iPhone 15 Pro Max + Moto G XT2513V; bilingual EN+RU release notes ≤500 chars; ASC TestFlight Internal + Play Console Internal Testing submission.
+Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
 
-## Phase Details
+</details>
 
-### Phase 1: Schema Reshape + Backend Route Shape Cutover
+### 📋 M4 (planning pending)
 
-**Goal**: Reshape the `Property` Mongoose schema from M2's flat shape to the SPEC's nested shape (`location.*`/`basics.*`/`conditionAndAmenities.*`/`content.*`/`terms.*`/`media.*`) via an operator-supervised one-shot migration, and cut backend read/write routes over to the nested shape — without changing the M2 status enum (`pending | live | rejected | archived`) or moving M2 audit fields off top-level.
+Run `/gsd-new-milestone` to initiate M4 scoping. Candidate v1 requirements from FUTURE Requirements list (in `milestones/v3.0-REQUIREMENTS.md` § "Future Requirements (M4+ — deferred)"):
 
-**Depends on**: Nothing (foundation phase; M2 backend baseline at SHA `2fb5639` per memory `m2-shipped-2026-05-05.md`).
+- KZT + UZS currency support — KG+KZ+UZ market expansion (Almaty / Tashkent serviceAreas).
+- Multi-language localization beyond EN+RU (KK + UZ if KZ/UZ markets warrant it).
+- 2GIS native map bridge — multi-week effort; plan drafted in `2GIS_BRIDGE_PLAN.md`.
+- Automated/AI moderation (image/text classifiers).
+- Full audit log UI (`moderationLog` + `roleChangeLog` data captured in M2; UI deferred).
+- Push notifications / email notifications for moderation events.
+- Bulk moderation actions (multi-select approve/reject).
+- Real-estate document verification (Avito-style ownership proof — multi-month compliance subproject).
 
-**Requirements**: SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04, SCHEMA-05.
-
-**Success Criteria** (what must be TRUE):
-  1. Operator can run `node scripts/migrate-listings-m3.js --dry-run` followed by `node scripts/migrate-listings-m3.js --verify=PASS` and observe `db.properties.countDocuments({location: {$exists: false}})` returning 0 post-migration.
-  2. Existing M1+M2 listings (and their user-uploaded `media.photos[]`) survive the migration verbatim — visible end-to-end in the M2 Home/Favorites/RenterListings/OwnerListings screens with no field loss.
-  3. The M2 status enum (`pending | live | rejected | archived`) and all M2 + M2-Phase-4 audit fields (`submittedAt`/`approvedAt`/`approvedByUid`/`rejectedAt`/`rejectedByUid`/`rejectionReasonCode`/`rejectionReasonNote`/`archivedAt`/`archivedByUid`/`archivedReasonCode`/`archivedReasonNote`) remain at the top level of every Property doc post-migration — never nested under `terms.*`.
-  4. Backend read paths (`GET /api/properties` + `GET /api/properties/:id` + `GET /api/moderation/queue`) return the nested shape exclusively after the route-shape cutover commit; the cutover commit lands strictly AFTER the migration runs successfully.
-  5. Rollback procedure (revert route-shape cutover commit while leaving the migrated DB in place) is documented in the phase CONTEXT.md and validated against a Mongo Atlas restore-snapshot timestamp captured pre-migration.
-
-**Plans:** 5 plans
-
-Plans:
-- [x] 01-01-PLAN.md — Reshape Property.js to nested schema (location/basics/conditionAndAmenities/content/terms/media); status enum + 11 audit fields stay top-level; Property.test.js updated
-- [x] 01-02-PLAN.md — migrate-listings-m3.js + migrate-listings-m3.test.js + package.json npm script (dry-run + verify=PASS + idempotent + D-04..D-15 mapping + audit-field preservation)
-- [x] 01-03-PLAN.md — propertyRoutes.js cutover (POST/PUT body to nested; D-22 sanitizer + auto-flip + CR-01 + MOD-13 + PATCH /:id/verifications preserved verbatim) + propertyRoutes.test.js updated
-- [x] 01-04-PLAN.md — moderationRoutes.js cutover (PUT edit-on-behalf body to nested; MOD-14 mass-assignment strip extended; MOD-15 race-cell + queue FIFO + ARCH-01..ARCH-05 + HF-03 actorUid preserved verbatim) + moderationRoutes.test.js updated
-- [x] 01-05-PLAN.md — RN client src/types/Property.ts type-stub (full nested type per Claude Discretion #3) + 01-CONTEXT.md §Rollback subsection (D-17 — Atlas tier checklist + operator runbook + tester comms + reverse-rollback procedure)
-
-### Phase 2: 6-Step Contextual Listing Flow (Client)
-
-**Goal**: Replace M1's single-screen `CreateListingScreen.tsx` (and its M1-Phase-4 `CreateListingForm/` sub-component barrel) with a new 6-step `<ContextualListingFlow>` where every screen and every field is determined by previous answers, per SPEC §"High-Level Flow" — atomically, with no dual-flow window.
-
-**Depends on**: Phase 1 (nested schema; the new flow writes/reads exclusively in the nested shape).
-
-**Requirements**: FLOW-01, FLOW-02, FLOW-03, FLOW-04, FLOW-05, FLOW-06, FLOW-07, FLOW-08, FLOW-09, FLOW-10, FLOW-11, FLOW-12, FLOW-13, FLOW-14, FLOW-15, FLOW-16.
-
-**Success Criteria** (what must be TRUE):
-  1. A user (or moderator-on-behalf) can complete a brand-new listing across exactly 6 screens with a "Step N of 6" progress indicator, Back / Next navigation, and per-step validation gating advance — for every combination of deal type (`sale | rent_long | rent_daily`) × property type (apartment / house / office / commercial / hotel / hostel).
-  2. Step 2's exact-address toggle is hidden when `propertyType ∈ {hotel, hostel}` (forced true) and visible-defaulting-false otherwise — observable on the device by switching property type chips and watching the toggle appear/disappear.
-  3. Step 3's conditional sub-fields render exactly as SPEC §"Conditional sub-fields per property type" specifies (rooms only for apartment/house; rooms + bathroom + kitchen for office/commercial; hotelRooms + hotelClass for hotel/hostel) — switching property type at Step 1 reflows Step 3 with no leftover fields from the prior selection.
-  4. Step 6 renders only the deal-type-appropriate fields per SPEC §6 matrix (Sale → bargain + optional deposit; Long-term rent → bargain + optional deposit + prepaymentMonths preset 0/1/2/custom + minTerm; Daily rent → optional deposit only) — switching deal type at Step 1 reflows Step 6 cleanly.
-  5. A moderator using the M2 `moderatorContext` edit-on-behalf path (M2 MOD-14) sees the same 6-step UI with a banner stripe at the TOP of Step 1, can edit any field on a pending or rejected listing, and submission flips status appropriately (M2 MOD-14 semantics preserved). The old `CreateListingScreen.tsx` is deleted in the same commit chain that ships the new flow.
-
-**Plans:** 10 plan files (Plan 02-04 split into 02-04a + 02-04b during planning; final count = 10)
-**UI hint**: yes
-
-Plans:
-- [x] 02-01-PLAN.md — Backend Location dictionary (City + District models + locationRoutes.js + moderationRoutes.js extension + seed-locations-m3.js + supertest cases + middleware extract) — completed 2026-05-06 (3 operator items pending: Phase 1 Atlas migration confirmation, Plan 02-01 Railway deploy, prod Atlas seed run)
-- [x] 02-02-PLAN.md — <ContextualListingFlow> skeleton + Step 1 + types/validators/adapters + ~24 i18n keys + Wave 0 test scaffolds
-- [x] 02-03-PLAN.md — Step 2 (Location chips + map pin + Other modal) + Step 3 (BasicInfo conditional sub-fields) + ModerationQueueScreen Locations tab + 49 i18n keys — completed 2026-05-06 (7 atomic commits e5bebb2 / 7c5286b / 0b57eec / d024379 / a7f7a6f / 8a868ae / f588166; locationService.ts wires 7 backend functions; Step2Location ships react-native-maps draggable Marker WITH tap-to-move fallback per Pitfall 1; Step3BasicInfo conditional sub-fields per FLOW-08 matrix + KGS/USD/EUR per D-03 no $/сом legacy; orchestrator-side propertyType reflow per ROADMAP SC#3; ModerationQueueScreen 2-tab control with display:'none' keep-alive per Pitfall 3; 52/52 ContextualListingFlow tests pass; i18n parity green; FLOW-04..FLOW-08 closed)
-- [x] 02-04a-PLAN.md — Step 4 (ConditionAmenities) + Step 5 (TitleDescription) + Step 4/5 validator tests + ~18 i18n keys
-- [x] 02-04b-PLAN.md — Step 6 (DealConditions matrix per dealType) + integration test (Step 1→6 + edit-mod cell) + real submit dispatch + 18 i18n keys — completed 2026-05-06 (6 atomic commits a919dd5 / c350aef / 31c3467 / d25dfc6 / c1b0231 / 253d7ff; Step6DealConditions ships dealType-gated matrix per RESEARCH cheatsheet + D-19 thin step for rent_daily + Pitfall 6 Custom-int seed-from-current; orchestrator dealType reflow per ROADMAP SC#4 added; Plan 02-02 console.log stub REPLACED with real PropertyService.{create,update,editAsModerator} dispatch by mode per D-16; integration.test.tsx INT-1 walks Step 1→6 and asserts SPEC payload at PropertyService.createProperty; INT-2 mod-context-banner on Step 1 (FLOW-15); INT-3 Step 6 modEdit submit-button label morph; 94/94 ContextualListingFlow tests pass; i18n parity green; FLOW-11 + FLOW-12 + FLOW-13 (write-path) + FLOW-15 closed)
-- [x] 02-05-PLAN.md — Read-path cutover Wave 1: HomeScreen + FavoritesScreen + RenterListingsScreen + OwnerListingsScreen + PropertyCard + HospitalityCard + HospitalitySection + ListingMetaTable + PropertyMap → nested shape — completed 2026-05-06 (5 atomic commits f2cf2f8 / 8a9efb6 / 5a2d64e / 583eb63 / 3f5114a; Tradeoff §K caller-side hospitality derivation `dealType !== 'sale'` applied at all 4 list screens; D-10 BISHKEK_DISTRICTS preserved; D-21 HospitalityCard top-level maxGuests + amenities preserved; formatPrice + 10 EN+RU i18n keys added; FLOW-13 closed)
-- [x] 02-06-PLAN.md — Read-path cutover: PropertyDetailsScreen (1680 LOC own plan) → nested shape — completed 2026-05-06 (1 atomic commit 07bc5f0; 13 flat-field families swapped; 2 map embed sites read location.coordinates.lat/lng; 5 basics?.* reads; 3 media?.* reads; D-21 maxGuests + amenities preserved; FLOW-13 RejectionBanner mounting preserved; 0 TS errors in file post-cutover, was 55; npm test 335 pass / 4 fail baseline preserved)
-- [x] 02-07-PLAN.md — Wire <ContextualListingFlow> into App.tsx (replace isCreateListingOpen flag; mode discriminated-union dispatch per D-15/D-17)
-- [x] 02-08-PLAN.md — Operator dry-run on iPhone 15 Pro Max + Moto G XT2513V (checkpoint plan; verifies all 3 modes + Pitfall 1 map-drag + mod-banner persistence + Locations tab — BEFORE atomic deletion)
-- [x] 02-09-PLAN.md — Atomic deletion: DELETE CreateListingScreen.tsx + CreateListingForm/ barrel + App.tsx import; ADD scripts/check-create-listing-screen-removed.sh sentinel + package.json check:atomic-deletion script + final i18n cleanup of orphaned createListing.* keys
-
-### Phase 3: Media Flow Inversion (Admin/Mod Curation)
-
-**Goal**: Invert the user-uploads-to-S3 workflow so users submit metadata only; admin/mod uploads photos / videos / 3D-tour URL via a new mod-queue media-curation view after metadata review — and approval is blocked until at least one photo exists. Existing M1+M2 listings retain their user-uploaded media verbatim through the SCHEMA-02 migration.
-
-**Depends on**: Phase 1 (nested `media.*` shape exists on read paths) and Phase 2 (user-facing flow has zero media fields by the time mod curation goes live, so there is no dual-write window).
-
-**Requirements**: MEDIA-01, MEDIA-02, MEDIA-03, MEDIA-04, MEDIA-05, MEDIA-06, MEDIA-07, MEDIA-08, MEDIA-09.
-
-**Success Criteria** (what must be TRUE):
-  1. A moderator opening the M2 ModerationQueueScreen can filter to "needs media" (queue-side filter — `status: pending` AND `media.photos.length === 0`), tap a row, upload one or more photos / videos / paste a tour URL via the new mod media-curation view, and have the listing become approval-eligible.
-  2. A moderator's attempt to approve a pending listing with `media.photos.length === 0` is blocked with a clear `MEDIA_REQUIRED` error code (HTTP 400) — no listing can flip to `live` without at least one photo.
-  3. The ModerationLog audit trail records `action: 'media-upload'` for every mod media-curation action (extends the M2 `'approve' | 'reject' | 'edit-on-behalf' | 'archive' | 'unarchive' | 'hard-delete'` enum), with `actorUid` sourced exclusively from the JWKS-verified token sub (anti-spoofing grep gate exit 0).
-  4. The new `<ContextualListingFlow>` (Phase 2) ships zero media fields on the user-facing flow — no upload affordance is visible to a non-admin/non-moderator user creating or editing a listing.
-  5. Existing M1+M2 listings with user-uploaded photos survive Phase 1's migration verbatim (already validated in SCHEMA-02 acceptance) and remain visible in Home/Favorites/RenterListings/OwnerListings; the user-account S3 upload rights are revoked at Phase 3 close (no in-flight user uploads possible after the rotation).
-
-**Plans:** 7 plans
-**UI hint**: yes
-
-Plans:
-- [x] 03-01-PLAN.md — Backend foundation: extract shared S3 factory module + extend ModerationLog enum + add Property.media.tourUrl Mongoose validator + create 2 sentinel scripts (actorUid spoofing + propertyRoutes media-stripped) — wave 0 — completed 2026-05-06 (3 atomic backend commits 239de75 / a29f163 / ae611ca; 219/219 backend tests preserved; check-no-actoruid-spoofing chained into npm test green; check-property-routes-media-stripped armed FAIL-by-design for Plan 03-04 to flip)
-- [x] 03-02-PLAN.md — Backend new POST + DELETE moderation media endpoints (race-safe $push/$pull, multipart upload, tourUrl validation, ModerationLog audit) + 26 supertest cases (10 describe blocks) — wave 1 — completed 2026-05-06 (3 atomic backend commits 47fb4ac RED → 2667bc7 POST handler → fc96aee DELETE handler; 245/245 backend tests pass post-plan from 219/219 baseline; check-no-actoruid-spoofing.sh chained green; check-property-routes-media-stripped.sh still FAIL by design for Plan 03-04)
-- [x] 03-03-PLAN.md — Backend MEDIA_REQUIRED gate at /approve + edit-on-behalf flip-to-live + 7 supertest cases (D-09 + D-10) — wave 2 — completed 2026-05-06 (3 atomic backend commits 9539313 RED → 6cbf3ab feat /approve gate → 80dd45d feat edit-on-behalf gate; 252/252 backend tests pass post-plan from 245/245 baseline; branch parity = single shared path with explicit rejected-status test; Pitfall 2 race semantics acknowledged)
-- [x] 03-04-PLAN.md — Backend user-side multer strip from POST/PUT propertyRoutes (D-13 atomic-break; sentinel flips to green) + MEDIA-02 + MEDIA-08 supertest regressions + chain both sentinels into npm test — wave 3 — completed 2026-05-06 (2 atomic backend commits 2be38d3 strip+tests atomic per I2 → 339c8ce npm-test sentinel chain; 258/258 backend tests pass post-plan from 252/252 baseline; check-property-routes-media-stripped.sh FLIPPED FAIL→PASS; both backend sentinels now run on every npm test invocation; T-03 mitigation in effect — API surface that mapped HTTP request → S3 PutObject is GONE per D-14)
-- [x] 03-05-PLAN.md — RN MediaCurationService + MediaCurationScreen (~500 LOC photo grid + tour URL + 2-button action footer) + App.tsx overlay state machine wiring + RTL smoke + 26 EN+RU mediaCuration-namespace i18n keys — wave 4 — completed 2026-05-06 (3 atomic client commits b89a8f4 service+theme+i18n → b99bd19 screen+RTL → 808d01d App.tsx wiring; 959-LOC MediaCurationScreen with ZERO hex/rgba literals (revision 2 W6 — colors.onAccent + colors.scrim tokens added to both light + dark palettes); 26 EN+RU keys × 2 = 52 entries in lockstep, parity gate green; 4-case RTL smoke 4/4 PASS asserting D-12 disabled-Approve + T-04 mod-gate-closed invariants; tsc baseline 17 → 17 preserved; three Rule-1 deviations auto-fixed inline (PropertyService.getPropertyById not getById; quality 0.8 not 0.85 per PhotoQuality literal-union; React.createElement not RN.createElement in test mocks); openMediaCuration stable callback ready for Plan 03-06 entry-points)
-- [x] 03-06-PLAN.md — RN ModerationQueueScreen filter chip row + PropertyDetailsScreen NeedsMediaBanner + Approve disable on 3 surfaces + 6 EN+RU banner+filter i18n keys + RTL chip-predicate test — wave 5 — completed 2026-05-06 (4 atomic client commits 4c5ec03 i18n+banner+chips+row-tap → 124ec16 PropertyDetailsScreen banner+disabled+hint → 815aad6 RTL test 5/5 → 3172ab6 Rule-2 D-12 surface 3 row-Approve gate; NEW NeedsMediaBanner.tsx 122 LOC with W6 zero-hex via inline-on-JSX colors.onAccent token; W2 conditional row-tap encoding D-01+D-04 read together (photoCount === 0 → openMediaCuration; otherwise onOpenPropertyDetails); D-12 final = 3 surfaces ALL gated (MediaCurationScreen + PropertyDetailsScreen + ModerationQueueScreen row); Open Question #1 resolution verified by RTL — tourUrl + videos do NOT count toward "has media"; Phase 3 cumulative i18n = 32 keys per locale (26 + 6); tsc baseline 17 → 17 preserved; 9/9 Phase 3 screen RTL tests pass; one Rule-2 deviation auto-fixed for D-12 surface 3 inline-Approve which the plan deviation_protocol explicitly anticipated)
-- [ ] 03-07-PLAN.md — Phase-close verification doc (sentinel matrix + test tallies + requirement/decision/discretion evidence map) + paired-gate handoff checkpoint — wave 5
-
-### Phase 4: M2 Carry-Forward Bug Fixes
-
-**Goal**: Close two M2 carry-forward defects with independent risk profiles — CARRY-01 (ROLE-11 frontend mid-action 403 popup-recovery; touches 5+ submit handlers across the moderation/role UI) and CARRY-02 (Phase 4.5 landlord-application uid-mismatch; backend route fix with anti-spoofing grep gate + repair migration). Bundled into one phase because both are bug-fix-only with no schema/flow dependency, but they touch different surfaces and ship as separate atomic commit chains.
-
-**Depends on**: Phase 1 (anti-spoofing grep-gate pattern is the same one M2 Phase 1 HF-03 established; CARRY-02 reuses that pattern). Phases 2 + 3 are independent — Phase 4 could land before, after, or in parallel; it is sequenced after Phase 3 here so QA in Phase 5 hits a single hardened surface.
-
-**Requirements**: CARRY-01, CARRY-02.
-
-**Success Criteria** (what must be TRUE):
-  1. Demoting a moderator while their action popup is open (Approve / Reject in `ModerationQueueScreen` + `RejectListingModal` + `ArchiveListingModal` + `PropertyDetailsScreen` mod-action footer + `DeleteListingModal` + `RoleManagementScreen`) results in: popup loading state resets, popup closes, `RoleRefreshBanner` surfaces within ~1s, and the user can recover via tap-to-reload without an app restart.
-  2. The anti-spoofing grep gate `grep -nE "uid:\s*req\.(body|headers)" src/routes/landlordApplicationRoutes.js` returns exit code 0 (zero matches) on the JayTap-services backend repo at Phase 4 close.
-  3. A re-submission of the landlord application by an authenticated user lands in Mongo with `uid` matching the submitting Firebase token's `sub` (JWKS-verified `req.firebaseUid`), validated by a backend supertest case + a manual physical-device walk on iPhone 15 Pro Max.
-  4. The repair migration (`migrate-landlord-app-uid-mismatch.js`) flips every existing mismatched row's stored `uid` to the JWKS-verified token's `sub` (or marks it as un-repairable + logs evidence), is idempotent, and runs operator-supervised with `--dry-run` + `--verify=PASS` matching the M2 Plan 02-02 pattern.
-
-**Plans:** 5 plans
-**UI hint**: yes
-
-Plans:
-- [ ] 04-01-PLAN.md — Backend CARRY-02 verification chain: anti-spoofing sentinel (D-07) + landlordApplicationRoutes.test.js with 3 D-08 supertest cases + diagnostic console.log block deletion (D-06) + npm test chain extension — wave 1
-- [ ] 04-02-PLAN.md — Backend CARRY-02 repair migration (D-09 + D-11): migrate-landlord-app-uid-mismatch.js (--dry-run / --verify=PASS / idempotent) + 6-branch test (4 unit + 6 spawn-integration) + LandlordApplication.status enum +orphaned + LandlordApplicationAuditLog.action enum +uid-repair/+uid-orphan-mark — wave 1
-- [ ] 04-03-PLAN.md — Backend Phase 3 MEDIUM polish: MD-02 moderationRoutes.js comment doc-drift fix + MD-03 CastError → 400 INVALID_ID pre-check on DELETE /listings/:id/media (DELETE-only scope) + MD-04 sentinel regex tightening — wave 1
-- [ ] 04-04-PLAN.md — RN client CARRY-01 hook + 10-handler sweep: useModActionGuard hook (D-02) + 4 ModerationQueueScreen + 5 PropertyDetailsScreen + 1 RoleManagementScreen handler wired through is403PermissionError + canonical RTL smoke on PropertyDetailsScreen.handleRejectSubmit — wave 2
-- [ ] 04-05-PLAN.md — RN client MD-01 i18n key split: error.tooLarge (per-file size) + new error.tooManyFiles (per-upload count) + dispatch site split in MediaCurationScreen.tsx; EN+RU lockstep with parity gate green — wave 2
-
-### Phase 5: Hardening + Manual Physical-Device QA + Release v3.0.0
-
-**Goal**: Cross-cutting validation of every M3 surface (the 6-step flow happy path × 5 property types × 3 deal types, conditional sub-field rendering, exact-address toggle gating, mod media curation with publish-blocked-until-photo, ROLE-11 demote-mid-action recovery, Phase 4.5 uid-mismatch repair, EN+RU + dark/light parity) on physical iOS + Android devices, followed by atomic v3.0.0 version bump and dual-store submission — applying M1 D-02 + M2 Wave-1 query-first lessons (query Play Console + TestFlight history BEFORE setting versionCode/build-number baseline).
-
-**Depends on**: Phases 1–4 (everything above must be shipped and passing before the QA matrix walks; backend live + healthy on Railway).
-
-**Requirements**: REL-01, REL-02, REL-03, REL-04, REL-05, REL-06.
-
-**Success Criteria** (what must be TRUE):
-  1. `package.json` shows `"version": "3.0.0"` exactly; iOS Xcode `MARKETING_VERSION = 3.0.0`; Android `versionName = "3.0.0"`. iOS `CURRENT_PROJECT_VERSION` and Android `versionCode` derived from `06-STORE-HISTORY.md` (max-of-local-and-store + 1) per M1 D-02 lesson — no reactive bumps at archive time.
-  2. The M3 manual physical-device QA matrix is walked APPROVED on iPhone 15 Pro Max + Moto G XT2513V — 6-step flow happy path × 5 property types × 3 deal types (15 cells) all PASS; conditional sub-field cells PASS; exact-address-hidden-for-hotel/hostel PASS; mod media-curation publish-blocked-until-photo PASS; ROLE-11 demote-mid-action recovery PASS; Phase 4.5 uid-mismatch repair walked end-to-end PASS; EN+RU + dark/light parity PASS per screen.
-  3. EN+RU release notes are drafted, both ≤500 chars (Play Console binding limit), pasted on App Store Connect (en-US + ru-RU localizations) AND Google Play Console (en-US + ru-RU release notes); copy is region-neutral per memory `geographic-scope.md` (no Bishkek-only phrasing).
-  4. Backend is live and healthy on Railway with M3 changes deployed; `firebase-admin` confirmed absent from backend `package.json`; MongoDB Atlas + AWS IAM credentials confirmed unchanged from the M2 baseline (HF-02 remains closed; AWS IAM cross-project residual remains documented PARTIAL — re-open condition unchanged).
-  5. v3.0.0 is visible in App Store Connect TestFlight Internal Testing track AND Google Play Console Internal Testing track. M1 D-13 inheritance descope honored (privacy manifest unchanged; no new data-collecting SDK introduced in M3).
-
-**Plans:** 7 plans
-
-Plans:
-- [x] 05-01-PLAN.md — Operator-supervised pre-flight runbook (Atlas snapshot + 2 migrations + Railway deploy + locations seed + tsc baseline) + folded MEDIUM-01 (uid-repair verify hoist) + MEDIUM-02 (5 moderationRoutes INVALID_ID guards) — wave 1 — completed 2026-05-08 (GREEN-WITH-DEVIATIONS; 14 sections walked; railway_deploy_sha=5bf23fe; rn_tsc_baseline=17 no regression; 2 D-03 deviations operator-approved in-flight (Atlas snapshot SKIPPED + seed-locations-m3.js bugs PATCHED via commit 87dc0e9); 2 M3 backlog items surfaced (JayTap-orphan-data-cleanup + ATLAS-CRED-ROTATION); REL-05 partial close — global checkbox stays [ ] until 05-05 + 05-07)
-- [x] 05-02-PLAN.md — Store-history capture (ASC TestFlight + Play Console) + version-baseline math per M1 D-02 lesson; produces 05-STORE-HISTORY.md — wave 1 — completed 2026-05-07 (Path B web-UI user-relay; derived next_ios_build_number=28 + next_android_version_code=31; both platforms local-ahead by 1; m2_anchor_observed_in_stores=false flagged for Plan 05-07 retry-on-reject)
-- [x] 05-03-PLAN.md — Atomic v3.0.0 version bump (package.json + iOS pbxproj + Android build.gradle in single commit) — wave 2 — completed 2026-05-08 (atomic commit `531e279`; 5 surgical edits across 3 files; iOS build 28 + Android versionCode 31 from 05-STORE-HISTORY.md derived_targets per M1 D-02 lesson; 10/10 grep assertions PASS; 2/2 CI sentinel gates PASS; build-identity-consistent at v3.0.0 across all 3 files; forward signal `walked_against_sha: 531e279` for Plan 05-05)
-- [x] 05-04-PLAN.md — Bilingual EN+RU release notes draft ≤500 chars per locale, M1 D-10 content order, no Bishkek-only phrasing; produces 05-RELEASE-NOTES.md — wave 1 — completed 2026-05-07 (EN 489 / RU 492 chars, paste-only artifact at .planning/phases/05-hardening-manual-qa-release-v3/05-RELEASE-NOTES.md)
-- [x] 05-05-PLAN.md — QA matrix walk on iPhone 15 Pro Max + Moto G XT2513V (~60 cells across 7 matrices); satisfies-tag dual-coverage closes 12 Phase 2 + 6 Phase 3 + 2 Phase 4 deferred walks per D-07; produces 05-QA-MATRIX.md — wave 3 — closed 2026-05-11 (APPROVED-WITH-MASS-DISPOSITION via Path B per /gsd-execute-phase 5 resume; 2 cells walked-and-confirmed iOS [1.3 + 2.5] + 67 mass-disposition via logical-equivalence + 4 DEFERRED-USER-APPROVED M2 precedent; 3 walk-regression fix commits landed inline [a3ba754 PropertyService JSON + a3625e7 editAsModerator JSON + 4240e64 banner uid-leak]; FAIL=0; PARTIAL=0; coverage_mode: empirical-sampling-mass-disposition; Plan 05-06 paired-gate inherits PARTIAL signal with routing to Matrix 3 + 4 + 5 + Android parity)
-- [x] 05-06-PLAN.md — Paired-gate /gsd-verify-work + /gsd-code-review + descope-by-inheritance audit; produces 05-INHERITANCE-AUDIT.md with proceed_with_inheritance + paired_gate_verdict — wave 4 — closed 2026-05-11 (YELLOW verdict: verifier PARTIAL [REL-03 Path B + REL-05 deferred] + reviewer GREEN [0 CRITICAL/HIGH, 1 MEDIUM MD-01 + 3 LOW]; 7/7 INHERITED via byte-for-byte identical package.json vs v2.0.0 baseline 95b13c1; proceed_with_inheritance: true; 5/5 sentinels green; 7 M4 carry-forward items)
-- [x] 05-07-PLAN.md — Dual-store submission (TestFlight Internal + Play Console Internal Testing) with Android reanimated prefab workaround documented inline; produces 05-SUBMISSION-LOG.md — wave 5 — closed 2026-05-11 (ASC TestFlight Internal build 29 / 3.0.0 + Play Console Internal Testing versionCode 32 / 3.0.1; iOS build reactive bump 28→29 [commit 3044de4]; Android reactive bump versionCode 31→32 + versionName 3.0.0→3.0.1 [Play Console rejected 31, M1 D-02 pattern fires again — memory release-android-versioncode-trust-play-console.md]; reanimated prefab workaround applied; both stores processing)
+M4 carry-forward items (7) — see `.planning/milestones/v3.0-ROADMAP.md` § "Known Gaps at Close" — should be triaged into M4 scope or deferred again.
 
 ## Progress
-
-**Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Milestone | Phases | Status | Closed |
 |-----------|--------|--------|--------|
 | M1 v1.0.4 "Polish + Hospitality" | 8/8 (7 executed + Phase 7 SKIPPED) | ✅ SHIPPED | 2026-04-28 |
 | M2 v2.0 "Roles & Moderation" | 6/6 (+ Phase 4.5 inserted) | ✅ SHIPPED | 2026-05-05 |
-| M3 v3.0 "Contextual Forms" | 1/5 | 🚧 Executing | — |
-
-### M3 Phase Progress
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Schema Reshape + Backend Route Shape Cutover | 5/5 | Complete (4 operator UAT pending) | 2026-05-06 |
-| 2. 6-Step Contextual Listing Flow (Client) | 10/10 | ✅ Complete (Plan 02-08 operator rehearsal deferred by user; 12 walks tracked in 02-HUMAN-UAT.md) | 2026-05-06 |
-| 3. Media Flow Inversion (Admin/Mod Curation) | 6/7 | Executing (Plans 03-01 + 03-02 + 03-03 + 03-04 + 03-05 + 03-06 complete; 03-07 next — paired-gate verifier+reviewer) | — |
-| 4. M2 Carry-Forward Bug Fixes | 0/5 | Not started | — |
-| 5. Hardening + Manual Physical-Device QA + Release v3.0.0 | 7/7 | ✅ Complete (ASC TestFlight Internal build 29 / iOS 3.0.0 + Play Console Internal Testing versionCode 32 / Android 3.0.1; both processing; reactive build-identity drift documented per M1 D-02 pattern) | 2026-05-11 |
+| M3 v3.0 "Contextual Forms" | 5/5 | ✅ SHIPPED | 2026-05-11 |
+| M4 | — | 📋 Planning pending | — |
 
 ## Backlog
 
-### Phase 999.1: Contextual listing creation flow (6-step conditional UI) — M3 anchor (BACKLOG)
+### Phase 999.1: Contextual listing creation flow (6-step conditional UI) — M3 anchor (CLOSED — promoted + shipped)
 
-**Goal:** [Captured for future planning] Replace the current generic listing form with a step-by-step contextual flow where each screen's fields are determined by previous answers (deal type × property type × admin toggles). Full spec: `.planning/phases/999.1-contextual-listing-flow-m3-anchor/SPEC.md` (collocated with this backlog entry).
-
-**Status note (2026-05-05):** This entry is the M3 anchor; its scope is now distributed across M3 Phase 1 (schema), Phase 2 (6-step flow), and Phase 3 (media inversion). The 999.1 directory is retained as a historical reference until M3 Phase 2 ships and absorbs the SPEC into phase artifacts. Reconciliation points captured in PROJECT.md § "Current Milestone: v3.0 M3" and REQUIREMENTS.md hard rules.
-
-**Target milestone:** M3 v3.0 "Contextual Forms" (planning started 2026-05-05; ready to execute via `/gsd-plan-phase 1`).
-
-**Requirements:** Distributed — see M3 ROADMAP entries above. SCHEMA-01..05 → Phase 1; FLOW-01..16 → Phase 2; MEDIA-01..09 → Phase 3.
-
-**Reconciliation points (RESOLVED at M3 milestone discovery):**
-1. Spec's flat property-type taxonomy (`apartment | house | office | commercial | hotel`) — RESOLVED: M1's three-category 9-type taxonomy (Residential / Commercial / Hospitality) preserved per CLAUDE.md guard. Spec's flat list reframed onto categories (apartment + house → Residential; office + commercial → Commercial; hotel + hostel → Hospitality, kept as 2 sub-types per tour-first UI consistency, NOT collapsed into a single chip).
-2. Spec inverts photo / video / 3D-tour upload from user to admin/mod (post-submission) — RESOLVED: confirmed direction — media inversion is an M3 deliverable (MEDIA-01..09 in Phase 3). S3 IAM policy update + user upload rights revocation in scope.
-
-**Plans:** 0 plans (handled by M3 Phases 1–3)
-
-Plans:
-- [ ] N/A — promoted into M3 phase structure 2026-05-05
+**Status (2026-05-11):** Fully consumed by M3 — Phase 1 (SCHEMA-01..05), Phase 2 (FLOW-01..16), Phase 3 (MEDIA-01..09). All 30 anchor requirements shipped in v3.0.x on 2026-05-11. The historical SPEC.md remains at `.planning/milestones/v3.0-phases/999.1-contextual-listing-flow-m3-anchor/SPEC.md` for reference; the working backlog entry is closed.
 
 ---
 
-*M1 backlog entry 999.1 (archive listings — authors + mod/admin) was promoted into M2 Phase 4 on 2026-04-29; the corresponding `.planning/phases/999.1-archive-listings/` directory was removed during Phase 4 plan execution. The 999.1 number is now reused for the M3 anchor above.*
+*M1 backlog entry 999.1 (archive listings — authors + mod/admin) was promoted into M2 Phase 4 on 2026-04-29. M3 reused the 999.1 number for the contextual-flow anchor SPEC. Future backlog entries should continue from 999.2 to avoid number reuse confusion.*
 
 ---
 
-*Roadmap last updated: 2026-05-05 — M3 v3.0 "Contextual Forms" ROADMAP.md created via `/gsd-roadmapper`. 5 phases scoped covering all 38 v1 requirements (16 FLOW + 5 SCHEMA + 9 MEDIA + 2 CARRY + 6 REL); coverage gate clean (zero orphans, zero duplicates). Ready for `/gsd-plan-phase 1`.*
+*Roadmap last updated: 2026-05-11 — M3 v3.0 "Contextual Forms" milestone closed via `/gsd-complete-milestone`. All three shipped milestones collapsed into details summaries; M4 placeholder added for next milestone planning.*
