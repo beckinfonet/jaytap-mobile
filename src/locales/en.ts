@@ -85,6 +85,12 @@ export const en = {
   'auth.session.expired.body': 'Please sign in again.',
   'auth.accessChanged.title': 'Your access changed',
   'auth.accessChanged.body': 'Please sign in again.',
+  // Quick task 260515-iqi — soft unverified-email banner (EmailVerifyBanner)
+  'auth.verifyEmail.banner': 'Verify your email to secure your account.',
+  'auth.verifyEmail.resend': 'Resend verification email',
+  'auth.verifyEmail.recheck': "I've verified — refresh",
+  'auth.verifyEmail.sent': 'Verification email sent.',
+  'auth.verifyEmail.error': 'Could not send. Try again.',
 
   // Home
   'home.searchPlaceholder': 'Search city, address, or listing ID',

@@ -87,6 +87,12 @@ export const ru: Record<TranslationKeys, string> = {
   'auth.session.expired.body': 'Пожалуйста, войдите снова.',
   'auth.accessChanged.title': 'Ваш доступ изменился',
   'auth.accessChanged.body': 'Пожалуйста, войдите снова.',
+  // Quick task 260515-iqi — soft unverified-email banner (EmailVerifyBanner)
+  'auth.verifyEmail.banner': 'Подтвердите электронную почту, чтобы защитить аккаунт.',
+  'auth.verifyEmail.resend': 'Отправить письмо с подтверждением повторно',
+  'auth.verifyEmail.recheck': 'Я подтвердил — обновить',
+  'auth.verifyEmail.sent': 'Письмо с подтверждением отправлено.',
+  'auth.verifyEmail.error': 'Не удалось отправить. Повторите попытку.',
 
   // Home
   'home.searchPlaceholder': 'Поиск по городу, адресу или ID',

@@ -39,6 +39,7 @@ import { FavoritesService } from './src/services/FavoritesService';
 import { ChatService } from './src/services/ChatService';
 import { AuthPromptModal } from './src/components/AuthPromptModal';
 import { RoleRefreshBanner } from './src/components/RoleRefreshBanner';
+import { EmailVerifyBanner } from './src/components/EmailVerifyBanner';
 import { canFromUser } from './src/hooks/useRole';
 import PropertyDetailsHost from './src/components/PropertyDetailsHost';
 import ModerationQueueScreen from './src/screens/ModerationQueueScreen';
@@ -745,6 +746,9 @@ function AppContent() {
             hideMainStackUnderOverlay branch so it persists across screen changes.
             DO NOT add this to OVERLAY_FLAGS — it's a top-level slot, not an overlay. */}
         <RoleRefreshBanner />
+        {/* Quick task 260515-iqi: soft, dismissible unverified-email banner.
+            Same top-level slot as RoleRefreshBanner; NOT an OVERLAY_FLAG. */}
+        <EmailVerifyBanner />
         {/* Keep main stack mounted under full-screen flows so Profile / Home are not torn down */}
         <View style={{ flex: 1, display: hideMainStackUnderOverlay ? 'none' : 'flex' }}>
           {(tabEverMounted.favorites || showFavorites) && (

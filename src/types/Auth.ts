@@ -46,4 +46,11 @@ export interface AuthUser {
   refreshToken?: string;
   /** Hydrated from `GET /api/auth/me`; absent until the first refresh succeeds. */
   backendProfile?: BackendProfile;
+  /**
+   * Firebase email-verification state (quick task 260515-iqi). Hydrated from
+   * the `:signUp` response and refreshed via `AuthService.lookupAccount`
+   * (`:lookup`). `undefined` means unverified-unknown — treated as unverified
+   * by the soft EmailVerifyBanner until a recheck resolves it.
+   */
+  emailVerified?: boolean;
 }
