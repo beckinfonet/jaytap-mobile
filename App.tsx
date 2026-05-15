@@ -1185,7 +1185,14 @@ function AppContent() {
                 // returns from approving/rejecting.
                 setModerationCountRefreshKey((k) => k + 1);
               }}
-              onOpenPropertyDetails={(p) => setSelectedProperty(p)}
+              onOpenPropertyDetails={(p) => {
+                // Close the queue overlay before mounting PropertyDetailsScreen —
+                // the queue is rendered later in this JSX tree, so leaving it
+                // open stacks it on top of details and hides the photo-gate UI.
+                setIsModerationQueueOpen(false);
+                setModerationCountRefreshKey((k) => k + 1);
+                setSelectedProperty(p);
+              }}
               onEditOnBehalf={(p) => {
                 setIsModerationQueueOpen(false);
                 setModerationCountRefreshKey((k) => k + 1);
