@@ -22,9 +22,11 @@ import { useLanguage } from '../context/LanguageContext';
 
 interface NeedsMediaBannerProps {
   onAddPhotos: () => void;
+  /** Nested in PropertyDetailsScreen moderation dock — parent supplies horizontal padding */
+  inDock?: boolean;
 }
 
-export const NeedsMediaBanner: React.FC<NeedsMediaBannerProps> = ({ onAddPhotos }) => {
+export const NeedsMediaBanner: React.FC<NeedsMediaBannerProps> = ({ onAddPhotos, inDock }) => {
   const { colors } = useTheme();
   const { t } = useLanguage();
 
@@ -32,6 +34,7 @@ export const NeedsMediaBanner: React.FC<NeedsMediaBannerProps> = ({ onAddPhotos 
     <View
       style={[
         styles.container,
+        inDock && styles.containerInDock,
         { backgroundColor: colors.surface, borderColor: colors.border },
       ]}
       testID="needs-media-banner"
@@ -75,6 +78,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     marginHorizontal: 16,
     overflow: 'hidden',
+  },
+  containerInDock: {
+    marginHorizontal: 0,
+    marginBottom: 0,
   },
   accentStripe: {
     width: 4,

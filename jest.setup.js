@@ -74,3 +74,11 @@ jest.mock('react-native-image-picker', () => ({
   launchCamera: jest.fn(),
   launchImageLibrary: jest.fn(),
 }));
+
+jest.mock('@react-native-community/blur', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const BlurView = ({ children, style, ...rest }) =>
+    React.createElement(View, { style, ...rest }, children);
+  return { BlurView };
+});

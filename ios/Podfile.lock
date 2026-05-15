@@ -1402,6 +1402,28 @@ PODS:
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
+  - react-native-blur (4.4.1):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - react-native-image-picker (8.2.1):
     - hermes-engine
     - RCTRequired
@@ -2269,6 +2291,7 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
+  - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-keyboard-controller (from `../node_modules/react-native-keyboard-controller`)
   - react-native-maps (from `../node_modules/react-native-maps`)
@@ -2395,6 +2418,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   React-microtasksnativemodule:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
+  react-native-blur:
+    :path: "../node_modules/@react-native-community/blur"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
   react-native-keyboard-controller:
@@ -2526,6 +2551,7 @@ SPEC CHECKSUMS:
   React-logger: e40cc24a61d3a54c09bf4e83d5556b3b9d4c90aa
   React-Mapbuffer: 53f28c81b84767a0b2fb4c0109dd7e4571226f76
   React-microtasksnativemodule: ddaf25a8d69f694bc880fb6055e34d79f1d50138
+  react-native-blur: 4173cfa2b37358b2e767ca690a8afa2cb74b0aae
   react-native-image-picker: 7793e84ad7b802351cf687c18bb42ad30150b29b
   react-native-keyboard-controller: 9650e4d95be2bd242a94ac11c3148a381315595b
   react-native-maps: 9a2b2d92412c3ef6c6d12af370dfa912fd027b44

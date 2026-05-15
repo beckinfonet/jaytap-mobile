@@ -17,6 +17,7 @@ import {
   Share,
 } from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import { BlurView } from '@react-native-community/blur';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Send,
@@ -295,6 +296,8 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [isHardDeleteModalOpen, setIsHardDeleteModalOpen] = useState(false);
   const [submittingAction, setSubmittingAction] = useState(false);
+  /** Measured height of the moderation dock for scroll padding when it overlays the footer */
+  const [modDockLayoutHeight, setModDockLayoutHeight] = useState(0);
   const showModFooter = can('approveListings') && property.status === 'pending';
   // Phase 3 Plan 03-06 Task 2 — NeedsMediaBanner trigger condition (UI-SPEC §"Trigger
   // conditions"). Renders ABOVE the existing mod action footer when the moderator
@@ -316,6 +319,18 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const showArchiveBtn = can('archiveAnyListing') && property?.status !== 'archived';
   const showRestoreBtn = can('archiveAnyListing') && property?.status === 'archived';
   const showHardDeleteBtn = can('hardDeleteListing');
+  const showModerationDock =
+    showNeedsMediaBanner ||
+    showModFooter ||
+    showArchiveBtn ||
+    showRestoreBtn ||
+    showHardDeleteBtn;
+  /** Pending + empty photos: stack primary actions so long RU/EN labels are tappable */
+  const useStackedPrimaryModActions = showNeedsMediaBanner;
+
+  useEffect(() => {
+    if (!showModerationDock) setModDockLayoutHeight(0);
+  }, [showModerationDock]);
 
   // Refetch the local `property` state from the server. After approve/reject,
   // status flips off 'pending' and the footer auto-hides via showModFooter.
@@ -729,6 +744,12 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
     </View>
   );
 
+  const scrollPaddingBottom = showModerationDock
+    ? Math.max(20, isHospitality ? 80 + insets.bottom : 20, (modDockLayoutHeight || 300) + 24)
+    : isHospitality
+      ? 80 + insets.bottom
+      : 20;
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
       <StatusBar
@@ -736,6 +757,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         backgroundColor={colors.background}
       />
 
+      <View style={styles.mainColumn}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={[styles.iconButton, { backgroundColor: colors.surface }]}>
@@ -783,10 +805,8 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       </View>
 
       <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          isHospitality && { paddingBottom: 80 + insets.bottom },
-        ]}
+        style={styles.mainColumnScroll}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: scrollPaddingBottom }]}
         showsVerticalScrollIndicator={false}
       >
         {/* D-13 / MOD-08: RejectionBanner — owner viewing own rejected listing only.
@@ -1542,172 +1562,217 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         </View>
       )}
 
-      {/* Phase 3 Plan 03-06 Task 2 — NeedsMediaBanner. Renders ABOVE the mod
-          action footer when the moderator views a pending listing with no
-          photos. CTA dispatches the App.tsx-forwarded openMediaCuration callback. */}
-      {showNeedsMediaBanner && (
-        <NeedsMediaBanner
-          onAddPhotos={() => onOpenMediaCuration?.(String(property.id))}
-        />
-      )}
-
-      {/* Phase 3 Plan 03-06 Task 2 — Approve disabled hint. Rendered ABOVE the
-          3-button row (NOT below — UI-SPEC §Surface 4c — placement above so
-          Reject / Edit-on-behalf are not pushed off-screen on small devices).
-          Reuses the Plan 03-05 hint key (already in en.ts + ru.ts). */}
-      {showModFooter && !isApproveEnabled && (
+      {/* Moderation dock — frosted blur + relaxed spacing when photo enforcement
+          stacks NeedsMediaBanner + hint + primary + archive actions */}
+      {showModerationDock && (
         <View
-          style={{
-            paddingHorizontal: 16,
-            paddingTop: 8,
-            paddingBottom: 0,
-            backgroundColor: colors.surface,
-          }}
-          testID="property-details-approve-disabled-hint"
+          style={[styles.modDockOuter, { borderTopColor: colors.border }]}
+          onLayout={(e) => setModDockLayoutHeight(e.nativeEvent.layout.height)}
         >
-          <Text
-            style={{
-              fontSize: 12,
-              fontWeight: '400',
-              lineHeight: 16,
-              color: colors.textSecondary,
-            }}
-          >
-            {t('moderation.mediaCuration.approve.disabled.hint')}
-          </Text>
-        </View>
-      )}
-
-      {/* Phase 3 Plan 06 Task 02 — moderation action footer.
-          Mounts when can('approveListings') AND property.status === 'pending'.
-          Belt-and-suspenders with backend's requireMinRole('moderator') gate.
-          Footer auto-hides after refetchProperty() flips status off 'pending'.
-          Phase 3 Plan 03-06 Task 2 / D-12: Approve button is additionally disabled
-          (with 0.5 opacity) when photoCount === 0 — UX guidance for the backend
-          MEDIA_REQUIRED gate. */}
-      {showModFooter && (
-        <View
-          style={[
-            styles.modActionFooter,
-            {
-              backgroundColor: colors.surface,
-              borderTopColor: colors.border,
-              paddingBottom: Math.max(insets.bottom, 12),
-            },
-          ]}
-        >
-          <TouchableOpacity
+          <BlurView
+            style={StyleSheet.absoluteFillObject}
+            blurType={isDark ? 'dark' : 'light'}
+            blurAmount={Platform.OS === 'ios' ? 22 : 32}
+            reducedTransparencyFallbackColor={colors.surface}
+          />
+          <View
+            pointerEvents="none"
             style={[
-              styles.modActionBtn,
-              { backgroundColor: '#059669' /* success green */ },
-              !isApproveEnabled && { opacity: 0.5 },
+              StyleSheet.absoluteFillObject,
+              {
+                backgroundColor: isDark ? 'rgba(25, 26, 29, 0.38)' : 'rgba(255, 255, 255, 0.45)',
+              },
             ]}
-            onPress={handleApprove}
-            disabled={submittingAction || !isApproveEnabled}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel={t('moderation.action.approve')}
-            accessibilityState={{ disabled: submittingAction || !isApproveEnabled }}
-            testID="property-details-approve-btn"
+          />
+          <View
+            style={[
+              styles.modDockContent,
+              { paddingBottom: Math.max(insets.bottom, 14) },
+            ]}
           >
-            {submittingAction ? (
-              <ActivityIndicator color="#FFF" size="small" />
-            ) : (
-              <>
-                <Check size={18} color="#FFF" />
-                <Text style={styles.modActionBtnText}>{t('moderation.action.approve')}</Text>
-              </>
+            {showNeedsMediaBanner && (
+              <NeedsMediaBanner
+                inDock
+                onAddPhotos={() => onOpenMediaCuration?.(String(property.id))}
+              />
             )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.modActionBtn, { backgroundColor: '#DC2626' /* error red */ }]}
-            onPress={() => setIsRejectModalOpen(true)}
-            disabled={submittingAction}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel={t('moderation.action.reject')}
-          >
-            <X size={18} color="#FFF" />
-            <Text style={styles.modActionBtnText}>{t('moderation.action.reject')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.modActionBtn,
-              { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
-            ]}
-            onPress={handleEditOnBehalf}
-            disabled={submittingAction}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel={t('moderation.action.editOnBehalf')}
-          >
-            <Edit3 size={18} color={colors.text} />
-            <Text style={[styles.modActionBtnText, { color: colors.text }]}>
-              {t('moderation.action.editOnBehalf')}
-            </Text>
-          </TouchableOpacity>
+
+            {showModFooter && !isApproveEnabled && (
+              <View style={styles.modDockHint} testID="property-details-approve-disabled-hint">
+                <Text
+                  style={[
+                    styles.modDockHintText,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  {t('moderation.mediaCuration.approve.disabled.hint')}
+                </Text>
+              </View>
+            )}
+
+            {showModFooter &&
+              (useStackedPrimaryModActions ? (
+                <View style={styles.modActionStack}>
+                  <TouchableOpacity
+                    style={[
+                      styles.modActionBtn,
+                      styles.modActionBtnStacked,
+                      { backgroundColor: '#059669' /* success green */ },
+                      !isApproveEnabled && { opacity: 0.5 },
+                    ]}
+                    onPress={handleApprove}
+                    disabled={submittingAction || !isApproveEnabled}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('moderation.action.approve')}
+                    accessibilityState={{ disabled: submittingAction || !isApproveEnabled }}
+                    testID="property-details-approve-btn"
+                  >
+                    {submittingAction ? (
+                      <ActivityIndicator color="#FFF" size="small" />
+                    ) : (
+                      <>
+                        <Check size={18} color="#FFF" />
+                        <Text style={styles.modActionBtnText}>{t('moderation.action.approve')}</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.modActionBtn,
+                      styles.modActionBtnStacked,
+                      { backgroundColor: '#DC2626' /* error red */ },
+                    ]}
+                    onPress={() => setIsRejectModalOpen(true)}
+                    disabled={submittingAction}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('moderation.action.reject')}
+                  >
+                    <X size={18} color="#FFF" />
+                    <Text style={styles.modActionBtnText}>{t('moderation.action.reject')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.modActionBtn,
+                      styles.modActionBtnStacked,
+                      { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+                    ]}
+                    onPress={handleEditOnBehalf}
+                    disabled={submittingAction}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('moderation.action.editOnBehalf')}
+                  >
+                    <Edit3 size={18} color={colors.text} />
+                    <Text style={[styles.modActionBtnText, { color: colors.text }]}>
+                      {t('moderation.action.editOnBehalf')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={[styles.modActionFooter, styles.modActionFooterInDock]}>
+                  <TouchableOpacity
+                    style={[
+                      styles.modActionBtn,
+                      { backgroundColor: '#059669' /* success green */ },
+                      !isApproveEnabled && { opacity: 0.5 },
+                    ]}
+                    onPress={handleApprove}
+                    disabled={submittingAction || !isApproveEnabled}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('moderation.action.approve')}
+                    accessibilityState={{ disabled: submittingAction || !isApproveEnabled }}
+                    testID="property-details-approve-btn"
+                  >
+                    {submittingAction ? (
+                      <ActivityIndicator color="#FFF" size="small" />
+                    ) : (
+                      <>
+                        <Check size={18} color="#FFF" />
+                        <Text style={styles.modActionBtnText}>{t('moderation.action.approve')}</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modActionBtn, { backgroundColor: '#DC2626' /* error red */ }]}
+                    onPress={() => setIsRejectModalOpen(true)}
+                    disabled={submittingAction}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('moderation.action.reject')}
+                  >
+                    <X size={18} color="#FFF" />
+                    <Text style={styles.modActionBtnText}>{t('moderation.action.reject')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.modActionBtn,
+                      { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+                    ]}
+                    onPress={handleEditOnBehalf}
+                    disabled={submittingAction}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('moderation.action.editOnBehalf')}
+                  >
+                    <Edit3 size={18} color={colors.text} />
+                    <Text style={[styles.modActionBtnText, { color: colors.text }]}>
+                      {t('moderation.action.editOnBehalf')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+
+            {(showArchiveBtn || showRestoreBtn || showHardDeleteBtn) && (
+              <View style={[styles.modActionFooter, styles.modActionFooterInDock]}>
+                {showArchiveBtn && (
+                  <TouchableOpacity
+                    style={[styles.modActionBtn, { backgroundColor: '#D97706' /* amber — archive convention */ }]}
+                    onPress={() => setIsArchiveModalOpen(true)}
+                    disabled={submittingAction}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('property.archive')}
+                  >
+                    <Archive size={18} color="#FFF" />
+                    <Text style={styles.modActionBtnText}>{t('property.archive')}</Text>
+                  </TouchableOpacity>
+                )}
+                {showRestoreBtn && (
+                  <TouchableOpacity
+                    style={[styles.modActionBtn, { backgroundColor: '#059669' /* emerald — restorative */ }]}
+                    onPress={handleRestore}
+                    disabled={submittingAction}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('property.unarchive')}
+                  >
+                    <ArchiveRestore size={18} color="#FFF" />
+                    <Text style={styles.modActionBtnText}>{t('property.unarchive')}</Text>
+                  </TouchableOpacity>
+                )}
+                {showHardDeleteBtn && (
+                  <TouchableOpacity
+                    style={[styles.modActionBtn, { backgroundColor: colors.error }]}
+                    onPress={() => setIsHardDeleteModalOpen(true)}
+                    disabled={submittingAction}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.delete')}
+                  >
+                    <Trash2 size={18} color="#FFF" />
+                    <Text style={styles.modActionBtnText}>{t('common.delete')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+          </View>
         </View>
       )}
 
-      {/* Phase 4 Plan 07 D-06 — mod/admin Archive/Restore/Hard-Delete action footer.
-          Renders only when at least one of the 3 buttons should show (otherwise the
-          row would be an empty bar). For pending listings, this row renders BELOW
-          the existing 3-button Approve/Reject/Edit-on-behalf row (mod sees BOTH per
-          CONTEXT.md D-06 verbatim — Archive becomes the take-down option for pending
-          listings the mod judges aren't worth approving OR rejecting).
-          Reuses existing modActionFooter / modActionBtn / modActionBtnText styles. */}
-      {(showArchiveBtn || showRestoreBtn || showHardDeleteBtn) && (
-        <View
-          style={[
-            styles.modActionFooter,
-            {
-              backgroundColor: colors.surface,
-              borderTopColor: colors.border,
-              paddingBottom: Math.max(insets.bottom, 12),
-            },
-          ]}
-        >
-          {showArchiveBtn && (
-            <TouchableOpacity
-              style={[styles.modActionBtn, { backgroundColor: '#D97706' /* amber — archive convention */ }]}
-              onPress={() => setIsArchiveModalOpen(true)}
-              disabled={submittingAction}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={t('property.archive')}
-            >
-              <Archive size={18} color="#FFF" />
-              <Text style={styles.modActionBtnText}>{t('property.archive')}</Text>
-            </TouchableOpacity>
-          )}
-          {showRestoreBtn && (
-            <TouchableOpacity
-              style={[styles.modActionBtn, { backgroundColor: '#059669' /* emerald — restorative */ }]}
-              onPress={handleRestore}
-              disabled={submittingAction}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={t('property.unarchive')}
-            >
-              <ArchiveRestore size={18} color="#FFF" />
-              <Text style={styles.modActionBtnText}>{t('property.unarchive')}</Text>
-            </TouchableOpacity>
-          )}
-          {showHardDeleteBtn && (
-            <TouchableOpacity
-              style={[styles.modActionBtn, { backgroundColor: colors.error }]}
-              onPress={() => setIsHardDeleteModalOpen(true)}
-              disabled={submittingAction}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.delete')}
-            >
-              <Trash2 size={18} color="#FFF" />
-              <Text style={styles.modActionBtnText}>{t('common.delete')}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
+      </View>
 
       {/* Phase 3 Plan 06 Task 02 — RejectListingModal sibling mount.
           Reusable modal extracted by Plan 04 (Task 03-04-01); same component
@@ -1742,6 +1807,13 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  mainColumn: {
+    flex: 1,
+    position: 'relative',
+  },
+  mainColumnScroll: {
     flex: 1,
   },
   header: {
@@ -2456,10 +2528,53 @@ const styles = StyleSheet.create({
   },
   // Phase 3 Plan 06 Task 02 — moderation action footer styles.
   // Per UI-SPEC §"Spacing Scale > Action footer geometry on PropertyDetailsScreen":
-  // 3-button row, gap 8, padding 16, top border 1px on colors.border.
+  // 3-button row; when nested in modDockContent, modActionFooterInDock strips padding.
+  modDockOuter: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 100,
+    elevation: 28,
+    overflow: 'hidden',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  modDockContent: {
+    gap: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  modDockHint: {
+    paddingTop: 2,
+  },
+  modDockHintText: {
+    fontSize: 12,
+    fontWeight: '400',
+    lineHeight: 16,
+  },
+  modActionStack: {
+    width: '100%',
+    gap: 12,
+  },
+  modActionFooterInDock: {
+    padding: 0,
+    paddingTop: 0,
+    borderTopWidth: 0,
+    backgroundColor: 'transparent',
+    gap: 10,
+  },
+  modActionBtnStacked: {
+    flex: 0,
+    alignSelf: 'stretch',
+    width: '100%',
+    minHeight: 48,
+    paddingVertical: 14,
+  },
   modActionFooter: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
     padding: 16,
     paddingTop: 12,
     borderTopWidth: 1,
