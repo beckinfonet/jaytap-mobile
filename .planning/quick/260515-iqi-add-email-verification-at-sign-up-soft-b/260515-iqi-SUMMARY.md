@@ -103,7 +103,7 @@ One issue surfaced during on-device QA and was fixed in-loop:
 - **Banner did not auto-clear after the user verified** — three causes: the AppState foreground recheck was gated behind the role-refresh 60s cooldown (the verify round-trip is almost always shorter); `recheckEmailVerified` never persisted its result, so the banner resurrected on app restart; and `login()` never resolved `emailVerified` because `:signInWithPassword` omits it. Fixed in `8437558` — ungated foreground recheck, AsyncStorage write-through in `recheckEmailVerified`, and an effect that resolves verification whenever the state is `undefined` (the fresh-login case). A persistence regression test was added.
 - **Banner content overflowed the screen edge in RU** — the actions row was a non-wrapping flex row; the longer RU labels ran off-screen (dismiss button pushed off entirely). Switched to a column layout with a wrapping actions row (`5bbc1b8`).
 
-Re-verification on device is in progress.
+Re-verified on device (iPhone 15 Pro Max) — user-approved 2026-05-15. Quick task 260515-iqi is complete.
 
 ## Commits
 
