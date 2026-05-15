@@ -150,6 +150,13 @@ function AppContent() {
   ];
   const hideMainStackUnderOverlay = OVERLAY_FLAGS.some(Boolean);
 
+  // quick-260514-rk1: hide the moderation-queue overlay (without unmounting it)
+  // while any higher overlay is on top — preserves scroll/filter/list cache
+  // across the side-trip to PropertyDetailsScreen / ContextualListingFlow /
+  // MediaCurationScreen. Back from the higher overlay flips queue visible again.
+  const hideModerationQueueUnderOverlay =
+    !!selectedProperty || isContextualListingFlowOpen || isMediaCurationOpen;
+
   // Phase 3 Plan 06 — Profile entry-point role gate.
   // CR-02 fix: pending-count fetcher was removed; ProfileScreen owns the count
   // (self-fetch + AppState 'active' refresh with 60s cooldown). canViewModerationQueue
@@ -1174,9 +1181,19 @@ function AppContent() {
             />
           </View>
         )}
-        {/* Phase 3 Plan 06 — Moderation queue overlay (sibling to landlord-app queue). */}
+        {/* Phase 3 Plan 06 — Moderation queue overlay (sibling to landlord-app queue).
+            quick-260514-rk1: hide (don't unmount) while any higher overlay is on
+            top so queue scroll position / filters / list cache survive the
+            side-trip; Back from the higher overlay flips queue visible again.
+            Mirrors the RenterListings keep-alive pattern at L1013-1018. */}
         {!!user && isModerationQueueOpen && (
-          <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
+          <View style={[
+            fullScreenOverlayWrap,
+            {
+              display: hideModerationQueueUnderOverlay ? 'none' : 'flex',
+              pointerEvents: hideModerationQueueUnderOverlay ? 'none' : 'auto',
+            },
+          ]}>
             <ModerationQueueScreen
               onBack={() => {
                 setIsModerationQueueOpen(false);
@@ -1185,14 +1202,7 @@ function AppContent() {
                 // returns from approving/rejecting.
                 setModerationCountRefreshKey((k) => k + 1);
               }}
-              onOpenPropertyDetails={(p) => {
-                // Close the queue overlay before mounting PropertyDetailsScreen —
-                // the queue is rendered later in this JSX tree, so leaving it
-                // open stacks it on top of details and hides the photo-gate UI.
-                setIsModerationQueueOpen(false);
-                setModerationCountRefreshKey((k) => k + 1);
-                setSelectedProperty(p);
-              }}
+              onOpenPropertyDetails={(p) => setSelectedProperty(p)}
               onEditOnBehalf={(p) => {
                 setIsModerationQueueOpen(false);
                 setModerationCountRefreshKey((k) => k + 1);
