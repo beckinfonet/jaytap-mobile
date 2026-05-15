@@ -18,30 +18,31 @@ must_haves:
   truths:
     - "In the property full-screen photo viewer, a user can pinch with two fingers to zoom into a photo"
     - "A user can double-tap a full-screen photo to zoom in, and double-tap again to zoom back out"
-    - "A user can still swipe horizontally between photos in the full-screen viewer"
+    - "A user can still swipe horizontally between photos in the full-screen viewer when no photo is zoomed in"
+    - "While a photo is zoomed in, a one-finger drag pans the zoomed photo (it does not page to the next photo)"
     - "The full-screen viewer still opens at the photo the user tapped in the hero carousel (the activeSlide index)"
     - "The close (✕) button still dismisses the full-screen viewer"
     - "The pagination indicator still shows '{current} / {total}'"
     - "Hospitality listings (Hostel/Hotel) get the same zoomable full-screen viewer, since they reuse PropertyDetailsScreen"
   artifacts:
     - path: "package.json"
-      provides: "react-native-gesture-handler + react-native-awesome-gallery dependencies"
-      contains: "react-native-awesome-gallery"
+      provides: "react-native-gesture-handler + @likashefqet/react-native-image-zoom dependencies"
+      contains: "@likashefqet/react-native-image-zoom"
     - path: "App.tsx"
       provides: "GestureHandlerRootView wrapping the app root"
       contains: "GestureHandlerRootView"
     - path: "src/screens/PropertyDetailsScreen.tsx"
-      provides: "Awesome Gallery-based zoomable full-screen photo modal"
-      contains: "react-native-awesome-gallery"
+      provides: "Zoomable full-screen photos — each full-screen image wrapped in ImageZoom"
+      contains: "@likashefqet/react-native-image-zoom"
   key_links:
     - from: "App.tsx"
       to: "react-native-gesture-handler"
       via: "GestureHandlerRootView at the root of the component tree"
       pattern: "GestureHandlerRootView"
-    - from: "src/screens/PropertyDetailsScreen.tsx full-screen Modal"
-      to: "react-native-awesome-gallery Gallery component"
-      via: "Gallery rendered inside the isFullScreen Modal, replacing the paging FlatList"
-      pattern: "Gallery"
+    - from: "src/screens/PropertyDetailsScreen.tsx renderFullScreenItem"
+      to: "@likashefqet/react-native-image-zoom ImageZoom component"
+      via: "each full-screen FlatList item's Image wrapped in ImageZoom (FlatList paging kept)"
+      pattern: "ImageZoom"
 ---
 
 <objective>
@@ -50,20 +51,27 @@ the PropertyDetailsScreen hero carousel, the full-screen Modal opens, but it is 
 static paging FlatList of `<Image resizeMode="contain">` — no pinch-to-zoom, no
 double-tap-to-zoom.
 
-This plan replaces the full-screen paging FlatList with `react-native-awesome-gallery`,
-which provides pinch-to-zoom, double-tap-to-zoom, and swipe-between-photos. This is
+This plan adds `@likashefqet/react-native-image-zoom` (the `ImageZoom` component)
+and wraps each photo in the existing full-screen paging FlatList with it, giving
+pinch-to-zoom, double-tap-to-zoom, and pan-while-zoomed. The horizontal swipe-paging
+FlatList is KEPT — `ImageZoom` is a per-image zoom wrapper, not a gallery. This is
 the ONLY full-screen image viewer in the app — Hospitality (Hostel/Hotel) listings
 reuse the same PropertyDetailsScreen viewer, so they are fixed by the same change.
 
 Purpose: A renter inspecting a listing can zoom into photos to check detail (room
 condition, fixtures, finishes) — a core browsing expectation that is currently broken.
 
-Output: `react-native-gesture-handler` + `react-native-awesome-gallery` installed,
-`GestureHandlerRootView` mounted at the app root, and the PropertyDetailsScreen
-full-screen photo modal rebuilt around `Gallery`.
+Output: `react-native-gesture-handler` + `@likashefqet/react-native-image-zoom`
+installed, `GestureHandlerRootView` mounted at the app root, and each full-screen
+FlatList photo wrapped in `ImageZoom`.
 
 Scope boundaries (locked decisions — do not revisit):
-- ONLY the PropertyDetailsScreen full-screen photo modal changes.
+- Library: `@likashefqet/react-native-image-zoom`. (`react-native-awesome-gallery`
+  was the original pick but is INCOMPATIBLE — every published version pins
+  `react-native-reanimated@^3.2.0` and this project is on reanimated 4.3.1.
+  `@likashefqet/react-native-image-zoom@4.3.0` peers `reanimated >=2.x` — compatible.)
+- ONLY the PropertyDetailsScreen full-screen photo modal changes. The existing
+  horizontal paging FlatList stays — each item gains a zoom wrapper.
 - The inline hero carousel (`renderImageItem`) and card thumbnails stay as-is.
 - The full-screen MAP modal (`isMapFullScreen`) is a map, not an image — out of scope.
 - The moderator ID-photo thumbnail in LandlordApplicationQueueScreen is an inline
@@ -99,59 +107,93 @@ i.e. become the new OUTERMOST element, ABOVE SafeAreaProvider. It needs
   `images` is `string[]` (photo URIs).
 - `renderImageItem` (~line 727): hero carousel item. Tap calls `setIsFullScreen(true)`.
   KEEP AS-IS — not in scope.
-- `renderFullScreenItem` (~line 737): the static full-screen item. This becomes DEAD
-  CODE once Gallery replaces the FlatList — delete it.
+- `renderFullScreenItem` (~line 737): the static full-screen item — a `<View>` with a
+  `<Image resizeMode="contain">`. This is the item to MODIFY (wrap the image in
+  `ImageZoom`). Do NOT delete it — the FlatList still uses it.
 - Full-screen Modal (PropertyDetailsScreen.tsx:1283-1305): `visible={isFullScreen}`,
   `transparent`, `animationType="fade"`, `onRequestClose={() => setIsFullScreen(false)}`.
   Contains: a close `TouchableOpacity` (✕, style `closeButton`), a horizontal paging
   `FlatList` over `images` with `initialScrollIndex={activeSlide}`, and a pagination
   `View` (style `fullScreenPagination`) showing `{activeSlide + 1} / {images.length}`.
+  KEEP the Modal, the FlatList, the close button, and the pagination — only the
+  FlatList ITEM gains a zoom wrapper, plus the FlatList gets a `scrollEnabled` toggle
+  (see Task 2).
 - Existing styles (PropertyDetailsScreen.tsx:2354-2389): `fullScreenContainer`,
   `closeButton`, `closeButtonText`, `fullScreenPagination`, `fullScreenPaginationText`.
-  KEEP these styles — reuse the close button and pagination chrome verbatim.
+  KEEP these styles verbatim.
+- Pagination sync: the FlatList already has an `onViewableItemsChanged` / scroll
+  handler that updates `activeSlide`. Do NOT remove it — it stays the source of the
+  pagination indicator. (If the executor finds the FlatList lacks an index-sync
+  handler, preserve whatever currently keeps `activeSlide` correct.)
 
-## react-native-awesome-gallery API (the Gallery component)
+## @likashefqet/react-native-image-zoom API (the ImageZoom component, v4.x)
+Named export: `import { ImageZoom } from '@likashefqet/react-native-image-zoom';`
 Key props the executor will use:
-- `data: string[]` — the image URIs (pass `images`).
-- `initialIndex: number` — pass `activeSlide` so the viewer opens on the tapped photo.
-- `onIndexChange: (index: number) => void` — call `setActiveSlide(index)` so the
-  pagination indicator stays in sync as the user swipes.
-- `onSwipeToClose?: () => void` — optional; can call `setIsFullScreen(false)`.
-- Gallery fills its parent — render it inside a `flex: 1` `View`.
-Pinch-to-zoom and double-tap-to-zoom are built in — no extra props needed.
-
-## Babel / reanimated state (verified)
-- `react-native-reanimated@^4.3.0` is installed.
-- `babel.config.js` already has `'react-native-worklets/plugin'` last (reanimated v4
-  ships its babel plugin via worklets). No babel changes needed.
-- `react-native-gesture-handler` is NOT installed yet.
+- `uri: string` — the image URI (pass the FlatList `item`).
+- `style` — pass `{ width, height }` so it fills the full-screen item.
+- `resizeMode` — pass `"contain"` to preserve current letterboxed behavior.
+- `minScale` / `maxScale` — pass `1` / `5` (sensible zoom bounds).
+- `isDoubleTapEnabled` — `true` (double-tap-to-zoom).
+- `isPinchEnabled` — `true` (default; pinch-to-zoom).
+- Interaction callbacks (use these to coordinate with the parent FlatList paging —
+  see Task 2): `onPinchEnd`, `onDoubleTap`, `onResetAnimationEnd`, `onInteractionEnd`.
+  The exact callback set varies slightly by patch version — the executor should
+  inspect the installed version's typings and pick the cleanest available signals
+  for "is now zoomed" vs "is back to scale 1".
+Pinch/double-tap/pan-while-zoomed are built in. The library is pure JS on top of
+reanimated + gesture-handler — it ships NO native module of its own.
 </interfaces>
+
+<gesture_coordination_note>
+This is the known integration friction (flagged to the user when the library was
+chosen): `ImageZoom` is a per-image zoom wrapper, and it lives INSIDE a horizontal
+paging FlatList. When a photo is at scale 1, a one-finger horizontal drag should page
+the FlatList. When a photo is zoomed in, a one-finger drag should PAN the zoomed
+photo, not page away.
+
+Resolve it by toggling the FlatList's `scrollEnabled`:
+- Add state `const [isPhotoZoomed, setIsPhotoZoomed] = useState(false);`
+- When an `ImageZoom` reports it has zoomed in (e.g. via `onPinchEnd` / `onDoubleTap`),
+  set `isPhotoZoomed` true.
+- When it reports a reset back to scale 1 (e.g. `onResetAnimationEnd`), set it false.
+- Pass `scrollEnabled={!isPhotoZoomed}` to the full-screen FlatList.
+- Also reset `isPhotoZoomed` to false whenever the viewer opens/closes and on photo
+  change, so a stale zoomed flag never locks paging.
+If the installed `@likashefqet/react-native-image-zoom` version does not expose
+callbacks precise enough to drive this cleanly, the executor may instead set
+`minPanPointers={2}` on `ImageZoom` (one finger always pages, two-finger drag pans a
+zoomed photo) — note that as a deviation in the SUMMARY. Either way, the swipe-vs-pan
+behavior is a primary on-device QA item in Task 3.
+</gesture_coordination_note>
 </context>
 
 <tasks>
 
 <task type="auto">
-  <name>Task 1: Install gesture-handler + awesome-gallery and mount GestureHandlerRootView</name>
+  <name>Task 1: Install gesture-handler + image-zoom and mount GestureHandlerRootView</name>
   <files>package.json, ios/Podfile.lock, App.tsx</files>
   <action>
-Install the two native-dependency packages and wire the gesture-handler root.
+Install the dependencies and wire the gesture-handler root.
 
-1. Install `react-native-gesture-handler` and `react-native-awesome-gallery` with npm.
-   Install the latest published versions of each. Both must be New-Architecture
-   compatible with RN 0.84 + reanimated 4.x:
-   - `react-native-awesome-gallery` is built on reanimated + gesture-handler and is
-     New-Arch compatible — latest is fine.
-   - `react-native-gesture-handler` v2.x supports the New Architecture; install latest
-     2.x. After install, confirm the resolved versions appear under `dependencies` in
-     package.json.
-   If either package's latest version declares a peer-dependency conflict with
-   reanimated 4.x or RN 0.84, STOP and surface the conflict rather than forcing the
-   install — do not downgrade reanimated.
+1. Install `react-native-gesture-handler` and `@likashefqet/react-native-image-zoom`
+   with npm. Install the latest published versions of each:
+   - `react-native-gesture-handler` — latest 2.x (peers are only react/react-native;
+     New-Architecture compatible; no conflict — verified during planning).
+   - `@likashefqet/react-native-image-zoom@4.3.0` (latest) — peers
+     `react-native-reanimated >=2.x` and `react-native-gesture-handler >=2.x`; both are
+     satisfied by this project (reanimated 4.3.1, gesture-handler 2.x). It is pure JS
+     (no native module of its own).
+   After install, confirm the resolved versions appear under `dependencies` in
+   package.json. If `npm install` reports a peer-dependency `ERESOLVE` conflict, STOP
+   and surface it — do NOT use `--force` / `--legacy-peer-deps`, do NOT downgrade
+   reanimated. (Per planning, a clean install is expected — both packages' peer ranges
+   accept this project's versions.)
 
-2. iOS native link: run `cd ios && pod install` (CocoaPods). gesture-handler and the
-   gallery's native deps must appear in `ios/Podfile.lock`.
+2. iOS native link: run `cd ios && pod install` (CocoaPods). `react-native-gesture-handler`
+   ships a native module — its pod must appear in `ios/Podfile.lock`.
+   (`@likashefqet/react-native-image-zoom` is pure JS — it adds no pod.)
 
-3. Wire `GestureHandlerRootView` in App.tsx. Per CLAUDE.md and gesture-handler's docs,
+3. Wire `GestureHandlerRootView` in App.tsx. Per gesture-handler's docs,
    `react-native-gesture-handler` MUST be imported at the very top of the app entry.
    Add `import 'react-native-gesture-handler';` as the FIRST import line in App.tsx,
    and import `{ GestureHandlerRootView }` from `react-native-gesture-handler`. In the
@@ -165,74 +207,87 @@ Do NOT touch babel.config.js — reanimated 4's worklets plugin is already last 
 gesture-handler needs no babel plugin.
   </action>
   <verify>
-    <automated>node -e "const p=require('./package.json'); if(!p.dependencies['react-native-gesture-handler']||!p.dependencies['react-native-awesome-gallery']) process.exit(1)" && grep -q "GestureHandlerRootView" App.tsx && npx tsc --noEmit</automated>
+    <automated>node -e "const p=require('./package.json'); if(!p.dependencies['react-native-gesture-handler']||!p.dependencies['@likashefqet/react-native-image-zoom']) process.exit(1)" && grep -q "GestureHandlerRootView" App.tsx && npx tsc --noEmit</automated>
   </verify>
   <done>
 Both packages are in package.json `dependencies`; `ios/Podfile.lock` references the
-new native pods; App.tsx imports `react-native-gesture-handler` as its first line and
-wraps the app in `GestureHandlerRootView style={{ flex: 1 }}` as the outermost element;
-`npx tsc --noEmit` passes.
+`react-native-gesture-handler` pod; App.tsx imports `react-native-gesture-handler` as
+its first line and wraps the app in `GestureHandlerRootView style={{ flex: 1 }}` as the
+outermost element; `npx tsc --noEmit` passes.
   </done>
 </task>
 
 <task type="auto">
-  <name>Task 2: Replace the full-screen paging FlatList with the zoomable Gallery</name>
+  <name>Task 2: Wrap each full-screen photo in ImageZoom and coordinate paging</name>
   <files>src/screens/PropertyDetailsScreen.tsx</files>
   <action>
-Rebuild the full-screen photo modal (PropertyDetailsScreen.tsx:1283-1305) around
-`react-native-awesome-gallery`'s `Gallery` component.
+Make the full-screen photos zoomable by wrapping each FlatList item in `ImageZoom`,
+keeping the existing paging FlatList, close button, and pagination chrome.
 
-1. Add `import Gallery from 'react-native-awesome-gallery';` to the import block.
+1. Add `import { ImageZoom } from '@likashefqet/react-native-image-zoom';` to the
+   import block.
 
-2. Inside the `<Modal visible={isFullScreen} ...>` (keep the Modal element and its
-   props verbatim: `transparent`, `animationType="fade"`, `onRequestClose`), replace
-   the `<FlatList ...>` block with a `Gallery`:
-   - Wrap `Gallery` in a `<View style={{ flex: 1 }}>` so it fills the modal.
-   - `data={images}` — the existing `string[]` of photo URIs.
-   - `initialIndex={activeSlide}` — opens the viewer on the photo the user tapped
-     (replaces the old `initialScrollIndex={activeSlide}`; preserves that behavior).
-   - `onIndexChange={(index) => setActiveSlide(index)}` — keeps `activeSlide` in sync
-     as the user swipes, so the pagination indicator updates correctly.
-   - Pinch-to-zoom and double-tap-to-zoom are built into Gallery — no extra props.
+2. Add zoom-paging coordination state near the existing full-screen state
+   (PropertyDetailsScreen.tsx:231-232):
+     const [isPhotoZoomed, setIsPhotoZoomed] = useState(false);
 
-3. KEEP the close button (`closeButton` / `closeButtonText` ✕ TouchableOpacity calling
+3. Modify `renderFullScreenItem` (~line 737): replace the static `<Image>` with
+   `<ImageZoom>`:
+   - `uri={item}`
+   - `style={{ width, height }}`
+   - `resizeMode="contain"` (preserve current letterboxed look)
+   - `minScale={1}`, `maxScale={5}`
+   - `isDoubleTapEnabled` (double-tap-to-zoom)
+   - Wire the interaction callbacks to drive `setIsPhotoZoomed` per the
+     <gesture_coordination_note> in context: zoomed-in → `setIsPhotoZoomed(true)`;
+     reset to scale 1 → `setIsPhotoZoomed(false)`. Use the cleanest callbacks the
+     installed version exposes (inspect its typings). If precise callbacks are not
+     available, fall back to `minPanPointers={2}` and note it in the SUMMARY.
+   Keep the wrapping `<View style={{ width, height }}>`.
+
+4. On the full-screen `FlatList` (PropertyDetailsScreen.tsx:1283-1305): add
+   `scrollEnabled={!isPhotoZoomed}` so paging is disabled while a photo is zoomed in.
+   Keep `data`, `renderItem`, `horizontal`, `pagingEnabled`, `initialScrollIndex`,
+   the index-sync handler, and `keyExtractor` exactly as they are.
+
+5. Reset the zoom flag so it cannot get stuck: ensure `isPhotoZoomed` is set back to
+   `false` when the viewer closes (the ✕ button's `setIsFullScreen(false)` handler and
+   the Modal `onRequestClose`) and when the user pages to a different photo (the
+   existing index-sync handler that updates `activeSlide`).
+
+6. KEEP the close button (`closeButton` / `closeButtonText` ✕ TouchableOpacity calling
    `setIsFullScreen(false)`) and the pagination block (`fullScreenPagination` /
    `fullScreenPaginationText` showing `{activeSlide + 1} / {images.length}`) exactly
-   as they are. They must render ABOVE the Gallery (later siblings in the same
-   `fullScreenContainer` View, so they overlay it). The pagination text now reflects
-   `activeSlide` updated by `onIndexChange`.
+   as they are. Do NOT touch `renderImageItem` (the hero carousel item).
 
-4. Delete the now-unused `renderFullScreenItem` function (~line 737) — it is dead code
-   once the FlatList is gone. Do NOT touch `renderImageItem` (the hero carousel item)
-   — it stays.
-
-5. Do not introduce any new user-facing strings — the close button uses the literal
+7. Do not introduce any new user-facing strings — the close button uses the literal
    `✕` glyph and pagination uses numerals only, so no en.ts / ru.ts i18n changes are
-   needed. If you find yourself adding a translatable string, stop and reconsider —
-   the locked scope reuses existing chrome verbatim. The full-screen viewer chrome is
-   intentionally dark-on-black (existing `closeButton` / `fullScreenPagination` styles)
-   and is identical in light and dark mode — no `useTheme()` change required.
+   needed. The full-screen viewer chrome is intentionally dark-on-black and identical
+   in light and dark mode — no `useTheme()` change required.
   </action>
   <verify>
-    <automated>grep -q "react-native-awesome-gallery" src/screens/PropertyDetailsScreen.tsx && test "$(grep -c 'renderFullScreenItem' src/screens/PropertyDetailsScreen.tsx)" = "0" && grep -q "fullScreenPaginationText" src/screens/PropertyDetailsScreen.tsx && npx tsc --noEmit && npx jest --silent</automated>
+    <automated>grep -q "@likashefqet/react-native-image-zoom" src/screens/PropertyDetailsScreen.tsx && grep -q "ImageZoom" src/screens/PropertyDetailsScreen.tsx && grep -q "fullScreenPaginationText" src/screens/PropertyDetailsScreen.tsx && npx tsc --noEmit && npx jest --silent</automated>
   </verify>
   <done>
-The full-screen Modal renders `Gallery` (from `react-native-awesome-gallery`) instead
-of the paging FlatList; `initialIndex={activeSlide}` and `onIndexChange` are wired;
-the close button and pagination chrome are unchanged; `renderFullScreenItem` is
-deleted; `npx tsc --noEmit` and `npx jest` both pass.
+Each full-screen FlatList photo renders inside `ImageZoom` (from
+`@likashefqet/react-native-image-zoom`); the FlatList paging, close button, and
+pagination chrome are unchanged; `scrollEnabled={!isPhotoZoomed}` coordinates
+swipe-vs-pan; `isPhotoZoomed` resets on close and photo change; `npx tsc --noEmit` and
+`npx jest` both pass.
   </done>
 </task>
 
 <task type="checkpoint:human-verify" gate="blocking">
   <name>Task 3: On-device verification of pinch / double-tap zoom</name>
   <what-built>
-`react-native-gesture-handler` + `react-native-awesome-gallery` installed,
-`GestureHandlerRootView` mounted at the app root, and the PropertyDetailsScreen
-full-screen photo modal rebuilt around `Gallery`. Pinch-to-zoom and double-tap-to-zoom
-gestures cannot be verified in a JS-only test run — they require a native build on a
-physical device (this is a native-dependency change, same install-gate pattern as
-`react-native-keyboard-controller` in CLAUDE.md Stack Decisions).
+`react-native-gesture-handler` + `@likashefqet/react-native-image-zoom` installed,
+`GestureHandlerRootView` mounted at the app root, and each full-screen photo in
+PropertyDetailsScreen wrapped in `ImageZoom` with a `scrollEnabled` toggle to
+coordinate swipe-paging vs. zoom-pan. Pinch-to-zoom and double-tap-to-zoom gestures
+cannot be verified in a JS-only test run — they require a native build on a physical
+device (this is a native-dependency change — `react-native-gesture-handler` ships a
+native module — same install-gate pattern as `react-native-keyboard-controller` in
+CLAUDE.md Stack Decisions).
   </what-built>
   <how-to-verify>
 Build and run on BOTH physical devices (iOS iPhone 15 Pro Max + Android Moto G XT2513V):
@@ -249,14 +304,18 @@ On EACH device, in the running app:
    viewer opens on the photo you tapped.
 4. Pinch with two fingers on the photo → it zooms IN smoothly. Pinch out → zooms back.
 5. Double-tap the photo → it zooms in. Double-tap again → it zooms back out.
-6. Swipe left/right → it moves between photos; the "{n} / {total}" indicator at the
-   bottom updates to match.
-7. Tap the ✕ button (top-right) → the viewer closes.
-8. Repeat steps 3-7 on a Hospitality listing (a Hostel or Hotel card → tap into
+6. While zoomed in, drag with one finger → the zoomed photo PANS (it does NOT page to
+   the next photo).
+7. Back at normal zoom (scale 1), swipe left/right → it pages between photos; the
+   "{n} / {total}" indicator at the bottom updates to match.
+8. Tap the ✕ button (top-right) → the viewer closes. Re-open it — paging works again
+   (the zoom flag did not get stuck).
+9. Repeat steps 3-8 on a Hospitality listing (a Hostel or Hotel card → tap into
    details → tap a photo) — it must behave identically.
 
-Expected: pinch-zoom, double-tap-zoom, swipe-between-photos, synced pagination, and
-close button all work on both platforms, in both light and dark mode.
+Expected: pinch-zoom, double-tap-zoom, pan-while-zoomed, swipe-between-photos (only
+when not zoomed), synced pagination, and close button all work on both platforms, in
+both light and dark mode.
   </how-to-verify>
   <resume-signal>Type "approved" if zoom works on both devices, or describe any issues.</resume-signal>
 </task>
@@ -264,23 +323,25 @@ close button all work on both platforms, in both light and dark mode.
 </tasks>
 
 <verification>
-- `npx tsc --noEmit` passes (no type errors from the Gallery integration).
+- `npx tsc --noEmit` passes (no type errors from the ImageZoom integration).
 - `npx jest` passes (no regressions in existing test suites).
 - `package.json` lists both `react-native-gesture-handler` and
-  `react-native-awesome-gallery` under `dependencies`.
-- `ios/Podfile.lock` references the new native pods.
+  `@likashefqet/react-native-image-zoom` under `dependencies`.
+- `ios/Podfile.lock` references the `react-native-gesture-handler` pod.
 - App.tsx imports `react-native-gesture-handler` first and wraps the tree in
   `GestureHandlerRootView`.
-- `renderFullScreenItem` no longer exists in PropertyDetailsScreen.tsx.
-- ON-DEVICE (Task 3 checkpoint): pinch-zoom, double-tap-zoom, swipe-between-photos,
-  synced pagination indicator, and close button all work on iOS + Android — pinch
-  gestures cannot be verified without a physical-device native build.
+- PropertyDetailsScreen.tsx imports `ImageZoom` and renders it for each full-screen
+  photo; the paging FlatList carries `scrollEnabled={!isPhotoZoomed}`.
+- ON-DEVICE (Task 3 checkpoint): pinch-zoom, double-tap-zoom, pan-while-zoomed,
+  swipe-between-photos, synced pagination indicator, and close button all work on
+  iOS + Android — pinch gestures cannot be verified without a physical-device build.
 </verification>
 
 <success_criteria>
 - A user can pinch-to-zoom and double-tap-to-zoom property photos in the full-screen
   viewer on both iOS and Android.
-- Swiping between photos still works and the pagination indicator stays in sync.
+- While zoomed, a one-finger drag pans the photo; at scale 1, swiping pages between
+  photos and the pagination indicator stays in sync.
 - The full-screen viewer still opens at the tapped photo's index and the ✕ close
   button still dismisses it.
 - Hospitality (Hostel/Hotel) listings get the same zoomable viewer via the shared
