@@ -299,24 +299,18 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
   const handleViewTour = (property: Property) => onOpenPropertyDetails(property);
   const handleViewVideo = (property: Property) => onOpenPropertyDetails(property);
 
-  // Phase 3 Plan 03-06 — W2 conditional row-tap branch (encodes D-01 + D-04 read
-  // together). Listings with photos.length === 0 route to MediaCurationScreen
-  // (curation surface — D-01 needs-media row); listings with photos.length > 0
-  // route to PropertyDetailsScreen (mod-action surface preserves Approve / Reject /
-  // Edit-on-behalf for has-media listings — D-04). The forwarded App.tsx callback
-  // (`onOpenMediaCuration`) was declared in Plan 03-05.
+  // Phase 3 Plan 03-06 W2 + quick-260514-rk1 unification: All row taps route to
+  // PropertyDetailsScreen regardless of photo count. PropertyDetailsScreen's
+  // existing photo-gate (showNeedsMediaBanner predicate + disabled Approve +
+  // disabled-hint at PropertyDetailsScreen.tsx:298-311 / 1548-1579 / 1588-1611)
+  // handles the zero-photo UX. The "Add photos" CTA inside NeedsMediaBanner
+  // still routes to MediaCurationScreen via the onOpenMediaCuration callback
+  // wired at App.tsx:1010 — chain preserved, moved one screen deeper.
   const handleRowTap = useCallback(
     (listing: Property) => {
-      const photoCount = listing.media?.photos?.length ?? 0;
-      if (photoCount === 0 && onOpenMediaCuration) {
-        // Curation surface — D-01 needs-media row routes to MediaCurationScreen.
-        onOpenMediaCuration(String(listing.id));
-        return;
-      }
-      // Mod-action surface — D-04 has-media (or missing callback fallback).
       onOpenPropertyDetails(listing);
     },
-    [onOpenMediaCuration, onOpenPropertyDetails],
+    [onOpenPropertyDetails],
   );
 
   // Phase 3 Plan 03-06 — Listings tab filter predicate (UI-SPEC §"Filter predicate").
