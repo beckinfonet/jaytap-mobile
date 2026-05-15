@@ -98,7 +98,12 @@ One issue surfaced during on-device QA and was fixed in-loop:
 - **EmailVerifyBanner rendered behind the iOS status bar** — the bar is mounted at the `App.tsx` root outside any `SafeAreaView`, so its content overlapped the clock / battery on the iPhone 15 Pro Max. Fixed by padding content down via `useSafeAreaInsets().top` (commit `5a600c9`). The sibling `RoleRefreshBanner` had the identical latent bug (same root slot, never noticed because it shows only on a role change) — fixed the same way (commit `ae44170`).
 - Housekeeping done in the same session: stale agent worktrees pruned; jest config hardened to skip `.claude/worktrees/` (commit `25d3aca`).
 
-After the safe-area fix, the user re-verified on device and approved. Quick task 260515-iqi is complete.
+**Continued on-device QA (round 2)** surfaced two more issues, both fixed:
+
+- **Banner did not auto-clear after the user verified** — three causes: the AppState foreground recheck was gated behind the role-refresh 60s cooldown (the verify round-trip is almost always shorter); `recheckEmailVerified` never persisted its result, so the banner resurrected on app restart; and `login()` never resolved `emailVerified` because `:signInWithPassword` omits it. Fixed in `8437558` — ungated foreground recheck, AsyncStorage write-through in `recheckEmailVerified`, and an effect that resolves verification whenever the state is `undefined` (the fresh-login case). A persistence regression test was added.
+- **Banner content overflowed the screen edge in RU** — the actions row was a non-wrapping flex row; the longer RU labels ran off-screen (dismiss button pushed off entirely). Switched to a column layout with a wrapping actions row (`5bbc1b8`).
+
+Re-verification on device is in progress.
 
 ## Commits
 
