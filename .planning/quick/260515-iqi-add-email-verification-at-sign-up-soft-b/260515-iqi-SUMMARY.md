@@ -42,7 +42,7 @@ decisions:
 metrics:
   duration: ~30m
   completed: 2026-05-15
-  tasks_completed: 4
+  tasks_completed: 5
   tasks_total: 5
   files_changed: 11
 ---
@@ -91,9 +91,14 @@ None. All UI data is wired: the banner reads live `emailVerified` / action callb
 
 ## Checkpoint Status
 
-**Task 5 (`checkpoint:human-verify`, `gate="blocking"`) — PENDING.**
+**Task 5 (`checkpoint:human-verify`, `gate="blocking"`) — PASSED. User-approved 2026-05-15 on iPhone 15 Pro Max.**
 
-On-device QA was NOT performed (per task constraints — executor must not self-verify a blocking on-device checkpoint). The user must build and run the app on a physical device (iPhone 15 Pro Max and/or Moto G XT2513V) and verify the 10-step checklist in `260515-iqi-PLAN.md` Task 5: fresh sign-up succeeds with no gate, verification email arrives, soft banner appears, resend works, dismiss hides it, recheck clears it after verifying, dark/light + EN/RU parity, existing unverified account still works, and the runbook is actionable. Resume signal: "approved" or a description of issues found.
+One issue surfaced during on-device QA and was fixed in-loop:
+
+- **EmailVerifyBanner rendered behind the iOS status bar** — the bar is mounted at the `App.tsx` root outside any `SafeAreaView`, so its content overlapped the clock / battery on the iPhone 15 Pro Max. Fixed by padding content down via `useSafeAreaInsets().top` (commit `5a600c9`). The sibling `RoleRefreshBanner` had the identical latent bug (same root slot, never noticed because it shows only on a role change) — fixed the same way (commit `ae44170`).
+- Housekeeping done in the same session: stale agent worktrees pruned; jest config hardened to skip `.claude/worktrees/` (commit `25d3aca`).
+
+After the safe-area fix, the user re-verified on device and approved. Quick task 260515-iqi is complete.
 
 ## Commits
 
