@@ -1,5 +1,7 @@
+import 'react-native-gesture-handler';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, ActivityIndicator, Linking, Alert, BackHandler, Platform } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { HomeScreen } from './src/screens/HomeScreen';
@@ -1361,17 +1363,19 @@ function AppContent() {
 
 function App() {
   return (
-    <SafeAreaProvider>
-      <KeyboardProvider>
-        <ThemeProvider>
-          <LanguageProvider>
-            <AuthProvider>
-              <AppContent />
-            </AuthProvider>
-          </LanguageProvider>
-        </ThemeProvider>
-      </KeyboardProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <KeyboardProvider>
+          <ThemeProvider>
+            <LanguageProvider>
+              <AuthProvider>
+                <AppContent />
+              </AuthProvider>
+            </LanguageProvider>
+          </ThemeProvider>
+        </KeyboardProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

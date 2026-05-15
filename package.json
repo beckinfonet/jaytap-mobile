@@ -12,6 +12,7 @@
     "check:atomic-deletion": "bash scripts/check-create-listing-screen-removed.sh"
   },
   "dependencies": {
+    "@likashefqet/react-native-image-zoom": "^4.3.0",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/blur": "^4.4.1",
     "@react-native-community/datetimepicker": "^8.6.0",
@@ -20,6 +21,7 @@
     "lucide-react-native": "^0.564.0",
     "react": "19.2.3",
     "react-native": "0.84.0",
+    "react-native-gesture-handler": "^2.31.2",
     "react-native-image-picker": "^8.2.1",
     "react-native-keyboard-controller": "^1.21.6",
     "react-native-linear-gradient": "^2.8.3",
