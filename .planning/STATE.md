@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: "Contextual Forms"
 status: shipped
-last_updated: "2026-05-11T16:30:00Z"
-last_activity: "2026-05-11 — Completed quick task 260511-cog: edit-on-behalf field-only cutover (M3 post-ship hotfix). PUT /api/moderation/listings/:id no longer force-flips status to 'live'; status preserved as-is for all 4 states. MEDIA_REQUIRED gate now lives only at /approve (single chokepoint). Backend 275/275 green; EN+RU toast strings updated; both repos committed (backend 84016d4, frontend 01ed067)."
+last_updated: "2026-05-15T02:50:00Z"
+last_activity: "2026-05-15 — Completed quick task 260514-rk1: apply photo-required approval gate to Moderation Queue path. ModerationQueueScreen.handleRowTap unified — all rows now route to PropertyDetailsScreen (the existing photo-gate banner + disabled Approve fires for zero-photo listings on every entry path). Test inversion preserved has-media regression guard. ModerationQueueScreen suite 5/5 green."
 resume_marker: "M3 milestone closed. Next: /gsd-new-milestone to scope M4. Candidate v1 requirements + 7 M4 carry-forward items listed in PROJECT.md § 'Current Milestone: M4 (planning pending)'."
 progress:
   total_phases: 5
@@ -40,6 +40,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-11 after v3.0 milestone)
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260511-cog | Edit-on-behalf field-only cutover (M3 post-ship hotfix) — PUT /api/moderation/listings/:id stops force-flipping status to 'live', MEDIA_REQUIRED gate consolidated to /approve only. Backend 275/275 green; cross-repo (backend 84016d4 + frontend 01ed067). | 2026-05-11 | 9182a63 | [260511-cog-edit-on-behalf-field-only-cutover-m3-pos](./quick/260511-cog-edit-on-behalf-field-only-cutover-m3-pos/) |
+| 260514-rk1 | Photo-required approval gate parity — Moderation Queue row-tap unified to PropertyDetailsScreen so the existing NeedsMediaBanner + disabled Approve fires for zero-photo listings on every entry path. ModerationQueueScreen suite 5/5 green. | 2026-05-15 | c2bc982 | [260514-rk1-apply-photo-required-approval-gate-to-mo](./quick/260514-rk1-apply-photo-required-approval-gate-to-mo/) |
 
 ## Shipped State (M3 v3.0.x)
 
