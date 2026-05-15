@@ -49,6 +49,48 @@ export const AuthService = {
     }
   },
 
+  /**
+   * Send a Firebase email-verification message (quick task 260515-iqi).
+   *
+   * Uses the SAME Identity Toolkit `:sendOobCode` endpoint as
+   * `sendPasswordResetEmail` — only `requestType` differs (`VERIFY_EMAIL`).
+   * Requires a fresh `idToken` (from the `:signUp` / `:signInWithPassword`
+   * response or a refreshed token) — Firebase resolves the target account
+   * from the token, not an email argument.
+   */
+  sendEmailVerification: async (idToken: string) => {
+    try {
+      const response = await axios.post(`${AUTH_URL}:sendOobCode?key=${API_KEY}`, {
+        requestType: 'VERIFY_EMAIL',
+        idToken,
+      });
+      return response.data;
+    } catch (error: any) {
+      throw error.response ? error.response.data.error : error;
+    }
+  },
+
+  /**
+   * Look up the current server-side account state for an `idToken` (quick
+   * task 260515-iqi). `response.data.users[0].emailVerified` is the
+   * source-of-truth verification flag.
+   *
+   * Gotcha: an already-issued ID token still reports `email_verified: false`
+   * in its JWT claims until the token is refreshed — but `:lookup` reflects
+   * the CURRENT server state, so it is the reliable recheck after the user
+   * clicks the verification link.
+   */
+  lookupAccount: async (idToken: string) => {
+    try {
+      const response = await axios.post(`${AUTH_URL}:lookup?key=${API_KEY}`, {
+        idToken,
+      });
+      return response.data;
+    } catch (error: any) {
+      throw error.response ? error.response.data.error : error;
+    }
+  },
+
   confirmPasswordReset: async (oobCode: string, newPassword: string) => {
     try {
       const response = await axios.post(`${AUTH_URL}:resetPassword?key=${API_KEY}`, {
