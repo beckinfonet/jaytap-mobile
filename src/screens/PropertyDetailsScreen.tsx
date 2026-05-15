@@ -62,6 +62,7 @@ import {
   ArchiveRestore,
   Trash2,
 } from 'lucide-react-native';
+import { ImageZoom, ZOOM_TYPE } from '@likashefqet/react-native-image-zoom';
 import { Property } from '../types/Property';
 import { propertyTypeToCategory } from '../utils/propertyCategory';
 import { AMENITY_ICONS, type HospitalityAmenity } from '../utils/hospitalityAmenities';
@@ -230,6 +231,11 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const [property, setProperty] = useState<Property>(initialProperty);
   const [activeSlide, setActiveSlide] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  // quick-260515-djv: drives `scrollEnabled` on the full-screen paging FlatList.
+  // While a photo is zoomed in (scale > 1), paging is disabled so a one-finger
+  // drag pans the zoomed photo instead of swiping to the next one. Reset to
+  // false on viewer close and on photo change so paging never gets stuck.
+  const [isPhotoZoomed, setIsPhotoZoomed] = useState(false);
   const [isMapFullScreen, setIsMapFullScreen] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   // D-13: per-session in-memory dismiss for RejectionBanner. Local Set keyed by listing id.
@@ -696,6 +702,24 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
     setActiveSlide(roundIndex);
   };
 
+  // quick-260515-djv: index-sync handler for the full-screen paging FlatList.
+  // The full-screen FlatList previously had no onScroll handler — it relied on
+  // initialScrollIndex only, so the "{n} / {total}" indicator never updated
+  // when the user swiped between photos in the viewer. This keeps `activeSlide`
+  // (the indicator's source) in sync AND resets the zoom flag on photo change
+  // so a stale `isPhotoZoomed` can never lock paging after moving to a new photo.
+  const onFullScreenScroll = (event: any) => {
+    const slideSize = event.nativeEvent.layoutMeasurement.width;
+    const index = event.nativeEvent.contentOffset.x / slideSize;
+    const roundIndex = Math.round(index);
+    setActiveSlide((prev) => {
+      if (prev !== roundIndex) {
+        setIsPhotoZoomed(false);
+      }
+      return roundIndex;
+    });
+  };
+
   // Get property coordinates - use real nested coordinates if available, otherwise generate mock.
   // Phase 2 D-20 cutover: reads `location?.coordinates?.lat/lng` (nested) per Phase 1 D-04..D-15.
   // Hash-fallback preserved verbatim from PropertyMap.tsx (Plan 02-05) so listings without
@@ -734,12 +758,32 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
     </TouchableOpacity>
   );
 
+  // quick-260515-djv: full-screen photo is now zoomable. ImageZoom (from
+  // @likashefqet/react-native-image-zoom) is a per-image pinch/double-tap/pan
+  // wrapper — the horizontal paging FlatList around it is kept as-is. The
+  // interaction callbacks drive `isPhotoZoomed` so the parent FlatList can
+  // toggle `scrollEnabled` (swipe-to-page when at scale 1, pan-when-zoomed):
+  //  - onPinchEnd / onDoubleTap(ZOOM_IN) -> photo is zoomed in
+  //  - onResetAnimationEnd / onDoubleTap(ZOOM_OUT) -> photo is back at scale 1
+  // onResetAnimationEnd is the authoritative "back to scale 1" signal and
+  // corrects the flag after a pinch-out that lands at scale 1.
   const renderFullScreenItem = ({ item }: { item: string }) => (
     <View style={{ width: width, height: height, justifyContent: 'center', alignItems: 'center' }}>
-      <Image
-        source={{ uri: item }}
+      <ImageZoom
+        uri={item}
         style={{ width: width, height: height }}
         resizeMode="contain"
+        minScale={1}
+        maxScale={5}
+        isDoubleTapEnabled
+        isPinchEnabled
+        onPinchEnd={() => setIsPhotoZoomed(true)}
+        onDoubleTap={(zoomType) => setIsPhotoZoomed(zoomType === ZOOM_TYPE.ZOOM_IN)}
+        onResetAnimationEnd={(finished) => {
+          if (finished) {
+            setIsPhotoZoomed(false);
+          }
+        }}
       />
     </View>
   );
@@ -1280,10 +1324,24 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
       )}
 
       {/* Full Screen Image Modal */}
-      <Modal visible={isFullScreen} transparent={true} animationType="fade" onRequestClose={() => setIsFullScreen(false)}>
+      <Modal
+        visible={isFullScreen}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {
+          setIsPhotoZoomed(false);
+          setIsFullScreen(false);
+        }}
+      >
         <View style={styles.fullScreenContainer}>
           <StatusBar hidden />
-          <TouchableOpacity style={styles.closeButton} onPress={() => setIsFullScreen(false)}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => {
+              setIsPhotoZoomed(false);
+              setIsFullScreen(false);
+            }}
+          >
             <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
 
@@ -1296,6 +1354,9 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             showsHorizontalScrollIndicator={false}
             initialScrollIndex={activeSlide}
             getItemLayout={(data, index) => ({ length: width, offset: width * index, index })}
+            scrollEnabled={!isPhotoZoomed}
+            onScroll={onFullScreenScroll}
+            scrollEventThrottle={16}
           />
 
           <View style={styles.fullScreenPagination}>
