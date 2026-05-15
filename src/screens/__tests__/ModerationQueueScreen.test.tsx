@@ -263,20 +263,22 @@ describe('ModerationQueueScreen — Phase 3 Plan 03-06 filter chip predicate', (
     expect(hasRow(tree, 'c')).toBe(false);
   });
 
-  test('Row tap on needs-media listing dispatches onOpenMediaCuration with the listing id (W2 curation branch)', async () => {
+  test('Row tap on needs-media listing dispatches onOpenPropertyDetails (post-fix 260514-rk1: unified row-tap so PropertyDetailsScreen photo-gate applies)', async () => {
     const onOpenMediaCuration = jest.fn();
     const onOpenPropertyDetails = jest.fn();
     const tree = await renderScreen(onOpenMediaCuration, onOpenPropertyDetails);
 
-    // Tap row for listing B (zero-photos -> curation branch).
+    // Tap row for listing B (zero-photos -> unified row-tap routes to
+    // PropertyDetailsScreen so the existing photo-gate banner + disabled
+    // Approve UX fires the same way as every other entry path).
     const rowB = tree.root.findByProps({ testID: 'propertycard-stub-b' });
     await ReactTestRenderer.act(async () => {
       rowB.props.onPress();
     });
 
-    expect(onOpenMediaCuration).toHaveBeenCalledTimes(1);
-    expect(onOpenMediaCuration).toHaveBeenCalledWith('b');
-    expect(onOpenPropertyDetails).not.toHaveBeenCalled();
+    expect(onOpenPropertyDetails).toHaveBeenCalledTimes(1);
+    expect(onOpenPropertyDetails.mock.calls[0][0]).toMatchObject({ id: 'b' });
+    expect(onOpenMediaCuration).not.toHaveBeenCalled();
   });
 
   test('Row tap on has-media listing dispatches onOpenPropertyDetails (W2 mod-action branch — D-04)', async () => {
