@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -32,6 +33,9 @@ export const EmailVerifyBanner: React.FC = () => {
   const { user, emailVerified, resendVerificationEmail, recheckEmailVerified } = useAuth();
   const { colors } = useTheme();
   const { language } = useLanguage();
+  // Mounted at the App.tsx root, outside any SafeAreaView — without the top
+  // inset the bar renders behind the status bar / Dynamic Island.
+  const insets = useSafeAreaInsets();
 
   const [dismissed, setDismissed] = useState(false);
   const [status, setStatus] = useState<SendStatus>('idle');
@@ -66,7 +70,7 @@ export const EmailVerifyBanner: React.FC = () => {
       : null;
 
   return (
-    <View style={[styles.banner, { backgroundColor: colors.warning }]}>
+    <View style={[styles.banner, { backgroundColor: colors.warning, paddingTop: insets.top + 10 }]}>
       <Text style={[styles.message, { color: colors.onWarning }]}>
         {feedback ?? t(language, 'auth.verifyEmail.banner')}
       </Text>
@@ -112,7 +116,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     flexWrap: 'wrap',
-    paddingVertical: 10,
+    paddingBottom: 10,
     paddingHorizontal: 16,
   },
   message: {

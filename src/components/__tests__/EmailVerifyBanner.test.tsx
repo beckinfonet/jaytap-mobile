@@ -20,6 +20,9 @@ import { EmailVerifyBanner } from '../EmailVerifyBanner';
 jest.mock('../../context/AuthContext', () => ({ useAuth: jest.fn() }));
 jest.mock('../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 jest.mock('../../context/LanguageContext', () => ({ useLanguage: jest.fn() }));
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
+}));
 
 const { useAuth } = require('../../context/AuthContext');
 const { useTheme } = require('../../theme/ThemeContext');
