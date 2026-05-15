@@ -22,6 +22,25 @@ interface AuthContextType {
   logout: (silent?: boolean) => Promise<void>;
   refreshRole: () => Promise<void>;
   deleteAccount: () => Promise<void>;
+  /**
+   * Firebase email-verification state for the signed-in user (quick task
+   * 260515-iqi). `undefined` means unverified-unknown — the soft
+   * EmailVerifyBanner treats it as unverified until a recheck resolves it.
+   */
+  emailVerified: boolean | undefined;
+  /**
+   * Resend the Firebase verification email to the current user. Reads the
+   * live id token from storage. Rejects on failure so the banner can surface
+   * feedback.
+   */
+  resendVerificationEmail: () => Promise<void>;
+  /**
+   * Re-derive verification state from the Firebase server (`:lookup`). Used
+   * by the banner's "I've verified — refresh" tap and the AppState foreground
+   * listener so the banner does not get permanently stuck after the user
+   * verifies. Non-fatal — swallows errors.
+   */
+  recheckEmailVerified: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -79,6 +98,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email: data.email,
       localId: data.localId,
       refreshToken: data.refreshToken,
+      // 260515-iqi: seed from the :signInWithPassword response if present;
+      // otherwise leave undefined — recheckEmailVerified (banner tap / app
+      // foreground) resolves it against current server state.
+      emailVerified: data.emailVerified,
     };
 
     // Sync with backend and check for locked account
@@ -115,6 +138,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email: data.email,
       localId: data.localId,
       refreshToken: data.refreshToken,
+      // 260515-iqi: seed from the :signUp response (false for a brand-new
+      // account; default false when Firebase omits it).
+      emailVerified: data.emailVerified ?? false,
     };
 
     // Create user on backend (will check for locked email). Pass the fresh idToken
@@ -137,6 +163,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     await AuthService.saveToken(data.idToken, userData, data.refreshToken);
     setUser(userData);
+
+    // 260515-iqi: best-effort verification-email send. A failure here MUST NOT
+    // fail sign-up — the soft EmailVerifyBanner + its resend action is the
+    // safety net. Fire-and-warn only.
+    try {
+      await AuthService.sendEmailVerification(data.idToken);
+    } catch (e) {
+      console.warn('sendEmailVerification failed (non-fatal — banner resend covers it)', e);
+    }
   };
 
   /**
@@ -194,6 +229,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [user?.localId, language]);
 
   /**
+   * Resend the Firebase verification email (quick task 260515-iqi).
+   *
+   * Reads the live id token from storage and calls
+   * `AuthService.sendEmailVerification`. Unlike the best-effort send inside
+   * `signup()`, failures here are RE-THROWN so the EmailVerifyBanner can show
+   * "could not send" feedback.
+   */
+  const resendVerificationEmail = useCallback(async () => {
+    const token = await AuthService.getToken();
+    if (!token) {
+      throw new Error('No id token available for verification resend');
+    }
+    await AuthService.sendEmailVerification(token);
+  }, []);
+
+  /**
+   * Re-derive verification state from the Firebase server (quick task
+   * 260515-iqi).
+   *
+   * Calls `AuthService.lookupAccount` (`:lookup`) which reflects CURRENT
+   * server state, and merges `users[0].emailVerified` into the auth user.
+   *
+   * Stale-token gotcha: an already-issued id token still carries
+   * `email_verified: false` in its JWT claims until refreshed. If the first
+   * `:lookup` rejects (stale / expired token), refresh via
+   * `AuthService.refreshIdToken` and retry once. Non-fatal — swallows errors
+   * so the banner simply stays until the next recheck.
+   */
+  const recheckEmailVerified = useCallback(async () => {
+    try {
+      let token = await AuthService.getToken();
+      if (!token) return;
+      let data;
+      try {
+        data = await AuthService.lookupAccount(token);
+      } catch (lookupErr) {
+        // Stale / expired token — refresh once and retry.
+        if (!user?.refreshToken) throw lookupErr;
+        token = await AuthService.refreshIdToken(user.refreshToken);
+        data = await AuthService.lookupAccount(token);
+      }
+      const verified = data?.users?.[0]?.emailVerified;
+      if (typeof verified === 'boolean') {
+        setUser(prev => (prev ? { ...prev, emailVerified: verified } : null));
+      }
+    } catch (e) {
+      console.warn('recheckEmailVerified failed (non-fatal)', e);
+    }
+  }, [user?.refreshToken]);
+
+  /**
    * Toast hook fired by `apiClient`'s 403 final-fallback branch. Takes a
    * locale-key prefix (e.g. 'auth.accessChanged') and expands it to
    * `${prefix}.title` + `${prefix}.body` strings for `Alert.alert(title, body)`.
@@ -246,10 +332,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!user?.localId) return;
       lastRefreshAt = now;
       refreshRole().catch(() => {/* non-fatal; refreshRole already warns */});
+      // 260515-iqi: re-derive email-verification state on foreground so the
+      // soft banner clears after the user verifies. Reuses the SAME 60s
+      // cooldown gate above (do not add a second AppState listener). Skip the
+      // churn once the account is already verified.
+      if (user.emailVerified !== true) {
+        recheckEmailVerified().catch(() => {/* non-fatal; already warns */});
+      }
     };
     const sub = AppState.addEventListener('change', onChange);
     return () => sub.remove();
-  }, [refreshRole, user?.localId]);
+  }, [refreshRole, recheckEmailVerified, user?.localId, user?.emailVerified]);
 
   const deleteAccount = async () => {
     if (!user?.localId) {
@@ -280,6 +373,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         logout,
         refreshRole,
         deleteAccount,
+        emailVerified: user?.emailVerified,
+        resendVerificationEmail,
+        recheckEmailVerified,
       }}
     >
       {children}
