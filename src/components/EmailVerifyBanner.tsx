@@ -111,34 +111,34 @@ export const EmailVerifyBanner: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  // Column layout: the message sits on its own line(s) and the actions row
+  // wraps below it. A row layout overflowed the screen edge with the longer
+  // RU action labels (260515-iqi QA).
   banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
     paddingBottom: 10,
     paddingHorizontal: 16,
   },
   message: {
-    flex: 1,
-    minWidth: 140,
     fontSize: 13,
     fontWeight: '600',
   },
   actions: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
+    marginTop: 8,
   },
   action: {
     fontSize: 13,
     fontWeight: '700',
     textDecorationLine: 'underline',
-    marginLeft: 14,
+    marginRight: 18,
+    marginTop: 4,
   },
   dismiss: {
     fontSize: 20,
     fontWeight: '700',
-    marginLeft: 14,
+    marginTop: 4,
     lineHeight: 20,
   },
 });
