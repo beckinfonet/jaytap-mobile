@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -35,6 +36,9 @@ export const RoleRefreshBanner: React.FC = () => {
   const { user, refreshRole } = useAuth();
   const { colors } = useTheme();
   const { language } = useLanguage();
+  // Mounted at the App.tsx root, outside any SafeAreaView — without the top
+  // inset the bar renders behind the status bar / Dynamic Island.
+  const insets = useSafeAreaInsets();
 
   const currentRole = user?.backendProfile?.userType;
   const localId = user?.localId;
@@ -64,7 +68,7 @@ export const RoleRefreshBanner: React.FC = () => {
 
   return (
     <TouchableOpacity
-      style={[styles.banner, { backgroundColor: colors.warning }]}
+      style={[styles.banner, { backgroundColor: colors.warning, paddingTop: insets.top + 12 }]}
       onPress={async () => {
         // Optimistic dismiss FIRST — banner hides immediately because
         // showBanner requires lastSeenRole truthy. The useEffect above
@@ -85,7 +89,7 @@ export const RoleRefreshBanner: React.FC = () => {
 
 const styles = StyleSheet.create({
   banner: {
-    paddingVertical: 12,
+    paddingBottom: 12,
     paddingHorizontal: 16,
   },
   text: {
