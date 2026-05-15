@@ -19,6 +19,7 @@ import TestRenderer, { act } from 'react-test-renderer';
 import { AuthProvider, useAuth } from '../AuthContext';
 import { LanguageProvider } from '../LanguageContext';
 import { AuthService } from '../../services/AuthService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 jest.mock('../../services/AuthService');
 jest.mock('../../services/apiClient', () => ({
@@ -153,5 +154,33 @@ describe('AuthContext recheckEmailVerified() (260515-iqi)', () => {
     expect(mockedAuthService.refreshIdToken).toHaveBeenCalledWith('refresh-1');
     expect(mockedAuthService.lookupAccount).toHaveBeenLastCalledWith('id-token-refreshed');
     expect(ctx.user?.emailVerified).toBe(true);
+  });
+
+  test('persists the resolved emailVerified to AsyncStorage (survives app restart)', async () => {
+    mockedAuthService.getToken.mockResolvedValue('id-token-fresh');
+    mockedAuthService.lookupAccount.mockResolvedValue({
+      users: [{ localId: 'uid_new', emailVerified: true }],
+    });
+    // A stored userData blob exists, as it would after signup/login saveToken.
+    mockedAuthService.getUserData.mockResolvedValue({
+      localId: 'uid_new',
+      email: 'new@example.com',
+      emailVerified: false,
+    });
+
+    await renderProvider();
+    await act(async () => {
+      await ctx.signup('new@example.com', 'Passw0rd!');
+    });
+    await act(async () => {
+      await ctx.recheckEmailVerified();
+    });
+
+    // Without this write, loadStorageData would rehydrate emailVerified=false
+    // on the next launch and re-show the banner to a verified user.
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      'userData',
+      expect.stringContaining('"emailVerified":true'),
+    );
   });
 });

@@ -273,6 +273,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const verified = data?.users?.[0]?.emailVerified;
       if (typeof verified === 'boolean') {
         setUser(prev => (prev ? { ...prev, emailVerified: verified } : null));
+        // 260515-iqi: persist so the resolved state survives an app restart —
+        // loadStorageData rehydrates userData from AsyncStorage and would
+        // otherwise re-show the banner to an already-verified user.
+        const stored = await AuthService.getUserData();
+        if (stored) {
+          await AsyncStorage.setItem(
+            'userData',
+            JSON.stringify({ ...stored, emailVerified: verified }),
+          );
+        }
       }
     } catch (e) {
       console.warn('recheckEmailVerified failed (non-fatal)', e);
@@ -325,24 +335,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const onChange = (nextState: AppStateStatus) => {
       if (nextState !== 'active') return;
-      const now = Date.now();
-      if (lastRefreshAt && now - lastRefreshAt < REFRESH_COOLDOWN_MS) {
-        return;
-      }
       if (!user?.localId) return;
-      lastRefreshAt = now;
-      refreshRole().catch(() => {/* non-fatal; refreshRole already warns */});
-      // 260515-iqi: re-derive email-verification state on foreground so the
-      // soft banner clears after the user verifies. Reuses the SAME 60s
-      // cooldown gate above (do not add a second AppState listener). Skip the
-      // churn once the account is already verified.
+
+      // 260515-iqi: re-derive email-verification state on EVERY foreground
+      // while unverified — deliberately NOT gated by the role-refresh cooldown
+      // below. The verify round-trip (leave app → tap the email link → return)
+      // is almost always under 60s, so sharing that cooldown would suppress
+      // the recheck in exactly the case it exists for. The :lookup call is
+      // cheap and only runs while unverified (a transient state).
       if (user.emailVerified !== true) {
         recheckEmailVerified().catch(() => {/* non-fatal; already warns */});
       }
+
+      // Role refresh keeps the 60s cooldown — it hits the backend and needs
+      // no per-foreground freshness.
+      const now = Date.now();
+      if (lastRefreshAt && now - lastRefreshAt < REFRESH_COOLDOWN_MS) return;
+      lastRefreshAt = now;
+      refreshRole().catch(() => {/* non-fatal; refreshRole already warns */});
     };
     const sub = AppState.addEventListener('change', onChange);
     return () => sub.remove();
   }, [refreshRole, recheckEmailVerified, user?.localId, user?.emailVerified]);
+
+  // 260515-iqi: when a signed-in user's verification state is UNKNOWN
+  // (`undefined`), resolve it from Firebase. `:signInWithPassword` does not
+  // return `emailVerified`, so a fresh login lands here; recheckEmailVerified
+  // persists the result. signup() seeds `false` (not `undefined`), so this
+  // deliberately does NOT fire post-signup — the banner is correct there.
+  useEffect(() => {
+    if (user?.localId && user.emailVerified === undefined) {
+      recheckEmailVerified().catch(() => {/* non-fatal; already warns */});
+    }
+  }, [user?.localId, user?.emailVerified, recheckEmailVerified]);
 
   const deleteAccount = async () => {
     if (!user?.localId) {
