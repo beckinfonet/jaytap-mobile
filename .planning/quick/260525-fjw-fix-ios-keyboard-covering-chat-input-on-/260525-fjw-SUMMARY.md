@@ -1,7 +1,7 @@
 ---
 id: 260525-fjw
 type: quick
-status: complete-pending-user-qa-round-2
+status: complete
 completed: 2026-05-25
 one_liner: "Fix iOS keyboard covering chat composer on ChatThreadScreen + ChatComposeScreen by hoisting the screen-level library `<KeyboardAvoidingView>` (`react-native-keyboard-controller`) outside the chat header — header now sits INSIDE the KAV's coordinate system, so iOS keyboard-avoidance math compensates correctly. Preserves the M1 Phase 2 KBD-02 / §6 SC3.a phase-wide grep gate (`keyboardVerticalOffset` ban) and the load-bearing `behavior=\"padding\"` prop from M1 commit 47a52b7."
 
@@ -187,9 +187,13 @@ After commit `fd588eb` hoisted the KAV outward to wrap `renderHeader() + preview
 
 A hoist that changes a wrapper's child count can silently invalidate a `justifyContent` or implicit-flex assumption that was correct under the old structure. When restructuring a KAV's children, audit the styles on the KAV AND on the previously-implicit-flex children (e.g., FlatList). Captured as a feedback note alongside [[m1-keyboard-kbd-02-invariants]].
 
-## Pending User QA Round 2 (Task 3 — checkpoint:human-verify, BLOCKING per plan, deferred per dispatch directive)
+## Round 2 on-device QA (2026-05-25) — PASSED
 
-This fix is **CODE-COMPLETE BUT NOT USER-VERIFIED**. Per dispatch constraint, the user device walk is documented here as pending and execution returns control. The plan's Task 3 verify steps verbatim:
+User confirmed round 2 on-device QA passed on iPhone after the round-1 layout-regression fix-forward (commits 8175715 + 412df18 + b17b2cb). Both `ChatComposeScreen` and `ChatThreadScreen` now show the chat header at the top, body in the middle, and the message composer pinned above the keyboard with no header / FlatList / send-button regression. Task is closed.
+
+## Pending User QA Round 2 — ARCHIVED (verbatim, for audit trail)
+
+The plan's Task 3 verify steps as documented before round-2 ran:
 
 **iOS (BLOCKING — reported bug surface, iPhone 15 Pro Max baseline per M3 close):**
 
