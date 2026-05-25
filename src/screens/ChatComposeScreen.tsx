@@ -91,8 +91,8 @@ export const ChatComposeScreen: React.FC<ChatComposeScreenProps> = ({
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      {renderHeader()}
-      <View style={styles.composeContent}>
+      <KeyboardAvoidingView behavior="padding" style={styles.keyboardView}>
+        {renderHeader()}
         <View style={[styles.previewCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={[styles.avatar, { backgroundColor: colors.inputBackground }]}>
             {imageUrl ? (
@@ -112,32 +112,30 @@ export const ChatComposeScreen: React.FC<ChatComposeScreenProps> = ({
             </Text>
           </View>
         </View>
-        <KeyboardAvoidingView behavior="padding" style={styles.keyboardView}>
-          <View style={[styles.inputRow, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-            <TextInput
-              style={[styles.input, { color: colors.text, backgroundColor: colors.inputBackground }]}
-              placeholder={t('chat.typeMessage')}
-              placeholderTextColor={colors.textSecondary}
-              value={inputText}
-              onChangeText={setInputText}
-              multiline
-              maxLength={2000}
-              editable={!sending}
-            />
-            <TouchableOpacity
-              style={[styles.sendButton, { backgroundColor: colors.accent }]}
-              onPress={handleSend}
-              disabled={!inputText.trim() || sending}
-            >
-              {sending ? (
-                <ActivityIndicator size="small" color="#FFF" />
-              ) : (
-                <Send size={20} color="#FFF" />
-              )}
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </View>
+        <View style={[styles.inputRow, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+          <TextInput
+            style={[styles.input, { color: colors.text, backgroundColor: colors.inputBackground }]}
+            placeholder={t('chat.typeMessage')}
+            placeholderTextColor={colors.textSecondary}
+            value={inputText}
+            onChangeText={setInputText}
+            multiline
+            maxLength={2000}
+            editable={!sending}
+          />
+          <TouchableOpacity
+            style={[styles.sendButton, { backgroundColor: colors.accent }]}
+            onPress={handleSend}
+            disabled={!inputText.trim() || sending}
+          >
+            {sending ? (
+              <ActivityIndicator size="small" color="#FFF" />
+            ) : (
+              <Send size={20} color="#FFF" />
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
