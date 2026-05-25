@@ -8,6 +8,10 @@
  *
  * Convention: matches src/utils/passwordPolicy.ts shape (named exports,
  * pure fn, no React imports, no side effects).
+ *
+ * Lookup is case-insensitive (260525-ggp: M3 propertyType data is lowercase
+ * per Property.ts:29; map keys are Pascal for display-label reuse in
+ * HomeScreen.tsx:514).
  */
 
 export type PropertyCategory = 'Residential' | 'Commercial' | 'Hospitality';
@@ -43,6 +47,11 @@ export const PROPERTY_TYPE_TO_CATEGORY: Record<PropertyType, PropertyCategory> =
 /**
  * Pure derivation. Unknown / null / undefined → 'Residential' (safe default for
  * brownfield data; see RESEARCH Pitfall 4 + PATTERNS §1 safe-default analog).
+ *
+ * 260525-ggp: normalize input case before map lookup — M3 data (Property.ts:29)
+ * is lowercase, map keys are Pascal (kept Pascal because PROPERTY_TYPES is also
+ * used as display labels in HomeScreen.tsx:514 with no i18n wrap). Map
+ * normalization, not data normalization.
  */
 export function propertyTypeToCategory(
   propertyType: string | null | undefined,
@@ -50,5 +59,9 @@ export function propertyTypeToCategory(
   if (!propertyType) {
     return 'Residential';
   }
-  return PROPERTY_TYPE_TO_CATEGORY[propertyType as PropertyType] ?? 'Residential';
+  // Property.ts:29 declares propertyType lowercase; Step1DealAndPropertyType.tsx:14-21
+  // writes lowercase; but the map keys are Pascal (kept Pascal because they're used as
+  // raw display labels in HomeScreen.tsx:514). Normalize the lookup side, not the map.
+  const normalized = propertyType.charAt(0).toUpperCase() + propertyType.slice(1).toLowerCase();
+  return PROPERTY_TYPE_TO_CATEGORY[normalized as PropertyType] ?? 'Residential';
 }
