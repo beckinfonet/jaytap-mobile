@@ -333,6 +333,75 @@ All backend commits carry the `feat(06):` prefix per project convention; grep-ab
 ## Self-Check: PASSED
 
 ---
+
+## Post-Review Gap Closure (2026-05-25)
+
+After 06-REVIEW.md flagged 2 warnings + 5 info findings (verdict CONCERNS, no blockers), a targeted gap-closure pass landed 3 fixes across both repos before Phase 7 planning. Verifier had passed 311/311; reviewer caught what verifier missed (per memory `gsd-verifier-misses-regressions.md`).
+
+### Fixes Shipped
+
+| Finding | Repo | Commit | Type | Change |
+|---------|------|--------|------|--------|
+| **WR-01** stale Property.js comment | backend | **dfefc06** | `fix(06)` | Updated the bedrooms-field comment block in `src/models/Property.js` to reflect that moderationRoutes.js PUT NOW passes `runValidators: true` (added by Plan 02 commit `0272cda` at L974). Prior comment said the moderation route does NOT pass the option — became false after Plan 02 shipped. Comment-only update, no runtime delta. |
+| **WR-02** bedrooms 400 fired before strip on hospitality | backend | **654ffa3** | `fix(06)` | Reordered the `M4_BEDROOMS_INVALID` 400 check to run AFTER `stripResidentialOnlyFields(...)` in all three write paths (POST + owner PUT + moderation PUT). Plan 02 must_have #5 specifies the 400 only fires when bedrooms "survives the strip"; the executor had followed the action steps (400 before strip) instead. Result before fix: `hotel + bedrooms: 2.5` returned 400 instead of stripping silently, inconsistent with `hotel + bedrooms: 3` which had always stripped silently. The `bathroomCount` check stays pre-strip because bathroomCount applies to ALL 6 propertyTypes (no strip rule). |
+| **IN-02** REQUIREMENTS.md SCHEMA-02 doc drift | RN client | **40a3200** | `docs(06)` | Updated SCHEMA-02 wording in `.planning/REQUIREMENTS.md` to describe the validator as `Number.isInteger(bathroomCount * 2)` (matches Property.js + the three route handlers) instead of the prior `bathroomCount * 2 === Math.trunc(bathroomCount * 2)` (functionally equivalent in [0, 10] but doesn't appear in the codebase). |
+
+### Tests Added (3, all PASS)
+
+Added inside the existing `M4 Phase 6 — …` describe blocks in commit `654ffa3`:
+
+1. **`POST hotel + basics.bedrooms: 2.5 (invalid value) strips silently — does NOT return M4_BEDROOMS_INVALID (WR-02)`**  
+   File: `src/__tests__/propertyRoutes.test.js`  
+   Proves hospitality submissions with invalid bedrooms strip silently (no 400) after the WR-02 reorder.
+
+2. **`PUT owner edit apartment with basics.bedrooms: 2.5 returns 400 M4_BEDROOMS_INVALID (IN-04)`**  
+   File: `src/__tests__/propertyRoutes.test.js`  
+   Closes IN-04 (no test for invalid bedrooms on the PUT path) — proves the apartment-PUT 400 path still works after the WR-02 reorder.
+
+3. **`PUT mod edit on hotel with basics.bedrooms: 2.5 (invalid value) strips silently — does NOT return M4_BEDROOMS_INVALID (WR-02)`**  
+   File: `src/__tests__/moderationRoutes.test.js`  
+   Proves the moderation-PUT hotel path also strips silently for invalid bedrooms (uses `original.propertyType` fallback).
+
+Targeted jest run (`npx jest src/__tests__/propertyRoutes.test.js src/__tests__/moderationRoutes.test.js`): **145 passed, 145 total** (was 142 before — 3 new tests, 0 regressions).
+
+### D-09 Ordering — Preserved After Reorder
+
+The WR-02 reorder moved the strip CALL up in both PUT routes; `NESTED_SUBTREES` did not move. Post-fix line anchors:
+
+- `propertyRoutes.js`: `stripResidentialOnlyFields(...)` at **L558**, `const NESTED_SUBTREES` at **L581** — `558 < 581` ✓
+- `moderationRoutes.js`: `stripResidentialOnlyFields(...)` at **L915**, `const NESTED_SUBTREES` at **L936** — `915 < 936` ✓
+
+D-09 invariant (strip BEFORE deep-merge in PUT routes) holds — stale DB `basics.bedrooms` cannot re-leak through partial-subtree merge on hospitality edits.
+
+### Findings Status Post-Closure
+
+| Finding | Status |
+|---------|--------|
+| WR-01 (stale Property.js comment) | **Closed** by dfefc06 |
+| WR-02 (bedrooms 400 ordering vs must_have spec) | **Closed** by 654ffa3 |
+| IN-02 (REQUIREMENTS.md SCHEMA-02 wording) | **Closed** by 40a3200 |
+| IN-04 (no PUT test for invalid bedrooms) | **Closed** by 654ffa3 (Test 2 above) |
+| IN-01 (moderation PUT catch returns 500 on ValidationError) | Deferred — defense-in-depth path, route-layer 400 is primary |
+| IN-03 (no test for bathroomCount: 0 happy-path) | Deferred — `bc < 0` correctly allows 0; no regression risk today |
+| IN-05 (no test for runValidators on moderation findOneAndUpdate) | Deferred — schema validators ARE covered by 8 Property.test.js `.save()` cases |
+
+Three deferred IN-level findings are documentation-or-defensive in nature with no runtime consequence; they remain candidates for M4 backlog / Phase 7+ planning if the surface area expands.
+
+### Commit Chain Post-Closure
+
+| Repo | Pre-closure HEAD | Post-closure HEAD | New commits |
+|------|------------------|-------------------|-------------|
+| backend (`JayTap-services`) | `0272cda` | `654ffa3` | `dfefc06` (WR-01) → `654ffa3` (WR-02 + IN-04) |
+| RN client (`JayTap`) | `eed041e` | _to be updated by Fix 4 commit_ | `40a3200` (IN-02), and the closure-note commit that lands this section |
+
+### Scope Discipline
+
+- STATE.md NOT modified (orchestrator owns it).
+- ROADMAP.md NOT modified (orchestrator owns it).
+- No code touched outside the 3 fixes (Property.js comment + 3 route reorderings + REQUIREMENTS.md wording + 3 tests + this SUMMARY append).
+
+---
 *Phase: 06-schema-extension-backend-mongoose-rn-type-stub-body-strip-va*
 *Plan: 02*
 *Completed: 2026-05-25*
+*Post-review gap closure appended: 2026-05-25*
