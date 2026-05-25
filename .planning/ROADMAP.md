@@ -90,7 +90,12 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
   3. Owner editing an existing listing in edit-owner mode sees stepper rows pre-populated from `property.basics.bedrooms` / `property.basics.bathroomCount` when present, or em-dash display when absent; submitting without changing either field dispatches `undefined` verbatim (no coerce-to-zero); moderator using edit-mod mode can backfill counts without touching other fields.
   4. Stepper `+`/`−` buttons at min/max boundaries render disabled (using `colors.textSecondary`) and ignore taps; hit-slop ≥44pt verified per iOS HIG on physical device.
   5. `validateStep()` accepts `undefined` for both new fields on every applicable property type — submit advances without validation error rows surfacing.
-**Plans**: TBD
+**Plans**: 5 plans
+  - [ ] 07-01-PLAN.md — StepperInput component (FORM-01 + FORM-03) + co-located unit tests (D-11 6 cases)
+  - [ ] 07-02-PLAN.md — i18n keys: 2 labels + 2 error strings × EN/RU (8 entries total; parity gate)
+  - [ ] 07-03-PLAN.md — FormBag.basics extension + adapters (D-07/D-08) + validators defensive Step-3 checks (D-09 / FORM-04)
+  - [ ] 07-04-PLAN.md — Step3BasicInfo conditional stepper rows (FORM-02 / D-05 / D-06) + Step3 integration tests (D-12 ≥4 cases)
+  - [ ] 07-05-PLAN.md — index.tsx propertyType-clear extension + submit-catch M4_* discriminator (D-10 / FORM-05)
 **UI hint**: yes
 
 ### Phase 8: Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen)
@@ -143,7 +148,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 6. Schema Extension | 2/2 | ✅ Complete | 2026-05-25 |
-| 7. Stepper Component + Flow Integration | 0/TBD | Not started | — |
+| 7. Stepper Component + Flow Integration | 0/5 | Planned | — |
 | 8. Display Surfaces | 0/TBD | Not started | — |
 | 9. i18n Audit + Sentinel | 0/TBD | Not started | — |
 | 10. Hardening + QA + Release v4.0.0 | 0/TBD | Not started | — |
@@ -160,4 +165,4 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
 
 ---
 
-*Roadmap last updated: 2026-05-25 — M4 Phase 6 planned (2 plans: 06-01 schema + 06-02 body-strip wiring). M4 v4.0 "Counts & Labels" scoping landed via `/gsd-roadmap` 2026-05-25. 5 phases (Phases 6–10) covering 27 v1 requirements (SCHEMA-01..04 + FORM-01..05 + DISP-01..05 + I18N-01..07 + REL-01..06). Phase numbering continues from M3 (no `--reset-phase-numbers`). M3 v3.0 closed 2026-05-11; collapsed details summaries preserved for M1 + M2 + M3.*
+*Roadmap last updated: 2026-05-25 — M4 Phase 7 planned (5 plans: 07-01 StepperInput component + tests, 07-02 i18n keys, 07-03 FormBag/adapters/validators, 07-04 Step3 integration + tests, 07-05 index.tsx orchestrator wiring). Phase 6 closed 2026-05-25. M4 v4.0 "Counts & Labels" scoping landed via `/gsd-roadmap` 2026-05-25. 5 phases (Phases 6–10) covering 27 v1 requirements (SCHEMA-01..04 + FORM-01..05 + DISP-01..05 + I18N-01..07 + REL-01..06). Phase numbering continues from M3 (no `--reset-phase-numbers`). M3 v3.0 closed 2026-05-11; collapsed details summaries preserved for M1 + M2 + M3.*
