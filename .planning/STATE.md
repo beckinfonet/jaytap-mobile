@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Counts & Labels
-status: executing
-last_updated: "2026-05-25T21:30:45.645Z"
-last_activity: 2026-05-25 -- Phase 06 planning complete
+status: completed
+last_updated: "2026-05-25T22:36:31.238Z"
+last_activity: 2026-05-25 -- Phase 06 marked complete
 progress:
-  total_phases: 1
-  completed_phases: 0
+  total_phases: 6
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 0
-  percent: 0
+  completed_plans: 2
+  percent: 17
 ---
 
 # STATE: JayTap
@@ -21,20 +21,20 @@ See: `.planning/PROJECT.md` (updated 2026-05-11 after v3.0 milestone)
 
 **Core value:** Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek (and KG/KZ/UZ expansion markets) properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
-**Current focus:** M4 v4.0 "Counts & Labels" — roadmap landed 2026-05-25 with 5 phases (Phases 6–10) covering 27 v1 requirements. Next action: `/gsd-plan-phase 6` (Schema Extension — backend Mongoose `basics.bedrooms` + `basics.bathroomCount` + RN type stub + body-strip validator).
+**Current focus:** M4 v4.0 "Counts & Labels" — Phase 6 (Schema Extension) COMPLETE 2026-05-25 (backend cf97bfa + 174a185 + dfab993 + 0272cda + dfefc06 + 654ffa3 on Railway main; RN bc0fa94 + c3a4972 + d5aa7e3 + eed041e + 40a3200 + 9d4270e on main). 1/5 M4 phases done. Next action: `/gsd-plan-phase 7` (Stepper Component + ContextualListingFlow Integration — FORM-01..05).
 
 ## Current Position
 
-Phase: 6 (Schema Extension) — not started
-Plan: —
-Status: Ready to execute
-Last activity: 2026-05-25 -- Phase 06 planning complete
+Phase: 06 — COMPLETE
+Plan: 1 of 2
+Status: Phase 06 complete
+Last activity: 2026-05-25 -- Phase 06 marked complete
 
 ## M4 Phase Map (Phases 6–10)
 
 | # | Phase | Requirements | Status |
 |---|-------|--------------|--------|
-| 6 | Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator) | SCHEMA-01..04 (4) | Not started |
+| 6 | Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator) | SCHEMA-01..04 (4) | ✅ Complete 2026-05-25 |
 | 7 | Stepper Component + ContextualListingFlow Integration | FORM-01..05 (5) | Not started |
 | 8 | Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen) | DISP-01..05 (5) | Not started |
 | 9 | i18n Audit + Sentinel (Property-Type / Category / Deal-Type Display Strings) | I18N-01..07 (7) | Not started |

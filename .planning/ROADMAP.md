@@ -56,7 +56,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
 <details open>
 <summary>🚧 M4 v4.0 "Counts & Labels" (Phases 6–10) — planning started 2026-05-25</summary>
 
-- [ ] **Phase 6: Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator)** — Add optional `basics.bedrooms` (integer) + `basics.bathroomCount` (0.5-step) under M3 nested schema; backend body-strip on residential-only field for hospitality/commercial property types
+- [x] **Phase 6: Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator)** — Add optional `basics.bedrooms` (integer) + `basics.bathroomCount` (0.5-step) under M3 nested schema; backend body-strip on residential-only field for hospitality/commercial property types — completed 2026-05-25
 - [ ] **Phase 7: Stepper Component + ContextualListingFlow Integration** — New reusable `<StepperInput>` component + conditional Step 3 (basics) row integration per property type; create + edit-owner + edit-mod modes wired
 - [ ] **Phase 8: Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen)** — Beds/Baths specs cells read new fields with residential-vs-hospitality fallback resolution; "Bedrooms" vs "Rooms" label distinction
 - [ ] **Phase 9: i18n Audit + Sentinel (Property-Type / Category / Deal-Type Display Strings)** — Audit + wrap every raw English property-type/category/dealType render surface; new `propertyType.*` + `propertyCategory.*` + `dealType.*` EN/RU namespaces + sentinel `check-no-raw-property-type-strings.sh` chained into RN-client jest pre-test
@@ -77,8 +77,8 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
   4. Existing M3 listings that have NO `basics.bedrooms` or `basics.bathroomCount` continue to load and render through every existing read path with zero migration script run (fields are optional; Mongoose ignores absent fields when `required: false`).
   5. RN client `src/types/Property.ts` compiles cleanly with `basics.bedrooms?: number` and `basics.bathroomCount?: number` present; no existing `basics.*` field renamed or removed.
 **Plans**: 2 plans
-  - [ ] 06-01-PLAN.md — Mongoose schema extension (`basics.bedrooms` + `basics.bathroomCount` with `min/max/validate`) + RN client `src/types/Property.ts` type-stub additions + REQUIREMENTS.md D-01/D-02 doc-bug fixes (SCHEMA-01, SCHEMA-02, SCHEMA-03)
-  - [ ] 06-02-PLAN.md — Shared strip-helper utility (`src/utils/stripResidentialOnlyFields.js`) + POST/PUT/moderation-PUT body-strip wiring + route-layer `M4_BATHROOM_STEP_INVALID` / `M4_BEDROOMS_INVALID` 400s + `runValidators: true` defense-in-depth on moderation findOneAndUpdate + post-deploy Railway smoke checkpoint (SCHEMA-04)
+  - [x] 06-01-PLAN.md — Mongoose schema extension (`basics.bedrooms` + `basics.bathroomCount` with `min/max/validate`) + RN client `src/types/Property.ts` type-stub additions + REQUIREMENTS.md D-01/D-02 doc-bug fixes (SCHEMA-01, SCHEMA-02, SCHEMA-03)
+  - [x] 06-02-PLAN.md — Shared strip-helper utility (`src/utils/stripResidentialOnlyFields.js`) + POST/PUT/moderation-PUT body-strip wiring + route-layer `M4_BATHROOM_STEP_INVALID` / `M4_BEDROOMS_INVALID` 400s + `runValidators: true` defense-in-depth on moderation findOneAndUpdate + post-deploy Railway smoke checkpoint (SCHEMA-04)
 
 ### Phase 7: Stepper Component + ContextualListingFlow Integration
 **Goal**: Owner of a residential or hospitality or office/commercial listing can enter and edit bedroom + bathroom counts via tap-only stepper buttons in the existing M3 ContextualListingFlow Step 3 (basics) — across create + edit-owner + edit-mod modes — with bounds-clamped UX and `undefined` preserved as the canonical "not provided" value.
@@ -138,11 +138,11 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
 | M1 v1.0.4 "Polish + Hospitality" | 8/8 (7 executed + Phase 7 SKIPPED) | ✅ SHIPPED | 2026-04-28 |
 | M2 v2.0 "Roles & Moderation" | 6/6 (+ Phase 4.5 inserted) | ✅ SHIPPED | 2026-05-05 |
 | M3 v3.0 "Contextual Forms" | 5/5 | ✅ SHIPPED | 2026-05-11 |
-| M4 v4.0 "Counts & Labels" | 0/5 | 🚧 Planning | — |
+| M4 v4.0 "Counts & Labels" | 1/5 | 🚧 In Progress | — |
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 6. Schema Extension | 0/2 | Planned | — |
+| 6. Schema Extension | 2/2 | ✅ Complete | 2026-05-25 |
 | 7. Stepper Component + Flow Integration | 0/TBD | Not started | — |
 | 8. Display Surfaces | 0/TBD | Not started | — |
 | 9. i18n Audit + Sentinel | 0/TBD | Not started | — |
