@@ -23,6 +23,8 @@ export const FIELD_ORDER_PER_STEP: Record<1 | 2 | 3 | 4 | 5 | 6, string[]> = {
     'basics.kitchen',
     'basics.hotelRooms',
     'basics.hotelClass',
+    'basics.bedrooms',
+    'basics.bathroomCount',
   ],
   4: ['conditionAndAmenities.condition', 'conditionAndAmenities.furnished'],
   5: ['content.title', 'content.description'],
@@ -72,6 +74,26 @@ export function validateStep(stepN: 1 | 2 | 3 | 4 | 5 | 6, values: FormBag): Val
         errors['basics.hotelRooms'] = 'contextualListing.step3.hotelRoomsRequired';
       if (!values.basics.hotelClass)
         errors['basics.hotelClass'] = 'contextualListing.step3.hotelClassRequired';
+    }
+
+    // NEW M4 FORM-04 — defensive only; stepper UI clamps prevent these from firing.
+    // Catches direct-write code paths (e.g., copy/paste from another listing).
+    // FORM-04 lock: undefined is ALWAYS valid — never required on any propertyType.
+    if (
+      values.basics.bedrooms !== undefined &&
+      (!Number.isInteger(values.basics.bedrooms) ||
+        values.basics.bedrooms < 0 ||
+        values.basics.bedrooms > 10)
+    ) {
+      errors['basics.bedrooms'] = 'contextualListing.step3.bedroomsInvalid';
+    }
+    if (
+      values.basics.bathroomCount !== undefined &&
+      (!Number.isInteger(values.basics.bathroomCount * 2) ||
+        values.basics.bathroomCount < 0 ||
+        values.basics.bathroomCount > 10)
+    ) {
+      errors['basics.bathroomCount'] = 'contextualListing.step3.bathroomCountInvalid';
     }
   } else if (stepN === 4) {
     if (!values.conditionAndAmenities.condition)
