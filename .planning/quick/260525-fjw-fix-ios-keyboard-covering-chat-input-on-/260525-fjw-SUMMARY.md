@@ -1,7 +1,7 @@
 ---
 id: 260525-fjw
 type: quick
-status: code-complete-pending-user-qa
+status: complete-pending-user-qa-round-2
 completed: 2026-05-25
 one_liner: "Fix iOS keyboard covering chat composer on ChatThreadScreen + ChatComposeScreen by hoisting the screen-level library `<KeyboardAvoidingView>` (`react-native-keyboard-controller`) outside the chat header — header now sits INSIDE the KAV's coordinate system, so iOS keyboard-avoidance math compensates correctly. Preserves the M1 Phase 2 KBD-02 / §6 SC3.a phase-wide grep gate (`keyboardVerticalOffset` ban) and the load-bearing `behavior=\"padding\"` prop from M1 commit 47a52b7."
 
@@ -157,7 +157,37 @@ The plan's Task 3 is a `checkpoint:human-verify` device walk on iPhone (and oppo
 - No Rule 1/2/3 auto-fixes triggered (no bugs surfaced during the structural transform; the only tsc output on either chat file is the pre-existing `Property` type error set that already exists on `main`, unchanged by these edits — same family as STATE.md's documented `App.tsx Property.tours` pre-existing errors).
 - No Rule 4 architectural decisions needed.
 
-## Pending User QA (Task 3 — checkpoint:human-verify, BLOCKING per plan, deferred per dispatch directive)
+## Round 1 on-device QA (2026-05-25) — layout regression caught + fixed inline
+
+User opened `ChatComposeScreen` on iOS for the round-1 walk. The keyboard-coverage bug was confirmed fixed — composer no longer hidden by the keyboard. **However, a static-layout regression introduced by the KAV hoist was caught:** the header (Back / title / calendar icon), property preview card, and message input were all bottom-aligned with a huge empty black region above them, on both keyboard-up and keyboard-down states.
+
+### Root cause of the regression
+
+The original `ChatComposeScreen` `styles.keyboardView` style was `{ flex: 1, justifyContent: 'flex-end' }`. That `justifyContent: 'flex-end'` was load-bearing in the original layout — the KAV wrapped ONLY the `inputRow` (single child), and the `flex-end` justification pushed that single input to the bottom of the KAV's vertical space (the parent `composeContent` view gave the KAV `flex: 1` of the remaining space below the header + previewCard).
+
+After commit `fd588eb` hoisted the KAV outward to wrap `renderHeader() + previewCard + inputRow`, the KAV had three children — and `justifyContent: 'flex-end'` faithfully bottom-aligned all three (header included). That's the screenshot bug. The keyboard fix itself was correct; the layout regression was a styling oversight in the hoist.
+
+`ChatThreadScreen` had a companion latent bug: the `<FlatList>` had no explicit `flex: 1`, relying on its position as a direct sibling-of-input child of the KAV (with the KAV taking `flex: 1` of its parent). After the hoist, the FlatList sits in a `<>...</>` Fragment with the inputRow as siblings of the header inside the KAV — without an explicit flex it can collapse to zero height and the inputRow doesn't stick to the bottom. Less visible than the ChatCompose regression (no preview card to wedge between header and input) but the same class of issue.
+
+### Round 1 fix-forward commits
+
+| Commit | File | Change |
+|--------|------|--------|
+| `8175715` | `src/screens/ChatComposeScreen.tsx` | Drop `justifyContent: 'flex-end'` from `styles.keyboardView`; insert `<View style={{ flex: 1 }} />` spacer between `previewCard` and `inputRow`. Header sits at top, previewCard right after, spacer fills middle, inputRow sticks to bottom. |
+| `412df18` | `src/screens/ChatThreadScreen.tsx` | Add `style={styles.messagesContainer}` (new `{ flex: 1 }` style) to the `<FlatList>` so it fills the middle between the header and the inputRow now that it has a header sibling inside the KAV. |
+
+### Round 1 verification
+
+- `grep -rn 'keyboardVerticalOffset' src/` → **0** (KBD-02 gate still preserved)
+- `behavior="padding"` retained on both KAVs (M1 commit `47a52b7` invariant untouched)
+- `npx tsc --noEmit` → 0 new errors attributable to either fix-forward edit. The errors that surface on `ChatComposeScreen.tsx` lines 48/76/102/108 are the same Property-type baseline already documented in STATE.md for `260515-iqi` ("3 pre-existing App.tsx Property.tours errors untouched").
+- `ChatComposeScreen` `composeContent: { flex: 1 }` StyleSheet entry — left in place (still dead code; planner's Q2 cleanup remains deferred).
+
+### Lesson — added to memory
+
+A hoist that changes a wrapper's child count can silently invalidate a `justifyContent` or implicit-flex assumption that was correct under the old structure. When restructuring a KAV's children, audit the styles on the KAV AND on the previously-implicit-flex children (e.g., FlatList). Captured as a feedback note alongside [[m1-keyboard-kbd-02-invariants]].
+
+## Pending User QA Round 2 (Task 3 — checkpoint:human-verify, BLOCKING per plan, deferred per dispatch directive)
 
 This fix is **CODE-COMPLETE BUT NOT USER-VERIFIED**. Per dispatch constraint, the user device walk is documented here as pending and execution returns control. The plan's Task 3 verify steps verbatim:
 
