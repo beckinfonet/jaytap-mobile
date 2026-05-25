@@ -1,7 +1,7 @@
 ---
 id: 260525-eva
 type: quick
-status: complete-pending-user-qa
+status: complete
 created: 2026-05-25
 completed: 2026-05-25
 one_liner: "Photos tile in the 2x2 action grid under the 3D Virtual Tour card now gates on a dedicated `getTourPhotosUrl(property)` reader instead of misusing `media.photos[0]`; tile stays visually + functionally disabled today (no schema field yet) and becomes a one-line edit point when the schema decision lands."
@@ -90,17 +90,16 @@ The updated block comment at lines 942–949 references both `getTourPhotosUrl.t
 
 No auto-fixes triggered (no bugs found in adjacent code during execution; the targeted misroute was the only defect, and it was the explicit subject of the task).
 
-## Pending user QA (manual physical-device verification — USER action)
+## On-device QA — PASSED (2026-05-25)
 
-Per plan Task 2 verification block, the following manual QA on one device (iPhone 15 Pro Max OR Moto G XT2513V) is the user's call to run when convenient. It is NOT blocking on the code shipping:
+User confirmed on-device manual QA passed. The Photos tile is now correctly disabled in the 2x2 action grid below the 3D Virtual Tour card; tapping it is a no-op (no JPG-in-WebView misroute). Task is closed.
 
-1. **Open any listing** on `PropertyDetailsScreen` in **dark mode**, then **light mode**.
-2. **Confirm (a):** the top photo carousel still swipes left / right and the pagination dot indicator updates with the swipe (covered by quick task `260515-djv` zoom work).
-3. **Confirm (b):** on a listing that has a 3D Tour URL, the 3D Virtual Tour hero card still opens the WebView; on a listing without one, the hero is still in its disabled state.
-4. **Confirm (c):** the small Photos tile in the 2x2 grid is grayed at ~0.6 opacity (icon + label in `textSecondary`, chevron in `textTertiary`) in both themes.
-5. **Confirm (d):** tapping the small Photos tile produces **no** navigation, **no** WebView push, **no** toast — it is a true no-op today.
+Original verification checklist (all confirmed):
 
-If any of (a)–(d) fail, surface as a new quick task; the fix here intentionally produces a disabled tile until the schema decision lands.
+1. Top photo carousel still swipes left / right with pagination indicator updating.
+2. 3D Virtual Tour hero card still opens the WebView on listings with a tour URL.
+3. Photos tile in the 2x2 grid is grayed at ~0.6 opacity (icon + label in `textSecondary`, chevron in `textTertiary`) in both themes.
+4. Tapping the small Photos tile produces no navigation / no WebView push / no toast.
 
 ## Out of Scope (deferred — milestone-shaped)
 
