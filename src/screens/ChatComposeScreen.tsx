@@ -112,6 +112,7 @@ export const ChatComposeScreen: React.FC<ChatComposeScreenProps> = ({
             </Text>
           </View>
         </View>
+        <View style={{ flex: 1 }} />
         <View style={[styles.inputRow, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
           <TextInput
             style={[styles.input, { color: colors.text, backgroundColor: colors.inputBackground }]}
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
   previewText: { flex: 1, marginLeft: 12 },
   previewTitle: { fontSize: 16, fontWeight: '600', marginBottom: 2 },
   previewSubtitle: { fontSize: 13 },
-  keyboardView: { flex: 1, justifyContent: 'flex-end' },
+  keyboardView: { flex: 1 },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
