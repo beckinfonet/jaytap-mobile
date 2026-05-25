@@ -669,6 +669,11 @@ export const en = {
   'contextualListing.step3.hotelClass.standard': 'Standard',
   'contextualListing.step3.hotelClass.comfort': 'Comfort',
   'contextualListing.step3.hotelClass.premium': 'Premium',
+  // Phase 07 (Plan 07-02) — bedrooms + bathroomCount stepper keys (FORM-02, FORM-04).
+  'contextualListing.step3.bedroomsLabel': 'Bedrooms',
+  'contextualListing.step3.bedroomsInvalid': 'Bedrooms must be a whole number between 0 and 10.',
+  'contextualListing.step3.bathroomCountLabel': 'Bathrooms',
+  'contextualListing.step3.bathroomCountInvalid': 'Bathrooms must be a whole or half number between 0 and 10.',
 
   // Phase 2 (Plan 02-04a) — ContextualListingFlow Step 4: Condition + Furnished (FLOW-09).
   // Required for every propertyType including hotel/hostel per CONTEXT §Decisions Log #4.
