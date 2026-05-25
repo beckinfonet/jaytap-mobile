@@ -65,8 +65,8 @@ Run `/gsd-new-milestone` to initiate M4 scoping. Candidate v1 requirements from 
 - Push notifications / email notifications for moderation events.
 - Bulk moderation actions (multi-select approve/reject).
 - Real-estate document verification (Avito-style ownership proof — multi-month compliance subproject).
-
-M4 carry-forward items (7) — see `.planning/milestones/v3.0-ROADMAP.md` § "Known Gaps at Close" — should be triaged into M4 scope or deferred again.
+- **Bedroom count schema field** (separate from total `basics.rooms`) — Central Asia "3-room apartment" colloquially counts the living room as a room, so "3 rooms" ≠ "3 bedrooms"; foreigners read it the Western way and miscount. Display BOTH counts on cards / details / filters. Seeded 2026-05-25 from QA on quick task 260525-ggp. Cross-repo: frontend `Property.ts` + `ContextualListingFlow/Step3BasicInfo.tsx` + `adapters.ts` + `validators.ts` + render in `PropertyCard.tsx` + `PropertyDetailsScreen.tsx` + `ListingMetaTable.tsx` + EN/RU i18n + tests; backend Mongoose schema + create/update routes. See memory `central-asia-rooms-vs-bedrooms-convention.md` for the domain context the M4 planner must honor.
+- **Bathroom count across all property types** — M3 captured `basics.bathroom` as a TYPE enum (`private`/`shared`/`none`) for office/commercial only by design (Step3 lines 192–230). User requires bathroom COUNT captured for residential + hospitality too (offices can have private vs shared bathrooms, but the count matters everywhere). Seeded 2026-05-25 from QA on quick task 260525-ggp. Cross-repo, same surface as the bedroom field; includes a migration decision (keep the existing type enum AND add count, or replace it). M3 Phase 1 D-07 decision being unwound on this one — needs explicit M4 ADR.
 
 ## Progress
 
