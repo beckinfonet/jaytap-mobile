@@ -194,46 +194,48 @@ export const ChatThreadScreen: React.FC<ChatThreadScreenProps> = ({
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      {renderHeader()}
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.accent} />
-        </View>
-      ) : (
-        <KeyboardAvoidingView behavior="padding" style={styles.keyboardView}>
-          <FlatList
-            ref={flatListRef}
-            data={messages}
-            keyExtractor={(item) => item.id}
-            renderItem={renderMessage}
-            contentContainerStyle={styles.messagesList}
-            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-          />
-          <View style={[styles.inputRow, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-            <TextInput
-              style={[styles.input, { color: colors.text, backgroundColor: colors.inputBackground }]}
-              placeholder={t('chat.typeMessageThread')}
-              placeholderTextColor={colors.textSecondary}
-              value={inputText}
-              onChangeText={setInputText}
-              multiline
-              maxLength={2000}
-              editable={!sending}
-            />
-            <TouchableOpacity
-              style={[styles.sendButton, { backgroundColor: colors.accent }]}
-              onPress={handleSend}
-              disabled={!inputText.trim() || sending}
-            >
-              {sending ? (
-                <ActivityIndicator size="small" color="#FFF" />
-              ) : (
-                <Send size={20} color="#FFF" />
-              )}
-            </TouchableOpacity>
+      <KeyboardAvoidingView behavior="padding" style={styles.keyboardView}>
+        {renderHeader()}
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.accent} />
           </View>
-        </KeyboardAvoidingView>
-      )}
+        ) : (
+          <>
+            <FlatList
+              ref={flatListRef}
+              data={messages}
+              keyExtractor={(item) => item.id}
+              renderItem={renderMessage}
+              contentContainerStyle={styles.messagesList}
+              onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            />
+            <View style={[styles.inputRow, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+              <TextInput
+                style={[styles.input, { color: colors.text, backgroundColor: colors.inputBackground }]}
+                placeholder={t('chat.typeMessageThread')}
+                placeholderTextColor={colors.textSecondary}
+                value={inputText}
+                onChangeText={setInputText}
+                multiline
+                maxLength={2000}
+                editable={!sending}
+              />
+              <TouchableOpacity
+                style={[styles.sendButton, { backgroundColor: colors.accent }]}
+                onPress={handleSend}
+                disabled={!inputText.trim() || sending}
+              >
+                {sending ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <Send size={20} color="#FFF" />
+                )}
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
