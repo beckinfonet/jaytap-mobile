@@ -28,6 +28,8 @@ export interface FormBag {
     kitchen?: 'private' | 'none' | 'shared';
     hotelRooms?: '1' | '2' | '3' | '4+';
     hotelClass?: 'economy' | 'standard' | 'comfort' | 'premium';
+    bedrooms?: number; // M4 FORM-02 — integer 0–10; apartment/house only (D-07)
+    bathroomCount?: number; // M4 FORM-02 — 0.5-step 0–10; apartment/house/hotel/hostel/office/commercial (D-07)
   };
 
   // === Step 4 ===
