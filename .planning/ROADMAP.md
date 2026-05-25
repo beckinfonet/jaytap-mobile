@@ -76,7 +76,9 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
   3. Posting a hotel listing with `basics.bedrooms: 3` in the body silently strips the field — backend response shows no `basics.bedrooms` on the persisted document, no 400 raised, no log noise (matches M3 D-13 strip-wins pattern).
   4. Existing M3 listings that have NO `basics.bedrooms` or `basics.bathroomCount` continue to load and render through every existing read path with zero migration script run (fields are optional; Mongoose ignores absent fields when `required: false`).
   5. RN client `src/types/Property.ts` compiles cleanly with `basics.bedrooms?: number` and `basics.bathroomCount?: number` present; no existing `basics.*` field renamed or removed.
-**Plans**: TBD
+**Plans**: 2 plans
+  - [ ] 06-01-PLAN.md — Mongoose schema extension (`basics.bedrooms` + `basics.bathroomCount` with `min/max/validate`) + RN client `src/types/Property.ts` type-stub additions + REQUIREMENTS.md D-01/D-02 doc-bug fixes (SCHEMA-01, SCHEMA-02, SCHEMA-03)
+  - [ ] 06-02-PLAN.md — Shared strip-helper utility (`src/utils/stripResidentialOnlyFields.js`) + POST/PUT/moderation-PUT body-strip wiring + route-layer `M4_BATHROOM_STEP_INVALID` / `M4_BEDROOMS_INVALID` 400s + `runValidators: true` defense-in-depth on moderation findOneAndUpdate + post-deploy Railway smoke checkpoint (SCHEMA-04)
 
 ### Phase 7: Stepper Component + ContextualListingFlow Integration
 **Goal**: Owner of a residential or hospitality or office/commercial listing can enter and edit bedroom + bathroom counts via tap-only stepper buttons in the existing M3 ContextualListingFlow Step 3 (basics) — across create + edit-owner + edit-mod modes — with bounds-clamped UX and `undefined` preserved as the canonical "not provided" value.
@@ -140,7 +142,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 6. Schema Extension | 0/TBD | Not started | — |
+| 6. Schema Extension | 0/2 | Planned | — |
 | 7. Stepper Component + Flow Integration | 0/TBD | Not started | — |
 | 8. Display Surfaces | 0/TBD | Not started | — |
 | 9. i18n Audit + Sentinel | 0/TBD | Not started | — |
@@ -158,4 +160,4 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
 
 ---
 
-*Roadmap last updated: 2026-05-25 — M4 v4.0 "Counts & Labels" scoping landed via `/gsd-roadmap`. 5 phases (Phases 6–10) covering 27 v1 requirements (SCHEMA-01..04 + FORM-01..05 + DISP-01..05 + I18N-01..07 + REL-01..06). Phase numbering continues from M3 (no `--reset-phase-numbers`). M3 v3.0 closed 2026-05-11; collapsed details summaries preserved for M1 + M2 + M3.*
+*Roadmap last updated: 2026-05-25 — M4 Phase 6 planned (2 plans: 06-01 schema + 06-02 body-strip wiring). M4 v4.0 "Counts & Labels" scoping landed via `/gsd-roadmap` 2026-05-25. 5 phases (Phases 6–10) covering 27 v1 requirements (SCHEMA-01..04 + FORM-01..05 + DISP-01..05 + I18N-01..07 + REL-01..06). Phase numbering continues from M3 (no `--reset-phase-numbers`). M3 v3.0 closed 2026-05-11; collapsed details summaries preserved for M1 + M2 + M3.*
