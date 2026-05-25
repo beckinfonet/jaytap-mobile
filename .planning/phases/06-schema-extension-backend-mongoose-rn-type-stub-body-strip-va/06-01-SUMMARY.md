@@ -45,7 +45,7 @@ metrics:
 commits:
   backend: cf97bfa
   rn_client_task2: bc0fa94
-  rn_client_summary: <set-after-final-commit>
+  rn_client_summary: c3a4972
 ---
 
 # Phase 6 Plan 01: Schema Extension (Mongoose + RN Type Stub + Doc-Bug Fixes) Summary
@@ -190,7 +190,7 @@ None encountered. All work was local file edits + local jest + local tsc.
 |------|--------|------------|-------|
 | backend (`JayTap-services`) | `main` | `cf97bfa` | `src/models/Property.js`, `src/__tests__/Property.test.js` |
 | RN client (`JayTap`) — Task 2 code | `main` | `bc0fa94` | `src/types/Property.ts`, `.planning/REQUIREMENTS.md` |
-| RN client (`JayTap`) — SUMMARY metadata | `main` | `<set-after-final-commit>` | `.planning/phases/06-…/06-01-SUMMARY.md` |
+| RN client (`JayTap`) — SUMMARY metadata | `main` | `c3a4972` | `.planning/phases/06-…/06-01-SUMMARY.md` |
 
 Both code commits carry the `feat(06):` prefix per project convention; both are grep-able by `git log --grep "feat(06)"` in their respective repos.
 
