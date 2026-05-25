@@ -8,21 +8,37 @@ JayTap is a mobile real-estate app for Central Asia (current launch market: Bish
 
 Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
-## Current Milestone: M4 (planning pending)
+## Current Milestone: v4.0 M4 "Counts & Labels"
 
-**Status:** No milestone scoped yet. Initiate via `/gsd-new-milestone`.
+**Goal:** Fix the M3 data-model gap (rooms ≠ bedrooms; bathroom enum ≠ bathroom count) and the i18n gap for property-type display strings, so every listing card and details screen renders the counts and labels Central Asian renters/buyers actually search by.
 
-**Candidate v1 requirements** for M4 scoping (from `milestones/v3.0-REQUIREMENTS.md` § "Future Requirements (M4+ — deferred)"): KZT + UZS currency support for KG+KZ+UZ market expansion; multi-language localization beyond EN+RU (KK + UZ); 2GIS native map bridge (multi-week — plan drafted in `2GIS_BRIDGE_PLAN.md`); automated/AI moderation (image/text classifiers); full audit log UI (`moderationLog` + `roleChangeLog` data already captured in M2); push notifications / email notifications for moderation events; bulk moderation actions (multi-select approve/reject); real-estate document verification (Avito-style ownership proof — multi-month compliance subproject).
+**Target features:**
 
-**M4 carry-forward triage (7 items from M3 close — `milestones/v3.0-ROADMAP.md` § Known Gaps at Close):**
+1. **Bedroom count** — NEW optional `basics.bedrooms` (integer) on Apartment + House. Lives ALONGSIDE existing `basics.rooms` (total-rooms incl. living room) per Central Asia "3-room = 2bd + living" convention (memory `central-asia-rooms-vs-bedrooms-convention.md`). Hotel + Hostel use existing `basics.hotelRooms` verbatim — schema unchanged; display-label only.
+2. **Bathroom count** — NEW optional `basics.bathroomCount` (number, 0.5 increments) on Apartment + House + Hotel + Hostel + Office + Commercial. Lives ALONGSIDE existing `basics.bathroom` enum (type: shared/private) on office + commercial — different attribute (count vs type).
+3. **Stepper-button form UX** in `<ContextualListingFlow>`. Range 0–10 for bedrooms (integers); 0–10 in 0.5 steps for bathroom count. New conditional rows wired per property type.
+4. **Display surfaces updated** — `PropertyCard`, `HospitalityCard`, `PropertyDetailsScreen` specs row (Beds | Baths | m²). Hospitality continues to read `hotelRooms` but with the localized "Rooms" label distinct from "Bedrooms".
+5. **Full i18n audit + fix** for property-type / property-category / deal-type display strings. `HomeScreen.tsx:514` + every other surface that renders `PROPERTY_TYPES`, `propertyCategoryToCategory()`, or dealType labels as raw English. Wrap via existing `t()` + EN/RU keys. Closes the i18n gap flagged in 260525-ggp's Out of Scope.
 
-1. Race-cell test rig (carried from M2 close again — coordinated-curl OR Bluetooth-trigger-pair sync for MOD-15 + ROLE-11 + HF-04 race coverage).
-2. Android `clean bundleRelease` reanimated prefab gotcha — release runbook doc (`scripts/release-android.md` or `bundleReleaseSafe` gradle wrapper).
-3. AWS IAM cross-project residual — re-open when other project unblocks scoping the OLD shared IAM user away from JayTap bucket ARN.
-4. CARRY-01 banner-latency device walk (opt-in if regressions surface; automatable parts already covered via RTL smoke).
-5. CARRY-02 live Atlas uid-match device walk (opt-in if regressions surface; supertest already proves invariant).
-6. `JayTap-orphan-data-cleanup` — drop pre-patch orphan collections from Atlas (non-blocking; data-hygiene).
-7. `ATLAS-CRED-ROTATION` — defense-in-depth Atlas password rotation (non-blocking; last rotation 2026-04-29 per M2 HF-02).
+**Key constraints:**
+
+- All new fields are **optional everywhere** — no migration, no backfill, no MEDIA_REQUIRED-style backend gate. Missing → `'-'` fallback (matches today's display pattern). No `migrate-listings-m4.js` needed.
+- M3 nested schema (`basics.*`) extends in place — no schema-shape change, just two new optional fields under `basics`.
+- Phase numbering continues from M3 → M4 starts at **Phase 6** (no `--reset-phase-numbers`).
+- Backend Node ≥22.12 / `nvm use 24` rule carries forward (jose@6 ESM-only).
+- M1 D-02 "trust Play Console for Android versionCode" lesson applies at release (pattern fired twice — M1 + M3).
+
+**Deferred (Out of Scope for v4.0; remain as M4-carry-forward / FUTURE candidates for M5+):**
+
+- KZT + UZS currency support — KG+KZ+UZ market expansion
+- Multi-language localization (KK + UZ)
+- 2GIS native map bridge — multi-week (`2GIS_BRIDGE_PLAN.md`)
+- Automated/AI moderation (image/text classifiers)
+- Full audit log UI (`moderationLog` + `roleChangeLog` data already captured in M2)
+- Push notifications / email notifications for moderation events
+- Bulk moderation actions (multi-select approve/reject)
+- Real-estate document verification (Avito-style ownership proof — multi-month compliance subproject)
+- 7 M4 carry-forward triage items (from M3 close): race-cell test rig (carried from M2 close again); Android `clean bundleRelease` reanimated prefab gotcha runbook (`scripts/release-android.md` or `bundleReleaseSafe` gradle wrapper); AWS IAM cross-project residual; CARRY-01 banner-latency device walk; CARRY-02 live Atlas uid-match device walk; `JayTap-orphan-data-cleanup` (drop pre-patch orphan Atlas collections); `ATLAS-CRED-ROTATION` (defense-in-depth Atlas password rotation; last rotation 2026-04-29 per M2 HF-02).
 
 ## Previous Milestone: v3.0 M3 "Contextual Forms" (Shipped 2026-05-11)
 
@@ -250,4 +266,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-11 after v3.0 milestone — M3 "Contextual Forms" shipped to ASC TestFlight Internal (iOS 3.0.0 build 29) + Play Console Internal Testing (Android 3.0.1 versionCode 32). All 38 v1 requirements strictly `[x]` at close. M4 planning unblocked.*
+*Last updated: 2026-05-25 — v4.0 M4 "Counts & Labels" scoping started via `/gsd-new-milestone`. Schema-augmentation milestone (NEW optional `basics.bedrooms` + `basics.bathroomCount`) + property-type i18n audit. Phase numbering continues from M3 (M4 starts at Phase 6). M3 v3.0 "Contextual Forms" shipped 2026-05-11 to ASC TestFlight Internal (iOS 3.0.0 build 29) + Play Console Internal Testing (Android 3.0.1 versionCode 32).*
