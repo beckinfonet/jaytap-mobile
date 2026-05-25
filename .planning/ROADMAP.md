@@ -5,7 +5,7 @@
 - ✅ **M1 v1.0.4 "Polish + Hospitality"** — 8 phases (shipped 2026-04-28) — see [milestones/v1.0.4-ROADMAP.md](milestones/v1.0.4-ROADMAP.md)
 - ✅ **M2 v2.0 "Roles & Moderation"** — 6 phases + Phase 4.5 inserted (shipped 2026-05-05) — see [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md)
 - ✅ **M3 v3.0 "Contextual Forms"** — 5 phases (shipped 2026-05-11) — see [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
-- 📋 **M4** — planning pending — to be initiated via `/gsd-new-milestone`
+- 🚧 **M4 v4.0 "Counts & Labels"** — 5 phases (Phases 6–10) — planning in progress (started 2026-05-25)
 
 ## Phases
 
@@ -53,20 +53,81 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
 
 </details>
 
-### 📋 M4 (planning pending)
+<details open>
+<summary>🚧 M4 v4.0 "Counts & Labels" (Phases 6–10) — planning started 2026-05-25</summary>
 
-Run `/gsd-new-milestone` to initiate M4 scoping. Candidate v1 requirements from FUTURE Requirements list (in `milestones/v3.0-REQUIREMENTS.md` § "Future Requirements (M4+ — deferred)"):
+- [ ] **Phase 6: Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator)** — Add optional `basics.bedrooms` (integer) + `basics.bathroomCount` (0.5-step) under M3 nested schema; backend body-strip on residential-only field for hospitality/commercial property types
+- [ ] **Phase 7: Stepper Component + ContextualListingFlow Integration** — New reusable `<StepperInput>` component + conditional Step 3 (basics) row integration per property type; create + edit-owner + edit-mod modes wired
+- [ ] **Phase 8: Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen)** — Beds/Baths specs cells read new fields with residential-vs-hospitality fallback resolution; "Bedrooms" vs "Rooms" label distinction
+- [ ] **Phase 9: i18n Audit + Sentinel (Property-Type / Category / Deal-Type Display Strings)** — Audit + wrap every raw English property-type/category/dealType render surface; new `propertyType.*` + `propertyCategory.*` + `dealType.*` EN/RU namespaces + sentinel `check-no-raw-property-type-strings.sh` chained into RN-client jest pre-test
+- [ ] **Phase 10: Hardening + Manual Physical-Device QA + Release v4.0.0** — Wave-1 query-first artifacts (PREFLIGHT / STORE-HISTORY / RELEASE-NOTES / BACKEND-DEPLOY / INHERITANCE-AUDIT) + Wave-2 atomic v4.0.0 bump + Wave-3 manual physical-device QA matrix walked APPROVED on iPhone 15 Pro Max + Moto G XT2513V + Wave-4 dual-store submission
 
-- KZT + UZS currency support — KG+KZ+UZ market expansion (Almaty / Tashkent serviceAreas).
-- Multi-language localization beyond EN+RU (KK + UZ if KZ/UZ markets warrant it).
-- 2GIS native map bridge — multi-week effort; plan drafted in `2GIS_BRIDGE_PLAN.md`.
-- Automated/AI moderation (image/text classifiers).
-- Full audit log UI (`moderationLog` + `roleChangeLog` data captured in M2; UI deferred).
-- Push notifications / email notifications for moderation events.
-- Bulk moderation actions (multi-select approve/reject).
-- Real-estate document verification (Avito-style ownership proof — multi-month compliance subproject).
-- **Bedroom count schema field** (separate from total `basics.rooms`) — Central Asia "3-room apartment" colloquially counts the living room as a room, so "3 rooms" ≠ "3 bedrooms"; foreigners read it the Western way and miscount. Display BOTH counts on cards / details / filters. Seeded 2026-05-25 from QA on quick task 260525-ggp. Cross-repo: frontend `Property.ts` + `ContextualListingFlow/Step3BasicInfo.tsx` + `adapters.ts` + `validators.ts` + render in `PropertyCard.tsx` + `PropertyDetailsScreen.tsx` + `ListingMetaTable.tsx` + EN/RU i18n + tests; backend Mongoose schema + create/update routes. See memory `central-asia-rooms-vs-bedrooms-convention.md` for the domain context the M4 planner must honor.
-- **Bathroom count across all property types** — M3 captured `basics.bathroom` as a TYPE enum (`private`/`shared`/`none`) for office/commercial only by design (Step3 lines 192–230). User requires bathroom COUNT captured for residential + hospitality too (offices can have private vs shared bathrooms, but the count matters everywhere). Seeded 2026-05-25 from QA on quick task 260525-ggp. Cross-repo, same surface as the bedroom field; includes a migration decision (keep the existing type enum AND add count, or replace it). M3 Phase 1 D-07 decision being unwound on this one — needs explicit M4 ADR.
+</details>
+
+## Phase Details
+
+### Phase 6: Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator)
+**Goal**: Backend Mongoose schema accepts two new optional `basics.*` fields with correct range/step validation, RN client type stub reflects them, and residential-only `basics.bedrooms` is silently stripped on hospitality/commercial submissions — without breaking any existing M3 listing read/write path.
+**Depends on**: Nothing within M4 (foundation phase; builds on M3 nested schema baseline at SHA `5bf23fe`).
+**Requirements**: SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04
+**Success Criteria** (what must be TRUE):
+  1. Posting a new apartment listing with `basics.bedrooms: 2` and `basics.bathroomCount: 1.5` persists both values to MongoDB and round-trips through GET unchanged.
+  2. Posting a non-integer `basics.bedrooms` value (e.g. `2.5`) is rejected by Mongoose validation; posting a non-0.5-step `basics.bathroomCount` (e.g. `1.3`) is rejected by Mongoose validation; both rejections surface as 400 to the client.
+  3. Posting a hotel listing with `basics.bedrooms: 3` in the body silently strips the field — backend response shows no `basics.bedrooms` on the persisted document, no 400 raised, no log noise (matches M3 D-13 strip-wins pattern).
+  4. Existing M3 listings that have NO `basics.bedrooms` or `basics.bathroomCount` continue to load and render through every existing read path with zero migration script run (fields are optional; Mongoose ignores absent fields when `required: false`).
+  5. RN client `src/types/Property.ts` compiles cleanly with `basics.bedrooms?: number` and `basics.bathroomCount?: number` present; no existing `basics.*` field renamed or removed.
+**Plans**: TBD
+
+### Phase 7: Stepper Component + ContextualListingFlow Integration
+**Goal**: Owner of a residential or hospitality or office/commercial listing can enter and edit bedroom + bathroom counts via tap-only stepper buttons in the existing M3 ContextualListingFlow Step 3 (basics) — across create + edit-owner + edit-mod modes — with bounds-clamped UX and `undefined` preserved as the canonical "not provided" value.
+**Depends on**: Phase 6 (form binds to new schema fields; type stub must exist before stepper writes through to the payload).
+**Requirements**: FORM-01, FORM-02, FORM-03, FORM-04, FORM-05
+**Success Criteria** (what must be TRUE):
+  1. Owner creating a new apartment listing in ContextualListingFlow Step 3 sees a bedrooms stepper row (0–10, step 1) AND a bathrooms stepper row (0–10, step 0.5); tapping `+` from empty initializes to `0`; `−` at `0` is a no-op; values render in the stepper's value-display cell.
+  2. Owner creating a hotel/hostel/office/commercial listing in Step 3 sees ONLY the bathroom-count stepper row (no bedrooms row) — confirming the conditional row logic respects property type.
+  3. Owner editing an existing listing in edit-owner mode sees stepper rows pre-populated from `property.basics.bedrooms` / `property.basics.bathroomCount` when present, or em-dash display when absent; submitting without changing either field dispatches `undefined` verbatim (no coerce-to-zero); moderator using edit-mod mode can backfill counts without touching other fields.
+  4. Stepper `+`/`−` buttons at min/max boundaries render disabled (using `colors.textSecondary`) and ignore taps; hit-slop ≥44pt verified per iOS HIG on physical device.
+  5. `validateStep()` accepts `undefined` for both new fields on every applicable property type — submit advances without validation error rows surfacing.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 8: Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen)
+**Goal**: Every browse + details surface (PropertyCard, HospitalityCard, PropertyDetailsScreen specs row) renders the correct beds/baths/rooms count per property type with localized labels distinguishing "Bedrooms" (residential) from "Rooms" (hospitality), and falls back to `'-'` when the count is absent — preserving the M3 + 260525-i2i canonical specs-row layout.
+**Depends on**: Phase 6 (display reads new schema fields).
+**Requirements**: DISP-01, DISP-02, DISP-03, DISP-04, DISP-05
+**Success Criteria** (what must be TRUE):
+  1. Browsing the Home screen, an apartment with `basics.bedrooms: 2` renders the PropertyCard Beds cell as `2` with the label "Bedrooms" (EN) / "Спальни" (RU); a hotel listing renders the Beds cell from `basics.hotelRooms` with the label "Rooms" / "Комнаты"; an apartment with no bedroom data renders `'-'`.
+  2. Browsing the Home screen, every Baths cell renders `basics.bathroomCount` when present (decimals as `1.5`, `2.5`, etc.) with the label "Bathrooms" / "Ванные"; falls back to `'-'` when absent; Land listings render `'-'` for layout consistency.
+  3. Opening a PropertyDetailsScreen on a residential listing shows the canonical Beds | Baths | m² specs row with "Bedrooms" / "Спальни" label; opening one on a hospitality listing shows "Rooms" / "Комнаты" — m² placement preserved from quick task 260525-i2i (canonical specs row only; no duplicate).
+  4. HospitalityCard continues rendering `basics.hotelRooms` with the "Rooms" label unchanged AND adds a bathroomCount line when `basics.bathroomCount` is present (visual treatment matches existing M1 Phase 6 tour-first density).
+  5. EN+RU lockstep parity gate (`scripts/check-i18n-parity.sh`) exits 0 after the specs-row label key additions; no raw English strings added to any new render path.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 9: i18n Audit + Sentinel (Property-Type / Category / Deal-Type Display Strings)
+**Goal**: Every render surface in `src/` that shows a property type, property category, or deal type to the user reads from EN/RU keys instead of raw English literals — and a new CI sentinel prevents the regression from ever returning.
+**Depends on**: Phase 6 (no hard dep but executes after schema lands); independent of Phase 7/8 in scope but the new specs-row label keys added in Phase 8 should align with the new namespaces seeded here.
+**Requirements**: I18N-01, I18N-02, I18N-03, I18N-04, I18N-05, I18N-06, I18N-07
+**Success Criteria** (what must be TRUE):
+  1. RU-locale user opening the Home screen sees Russian property-type labels (Квартира / Дом / Гостиница / Хостел / Офис / Коммерческое) on the chip filter row — not raw English — closing the `HomeScreen.tsx:514` finding from 260525-ggp.
+  2. RU-locale user navigating every other surface that renders a property type / category / deal type sees the localized label (verified via the audit-produced `file:line` reference list — no surface left raw).
+  3. EN-locale user sees the corresponding English labels routed through the same `t()` mechanism (not raw constants) — proven by EN+RU parity (`scripts/check-i18n-parity.sh` exit 0).
+  4. New sentinel `scripts/check-no-raw-property-type-strings.sh` exits 0 against the post-fix codebase AND exits non-zero against a deliberately-introduced raw `<Text>Apartment</Text>` regression (proven via the sentinel's own test or audit hook); sentinel chained into RN-client jest pre-test step.
+  5. `PROPERTY_TYPES` exported constant either keeps Pascal-cased IDs translated at render-site via `t('propertyType.' + id.toLowerCase())` OR is replaced with `{ id, labelKey }` object arrays — the chosen path passes both I18N-05 and I18N-06 with zero raw-string surface remaining.
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 10: Hardening + Manual Physical-Device QA + Release v4.0.0
+**Goal**: M4 ships to ASC TestFlight Internal Testing + Play Console Internal Testing as v4.0.0 with the M1 D-02 pre-archive store-history check applied upfront, all six release reqs satisfied, and zero new data-collecting SDKs or auth provider additions to trigger privacy/entitlement re-touch.
+**Depends on**: Phases 6–10 (all M4 surfaces must be shipped and passing before QA matrix walks; backend live + healthy on Railway).
+**Requirements**: REL-01, REL-02, REL-03, REL-04, REL-05, REL-06
+**Success Criteria** (what must be TRUE):
+  1. iPhone 15 Pro Max + Moto G XT2513V physical-device QA matrix walked APPROVED with FAIL=0 across stepper input + display surfaces + RU locale parity + M1 KBD-02 keyboard regression check + M3 contextual flow regression check; empirical-sampling-mass-disposition (M3 RETROSPECTIVE.md lesson 4) acceptable for feature-surface cells, walk-and-confirm required for golden-path cells.
+  2. RN client `package.json` shows version `4.0.0`; iOS `MARKETING_VERSION 4.0.0` (Debug + Release) + `CURRENT_PROJECT_VERSION` next-from-Path-B-store-history; Android `versionName 4.0.x` + `versionCode` next-from-Path-B-store-history — all derived from Wave-1 pre-archive Play Console + TestFlight queries (M1 D-02 pattern; fired twice — must not fire a third time at archive).
+  3. Bilingual EN+RU release notes drafted under the 500-char Play Console binding limit, region-neutral phrasing per memory `geographic-scope.md`, pasted on both ASC + Play Console.
+  4. Backend live + healthy on Railway at release SHA; sentinel chain green end-to-end (`actoruid → landlord-uid → media-stripped → i18n-parity → create-listing-screen-removed → jest` on backend; `check-no-raw-property-type-strings → jest` on RN client); `firebase-admin` confirmed absent for the 4th consecutive milestone.
+  5. v4.0.0 visible in ASC TestFlight Internal Testing track + Play Console Internal Testing track (per M1 D-12: TestFlight Internal + Play Console Internal Testing visibility = phase-exit); M1 D-13 inheritance descope honored (privacy manifest, App Privacy responses, Data Safety questionnaire, entitlements re-touched only if a new data-collecting SDK landed during M4).
+**Plans**: TBD
 
 ## Progress
 
@@ -75,7 +136,15 @@ Run `/gsd-new-milestone` to initiate M4 scoping. Candidate v1 requirements from 
 | M1 v1.0.4 "Polish + Hospitality" | 8/8 (7 executed + Phase 7 SKIPPED) | ✅ SHIPPED | 2026-04-28 |
 | M2 v2.0 "Roles & Moderation" | 6/6 (+ Phase 4.5 inserted) | ✅ SHIPPED | 2026-05-05 |
 | M3 v3.0 "Contextual Forms" | 5/5 | ✅ SHIPPED | 2026-05-11 |
-| M4 | — | 📋 Planning pending | — |
+| M4 v4.0 "Counts & Labels" | 0/5 | 🚧 Planning | — |
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 6. Schema Extension | 0/TBD | Not started | — |
+| 7. Stepper Component + Flow Integration | 0/TBD | Not started | — |
+| 8. Display Surfaces | 0/TBD | Not started | — |
+| 9. i18n Audit + Sentinel | 0/TBD | Not started | — |
+| 10. Hardening + QA + Release v4.0.0 | 0/TBD | Not started | — |
 
 ## Backlog
 
@@ -89,4 +158,4 @@ Run `/gsd-new-milestone` to initiate M4 scoping. Candidate v1 requirements from 
 
 ---
 
-*Roadmap last updated: 2026-05-11 — M3 v3.0 "Contextual Forms" milestone closed via `/gsd-complete-milestone`. All three shipped milestones collapsed into details summaries; M4 placeholder added for next milestone planning.*
+*Roadmap last updated: 2026-05-25 — M4 v4.0 "Counts & Labels" scoping landed via `/gsd-roadmap`. 5 phases (Phases 6–10) covering 27 v1 requirements (SCHEMA-01..04 + FORM-01..05 + DISP-01..05 + I18N-01..07 + REL-01..06). Phase numbering continues from M3 (no `--reset-phase-numbers`). M3 v3.0 closed 2026-05-11; collapsed details summaries preserved for M1 + M2 + M3.*

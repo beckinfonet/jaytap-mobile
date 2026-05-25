@@ -81,10 +81,10 @@ Audit + fix every surface in `src/` that renders `PROPERTY_TYPES`, `propertyCate
 Standard 6-req release block following the M2 + M3 pattern.
 
 - [ ] **REL-01** RN client `package.json` bumped to `4.0.0`. Atomic commit alongside REL-02.
-- [ ] **REL-02** iOS `MARKETING_VERSION 4.0.0` (Debug + Release) + `CURRENT_PROJECT_VERSION` next-from-Path-B-store-history + Android `versionName "4.0.0"` (or whatever Path B yields after Play Console history check) + `versionCode` next-from-Path-B-store-history. Per M1 D-02 lesson (pattern fired twice — M1 + M3): pre-archive Wave-0 MUST query Play Console + TestFlight for highest-accepted version-code per track BEFORE setting baseline. Avoids reactive bumps at archive time. Documented in `M-PHASE-STORE-HISTORY.md` (where M-PHASE is the release-phase number, TBD by roadmapper).
+- [ ] **REL-02** iOS `MARKETING_VERSION 4.0.0` (Debug + Release) + `CURRENT_PROJECT_VERSION` next-from-Path-B-store-history + Android `versionName "4.0.0"` (or whatever Path B yields after Play Console history check) + `versionCode` next-from-Path-B-store-history. Per M1 D-02 lesson (pattern fired twice — M1 + M3): pre-archive Wave-0 MUST query Play Console + TestFlight for highest-accepted version-code per track BEFORE setting baseline. Avoids reactive bumps at archive time. Documented in `10-STORE-HISTORY.md`.
 - [ ] **REL-03** Manual physical-device QA matrix walked APPROVED on iPhone 15 Pro Max + Moto G XT2513V. Focus areas: bedroom + bathroom stepper input (residential + hospitality + commercial), display rendering on PropertyCard + HospitalityCard + PropertyDetailsScreen, RU locale parity on all new strings, no regressions on M1 KBD-02 keyboard handling, no regressions on M3 contextual flow. Empirical-sampling-mass-disposition (M3 RETROSPECTIVE.md lesson 4) acceptable for feature-surface cells; walk-and-confirm required for golden-path cells.
 - [ ] **REL-04** Bilingual EN+RU release notes drafted + pasted on ASC + Play Console (under 500-char Play Console binding limit; region-neutral per memory `geographic-scope.md`).
-- [ ] **REL-05** Backend live + healthy on Railway at release SHA; `firebase-admin` confirmed absent (4th consecutive milestone); sentinel chain green (`actoruid → landlord-uid → media-stripped → i18n-parity → create-listing-screen-removed → check-no-raw-property-type-strings → jest` — the new I18N-06 sentinel chains into the RN-client side, not backend; backend sentinels unchanged). MongoDB Atlas password rotation carries forward from M2 HF-02 unless `ATLAS-CRED-ROTATION` carry-forward item is closed during M4. AWS IAM cross-project residual remains PARTIAL unless other-project's borrowing-IAM-user is scoped away (re-open condition unchanged).
+- [ ] **REL-05** Backend live + healthy on Railway at release SHA; `firebase-admin` confirmed absent (4th consecutive milestone); sentinel chain green (`actoruid → landlord-uid → media-stripped → i18n-parity → create-listing-screen-removed → jest` on backend; `check-no-raw-property-type-strings → jest` on RN client — the new I18N-06 sentinel chains into the RN-client side, not backend; backend sentinels unchanged). MongoDB Atlas password rotation carries forward from M2 HF-02 unless `ATLAS-CRED-ROTATION` carry-forward item is closed during M4. AWS IAM cross-project residual remains PARTIAL unless other-project's borrowing-IAM-user is scoped away (re-open condition unchanged).
 - [ ] **REL-06** v4.0.0 submitted to ASC TestFlight Internal Testing track + Play Console Internal Testing track. M1 D-13 inheritance descope discipline honored (privacy manifest, App Privacy responses, Data Safety questionnaire, entitlements — re-touch only if a new data-collecting SDK lands during M4; auditable check at release-phase preflight). Android reanimated prefab workaround (memory `android-reanimated-clean-prefab-gotcha.md`) applied if `gradlew clean bundleRelease` is used.
 
 ---
@@ -127,8 +127,51 @@ Carried forward from M3 close + planted during M4 scoping:
 
 ## Traceability
 
-*Empty — filled by gsd-roadmapper when phases are mapped to requirements.*
+Every M4 v1 requirement maps to exactly one phase. Phase numbering continues from M3 (M4 starts at Phase 6; no `--reset-phase-numbers`).
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| SCHEMA-01 | Phase 6 — Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator) | Pending |
+| SCHEMA-02 | Phase 6 — Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator) | Pending |
+| SCHEMA-03 | Phase 6 — Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator) | Pending |
+| SCHEMA-04 | Phase 6 — Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator) | Pending |
+| FORM-01 | Phase 7 — Stepper Component + ContextualListingFlow Integration | Pending |
+| FORM-02 | Phase 7 — Stepper Component + ContextualListingFlow Integration | Pending |
+| FORM-03 | Phase 7 — Stepper Component + ContextualListingFlow Integration | Pending |
+| FORM-04 | Phase 7 — Stepper Component + ContextualListingFlow Integration | Pending |
+| FORM-05 | Phase 7 — Stepper Component + ContextualListingFlow Integration | Pending |
+| DISP-01 | Phase 8 — Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen) | Pending |
+| DISP-02 | Phase 8 — Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen) | Pending |
+| DISP-03 | Phase 8 — Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen) | Pending |
+| DISP-04 | Phase 8 — Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen) | Pending |
+| DISP-05 | Phase 8 — Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen) | Pending |
+| I18N-01 | Phase 9 — i18n Audit + Sentinel (Property-Type / Category / Deal-Type Display Strings) | Pending |
+| I18N-02 | Phase 9 — i18n Audit + Sentinel (Property-Type / Category / Deal-Type Display Strings) | Pending |
+| I18N-03 | Phase 9 — i18n Audit + Sentinel (Property-Type / Category / Deal-Type Display Strings) | Pending |
+| I18N-04 | Phase 9 — i18n Audit + Sentinel (Property-Type / Category / Deal-Type Display Strings) | Pending |
+| I18N-05 | Phase 9 — i18n Audit + Sentinel (Property-Type / Category / Deal-Type Display Strings) | Pending |
+| I18N-06 | Phase 9 — i18n Audit + Sentinel (Property-Type / Category / Deal-Type Display Strings) | Pending |
+| I18N-07 | Phase 9 — i18n Audit + Sentinel (Property-Type / Category / Deal-Type Display Strings) | Pending |
+| REL-01 | Phase 10 — Hardening + Manual Physical-Device QA + Release v4.0.0 | Pending |
+| REL-02 | Phase 10 — Hardening + Manual Physical-Device QA + Release v4.0.0 | Pending |
+| REL-03 | Phase 10 — Hardening + Manual Physical-Device QA + Release v4.0.0 | Pending |
+| REL-04 | Phase 10 — Hardening + Manual Physical-Device QA + Release v4.0.0 | Pending |
+| REL-05 | Phase 10 — Hardening + Manual Physical-Device QA + Release v4.0.0 | Pending |
+| REL-06 | Phase 10 — Hardening + Manual Physical-Device QA + Release v4.0.0 | Pending |
+
+**Coverage:** 27/27 v1 requirements mapped to exactly one phase. No orphans. No duplicates.
+
+**Phase-to-Requirements rollup:**
+
+| Phase | Requirements | Count |
+|-------|-------------|-------|
+| Phase 6 — Schema Extension | SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04 | 4 |
+| Phase 7 — Stepper Component + Flow Integration | FORM-01, FORM-02, FORM-03, FORM-04, FORM-05 | 5 |
+| Phase 8 — Display Surfaces | DISP-01, DISP-02, DISP-03, DISP-04, DISP-05 | 5 |
+| Phase 9 — i18n Audit + Sentinel | I18N-01, I18N-02, I18N-03, I18N-04, I18N-05, I18N-06, I18N-07 | 7 |
+| Phase 10 — Hardening + QA + Release v4.0.0 | REL-01, REL-02, REL-03, REL-04, REL-05, REL-06 | 6 |
+| **Total** | — | **27** |
 
 ---
 
-*Generated 2026-05-25 via `/gsd-new-milestone to scope M4`. Active milestone: v4.0 "Counts & Labels".*
+*Generated 2026-05-25 via `/gsd-new-milestone to scope M4`. Active milestone: v4.0 "Counts & Labels". Traceability filled by `/gsd-roadmap` 2026-05-25 — 27 v1 requirements mapped to 5 phases (Phases 6–10).*

@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-05-25T20:25:50.716Z"
 last_activity: 2026-05-25
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,26 @@ See: `.planning/PROJECT.md` (updated 2026-05-11 after v3.0 milestone)
 
 **Core value:** Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek (and KG/KZ/UZ expansion markets) properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
-**Current focus:** Planning M4 (no milestone scoped yet — run `/gsd-new-milestone`).
+**Current focus:** M4 v4.0 "Counts & Labels" — roadmap landed 2026-05-25 with 5 phases (Phases 6–10) covering 27 v1 requirements. Next action: `/gsd-plan-phase 6` (Schema Extension — backend Mongoose `basics.bedrooms` + `basics.bathroomCount` + RN type stub + body-strip validator).
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 6 (Schema Extension) — not started
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-25 — Milestone v4.0 started
+Status: Roadmap landed; planning Phase 6 next
+Last activity: 2026-05-25 — Roadmap created (5 phases, 27 requirements mapped, 100% coverage)
+
+## M4 Phase Map (Phases 6–10)
+
+| # | Phase | Requirements | Status |
+|---|-------|--------------|--------|
+| 6 | Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator) | SCHEMA-01..04 (4) | Not started |
+| 7 | Stepper Component + ContextualListingFlow Integration | FORM-01..05 (5) | Not started |
+| 8 | Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen) | DISP-01..05 (5) | Not started |
+| 9 | i18n Audit + Sentinel (Property-Type / Category / Deal-Type Display Strings) | I18N-01..07 (7) | Not started |
+| 10 | Hardening + Manual Physical-Device QA + Release v4.0.0 | REL-01..06 (6) | Not started |
+
+Full per-phase goals + success criteria in `.planning/ROADMAP.md § Phase Details`. Per-requirement mapping in `.planning/REQUIREMENTS.md § Traceability`.
 
 ## Quick Tasks Completed
 
@@ -86,11 +98,12 @@ From `.planning/milestones/v3.0-REQUIREMENTS.md § "Future Requirements (M4+ —
 - **MongoDB `userType` is the role authority** — Firebase ID token proves uid only.
 - **EN+RU bilingual parity** required for every new UI string (CI gate `scripts/check-i18n-parity.sh`).
 - **Manual physical-device QA** on iPhone 15 Pro Max + Moto G XT2513V (M3 also accepts empirical-sampling-mass-disposition for feature-surface milestones — see RETROSPECTIVE.md M3 lesson 4).
-- **Sentinel chain in backend `npm test`:** `actoruid` → `landlord-uid` → `media-stripped` → `i18n-parity` → `create-listing-screen-removed` → jest.
+- **Sentinel chain in backend `npm test`:** `actoruid` → `landlord-uid` → `media-stripped` → `i18n-parity` → `create-listing-screen-removed` → jest. **M4 adds RN-client sentinel `check-no-raw-property-type-strings.sh` chained into RN-client jest pre-test step (I18N-06).**
 - **M1 D-02 pattern (Android versionCode rejection):** pre-archive Wave-0 query Play Console + TestFlight for highest-accepted version-code per track. Fired twice (M1 + M3); M4 must also re-query at submission time.
+- **M1 KBD-02 grep gate:** `keyboardVerticalOffset` count in `src/` must remain 0 (held across 3 milestones).
 - **Geographic scope:** KG launch market (Bishkek). KZ + UZ expansion remains M4+ — KZT + UZS currencies deferred.
 - **Backend repo location:** `/Users/beckmaldinVL/development/mobileApps/backend-services/JayTap-services` (same maintainer as RN client). Backend Node ≥22.12 (`nvm use 24` before backend npm/node ops; jose@6 ESM-only).
 
 ---
 
-*STATE.md reset at v3.0 milestone close 2026-05-11. Prior in-flight session content + accreted execution history archived implicitly in git history (see `git log --oneline` for granular activity, or `.planning/milestones/v3.0-phases/05-hardening-manual-qa-release-v3/05-CONTEXT.md` for the end-of-phase session snapshot).*
+*STATE.md updated 2026-05-25 — M4 roadmap landed via `/gsd-roadmap`. 5 phases (Phases 6–10) covering 27 v1 requirements; 100% coverage validated. Phase 6 ready for `/gsd-plan-phase 6`. Prior in-flight session content + accreted execution history archived implicitly in git history (see `git log --oneline` for granular activity, or `.planning/milestones/v3.0-phases/05-hardening-manual-qa-release-v3/05-CONTEXT.md` for the M3 end-of-phase session snapshot).*
