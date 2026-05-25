@@ -78,6 +78,8 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
           kitchen: undefined,
           hotelRooms: undefined,
           hotelClass: undefined,
+          bedrooms: undefined,        // M4 — residential-only; clear on any propertyType switch
+          // bathroomCount intentionally NOT cleared — applies to all 6 types (CONTEXT.md Claude's Discretion L111)
         };
       }
       // ROADMAP SC#4 (Plan 02-04b): switching dealType in Step 1 reflows Step 6 —
