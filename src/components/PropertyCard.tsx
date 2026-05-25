@@ -280,7 +280,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               <View style={[styles.specsContainer, { backgroundColor: colors.chipBackground, borderColor: colors.chipBorder }]}>
                 <View style={styles.specItem}>
                   <Bed size={16} color={colors.textSecondary} strokeWidth={2} />
-                  <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.rooms ?? '-'}</Text>
+                  {/* Hotel/hostel listings write to basics.hotelRooms per M3 Phase 1 D-07 (.planning/milestones/v3.0-phases/01-schema-reshape-backend-route-shape-cutover/01-02-PLAN.md:197-198). Mirrors HospitalityCard.tsx:210. Defensive: routing now sends hospitality to HospitalityCard (260525-ggp Task 3), this fallback handles legacy data. */}
+                  <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.hotelRooms ?? property.basics?.rooms ?? '-'}</Text>
                 </View>
                 <View style={[styles.specDivider, { backgroundColor: colors.border }]} />
                 <View style={styles.specItem}>
