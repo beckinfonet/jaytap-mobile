@@ -33,6 +33,8 @@ export function propertyToFormBag(p: Property | undefined): FormBag {
       kitchen: p.basics?.kitchen as FormBag['basics']['kitchen'],
       hotelRooms: p.basics?.hotelRooms as FormBag['basics']['hotelRooms'],
       hotelClass: p.basics?.hotelClass as FormBag['basics']['hotelClass'],
+      bedrooms: p.basics?.bedrooms, // number | undefined — Phase 6 SCHEMA-03
+      bathroomCount: p.basics?.bathroomCount, // number | undefined — Phase 6 SCHEMA-03
     },
     conditionAndAmenities: {
       condition: (p.conditionAndAmenities?.condition ?? '') as FormBag['conditionAndAmenities']['condition'],
@@ -82,6 +84,8 @@ export function formBagToPropertyPayload(v: FormBag): Record<string, unknown> {
       kitchen: v.basics.kitchen,
       hotelRooms: v.basics.hotelRooms,
       hotelClass: v.basics.hotelClass,
+      bedrooms: v.basics.bedrooms, // verbatim passthrough — undefined survives (D-08 + FORM-05)
+      bathroomCount: v.basics.bathroomCount, // verbatim passthrough — undefined survives (D-08 + FORM-05)
     },
     conditionAndAmenities: {
       condition: v.conditionAndAmenities.condition,

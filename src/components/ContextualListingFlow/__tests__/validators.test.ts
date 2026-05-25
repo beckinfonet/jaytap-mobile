@@ -277,3 +277,99 @@ describe('Phase 2 validators — Step 6 (Plan 02-04b)', () => {
     expect(validateStep(6, bag).isValid).toBe(true);
   });
 });
+
+// Plan 07-03 (M4 FORM-04) — defensive bedrooms + bathroomCount validators.
+// D-09 invariant: defensive-only; never required; undefined ALWAYS valid.
+// Stepper UI clamps prevent these from firing; checks catch direct-write paths.
+describe('Plan 07-03 validators — bedrooms + bathroomCount defensive (M4 FORM-04)', () => {
+  const baseValidStep3 = {
+    ...emptyFormBag(),
+    propertyType: 'apartment' as const,
+    basics: {
+      areaSqm: '80',
+      price: '1000',
+      currency: 'KGS' as const,
+      rooms: '2' as const,
+    },
+  };
+
+  test('1: undefined-OK — bedrooms + bathroomCount undefined → no error keys (FORM-04 lock)', () => {
+    const bag = {
+      ...baseValidStep3,
+      basics: { ...baseValidStep3.basics, bedrooms: undefined, bathroomCount: undefined },
+    };
+    const r = validateStep(3, bag);
+    expect(r.errors['basics.bedrooms']).toBeUndefined();
+    expect(r.errors['basics.bathroomCount']).toBeUndefined();
+    expect(r.isValid).toBe(true);
+  });
+
+  test('2: bedrooms=11 → bedroomsInvalid (out-of-range)', () => {
+    const bag = {
+      ...baseValidStep3,
+      basics: { ...baseValidStep3.basics, bedrooms: 11 },
+    };
+    const r = validateStep(3, bag);
+    expect(r.errors['basics.bedrooms']).toBe('contextualListing.step3.bedroomsInvalid');
+  });
+
+  test('3: bedrooms=2.5 → bedroomsInvalid (non-integer)', () => {
+    const bag = {
+      ...baseValidStep3,
+      basics: { ...baseValidStep3.basics, bedrooms: 2.5 },
+    };
+    const r = validateStep(3, bag);
+    expect(r.errors['basics.bedrooms']).toBe('contextualListing.step3.bedroomsInvalid');
+  });
+
+  test('4: bedrooms=3 → no error', () => {
+    const bag = {
+      ...baseValidStep3,
+      basics: { ...baseValidStep3.basics, bedrooms: 3 },
+    };
+    const r = validateStep(3, bag);
+    expect(r.errors['basics.bedrooms']).toBeUndefined();
+  });
+
+  test('5: bathroomCount=1.3 → bathroomCountInvalid (non-0.5-step)', () => {
+    const bag = {
+      ...baseValidStep3,
+      basics: { ...baseValidStep3.basics, bathroomCount: 1.3 },
+    };
+    const r = validateStep(3, bag);
+    expect(r.errors['basics.bathroomCount']).toBe(
+      'contextualListing.step3.bathroomCountInvalid',
+    );
+  });
+
+  test('6: bathroomCount=1.5 → no error (valid 0.5-step)', () => {
+    const bag = {
+      ...baseValidStep3,
+      basics: { ...baseValidStep3.basics, bathroomCount: 1.5 },
+    };
+    const r = validateStep(3, bag);
+    expect(r.errors['basics.bathroomCount']).toBeUndefined();
+  });
+
+  test('7: bathroomCount=11 → bathroomCountInvalid (out-of-range)', () => {
+    const bag = {
+      ...baseValidStep3,
+      basics: { ...baseValidStep3.basics, bathroomCount: 11 },
+    };
+    const r = validateStep(3, bag);
+    expect(r.errors['basics.bathroomCount']).toBe(
+      'contextualListing.step3.bathroomCountInvalid',
+    );
+  });
+
+  test('8: FIELD_ORDER_PER_STEP[3] contains basics.bedrooms + basics.bathroomCount appended after basics.hotelClass', () => {
+    const order = FIELD_ORDER_PER_STEP[3];
+    expect(order).toContain('basics.bedrooms');
+    expect(order).toContain('basics.bathroomCount');
+    const hotelClassIdx = order.indexOf('basics.hotelClass');
+    const bedroomsIdx = order.indexOf('basics.bedrooms');
+    const bathroomCountIdx = order.indexOf('basics.bathroomCount');
+    expect(bedroomsIdx).toBeGreaterThan(hotelClassIdx);
+    expect(bathroomCountIdx).toBeGreaterThan(bedroomsIdx);
+  });
+});

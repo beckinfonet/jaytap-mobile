@@ -121,3 +121,73 @@ describe('Phase 2 adapters — round-trip invariants (Plan 02-02)', () => {
     expect(back.location.showExactAddress).toBe(true);
   });
 });
+
+// Plan 07-03 (M4 FORM-04 / FORM-05) — bedrooms + bathroomCount adapter wiring.
+// D-08 invariant: bidirectional, undefined-preserving, no coerce-to-zero.
+describe('Plan 07-03 adapters — bedrooms + bathroomCount (M4 FORM-04 / FORM-05)', () => {
+  test('A: propertyToFormBag — bedrooms=3 + bathroomCount=1.5 carry through', () => {
+    const p: Property = {
+      id: 'x',
+      basics: { areaSqm: 80, price: 1000, currency: 'KGS', bedrooms: 3, bathroomCount: 1.5 },
+    } as Property;
+    const bag = propertyToFormBag(p);
+    expect(bag.basics.bedrooms).toBe(3);
+    expect(bag.basics.bathroomCount).toBe(1.5);
+  });
+
+  test('B: propertyToFormBag — missing bedrooms/bathroomCount keys remain undefined (NOT 0, NOT "")', () => {
+    const p: Property = {
+      id: 'x',
+      basics: { areaSqm: 80, price: 1000, currency: 'KGS' },
+    } as Property;
+    const bag = propertyToFormBag(p);
+    expect(bag.basics.bedrooms).toBeUndefined();
+    expect(bag.basics.bathroomCount).toBeUndefined();
+  });
+
+  test('C: formBagToPropertyPayload — bedrooms=3 + bathroomCount=1.5 pass through verbatim', () => {
+    const bag: FormBag = {
+      ...emptyFormBag(),
+      basics: { areaSqm: '80', price: '1000', currency: 'KGS', bedrooms: 3, bathroomCount: 1.5 },
+    };
+    const payload = formBagToPropertyPayload(bag) as { basics: { bedrooms?: number; bathroomCount?: number } };
+    expect(payload.basics.bedrooms).toBe(3);
+    expect(payload.basics.bathroomCount).toBe(1.5);
+  });
+
+  test('D: formBagToPropertyPayload — undefined survives, NOT coerced to 0 (FORM-05 invariant)', () => {
+    const bag: FormBag = {
+      ...emptyFormBag(),
+      basics: {
+        areaSqm: '80',
+        price: '1000',
+        currency: 'KGS',
+        bedrooms: undefined,
+        bathroomCount: undefined,
+      },
+    };
+    const payload = formBagToPropertyPayload(bag) as { basics: { bedrooms?: number; bathroomCount?: number } };
+    expect(payload.basics.bedrooms).toBeUndefined();
+    expect(payload.basics.bathroomCount).toBeUndefined();
+  });
+
+  test('E: round-trip Property→FormBag→Property preserves bedrooms=3 + bathroomCount=2.5', () => {
+    const original: Property = {
+      id: 'x',
+      dealType: 'rent_long',
+      propertyType: 'apartment',
+      basics: {
+        areaSqm: 80,
+        price: 1000,
+        currency: 'KGS',
+        rooms: '2',
+        bedrooms: 3,
+        bathroomCount: 2.5,
+      },
+    } as Property;
+    const bag = propertyToFormBag(original);
+    const back = formBagToPropertyPayload(bag) as { basics: { bedrooms?: number; bathroomCount?: number } };
+    expect(back.basics.bedrooms).toBe(3);
+    expect(back.basics.bathroomCount).toBe(2.5);
+  });
+});
