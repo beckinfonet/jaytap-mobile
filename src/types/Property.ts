@@ -52,6 +52,8 @@ export interface Property {
     kitchen?: 'private' | 'none' | 'shared';
     hotelRooms?: '1' | '2' | '3' | '4+';
     hotelClass?: 'economy' | 'standard' | 'comfort' | 'premium';
+    bedrooms?: number; // M4 SCHEMA-03 — residential-only (apartment/house); validated by backend Mongoose 0–10 integer + Plan 02 body-strip on hotel/hostel/office/commercial.
+    bathroomCount?: number; // M4 SCHEMA-03 — applies to all 6 propertyTypes; validated by backend Mongoose 0–10 step-0.5 + Plan 02 route-layer 400.
   };
 
   // === Nested conditionAndAmenities (SPEC §"Step 4") ===
