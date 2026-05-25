@@ -171,9 +171,29 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
         }
         onClose();
       } catch (e: unknown) {
-        const msg =
-          (e as { message?: string }).message ?? t('common.errorGeneric');
-        Alert.alert(t('common.error'), msg);
+        // M4 D-10 — discriminate Phase 6 backend 400 codes; route to inline error row Step3 renders.
+        // Practically unreachable via stepper UI clamping, but Phase 6 D-11 wired these codes explicitly
+        // so Phase 7 can discriminate.
+        const code =
+          (e as { response?: { data?: { code?: string } }; code?: string }).response?.data?.code ??
+          (e as { code?: string }).code;
+        if (code === 'M4_BEDROOMS_INVALID') {
+          setErrors((prev) => ({
+            ...prev,
+            ['basics.bedrooms']: 'contextualListing.step3.bedroomsInvalid',
+          }));
+          setCurrentStep(3);
+        } else if (code === 'M4_BATHROOM_STEP_INVALID') {
+          setErrors((prev) => ({
+            ...prev,
+            ['basics.bathroomCount']: 'contextualListing.step3.bathroomCountInvalid',
+          }));
+          setCurrentStep(3);
+        } else {
+          const msg =
+            (e as { message?: string }).message ?? t('common.errorGeneric');
+          Alert.alert(t('common.error'), msg);
+        }
       } finally {
         setIsSubmitting(false);
       }
