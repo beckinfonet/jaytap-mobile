@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Counts & Labels
-status: completed
+status: in_progress
 last_updated: "2026-05-25T23:07:44.143Z"
-last_activity: 2026-05-25 -- Phase 06 marked complete
+last_activity: 2026-05-25 -- Phase 07 context gathered (07-CONTEXT.md + 07-DISCUSSION-LOG.md)
 progress:
-  total_phases: 2
+  total_phases: 5
   completed_phases: 1
   total_plans: 2
   completed_plans: 2
-  percent: 100
+  percent: 20
 ---
 
 # STATE: JayTap
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md` (updated 2026-05-11 after v3.0 milestone)
 
 **Core value:** Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek (and KG/KZ/UZ expansion markets) properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
-**Current focus:** M4 v4.0 "Counts & Labels" — Phase 6 (Schema Extension) COMPLETE 2026-05-25 (backend cf97bfa + 174a185 + dfab993 + 0272cda + dfefc06 + 654ffa3 on Railway main; RN bc0fa94 + c3a4972 + d5aa7e3 + eed041e + 40a3200 + 9d4270e on main). 1/5 M4 phases done. Next action: `/gsd-plan-phase 7` (Stepper Component + ContextualListingFlow Integration — FORM-01..05).
+**Current focus:** M4 v4.0 "Counts & Labels" — Phase 6 (Schema Extension) COMPLETE 2026-05-25. Phase 7 (Stepper Component + ContextualListingFlow Integration) context gathered 2026-05-25 (07-CONTEXT.md commit `432e58d`). 1/5 M4 phases done; Phase 7 ready for planning. Next action: `/gsd-plan-phase 7`.
 
 ## Current Position
 
-Phase: 06 — COMPLETE
-Plan: 1 of 2
-Status: Phase 06 complete
-Last activity: 2026-05-25 -- Phase 06 marked complete
+Phase: 07 — CONTEXT gathered (ready for planning)
+Plan: 0 of TBD (planner determines split)
+Status: Phase 07 awaiting `/gsd-plan-phase 7`
+Last activity: 2026-05-25 -- Phase 07 context gathered (07-CONTEXT.md + 07-DISCUSSION-LOG.md)
 
 ## M4 Phase Map (Phases 6–10)
 
