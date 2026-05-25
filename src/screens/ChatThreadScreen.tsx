@@ -207,6 +207,7 @@ export const ChatThreadScreen: React.FC<ChatThreadScreenProps> = ({
               data={messages}
               keyExtractor={(item) => item.id}
               renderItem={renderMessage}
+              style={styles.messagesContainer}
               contentContainerStyle={styles.messagesList}
               onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
             />
@@ -258,6 +259,7 @@ const styles = StyleSheet.create({
   reportButton: { padding: 8 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   keyboardView: { flex: 1 },
+  messagesContainer: { flex: 1 },
   messagesList: { padding: 16, paddingBottom: 8 },
   messageRow: { marginBottom: 8 },
   messageRowOwn: { alignItems: 'flex-end' },
