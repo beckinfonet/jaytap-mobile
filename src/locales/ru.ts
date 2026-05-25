@@ -671,6 +671,11 @@ export const ru: Record<TranslationKeys, string> = {
   'contextualListing.step3.hotelClass.standard': 'Стандарт',
   'contextualListing.step3.hotelClass.comfort': 'Комфорт',
   'contextualListing.step3.hotelClass.premium': 'Премиум',
+  // Phase 07 (Plan 07-02) — bedrooms + bathroomCount stepper keys (FORM-02, FORM-04).
+  'contextualListing.step3.bedroomsLabel': 'Спальни',
+  'contextualListing.step3.bedroomsInvalid': 'Количество спален должно быть целым числом от 0 до 10.',
+  'contextualListing.step3.bathroomCountLabel': 'Ванные комнаты',
+  'contextualListing.step3.bathroomCountInvalid': 'Количество ванных должно быть целым или с шагом 0.5 от 0 до 10.',
 
   // Phase 2 (Plan 02-04a) — ContextualListingFlow Шаг 4: Состояние + Мебель (FLOW-09).
   // Обязательно для любого propertyType, включая hotel/hostel (CONTEXT §Decisions Log #4).
