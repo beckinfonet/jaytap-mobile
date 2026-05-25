@@ -174,11 +174,6 @@ export const ListingMetaTable: React.FC<ListingMetaTableProps> = ({
                   : t('property.bathroomNone' as any)}
             </Text>
           )}
-          {areaSqm != null && (
-            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
-              {areaSqm} m²
-            </Text>
-          )}
           {condition != null && (
             <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
               {t('property.metaCondition' as any)}: {condition}
