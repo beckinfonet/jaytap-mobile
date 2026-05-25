@@ -72,6 +72,7 @@ import { ListingMetaTable } from '../components/ListingMetaTable';
 import { getPropertyShareUrl } from '../constants';
 import { formatPrice } from '../utils/formatPrice';
 import { formatAddress } from '../utils/formatAddress';
+import { getTourPhotosUrl } from '../utils/getTourPhotosUrl';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { PropertyService } from '../services/PropertyService';
@@ -938,11 +939,16 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 <ChevronRight size={20} color={property.instagramUrl ? colors.textSecondary : colors.textTertiary} />
               </TouchableOpacity>
 
-              {/* Photos tile — M3 nested has no separate panoramic URL field; use the first
-                  hero photo from media.photos[0] as the open-target. If no photos, tile is disabled.
-                  Phase 2 D-20 cutover (panoramicPhotosUrl deprecated; not in nested Property type). */}
+              {/* Photos tile (NOT the top carousel — see hero FlatList above) opens a dedicated
+                  tour-photos URL (Matterport / Ricoh / equivalent) via the existing
+                  setActivePhotosUrl overlay (Tour3DScreen WebView at line ~694).
+                  Source of truth: getTourPhotosUrl(property). Until the M3-nested schema adds
+                  a tour-photos field (open question deferred to a future milestone), the reader
+                  returns undefined and this tile stays disabled by design — see
+                  `src/utils/getTourPhotosUrl.ts` TODO. Fix: quick task 260525-eva (previously
+                  misused media.photos[0], which pushed a regular JPG into the Tour3D WebView). */}
               {(() => {
-                const photoTarget = photos[0];
+                const photoTarget = getTourPhotosUrl(property);
                 const photoActive = !!photoTarget && !!onOpenPhotos;
                 return (
                   <TouchableOpacity
