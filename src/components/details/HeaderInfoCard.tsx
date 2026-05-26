@@ -89,7 +89,6 @@ export const HeaderInfoCard: React.FC<HeaderInfoCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
     paddingTop: 16,
   },
   pillRow: {
@@ -128,9 +127,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   title: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: '800',
-    lineHeight: 28,
+    lineHeight: 36,
+    letterSpacing: -0.5,
     marginBottom: 10,
   },
   addressRow: {
