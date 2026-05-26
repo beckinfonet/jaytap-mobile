@@ -28,11 +28,11 @@ export type AttributeRow =
   | { kind: 'boolean'; icon: LucideIcon; label: string; value: string; on: boolean }
   | { kind: 'plain'; icon: LucideIcon; label: string; value: string };
 
-const CONDITION_COLOR: Record<string, ConditionColorToken> = {
-  euro: 'success',
+const CONDITION_COLOR: Record<'rough' | 'whitebox' | 'good' | 'euro', ConditionColorToken> = {
+  rough: 'error',
+  whitebox: 'orange',
   good: 'warning',
-  cosmetic: 'orange',
-  needsRepair: 'error',
+  euro: 'success',
 };
 
 export function derivePropertyAttributes(property: Property, t: TFn): AttributeRow[] {
@@ -46,7 +46,7 @@ export function derivePropertyAttributes(property: Property, t: TFn): AttributeR
       icon: PaintBucket,
       label: t('property.metaCondition' as TranslationKeys),
       value: t(`condition.${ca.condition}` as TranslationKeys),
-      colorToken: CONDITION_COLOR[ca.condition] ?? 'warning',
+      colorToken: CONDITION_COLOR[ca.condition],
     });
   }
 

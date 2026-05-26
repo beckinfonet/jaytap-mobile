@@ -24,24 +24,18 @@ describe('derivePropertyAttributes', () => {
     expect(rows[0].value).toBe('condition.euro');
   });
 
-  it('routes the condition dot color through theme tokens — euro → success-ish', () => {
-    const property = { conditionAndAmenities: { condition: 'euro' } } as Property;
-    const rows = derivePropertyAttributes(property, tStub);
-    if (rows[0].kind === 'condition') {
-      expect(rows[0].colorToken).toBe('success');
-    } else {
-      throw new Error('expected condition row');
-    }
-  });
-
   it.each([
+    ['rough', 'error'],
+    ['whitebox', 'orange'],
     ['good', 'warning'],
-    ['needsRepair', 'error'],
-  ])('routes condition %s → color token %s', (cond, token) => {
-    const property = { conditionAndAmenities: { condition: cond as any } } as Property;
+    ['euro', 'success'],
+  ] as const)('routes condition %s → color token %s', (cond, token) => {
+    const property = { conditionAndAmenities: { condition: cond } } as Property;
     const rows = derivePropertyAttributes(property, tStub);
     if (rows[0].kind === 'condition') {
       expect(rows[0].colorToken).toBe(token);
+    } else {
+      throw new Error('expected condition row');
     }
   });
 
