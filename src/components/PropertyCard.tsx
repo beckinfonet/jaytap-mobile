@@ -19,10 +19,12 @@ import {
   ArchiveRestore,
   MapPin,
   Box,
+  Calendar,
 } from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { getPropertyShareUrl } from '../constants';
 import { formatPrice } from '../utils/formatPrice';
+import { availabilityValueFromRaw } from '../utils/availability';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -62,7 +64,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 }) => {
   const { colors, isDark } = useTheme();
   useAuth(); // preserved subscription — auth surface keeps card in sync with sign-in toggles
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // Phase 2 D-20 nested-shape derivations (Phase 1 D-04..D-15)
   const title = property.content?.title ?? '';
@@ -88,6 +90,15 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const status = property.status ?? 'live'; // D-07 defensive coalesce (matches StatusPill)
   const isLive = status === 'live';
   const liveBadgeKey = isSale ? 'property.statusBadge.live.sale' : 'property.statusBadge.live.rent';
+
+  // Quick task 260526-foc QA — availability row. `availabilityValueFromRaw` returns
+  // null when the date is blank/unparseable (row hidden), "Now"/"Сейчас" when within
+  // 30 days, or a locale-formatted date otherwise.
+  const availValue = availabilityValueFromRaw(
+    property.availableDate,
+    t('property.now'),
+    language === 'ru' ? 'ru-RU' : 'en-US',
+  );
 
   // Swallows the outer-card onPress that iOS fires when the user taps OUTSIDE
   // the share sheet to dismiss it — that dismiss tap lands on the card and
@@ -278,6 +289,20 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 ellipsizeMode="tail"
               >
                 {[districtLabel, cityLabel].filter(Boolean).join(' · ')}
+              </Text>
+            </View>
+          ) : null}
+
+          {/* Row 4: Calendar + availability (260526-foc QA). Hidden when availableDate is blank. */}
+          {availValue ? (
+            <View style={styles.availabilityRow}>
+              <Calendar size={14} color={colors.textSecondary} strokeWidth={2} />
+              <Text
+                style={[styles.availabilityText, { color: colors.textSecondary }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {t('property.available')} {availValue}
               </Text>
             </View>
           ) : null}
@@ -555,6 +580,16 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 14,
+    flexShrink: 1,
+  },
+  availabilityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  availabilityText: {
+    fontSize: 13,
     flexShrink: 1,
   },
   ownerActionsRow: {
