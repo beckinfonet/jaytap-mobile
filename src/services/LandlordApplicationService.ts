@@ -6,6 +6,34 @@ export type LandlordApplicationStatus = 'submitted' | 'approved' | 'rejected' | 
 export type ListingTypeIntent = 'residential' | 'commercial' | 'hospitality';
 export type RejectionReasonCode = 'incomplete-info' | 'invalid-id' | 'duplicate' | 'other';
 
+export type ProfileMissingField = 'firstName' | 'lastName' | 'phone' | 'messagingChannel';
+
+export interface LandlordApplicationApplicant {
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  /** Phone on the User profile — may differ from the application's `phone` field. */
+  profilePhone: string | null;
+  whatsapp: string | null;
+  telegram: string | null;
+  /** ISO 8601 string of the User row's createdAt — used for the "Joined …" header. */
+  createdAt: string | null;
+  /** Mirrors the backend's profileMissingFields() === [] check. */
+  profileComplete: boolean;
+}
+
+/** Thrown by LandlordApplicationService.submit when the backend returns 400 PROFILE_INCOMPLETE. */
+export class ProfileIncompleteError extends Error {
+  readonly code = 'PROFILE_INCOMPLETE' as const;
+  readonly missingFields: ProfileMissingField[];
+
+  constructor(missingFields: ProfileMissingField[]) {
+    super('Profile incomplete — cannot submit landlord application.');
+    this.name = 'ProfileIncompleteError';
+    this.missingFields = missingFields;
+  }
+}
+
 export interface LandlordApplication {
   _id: string;
   uid: string;
@@ -21,6 +49,12 @@ export interface LandlordApplication {
   rejectionReasonNote?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  /**
+   * Joined User profile data, present on rows returned from GET /admin/queue.
+   * Absent on rows from GET /mine (the user already knows their own profile).
+   * `null` (vs. omitted) when the admin queue join could not find a User row.
+   */
+  applicant?: LandlordApplicationApplicant | null;
 }
 
 export interface SubmitInput {
@@ -44,8 +78,16 @@ export const LandlordApplicationService = {
       name: input.idPhoto.name || `id-${Date.now()}.jpg`,
     } as any);
 
-    const response = await apiClient.post('/landlord-applications', formData);
-    return response.data;
+    try {
+      const response = await apiClient.post('/landlord-applications', formData);
+      return response.data;
+    } catch (error: any) {
+      const data = error?.response?.data;
+      if (error?.response?.status === 400 && data?.code === 'PROFILE_INCOMPLETE') {
+        throw new ProfileIncompleteError(Array.isArray(data.missingFields) ? data.missingFields : []);
+      }
+      throw error;
+    }
   },
 
   /** Current user's application history, newest first. */
