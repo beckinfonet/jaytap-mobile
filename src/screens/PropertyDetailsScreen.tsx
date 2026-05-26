@@ -906,7 +906,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             </View>
           </View>
 
-          {/* Title, Deal pill, ID, Address, Map preview — HeaderInfoCard (M5 redesign) */}
+          {/* Title, Deal pill, ID, Address — HeaderInfoCard (M5 redesign) */}
           <View style={styles.section}>
             <HeaderInfoCard
               dealType={property.dealType ?? 'rent'}
@@ -918,14 +918,23 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                   ? <StatusPill status={property.status} />
                   : undefined
               }
-              mapPreview={
-                <MapPreviewCard
-                  coordinates={propertyCoordinates}
-                  district={property.location?.district}
-                  city={property.location?.city}
-                  onOpenFullScreen={() => setIsMapFullScreen(true)}
-                />
-              }
+            />
+          </View>
+
+          {/* Attribute list — condition, furnished, negotiable, etc. (M5 redesign).
+              Renders BEFORE the map per design-team mockup 2026-05-26. */}
+          <View style={styles.section}>
+            <AttributeList rows={derivePropertyAttributes(property, t)} />
+          </View>
+
+          {/* Map preview — full-width sibling section (not nested in HeaderInfoCard)
+              so it matches the width of KeyStatsCard / AttributeList. */}
+          <View style={styles.section}>
+            <MapPreviewCard
+              coordinates={propertyCoordinates}
+              district={property.location?.district}
+              city={property.location?.city}
+              onOpenFullScreen={() => setIsMapFullScreen(true)}
             />
           </View>
 
@@ -950,11 +959,6 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 {descriptionText}
               </Text>
             </View>
-          </View>
-
-          {/* Attribute list — condition, furnished, negotiable, deposit, etc. (M5 redesign) */}
-          <View style={styles.section}>
-            <AttributeList rows={derivePropertyAttributes(property, t)} />
           </View>
 
           {/* What this place offers — v4.0.1 unified. Renders for any property type
