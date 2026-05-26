@@ -548,6 +548,14 @@ export const ru: Record<TranslationKeys, string> = {
   'landlordApp.rejectModalSubtitle': 'Выберите причину. Дополнительный комментарий будет показан заявителю.',
   'landlordApp.rejectNotePlaceholder': 'Необязательный комментарий (виден заявителю)...',
   'landlordApp.rejectConfirm': 'Отклонить',
+  // Gate banner (Task 7)
+  'landlordApp.gateTitle': 'Сначала укажите данные',
+  'landlordApp.gateBody': 'Эта информация нужна модераторам для одобрения:',
+  'landlordApp.gateOpenSettings': 'Открыть настройки',
+  'landlordApp.gateMissing.firstName': 'Имя',
+  'landlordApp.gateMissing.lastName': 'Фамилия',
+  'landlordApp.gateMissing.phone': 'Номер телефона',
+  'landlordApp.gateMissing.messagingChannel': 'WhatsApp или Telegram',
   // PHASE 3 — Moderation queue + actions + edit-on-behalf (MOD-10..MOD-18)
   'moderation.queue.entryPoint': 'Очередь модерации',
   'moderation.queue.title': 'Очередь модерации',
@@ -803,4 +811,20 @@ export const ru: Record<TranslationKeys, string> = {
   'country.KG': 'Кыргызстан',
   'country.KZ': 'Казахстан',
   'country.UZ': 'Узбекистан',
+
+  // Task 8 — ApplicantProfileScreen
+  'applicantProfile.title': 'Профиль заявителя',
+  'applicantProfile.contact': 'Контакты',
+  'applicantProfile.application': 'Заявка',
+  'applicantProfile.joined': 'Зарегистрирован: {{date}}',
+  'applicantProfile.notProvided': '(не указано)',
+  'applicantProfile.profileIncomplete': 'Профиль неполный',
+  'applicantProfile.profilePhone': 'Телефон (профиль)',
+  'applicantProfile.appPhone': 'Телефон (в заявке)',
+  'applicantProfile.whatsapp': 'WhatsApp',
+  'applicantProfile.telegram': 'Telegram',
+  'applicantProfile.idPhoto': 'Фото документа',
+  'applicantProfile.intent': 'Планирует размещать',
+  'applicantProfile.submittedAt': 'Отправлено: {{date}}',
+  'applicantProfile.viewProfile': 'Открыть профиль',
 };
