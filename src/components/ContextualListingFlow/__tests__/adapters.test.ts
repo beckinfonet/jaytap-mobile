@@ -244,3 +244,64 @@ describe('v4.0.1 amenities round-trip', () => {
     expect(payload.amenities).toEqual(['aircon', 'washer']);
   });
 });
+
+// Quick-task 260526-foc — restore "Available from" date picker.
+// availableDate is TOP-LEVEL on Property; FormBag groups it under terms.* purely for
+// form-time UX adjacency. Adapter bridges the two shapes both directions.
+describe('Quick-task 260526-foc adapters — terms.availableDate round-trip', () => {
+  test('A: propertyToFormBag — top-level Property.availableDate=2026-06-01 lifts to terms.availableDate', () => {
+    const p: Property = {
+      id: 'x',
+      availableDate: '2026-06-01',
+    } as Property;
+    const bag = propertyToFormBag(p);
+    expect(bag.terms.availableDate).toBe('2026-06-01');
+  });
+
+  test('B: propertyToFormBag — missing Property.availableDate leaves terms.availableDate undefined (NOT "")', () => {
+    const p: Property = { id: 'x' } as Property;
+    const bag = propertyToFormBag(p);
+    expect(bag.terms.availableDate).toBeUndefined();
+  });
+
+  test('C: formBagToPropertyPayload — terms.availableDate=2026-06-01 flattens to top-level payload.availableDate', () => {
+    const bag: FormBag = {
+      ...emptyFormBag(),
+      terms: { availableDate: '2026-06-01' },
+    };
+    const payload = formBagToPropertyPayload(bag) as { availableDate?: string; terms: { availableDate?: string } };
+    expect(payload.availableDate).toBe('2026-06-01');
+  });
+
+  test('D: formBagToPropertyPayload — undefined availableDate survives at top level (NOT coerced to "")', () => {
+    const bag: FormBag = {
+      ...emptyFormBag(),
+      terms: { availableDate: undefined },
+    };
+    const payload = formBagToPropertyPayload(bag) as { availableDate?: string };
+    expect(payload.availableDate).toBeUndefined();
+  });
+
+  test('E: round-trip Property→FormBag→Property preserves availableDate=2026-12-31', () => {
+    const original: Property = {
+      id: 'x',
+      dealType: 'rent_long',
+      propertyType: 'apartment',
+      availableDate: '2026-12-31',
+    } as Property;
+    const bag = propertyToFormBag(original);
+    const back = formBagToPropertyPayload(bag) as { availableDate?: string };
+    expect(back.availableDate).toBe('2026-12-31');
+  });
+
+  test('F: round-trip with no availableDate stays undefined across the loop', () => {
+    const original: Property = {
+      id: 'x',
+      dealType: 'rent_long',
+      propertyType: 'apartment',
+    } as Property;
+    const bag = propertyToFormBag(original);
+    const back = formBagToPropertyPayload(bag) as { availableDate?: string };
+    expect(back.availableDate).toBeUndefined();
+  });
+});

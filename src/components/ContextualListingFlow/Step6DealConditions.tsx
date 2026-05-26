@@ -19,7 +19,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Platform } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTheme } from '../../theme/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import type { TranslationKeys } from '../../locales';
@@ -39,8 +40,9 @@ function isPresetPrepay(n: number | undefined): n is 0 | 1 | 2 {
 
 export function Step6DealConditions({ values, onChange, errors }: SectionProps) {
   const { colors, isDark } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const dt = values.dealType;
+  const dateLocale = language === 'ru' ? 'ru-RU' : 'en-US';
 
   // Custom prepayment local UI state (Pitfall 6).
   // - customMode: is the Custom input open?
@@ -52,6 +54,12 @@ export function Step6DealConditions({ values, onChange, errors }: SectionProps) 
   const [customStr, setCustomStr] = useState<string>(
     values.terms.prepaymentMonths !== undefined ? String(values.terms.prepaymentMonths) : '',
   );
+
+  // Quick-task 260526-foc — "Available from" date picker local UI state.
+  // The picker is a NATIVE modal (iOS spinner / Android dialog). Format emitted = 'YYYY-MM-DD'.
+  // availableDate is OPTIONAL on every dealType; empty/undefined renders as "available now"
+  // downstream (ListingMetaTable). Pattern mirrors the historic CreateListingForm picker.
+  const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
 
   const setTerms = (patch: Partial<FormBag['terms']>) =>
     onChange('terms', { ...values.terms, ...patch });
@@ -385,6 +393,138 @@ export function Step6DealConditions({ values, onChange, errors }: SectionProps) 
           </View>
         </>
       ) : null}
+
+      {/* Quick-task 260526-foc — "Available from" date picker.
+          OPTIONAL for ALL dealTypes (sale + rent_long + rent_daily) — empty = "available now"
+          downstream (ListingMetaTable). Native modal (iOS spinner / Android dialog).
+          Format stored: 'YYYY-MM-DD' (ISO-8601 date-only). Display uses dateLocale. */}
+      <View style={commonStyles.section}>
+        <Text style={[commonStyles.sectionLabel, { color: colors.text }]}>
+          {t('contextualListing.step6.availableDateLabel')}
+        </Text>
+        <TouchableOpacity
+          testID="availableDate-trigger"
+          accessibilityRole="button"
+          accessibilityLabel={t('contextualListing.step6.availableDatePlaceholder')}
+          onPress={() => setShowDatePicker(true)}
+          style={[
+            commonStyles.input,
+            {
+              borderColor: colors.border,
+              backgroundColor: colors.inputBackground,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingRight: 12,
+            },
+          ]}
+        >
+          <Text
+            style={{
+              color: values.terms.availableDate ? colors.text : colors.textSecondary,
+              fontSize: 16,
+            }}
+          >
+            {values.terms.availableDate
+              ? new Date(values.terms.availableDate + 'T12:00:00').toLocaleDateString(
+                  dateLocale,
+                  { day: 'numeric', month: 'short', year: 'numeric' },
+                )
+              : t('contextualListing.step6.availableDatePlaceholder')}
+          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {values.terms.availableDate ? (
+              <TouchableOpacity
+                testID="availableDate-clear"
+                accessibilityRole="button"
+                accessibilityLabel={t('contextualListing.step6.availableDateClear')}
+                onPress={() => setTerms({ availableDate: undefined })}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text
+                  style={{
+                    color: colors.textSecondary,
+                    fontSize: 14,
+                    fontWeight: '600',
+                  }}
+                >
+                  {t('contextualListing.step6.availableDateClear')}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+            <Text style={{ color: colors.textSecondary, fontSize: 16 }}>📅</Text>
+          </View>
+        </TouchableOpacity>
+        <Text
+          style={[
+            commonStyles.errorText,
+            { color: colors.textSecondary, marginTop: 6 },
+          ]}
+        >
+          {t('contextualListing.step6.availableDateHint')}
+        </Text>
+        {errors['terms.availableDate'] ? (
+          <Text
+            testID="availableDate-error"
+            style={[commonStyles.errorText, { color: colors.error }]}
+          >
+            {t(errors['terms.availableDate'] as TranslationKeys)}
+          </Text>
+        ) : null}
+        {showDatePicker ? (
+          <DateTimePicker
+            testID="availableDate-picker"
+            value={
+              values.terms.availableDate
+                ? new Date(values.terms.availableDate + 'T12:00:00')
+                : new Date()
+            }
+            mode="date"
+            locale={dateLocale}
+            display={Platform.OS === 'ios' ? 'spinner' : undefined}
+            themeVariant={
+              Platform.OS === 'ios' ? (isDark ? 'dark' : 'light') : undefined
+            }
+            textColor={
+              Platform.OS === 'ios'
+                ? isDark
+                  ? '#FFFFFF'
+                  : '#000000'
+                : undefined
+            }
+            onChange={(_event, d) => {
+              if (Platform.OS === 'android') setShowDatePicker(false);
+              if (d) setTerms({ availableDate: d.toISOString().slice(0, 10) });
+            }}
+          />
+        ) : null}
+        {showDatePicker && Platform.OS === 'ios' ? (
+          <TouchableOpacity
+            testID="availableDate-done"
+            accessibilityRole="button"
+            accessibilityLabel={t('common.done')}
+            style={{
+              backgroundColor: colors.primary,
+              height: 44,
+              borderRadius: 10,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginTop: 8,
+            }}
+            onPress={() => setShowDatePicker(false)}
+          >
+            <Text
+              style={{
+                color: isDark ? '#121212' : '#FFFFFF',
+                fontSize: 16,
+                fontWeight: '600',
+              }}
+            >
+              {t('common.done')}
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
     </View>
   );
 }

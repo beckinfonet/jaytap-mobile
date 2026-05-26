@@ -752,6 +752,12 @@ export const ru: Record<TranslationKeys, string> = {
   'contextualListing.step6.minTermRequired': 'Выберите минимальный срок',
   'contextualListing.step6.minTerm.1_month': '1 месяц',
   'contextualListing.step6.minTerm.3_months': '3 месяца',
+  // Quick-task 260526-foc — восстановить выбор даты «Доступно с» (необязательно; пусто = «доступно сейчас»).
+  'contextualListing.step6.availableDateLabel': 'Доступно с',
+  'contextualListing.step6.availableDatePlaceholder': 'Выберите дату',
+  'contextualListing.step6.availableDateHint': 'Оставьте пустым, если доступно сейчас',
+  'contextualListing.step6.availableDateClear': 'Очистить',
+  'contextualListing.step6.availableDateInvalid': 'Неверная дата',
 
   // Phase 3 Plan 03-05 — Управление медиа (только модератор) + загрузка + 3D-тур.
   // 26 ключей в lockstep с en.ts (UI-SPEC §"Copywriting Contract" verbatim).

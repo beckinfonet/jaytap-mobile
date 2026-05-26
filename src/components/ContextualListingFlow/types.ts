@@ -53,6 +53,11 @@ export interface FormBag {
     deposit?: { amount: string; currency: 'KGS' | 'USD' | 'EUR' };
     prepaymentMonths?: number; // 0 | 1 | 2 | custom-int
     minTerm?: '1_day' | '1_month' | '3_months';
+    // Quick-task 260526-foc — restore "Available from" date picker.
+    // ISO-8601 date-only string ('YYYY-MM-DD'). Empty/undefined means "available now".
+    // NESTED at terms.availableDate inside FormBag; flattened to TOP-LEVEL
+    // Property.availableDate by the adapter (existing M3 schema shape).
+    availableDate?: string;
   };
 }
 

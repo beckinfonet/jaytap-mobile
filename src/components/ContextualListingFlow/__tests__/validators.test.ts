@@ -278,6 +278,69 @@ describe('Phase 2 validators — Step 6 (Plan 02-04b)', () => {
   });
 });
 
+// Quick-task 260526-foc — terms.availableDate is OPTIONAL on every dealType (empty/undefined
+// means "available now"); the validator only checks format for direct-write paths
+// (the date picker UI emits 'YYYY-MM-DD' so format errors should never surface in normal use).
+describe('Quick-task 260526-foc validators — terms.availableDate defensive (Step 6)', () => {
+  const validRentLong = {
+    ...emptyFormBag(),
+    dealType: 'rent_long' as const,
+    terms: {
+      negotiable: true,
+      prepaymentMonths: 1,
+      minTerm: '1_month' as const,
+    },
+  };
+
+  test('G: availableDate undefined on rent_long with all required set → isValid (optional)', () => {
+    const r = validateStep(6, validRentLong);
+    expect(r.errors['terms.availableDate']).toBeUndefined();
+    expect(r.isValid).toBe(true);
+  });
+
+  test('H: availableDate="" empty string → no error (treated same as undefined)', () => {
+    const bag = { ...validRentLong, terms: { ...validRentLong.terms, availableDate: '' } };
+    const r = validateStep(6, bag);
+    expect(r.errors['terms.availableDate']).toBeUndefined();
+    expect(r.isValid).toBe(true);
+  });
+
+  test('I: availableDate="2026-06-01" valid ISO date → no error, isValid', () => {
+    const bag = { ...validRentLong, terms: { ...validRentLong.terms, availableDate: '2026-06-01' } };
+    const r = validateStep(6, bag);
+    expect(r.errors['terms.availableDate']).toBeUndefined();
+    expect(r.isValid).toBe(true);
+  });
+
+  test('J: availableDate="06/01/2026" wrong format → availableDateInvalid error', () => {
+    const bag = { ...validRentLong, terms: { ...validRentLong.terms, availableDate: '06/01/2026' } };
+    const r = validateStep(6, bag);
+    expect(r.errors['terms.availableDate']).toBe('contextualListing.step6.availableDateInvalid');
+  });
+
+  test('K: availableDate="2026-13-45" unparseable date → availableDateInvalid error', () => {
+    const bag = { ...validRentLong, terms: { ...validRentLong.terms, availableDate: '2026-13-45' } };
+    const r = validateStep(6, bag);
+    expect(r.errors['terms.availableDate']).toBe('contextualListing.step6.availableDateInvalid');
+  });
+
+  test('K2: rent_daily + availableDate set → isValid (D-19 thin step preserved; date is still optional)', () => {
+    const bag = {
+      ...emptyFormBag(),
+      dealType: 'rent_daily' as const,
+      terms: { availableDate: '2026-06-01' },
+    };
+    expect(validateStep(6, bag).isValid).toBe(true);
+  });
+
+  test('K3: FIELD_ORDER_PER_STEP[6] includes "terms.availableDate" after minTerm', () => {
+    const order = FIELD_ORDER_PER_STEP[6];
+    const minTermIdx = order.indexOf('terms.minTerm');
+    const availIdx = order.indexOf('terms.availableDate');
+    expect(availIdx).toBeGreaterThan(minTermIdx);
+  });
+});
+
 // Plan 07-03 (M4 FORM-04) — defensive bedrooms + bathroomCount validators.
 // D-09 invariant: defensive-only; never required; undefined ALWAYS valid.
 // Stepper UI clamps prevent these from firing; checks catch direct-write paths.

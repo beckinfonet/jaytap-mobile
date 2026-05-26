@@ -56,6 +56,21 @@ jest.mock('../../../context/LanguageContext', () => ({
   }),
 }));
 
+// Quick-task 260526-foc — native DateTimePicker mock (pattern matches Step2 react-native-maps).
+// Surfaces onChange so we can simulate a date selection. testID propagates verbatim.
+jest.mock('@react-native-community/datetimepicker', () => {
+  const ReactM = require('react');
+  const { View } = require('react-native');
+  const MockPicker = ({ testID, onChange, value, ...rest }: any) =>
+    ReactM.createElement(View, {
+      testID: testID ?? 'mock-datetimepicker',
+      onChange,
+      value,
+      ...rest,
+    });
+  return { __esModule: true, default: MockPicker };
+});
+
 function findByTestID(root: ReactTestInstance, testID: string): ReactTestInstance {
   return root.findByProps({ testID });
 }
@@ -225,5 +240,77 @@ describe('Step6DealConditions (Plan 02-04b)', () => {
     const t = last[1] as FormBag['terms'];
     expect(t.deposit?.amount).toBe('500');
     expect(t.deposit?.currency).toBe('KGS');
+  });
+
+  // Quick-task 260526-foc — "Available from" picker tests.
+  // Picker renders for ALL dealTypes (optional field, empty = "available now").
+
+  test('foc-1: availableDate-trigger renders on sale (picker is universal across dealTypes)', async () => {
+    const { root } = await renderStep6({ values: bagFor('sale') });
+    expect(findByTestID(root, 'availableDate-trigger')).toBeTruthy();
+  });
+
+  test('foc-2: availableDate-trigger renders on rent_long', async () => {
+    const { root } = await renderStep6({ values: bagFor('rent_long') });
+    expect(findByTestID(root, 'availableDate-trigger')).toBeTruthy();
+  });
+
+  test('foc-3: availableDate-trigger renders on rent_daily (D-19 thin step preserved with optional date)', async () => {
+    const { root } = await renderStep6({ values: bagFor('rent_daily') });
+    expect(findByTestID(root, 'availableDate-trigger')).toBeTruthy();
+  });
+
+  test('foc-4: tapping trigger opens the native picker (testID=availableDate-picker)', async () => {
+    const { root } = await renderStep6({ values: bagFor('rent_long') });
+    expect(tryFindByTestID(root, 'availableDate-picker')).toBeNull();
+    const trigger = findByTestID(root, 'availableDate-trigger');
+    await ReactTestRenderer.act(async () => {
+      trigger.props.onPress();
+    });
+    expect(tryFindByTestID(root, 'availableDate-picker')).not.toBeNull();
+  });
+
+  test('foc-5: picker onChange with a Date dispatches terms.availableDate as YYYY-MM-DD', async () => {
+    const { root, onChange } = await renderStep6({ values: bagFor('rent_long') });
+    const trigger = findByTestID(root, 'availableDate-trigger');
+    await ReactTestRenderer.act(async () => {
+      trigger.props.onPress();
+    });
+    const picker = findByTestID(root, 'availableDate-picker');
+    const picked = new Date('2026-06-01T12:00:00Z');
+    await ReactTestRenderer.act(async () => {
+      picker.props.onChange({ type: 'set' }, picked);
+    });
+    const last = onChange.mock.calls[onChange.mock.calls.length - 1];
+    expect(last[0]).toBe('terms');
+    expect((last[1] as FormBag['terms']).availableDate).toBe('2026-06-01');
+  });
+
+  test('foc-6: pre-set availableDate renders clear button; tapping Clear dispatches undefined', async () => {
+    const { root, onChange } = await renderStep6({
+      values: bagFor('rent_long', { availableDate: '2026-06-01' }),
+    });
+    const clearBtn = findByTestID(root, 'availableDate-clear');
+    expect(clearBtn).toBeTruthy();
+    await ReactTestRenderer.act(async () => {
+      clearBtn.props.onPress();
+    });
+    const last = onChange.mock.calls[onChange.mock.calls.length - 1];
+    expect(last[0]).toBe('terms');
+    expect((last[1] as FormBag['terms']).availableDate).toBeUndefined();
+  });
+
+  test('foc-7: empty availableDate hides the Clear button (no testID rendered)', async () => {
+    const { root } = await renderStep6({ values: bagFor('rent_long') });
+    expect(tryFindByTestID(root, 'availableDate-clear')).toBeNull();
+  });
+
+  test('foc-8: errors["terms.availableDate"] renders inline error', async () => {
+    const { root } = await renderStep6({
+      values: bagFor('rent_long'),
+      errors: { 'terms.availableDate': 'contextualListing.step6.availableDateInvalid' },
+    });
+    const err = findByTestID(root, 'availableDate-error');
+    expect(err).toBeTruthy();
   });
 });
