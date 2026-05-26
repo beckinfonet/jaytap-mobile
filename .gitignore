@@ -7,6 +7,9 @@
 # Claude Code internal worktrees / scratch
 .claude/
 
+# superpowers brainstorming mockups + scratch
+.superpowers/
+
 APP_STORE_SUBMISSION_CHECKLIST.md
 # Xcode
 #
