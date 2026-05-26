@@ -640,12 +640,12 @@ function AppContent() {
   // No longer forcing authentication - users can browse without login
 
   const handleOpenTours = (property: Property) => {
-    if (property.tours && property.tours.length > 0) {
-      if (property.tours.length === 1) {
-        setPropertyForTourSelection(property);
-      } else {
-        setPropertyForTourSelection(property);
-      }
+    // M3 Phase 2 D-20: legacy `property.tours[]` was flattened to a single
+    // `media.tourUrl` string. Open the viewer directly — TourSelectionScreen
+    // is now unreachable since there's never more than one URL.
+    const url = property.media?.tourUrl;
+    if (url) {
+      setActiveTourUrl(url);
     }
   };
 
