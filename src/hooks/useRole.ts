@@ -12,7 +12,7 @@ export type Role = 'admin' | 'moderator' | 'user' | 'guest';
  * Adding an action is additive (safe); removing one requires grep of call sites.
  */
 export type Action =
-  | 'editVerifications'              // M1 — admin only
+  | 'editVerifications'              // M1 admin-only → expanded 2026-05-26 to moderator + admin (260526-foc QA)
   | 'editMatterportUrl'              // M1 — admin only
   | 'editPanoramicUrl'               // M1 — admin only
   | 'manageListings'                 // M2 Phase 4.5 — admin/moderator implicit; user requires backendProfile.canListProperties
@@ -78,13 +78,13 @@ function deriveRole(user: any): Role {
 export function canFromUser(user: any, action: Action): boolean {
   const role = deriveRole(user);
   switch (action) {
-    case 'editVerifications':
     case 'editMatterportUrl':
     case 'editPanoramicUrl':
     case 'manageRoles':
     case 'reviewLandlordApplications':
     case 'hardDeleteListing':                 // ARCH-05 D-16 — admin only
       return role === 'admin';
+    case 'editVerifications':                 // 260526-foc QA — expanded to moderator + admin
     case 'editAnyListing':
     case 'approveListings':
     case 'viewModerationQueue':

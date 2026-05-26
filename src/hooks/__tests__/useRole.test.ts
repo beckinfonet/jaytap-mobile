@@ -67,6 +67,10 @@ describe('canFromUser priority ladder (post-allowlist deletion)', () => {
     expect(canFromUser(null, 'editVerifications')).toBe(false);
   });
 
+  test('moderator can editVerifications (260526-foc QA — gate expanded from admin-only)', () => {
+    expect(canFromUser(moderator, 'editVerifications')).toBe(true);
+  });
+
   test('Branch 1 forward-compat: customClaims.role === "admin" wins over backend userType', () => {
     const customClaimAdmin = {
       email: 'cc@foo.com',
@@ -87,13 +91,15 @@ describe('canFromUser priority ladder (post-allowlist deletion)', () => {
       },
     };
     expect(canFromUser(customClaimMod, 'editAnyListing')).toBe(true);
-    expect(canFromUser(customClaimMod, 'editVerifications')).toBe(false);
+    // 260526-foc QA: editVerifications expanded from admin-only to admin+moderator.
+    expect(canFromUser(customClaimMod, 'editVerifications')).toBe(true);
   });
 
-  test('moderator can editAnyListing + approveListings but not editVerifications', () => {
+  test('moderator can editAnyListing + approveListings + editVerifications, but NOT manageRoles', () => {
     expect(canFromUser(moderator, 'editAnyListing')).toBe(true);
     expect(canFromUser(moderator, 'approveListings')).toBe(true);
-    expect(canFromUser(moderator, 'editVerifications')).toBe(false);
+    // 260526-foc QA: editVerifications expanded from admin-only to admin+moderator.
+    expect(canFromUser(moderator, 'editVerifications')).toBe(true);
     expect(canFromUser(moderator, 'manageRoles')).toBe(false);
   });
 
