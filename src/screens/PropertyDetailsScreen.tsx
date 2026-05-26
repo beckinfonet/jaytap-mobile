@@ -15,6 +15,7 @@ import {
   Modal,
   ActivityIndicator,
   Share,
+  Switch,
 } from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { BlurView } from '@react-native-community/blur';
@@ -53,6 +54,7 @@ import { KeyStatsCard } from '../components/details/KeyStatsCard';
 import { getPropertyShareUrl } from '../constants';
 import { formatPrice } from '../utils/formatPrice';
 import { formatAddress } from '../utils/formatAddress';
+import { availabilityValueFromRaw } from '../utils/availability';
 import { getTourPhotosUrl } from '../utils/getTourPhotosUrl';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -127,7 +129,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { can } = useRole();
   // Phase 4 CARRY-01 D-02 — shared 403 detection + recovery for the 5 mod-action
   // handlers below (handleApprove, handleRejectSubmit, handleModArchiveSubmit,
@@ -218,6 +220,58 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [isHardDeleteModalOpen, setIsHardDeleteModalOpen] = useState(false);
   const [submittingAction, setSubmittingAction] = useState(false);
+
+  // 260526-foc QA — inline verification toggles for mods/admins. The block at the
+  // bottom of the page (search for "platformVerifications" below) switches between
+  // display-only rows (everyone else) and these editable Switches gated by useRole.
+  const canEditVerifications = can('editVerifications');
+  const [pvOwnership, setPvOwnership] = useState<boolean>(
+    !!property.platformVerifications?.ownershipDocuments,
+  );
+  const [pvOwnerIdentity, setPvOwnerIdentity] = useState<boolean>(
+    !!property.platformVerifications?.ownerIdentityVerified,
+  );
+  const [pvStateDocs, setPvStateDocs] = useState<boolean>(
+    !!property.platformVerifications?.stateIssuedDocumentsVerified,
+  );
+  const [pvSaving, setPvSaving] = useState<boolean>(false);
+
+  // Re-hydrate when the underlying property object changes (e.g. parent refresh).
+  useEffect(() => {
+    const pv = property.platformVerifications;
+    setPvOwnership(!!pv?.ownershipDocuments);
+    setPvOwnerIdentity(!!pv?.ownerIdentityVerified);
+    setPvStateDocs(!!pv?.stateIssuedDocumentsVerified);
+  }, [property.platformVerifications]);
+
+  const persistPlatformVerifications = async (next: {
+    ownershipDocuments: boolean;
+    ownerIdentityVerified: boolean;
+    stateIssuedDocumentsVerified: boolean;
+  }) => {
+    if (!property.id || !canEditVerifications) return;
+    setPvSaving(true);
+    try {
+      const updated = await PropertyService.patchPlatformVerifications(property.id, next);
+      // Reflect the server's canonical state on the local property so the
+      // "Verified by MoveIn" summary row count updates immediately.
+      setProperty((p) => ({
+        ...p,
+        platformVerifications: updated.platformVerifications ?? next,
+      }));
+    } catch (error: any) {
+      // Revert the local toggle that triggered the failure by re-hydrating
+      // from the unchanged property object.
+      const pv = property.platformVerifications;
+      setPvOwnership(!!pv?.ownershipDocuments);
+      setPvOwnerIdentity(!!pv?.ownerIdentityVerified);
+      setPvStateDocs(!!pv?.stateIssuedDocumentsVerified);
+      const msg = error?.response?.data?.message || error?.message;
+      Alert.alert(t('common.error'), msg || t('createListing.updateFailed'));
+    } finally {
+      setPvSaving(false);
+    }
+  };
   /** Measured height of the moderation dock for scroll padding when it overlays the footer */
   const [modDockLayoutHeight, setModDockLayoutHeight] = useState(0);
   const showModFooter = can('approveListings') && property.status === 'pending';
@@ -996,16 +1050,131 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               Full-screen map modal (gated by isMapFullScreen) is preserved below. */}
 
           {(() => {
+            // 260526-foc QA — Verification + Availability bottom block.
+            //
+            // For mods/admins (`canEditVerifications`): renders inline Switch toggles
+            // that PATCH platformVerifications optimistically. No separate screen needed.
+            // For everyone else: renders the existing display-only summary — either the
+            // "Verified by MoveIn" check-list (when at least one flag is set) or the
+            // "Documents not verified by MoveIn" warning (when none are set).
+            //
+            // The availability row sits above both branches so renters always see when
+            // a listing becomes available, even if it isn't verified yet.
             const pv = property.platformVerifications;
             const rows: { key: string; label: string }[] = [];
             if (pv?.ownershipDocuments) rows.push({ key: 'o', label: t('verification.ownershipDocuments') });
             if (pv?.ownerIdentityVerified) rows.push({ key: 'i', label: t('verification.ownerIdentity') });
             if (pv?.stateIssuedDocumentsVerified) rows.push({ key: 's', label: t('verification.stateIssued') });
             const hasVerifiedItems = rows.length > 0;
+            const detailsLocale = language === 'ru' ? 'ru-RU' : 'en-US';
+            const availDisplay = availabilityValueFromRaw(
+              property.availableDate,
+              t('property.now'),
+              detailsLocale,
+            );
 
+            const availabilityRow = availDisplay ? (
+              <View style={styles.detailsAvailabilityRow}>
+                <Calendar size={18} color={colors.accent} strokeWidth={2.25} />
+                <Text style={[styles.detailsAvailabilityLabel, { color: colors.textSecondary }]}>
+                  {t('property.available')}
+                </Text>
+                <Text style={[styles.detailsAvailabilityValue, { color: colors.text }]}>
+                  {availDisplay}
+                </Text>
+              </View>
+            ) : null;
+
+            // Editable branch — moderator + admin (gated via canEditVerifications).
+            if (canEditVerifications) {
+              const togglePvOwnership = (next: boolean) => {
+                setPvOwnership(next);
+                persistPlatformVerifications({
+                  ownershipDocuments: next,
+                  ownerIdentityVerified: pvOwnerIdentity,
+                  stateIssuedDocumentsVerified: pvStateDocs,
+                });
+              };
+              const togglePvOwnerIdentity = (next: boolean) => {
+                setPvOwnerIdentity(next);
+                persistPlatformVerifications({
+                  ownershipDocuments: pvOwnership,
+                  ownerIdentityVerified: next,
+                  stateIssuedDocumentsVerified: pvStateDocs,
+                });
+              };
+              const togglePvStateDocs = (next: boolean) => {
+                setPvStateDocs(next);
+                persistPlatformVerifications({
+                  ownershipDocuments: pvOwnership,
+                  ownerIdentityVerified: pvOwnerIdentity,
+                  stateIssuedDocumentsVerified: next,
+                });
+              };
+
+              const editRow = (
+                label: string,
+                value: boolean,
+                onChange: (next: boolean) => void,
+                rowKey: string,
+              ) => (
+                <View key={rowKey} style={styles.verificationEditRow}>
+                  <Text
+                    style={[styles.verificationEditLabel, { color: colors.text }]}
+                    numberOfLines={2}
+                  >
+                    {label}
+                  </Text>
+                  <Switch
+                    value={value}
+                    onValueChange={onChange}
+                    disabled={pvSaving}
+                    trackColor={{ false: '#767577', true: colors.accent }}
+                    thumbColor="#f4f3f4"
+                  />
+                </View>
+              );
+
+              return (
+                <View style={styles.section}>
+                  {availabilityRow}
+                  <View style={styles.verificationHeaderRow}>
+                    <View style={styles.verificationIconColumn}>
+                      <ShieldCheck size={22} color={colors.accent} />
+                    </View>
+                    <View style={styles.verificationHeaderTextColumn}>
+                      <Text style={[styles.verificationTitle, { color: colors.text }]}>
+                        {t('verification.adminSectionTitle')}
+                      </Text>
+                      <Text style={[styles.verificationSubtitle, { color: colors.textSecondary }]}>
+                        {t('verification.adminSectionHint')}
+                      </Text>
+                    </View>
+                  </View>
+                  <View
+                    style={[
+                      styles.verificationList,
+                      { backgroundColor: colors.surface, borderColor: colors.border },
+                    ]}
+                  >
+                    {editRow(t('verification.ownershipDocuments'), pvOwnership, togglePvOwnership, 'o')}
+                    {editRow(t('verification.ownerIdentity'), pvOwnerIdentity, togglePvOwnerIdentity, 'i')}
+                    {editRow(t('verification.stateIssued'), pvStateDocs, togglePvStateDocs, 's')}
+                    {pvSaving ? (
+                      <View style={styles.verificationSavingRow}>
+                        <ActivityIndicator size="small" color={colors.textSecondary} />
+                      </View>
+                    ) : null}
+                  </View>
+                </View>
+              );
+            }
+
+            // Display-only branch — everyone else.
             if (hasVerifiedItems) {
               return (
                 <View style={styles.section}>
+                  {availabilityRow}
                   <View style={styles.verificationHeaderRow}>
                     <View style={styles.verificationIconColumn}>
                       <ShieldCheck size={22} color={colors.accent} />
@@ -1031,6 +1200,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
 
             return (
               <View style={styles.section}>
+                {availabilityRow}
                 <View
                   style={[
                     styles.verificationWarningBox,
@@ -1829,6 +1999,38 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 21,
     fontWeight: '500',
+  },
+  // 260526-foc QA — inline verification editor (mod/admin) + availability row.
+  verificationEditRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingVertical: 4,
+  },
+  verificationEditLabel: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
+  },
+  verificationSavingRow: {
+    alignItems: 'flex-end',
+    paddingTop: 4,
+  },
+  detailsAvailabilityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 14,
+  },
+  detailsAvailabilityLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  detailsAvailabilityValue: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   sectionContentBox: {
     borderRadius: 16,
