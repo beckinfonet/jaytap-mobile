@@ -110,6 +110,10 @@ export const ru: Record<TranslationKeys, string> = {
   // Property
   'property.forRent': 'АРЕНДА',
   'property.forSale': 'ПРОДАЖА',
+  // Quick task 260526-ebl — home-card live status badge (deal-type-aware) + 3D-tour pill
+  'property.statusBadge.live.sale': 'В продаже',
+  'property.statusBadge.live.rent': 'В аренде',
+  'property.tourPill': '3D Тур',
   'property.id': 'ID:',
   'property.metaId': 'ID:',
   'property.metaAvailable': 'Доступно:',

@@ -5,20 +5,28 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
   Platform,
   Share,
   ActivityIndicator,
 } from 'react-native';
-import { Heart, Bed, Bath, Pencil, Trash2, Archive, ArchiveRestore } from 'lucide-react-native';
+import {
+  Heart,
+  Bed,
+  Bath,
+  Pencil,
+  Trash2,
+  Archive,
+  ArchiveRestore,
+  MapPin,
+  Maximize2,
+  Box,
+} from 'lucide-react-native';
 import { Property } from '../types/Property';
 import { getPropertyShareUrl } from '../constants';
 import { formatPrice } from '../utils/formatPrice';
-import { formatAddress } from '../utils/formatAddress';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { ListingMetaTable } from './ListingMetaTable';
 import { StatusPill } from './StatusPill';
 
 interface PropertyCardProps {
@@ -39,26 +47,22 @@ interface PropertyCardProps {
   groupWithFooter?: boolean;
 }
 
-const { width } = Dimensions.get('window');
-
 export const PropertyCard: React.FC<PropertyCardProps> = ({
   property,
   onPress,
   onViewTour,
-  onViewVideo,
   onEdit,
   showEditButton = false,
   onDelete,
   onArchive,
   onUnarchive,
-  onShare,
   onFavorite,
   isFavorited = false,
   isLoading = false,
   groupWithFooter = false,
 }) => {
   const { colors, isDark } = useTheme();
-  const { user } = useAuth();
+  useAuth(); // preserved subscription — auth surface keeps card in sync with sign-in toggles
   const { t } = useLanguage();
 
   // Phase 2 D-20 nested-shape derivations (Phase 1 D-04..D-15)
@@ -66,12 +70,25 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const heroPhoto = property.media?.photos?.[0];
   const cityLabel = property.location?.city ?? '';
   const districtLabel = property.location?.district ?? '';
-  // Address line synthesized from nested location (no flat property.address on M3 shape).
-  // Render slug-as-is — M4 owns dynamic-dictionary label lookup per D-10.
-  const addressDisplay = [districtLabel, cityLabel].filter(Boolean).join(', ');
+  const addressDisplay = [districtLabel, cityLabel].filter(Boolean).join(' · ');
   // Tradeoff §K: hospitality strip uses dealType !== 'sale'; PropertyCard's M2 status
   // badge maps the sale/rent split via the same rule so it renders correctly on M3 data.
   const isSale = property.dealType === 'sale';
+
+  // Quick task 260526-ebl derivations
+  const hasTour = !!property.media?.tourUrl; // canonical M3 predicate (HospitalityCard:86, HomeScreen:238)
+  const areaSqm = property.basics?.areaSqm;
+  const hasArea = typeof areaSqm === 'number' && areaSqm > 0;
+  const bedrooms = property.basics?.bedrooms;
+  const hasBeds =
+    !(property.propertyType === 'office' || property.propertyType === 'commercial') &&
+    typeof bedrooms === 'number' &&
+    bedrooms > 0;
+  const bathroomCount = property.basics?.bathroomCount;
+  const hasBath = typeof bathroomCount === 'number' && bathroomCount > 0;
+  const status = property.status ?? 'live'; // D-07 defensive coalesce (matches StatusPill)
+  const isLive = status === 'live';
+  const liveBadgeKey = isSale ? 'property.statusBadge.live.sale' : 'property.statusBadge.live.rent';
 
   const handleShare = async (e: any) => {
     e.stopPropagation(); // Prevent card press
@@ -100,6 +117,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       console.error('Error sharing:', error.message);
     }
   };
+
   return (
     <View
       style={[
@@ -117,28 +135,31 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             resizeMode="cover"
           />
 
+          {/* Top-left: dark sale/rent pill with red leading dot + non-live StatusPill (preserved) */}
           <View style={styles.topBadges}>
-            <View style={[styles.badge, styles.statusBadge]}>
-              <Text style={styles.statusText}>
+            <View style={styles.dealTypePill}>
+              <View style={styles.dealTypeDot} />
+              <Text style={styles.dealTypeLabel}>
                 {isSale ? t('property.forSale') : t('property.forRent')}
               </Text>
             </View>
-            {/* D-19: status pill stacked below rent/sale badge (top-left), avoids collision with top-right share+heart actions */}
-            {(property.status ?? 'live') !== 'live' && (
-              <StatusPill status={property.status} style={{ marginTop: 6 }} />
-            )}
+            {/* D-19: status pill stacked below rent/sale badge (top-left) — pending/rejected/archived only.
+                StatusPill returns null for 'live', so the live-only deal-type badge in row 1 below is the
+                replacement for that case (live = no overlay pill, plus deal-type badge below image). */}
+            {!isLive && <StatusPill status={property.status} style={{ marginTop: 6 }} />}
           </View>
 
+          {/* Top-right: dark translucent share + favorite buttons */}
           <View style={styles.topRightActions}>
             <TouchableOpacity
-              style={[styles.shareButton, { backgroundColor: 'rgba(255,255,255,0.9)' }]}
+              style={styles.darkOverlayButton}
               onPress={handleShare}
               activeOpacity={0.8}
             >
-              <Text style={{ fontSize: 18, color: '#333' }}>↗</Text>
+              <Text style={styles.shareGlyph}>↗</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.heartButton, { backgroundColor: 'rgba(255,255,255,0.9)' }]}
+              style={styles.darkOverlayButton}
               onPress={(e) => {
                 e.stopPropagation();
                 if (onFavorite && !isLoading) {
@@ -149,167 +170,175 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               disabled={isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color={isFavorited ? '#E91E63' : '#999'} />
+                <ActivityIndicator size="small" color={isFavorited ? '#E91E63' : '#FFFFFF'} />
               ) : (
                 <Heart
                   size={18}
-                  color={isFavorited ? '#E91E63' : '#999'}
+                  color={isFavorited ? '#E91E63' : '#FFFFFF'}
                   fill={isFavorited ? '#E91E63' : 'transparent'}
                 />
               )}
             </TouchableOpacity>
           </View>
 
-          {/* <View style={styles.bottomBadges}>
-            {property.is3DTourAvailable && property.tours && property.tours.length > 0 && (
-              <View style={[styles.mediaBadge, styles.tour3DBadge]}>
-                <Text style={styles.tour3DBadgeText}>
-                  {property.tours.length > 1 ? '3D Tours' : '3D Tour'}
-                </Text>
-              </View>
-            )}
-            {property.videoUrl && (
-              <View style={[styles.mediaBadge, { backgroundColor: 'rgba(0, 0, 0, 0.6)' }]}>
-                <Text style={[styles.mediaBadgeText, { color: '#FFF' }]}>🎥</Text>
-              </View>
-            )}
-          </View> */}
+          {/* Floating price + stats overlay (260526-ebl) */}
+          <View style={styles.priceOverlay}>
+            <View style={styles.priceOverlayLeft}>
+              <Text style={styles.priceOverlayEyebrow} numberOfLines={1}>
+                {t('property.price')}
+              </Text>
+              <Text style={styles.priceOverlayValue} numberOfLines={1}>
+                {formatPrice(property, t('property.perMonth'))}
+              </Text>
+            </View>
+            <View style={styles.priceOverlayStats}>
+              {hasBeds && (
+                <View style={styles.priceOverlayStatCell}>
+                  <Bed size={14} color="#FFFFFF" strokeWidth={2} />
+                  <Text style={styles.priceOverlayStatValue}>{bedrooms}</Text>
+                </View>
+              )}
+              {hasBath && (
+                <View style={styles.priceOverlayStatCell}>
+                  <Bath size={14} color="#FFFFFF" strokeWidth={2} />
+                  <Text style={styles.priceOverlayStatValue}>{bathroomCount}</Text>
+                </View>
+              )}
+              {hasArea && (
+                <View style={styles.priceOverlayStatCell}>
+                  <Maximize2 size={14} color="#FFFFFF" strokeWidth={2} />
+                  <Text style={styles.priceOverlayStatValue}>{areaSqm}</Text>
+                </View>
+              )}
+            </View>
+          </View>
         </View>
 
-        {/* Content Section */}
+        {/* Below-image content region */}
         <View style={styles.contentContainer}>
-          <View style={styles.mainInfo}>
-            <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
-              {title}{districtLabel ? ` • ${districtLabel}` : cityLabel ? ` • ${cityLabel}` : ''}
-            </Text>
-            <ListingMetaTable
-              listingId={property.listingId}
-              availableDate={property.availableDate}
-              compact
-            />
-            {(() => {
-              const formatted = formatAddress(addressDisplay);
-              return (
-                <>
-                  <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
-                    {formatted.line1}
+          {/* Row 1: #<listingId> + live deal-type badge (left) | 3D-tour pill (right, conditional) */}
+          <View style={styles.metaRow}>
+            <View style={styles.metaRowLeft}>
+              {property.listingId ? (
+                <Text style={[styles.listingIdText, { color: colors.text }]} numberOfLines={1}>
+                  #{property.listingId}
+                </Text>
+              ) : null}
+              {isLive && (
+                <View
+                  style={[
+                    styles.liveBadge,
+                    { backgroundColor: colors.chipBackground, borderColor: colors.chipBorder },
+                  ]}
+                >
+                  <View style={styles.liveBadgeDot} />
+                  <Text style={[styles.liveBadgeLabel, { color: colors.text }]} numberOfLines={1}>
+                    {t(liveBadgeKey as any)}
                   </Text>
-                  {formatted.line2 ? (
-                    <Text style={[styles.address, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
-                      {formatted.line2}
-                    </Text>
-                  ) : null}
-                </>
-              );
-            })()}
-          </View>
-
-          <View style={styles.footerRow}>
-            <Text
-              style={[styles.price, { color: colors.text, flex: 1, flexShrink: 1, marginRight: 12 }]}
-              numberOfLines={1}
-            >
-              {formatPrice(property, t('property.perMonth'))}
-            </Text>
-
-            {showEditButton ? (
-              (() => {
-                // Status-driven owner actions:
-                //   live / pending / rejected (or legacy untyped) → Edit + Archive
-                //   archived                                      → Edit + Unarchive + Delete (permanent)
-                const status = property.status;
-                const isArchived = status === 'archived';
-                const canArchive = !isArchived; // live, legacy, pending, or rejected
-                return (
-                  <View style={styles.ownerActionsRow}>
-                    {onEdit && (
-                      <TouchableOpacity
-                        accessibilityRole="button"
-                        accessibilityLabel={t('common.edit')}
-                        style={[
-                          styles.listingActionBtnIcon,
-                          styles.listingActionBtnEdit,
-                          {
-                            backgroundColor: isDark ? '#F3F4F6' : colors.inputBackground,
-                            borderColor: colors.border,
-                          },
-                        ]}
-                        onPress={() => onEdit(property)}
-                        activeOpacity={0.75}
-                      >
-                        <Pencil size={19} color={isDark ? '#111827' : colors.text} strokeWidth={2} />
-                      </TouchableOpacity>
-                    )}
-                    {canArchive && onArchive && (
-                      <TouchableOpacity
-                        accessibilityRole="button"
-                        accessibilityLabel={t('property.archive')}
-                        style={[styles.listingActionBtnIcon, styles.listingActionBtnArchive]}
-                        onPress={() => onArchive(property)}
-                        activeOpacity={0.8}
-                      >
-                        <Archive size={19} color="#FFFFFF" strokeWidth={2} />
-                      </TouchableOpacity>
-                    )}
-                    {isArchived && onUnarchive && (
-                      <TouchableOpacity
-                        accessibilityRole="button"
-                        accessibilityLabel={t('property.unarchive')}
-                        style={[styles.listingActionBtnIcon, styles.listingActionBtnUnarchive]}
-                        onPress={() => onUnarchive(property)}
-                        activeOpacity={0.8}
-                      >
-                        <ArchiveRestore size={19} color="#FFFFFF" strokeWidth={2} />
-                      </TouchableOpacity>
-                    )}
-                    {isArchived && onDelete && (
-                      <TouchableOpacity
-                        accessibilityRole="button"
-                        accessibilityLabel={t('common.delete')}
-                        style={[styles.listingActionBtnIcon, styles.listingActionBtnDelete]}
-                        onPress={() => onDelete(property)}
-                        activeOpacity={0.8}
-                      >
-                        <Trash2 size={19} color="#FFFFFF" strokeWidth={2} />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                );
-              })()
-            ) : (
-              // Phase 8 D-01..D-04: icon/value/label cell anatomy surfacing M4 basics.bedrooms +
-              // basics.bathroomCount. D-02 hides the Beds cell entirely on office/commercial
-              // (residential-only concept). D-03 drops the dead `basics?.hotelRooms ?? basics?.rooms`
-              // fallback — PropertyCard never sees hospitality data post 260525-ggp routing fix.
-              // D-04 replaces the bathroom enum render with a single bathroomCount read.
-              (() => {
-                const showBedsCell = !(property.propertyType === 'office' || property.propertyType === 'commercial');
-                return (
-                  <View style={[styles.specsContainer, { backgroundColor: colors.chipBackground, borderColor: colors.chipBorder }]}>
-                    {showBedsCell && (
-                      <View style={styles.specItem}>
-                        <View style={styles.specRow}>
-                          <Bed size={16} color={colors.textSecondary} strokeWidth={2} />
-                          <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.bedrooms ?? '-'}</Text>
-                        </View>
-                        <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.specs.bedrooms' as any)}</Text>
-                      </View>
-                    )}
-                    {showBedsCell && (
-                      <View style={[styles.specDivider, { backgroundColor: colors.border }]} />
-                    )}
-                    <View style={styles.specItem}>
-                      <View style={styles.specRow}>
-                        <Bath size={16} color={colors.textSecondary} strokeWidth={2} />
-                        <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.bathroomCount ?? '-'}</Text>
-                      </View>
-                      <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.specs.bathrooms' as any)}</Text>
-                    </View>
-                  </View>
-                );
-              })()
+                </View>
+              )}
+            </View>
+            {hasTour && (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={t('property.tourPill' as any)}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  onViewTour(property);
+                }}
+                style={[styles.tourPill, { borderColor: colors.error }]}
+                activeOpacity={0.75}
+              >
+                <Box size={13} color={colors.error} strokeWidth={2} />
+                <Text style={[styles.tourPillLabel, { color: colors.error }]}>
+                  {t('property.tourPill' as any)}
+                </Text>
+              </TouchableOpacity>
             )}
           </View>
+
+          {/* Row 2: serif title */}
+          <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>
+            {title}
+          </Text>
+
+          {/* Row 3: MapPin + district · city */}
+          {(districtLabel || cityLabel) ? (
+            <View style={styles.locationRow}>
+              <MapPin size={14} color={colors.textSecondary} strokeWidth={2} />
+              <Text
+                style={[styles.locationText, { color: colors.textSecondary }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {[districtLabel, cityLabel].filter(Boolean).join(' · ')}
+              </Text>
+            </View>
+          ) : null}
+
+          {/* Owner-actions row (preserved): only when showEditButton — HomeScreen does NOT pass this prop */}
+          {showEditButton && (() => {
+            // Status-driven owner actions:
+            //   live / pending / rejected (or legacy untyped) → Edit + Archive
+            //   archived                                      → Edit + Unarchive + Delete (permanent)
+            const isArchived = property.status === 'archived';
+            const canArchive = !isArchived; // live, legacy, pending, or rejected
+            return (
+              <View style={styles.ownerActionsRow}>
+                {onEdit && (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.edit')}
+                    style={[
+                      styles.listingActionBtnIcon,
+                      styles.listingActionBtnEdit,
+                      {
+                        backgroundColor: isDark ? '#F3F4F6' : colors.inputBackground,
+                        borderColor: colors.border,
+                      },
+                    ]}
+                    onPress={() => onEdit(property)}
+                    activeOpacity={0.75}
+                  >
+                    <Pencil size={19} color={isDark ? '#111827' : colors.text} strokeWidth={2} />
+                  </TouchableOpacity>
+                )}
+                {canArchive && onArchive && (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={t('property.archive')}
+                    style={[styles.listingActionBtnIcon, styles.listingActionBtnArchive]}
+                    onPress={() => onArchive(property)}
+                    activeOpacity={0.8}
+                  >
+                    <Archive size={19} color="#FFFFFF" strokeWidth={2} />
+                  </TouchableOpacity>
+                )}
+                {isArchived && onUnarchive && (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={t('property.unarchive')}
+                    style={[styles.listingActionBtnIcon, styles.listingActionBtnUnarchive]}
+                    onPress={() => onUnarchive(property)}
+                    activeOpacity={0.8}
+                  >
+                    <ArchiveRestore size={19} color="#FFFFFF" strokeWidth={2} />
+                  </TouchableOpacity>
+                )}
+                {isArchived && onDelete && (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.delete')}
+                    style={[styles.listingActionBtnIcon, styles.listingActionBtnDelete]}
+                    onPress={() => onDelete(property)}
+                    activeOpacity={0.8}
+                  >
+                    <Trash2 size={19} color="#FFFFFF" strokeWidth={2} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            );
+          })()}
         </View>
       </TouchableOpacity>
     </View>
@@ -331,10 +360,10 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 0,
   },
   imageWrapper: {
-    height: 250, // Taller image as per mockup
+    height: 280, // Taller image — overlay sits inside the hero photo per mockup
     width: '100%',
     position: 'relative',
-    borderRadius: 24, // Rounded image
+    borderRadius: 24,
     overflow: 'hidden',
   },
   imageWrapperGroupedFooter: {
@@ -351,19 +380,26 @@ const styles = StyleSheet.create({
     top: 16,
     left: 16,
   },
-  badge: {
-    // Basic badge style, if needed
+  // Dark deal-type pill with red leading dot (260526-ebl)
+  dealTypePill: {
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  statusBadge: {
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+  dealTypeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#EF4444', // Tailwind red-500
+    marginRight: 6,
   },
-  statusText: {
+  dealTypeLabel: {
+    color: '#FFFFFF',
     fontSize: 11,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: '700',
     letterSpacing: 0.5,
   },
   topRightActions: {
@@ -373,130 +409,148 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  shareButton: {
+  darkOverlayButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
-  heartButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+  shareGlyph: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
-  bottomBadges: {
+  // Floating price + stats overlay (260526-ebl)
+  priceOverlay: {
     position: 'absolute',
-    bottom: 16,
+    left: 16,
     right: 16,
+    bottom: 16,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  mediaBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+  priceOverlayLeft: {
+    flexShrink: 1,
+    marginRight: 12,
   },
-  mediaBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
+  priceOverlayEyebrow: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1,
+    opacity: 0.7,
+    textTransform: 'uppercase',
   },
-  tour3DBadge: {
-    backgroundColor: '#6C63FF', // Primary purple for emphasis
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-    shadowColor: '#6C63FF',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 4,
-    elevation: 4,
+  priceOverlayValue: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '500',
+    fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }),
+    marginTop: 2,
   },
-  tour3DBadgeText: {
-    color: '#FFF',
-    fontWeight: '800',
-    fontSize: 12,
-    letterSpacing: 0.5,
+  priceOverlayStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    flexShrink: 0,
   },
+  priceOverlayStatCell: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  priceOverlayStatValue: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  // Below-image content region (260526-ebl)
   contentContainer: {
     paddingTop: 16,
     paddingBottom: 20,
-    paddingHorizontal: 16, // Increased horizontal padding
+    paddingHorizontal: 16,
   },
-  mainInfo: {
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }), // Serif font
-    fontWeight: '400',
-    marginBottom: 6,
-  },
-  address: {
-    fontSize: 14,
-  },
-  footerRow: {
+  metaRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    marginBottom: 10,
   },
-  ownerActionsRow: {
+  metaRowLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
+    flexShrink: 1,
+  },
+  listingIdText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  liveBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 1,
+  },
+  liveBadgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#22C55E', // emerald-500 — matches ListingMetaTable.availDot
+  },
+  liveBadgeLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  tourPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+    borderWidth: 1,
+    backgroundColor: 'transparent',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     flexShrink: 0,
   },
-  price: {
+  tourPillLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  title: {
     fontSize: 22,
-    fontWeight: '500', // Slightly lighter bold
     fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }),
+    fontWeight: '400',
+    marginBottom: 6,
+    lineHeight: 26,
   },
-  contactButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 20,
-  },
-  specsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 16,
-    borderWidth: 1,
-    gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  specItem: {
-    // v4.0.1 polish — row 1: icon + value inline; row 2: localized label below.
-    // Replaces the previous 3-row column stack (Phase 8 D-01 mirror reference is
-    // now stale — see PropertyDetailsScreen specItem for the matching pattern).
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 2,
-  },
-  specRow: {
+  locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  specValue: {
-    fontSize: 15,
-    fontWeight: '600',
+  locationText: {
+    fontSize: 14,
+    flexShrink: 1,
   },
-  specLabel: {
-    // Phase 8 D-01: localized label rendered below the value in each spec cell
-    // (mirrors PropertyDetailsScreen.tsx specLabel at lines 2004-2006).
-    fontSize: 12,
-  },
-  specDivider: {
-    width: 1,
-    height: 18,
-    borderRadius: 1,
+  ownerActionsRow: {
+    marginTop: 14,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 10,
   },
   listingActionBtnIcon: {
     width: 44,
@@ -552,9 +606,5 @@ const styles = StyleSheet.create({
       },
       android: { elevation: 3 },
     }),
-  },
-  contactButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
   },
 });
