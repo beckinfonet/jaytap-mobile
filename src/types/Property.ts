@@ -8,7 +8,7 @@
 // the union just preserves a half-broken state with extra type-narrowing burden.
 // The full nested type is the simpler shape that Phase 2 can consume directly.
 
-import type { HospitalityAmenity } from '../utils/hospitalityAmenities';
+import type { Amenity } from '../utils/amenities';
 
 /** Platform (MoveIn) trust signals — writable only by admin via PATCH /api/properties/:id/verifications.
  * D-10 keep set — preserved verbatim from M2 (consumed by `<Gated>` admin checks across mod queue + details view).
@@ -32,7 +32,7 @@ export interface Property {
   availableDate?: string;
   features?: string[];
   maxGuests?: number;                 // D-09 hospitality preserve
-  amenities?: HospitalityAmenity[];   // D-09 hospitality preserve
+  amenities?: Amenity[];   // D-09 hospitality preserve; v4.0.1 broadened to Amenity (residential + commercial + hospitality)
 
   // === Nested location (SPEC §"Step 2 — Location") ===
   location?: {
