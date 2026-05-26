@@ -131,15 +131,15 @@ Every M4 v1 requirement maps to exactly one phase. Phase numbering continues fro
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHEMA-01 | Phase 6 — Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator) | Pending |
-| SCHEMA-02 | Phase 6 — Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator) | Pending |
-| SCHEMA-03 | Phase 6 — Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator) | Pending |
-| SCHEMA-04 | Phase 6 — Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator) | Pending |
-| FORM-01 | Phase 7 — Stepper Component + ContextualListingFlow Integration | Pending |
-| FORM-02 | Phase 7 — Stepper Component + ContextualListingFlow Integration | Pending |
-| FORM-03 | Phase 7 — Stepper Component + ContextualListingFlow Integration | Pending |
-| FORM-04 | Phase 7 — Stepper Component + ContextualListingFlow Integration | Pending |
-| FORM-05 | Phase 7 — Stepper Component + ContextualListingFlow Integration | Pending |
+| SCHEMA-01 | Phase 6 — Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator) | Validated |
+| SCHEMA-02 | Phase 6 — Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator) | Validated |
+| SCHEMA-03 | Phase 6 — Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator) | Validated |
+| SCHEMA-04 | Phase 6 — Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator) | Validated |
+| FORM-01 | Phase 7 — Stepper Component + ContextualListingFlow Integration | Validated |
+| FORM-02 | Phase 7 — Stepper Component + ContextualListingFlow Integration | Validated |
+| FORM-03 | Phase 7 — Stepper Component + ContextualListingFlow Integration | Validated |
+| FORM-04 | Phase 7 — Stepper Component + ContextualListingFlow Integration | Validated |
+| FORM-05 | Phase 7 — Stepper Component + ContextualListingFlow Integration | Validated |
 | DISP-01 | Phase 8 — Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen) | Pending |
 | DISP-02 | Phase 8 — Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen) | Pending |
 | DISP-03 | Phase 8 — Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen) | Pending |

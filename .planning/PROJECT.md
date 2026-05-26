@@ -117,6 +117,11 @@ iOS shipped at `3.0.0 build 29` (TestFlight Internal Testing); Android shipped a
 
 ### Active
 
+**M4 v4.0 "Counts & Labels" — in flight (Phases 6–7 of 10 validated, 9/27 v1 reqs):**
+
+- ✓ SCHEMA-01..04 Mongoose Property schema extended with optional `basics.bedrooms` (integer 0–10) + `basics.bathroomCount` (number 0–10, 0.5 steps); residential-only `basics.bedrooms` stripped silently on hospitality/commercial submissions via `stripResidentialOnlyFields.js`; RN client `Property.ts` type stub mirrors; backend 311/311 tests green — v4.0 (Phase 6, complete 2026-05-25)
+- ✓ FORM-01..05 Reusable `<StepperInput>` component (tap-only ± with ≥44pt hit-slop, boundary-disabled glyph dimming, em-dash empty-state, plain-decimal formatting) integrated into `ContextualListingFlow` Step 3 as two conditional rows (FORM-02 matrix: apartment/house → both rows; hotel/hostel/office/commercial → bathroom only; land/empty → neither); FormBag pipeline threads `bedrooms` + `bathroomCount` through types/adapters/validators with verbatim-undefined preservation; orchestrator submit-catch discriminates backend `M4_BEDROOMS_INVALID` / `M4_BATHROOM_STEP_INVALID` codes and redirects to Step 3; 78/78 phase tests pass; EN+RU parity gate green (641 keys each); KBD-02 grep gate preserved (0) — v4.0 (Phase 7, complete 2026-05-25). HUMAN-UAT items deferred to Phase 10 REL-03. Code review surfaced 4 advisory warnings (WR-01 defense-in-depth clamp, WR-02 read-side display gap = Phase 8 territory, WR-03 UX polish, WR-04 hardcoded EN a11y verbs = Phase 9/10 territory).
+
 <!-- M3 v3.0 "Contextual Forms" — all 38 v1 requirements shipped 2026-05-11 (full archive: .planning/milestones/v3.0-*). -->
 
 **M3 v3.0 "Contextual Forms" — shipped 2026-05-11 (full archive: `.planning/milestones/v3.0-*`):**
@@ -266,4 +271,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-25 — v4.0 M4 "Counts & Labels" scoping started via `/gsd-new-milestone`. Schema-augmentation milestone (NEW optional `basics.bedrooms` + `basics.bathroomCount`) + property-type i18n audit. Phase numbering continues from M3 (M4 starts at Phase 6). M3 v3.0 "Contextual Forms" shipped 2026-05-11 to ASC TestFlight Internal (iOS 3.0.0 build 29) + Play Console Internal Testing (Android 3.0.1 versionCode 32).*
+*Last updated: 2026-05-26 — v4.0 M4 "Counts & Labels" Phases 6–7 of 10 complete (9/27 v1 reqs validated). Backend Mongoose schema extension shipped 2026-05-25 (SCHEMA-01..04); RN stepper component + ContextualListingFlow integration shipped 2026-05-25 (FORM-01..05). Phase 8 (Display Surfaces) next — closes the write-side / read-side loop the code reviewer flagged. M3 v3.0 "Contextual Forms" shipped 2026-05-11 to ASC TestFlight Internal (iOS 3.0.0 build 29) + Play Console Internal Testing (Android 3.0.1 versionCode 32).*
