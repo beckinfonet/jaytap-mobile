@@ -65,7 +65,7 @@ import {
 import { ImageZoom, ZOOM_TYPE } from '@likashefqet/react-native-image-zoom';
 import { Property } from '../types/Property';
 import { propertyTypeToCategory } from '../utils/propertyCategory';
-import { AMENITY_ICONS, type HospitalityAmenity } from '../utils/hospitalityAmenities';
+import { AMENITY_ICONS, type Amenity } from '../utils/amenities';
 import type { TranslationKeys } from '../locales';
 import { TourHeroCard } from '../components/TourHeroCard';
 import { ListingMetaTable } from '../components/ListingMetaTable';
@@ -1090,51 +1090,28 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             </View>
           </View>
 
-          {/* Features - title + box with two-column grid (Phase 6 / D-23: amenity chip grid for Hospitality) */}
-          {isHospitality ? (
-            (property.amenities ?? []).length > 0 && (
-              <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                  {t('hospitality.amenities')}
-                </Text>
-                <View style={[styles.sectionContentBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                  <View style={styles.featuresGrid}>
-                    {((property.amenities || []) as HospitalityAmenity[]).map((token) => {
-                      const Icon = AMENITY_ICONS[token] ?? Check;
-                      return (
-                        <View key={token} style={styles.featureItem}>
-                          <Icon size={20} color={colors.textSecondary} />
-                          <Text
-                            style={[styles.featureItemText, { color: colors.text }]}
-                            numberOfLines={1}
-                            ellipsizeMode="tail"
-                          >
-                            {t(`amenity.${token}` as TranslationKeys)}
-                          </Text>
-                        </View>
-                      );
-                    })}
-                  </View>
-                </View>
-              </View>
-            )
-          ) : (
+          {/* What this place offers — v4.0.1 unified. Renders for any property type
+              when amenities.length > 0. Hospitality keeps its 12-item set;
+              apartments/houses get the 12-item residential set; office/commercial
+              get the 5-item commercial set. */}
+          {(property.amenities ?? []).length > 0 && (
             <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('property.whatThisPlaceOffers')}</Text>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                {t('property.whatThisPlaceOffers')}
+              </Text>
               <View style={[styles.sectionContentBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <View style={styles.featuresGrid}>
-                  {/* Phase 2 D-20 cutover: optional-chain on `features` (top-level optional in M3 type). */}
-                  {(property.features ?? []).map((feature, index) => {
-                    const IconComponent = getFeatureIcon(feature);
+                  {((property.amenities || []) as Amenity[]).map((token) => {
+                    const Icon = AMENITY_ICONS[token] ?? Check;
                     return (
-                      <View key={index} style={styles.featureItem}>
-                        <IconComponent size={20} color={colors.textSecondary} />
+                      <View key={token} style={styles.featureItem}>
+                        <Icon size={20} color={colors.textSecondary} />
                         <Text
                           style={[styles.featureItemText, { color: colors.text }]}
                           numberOfLines={1}
                           ellipsizeMode="tail"
                         >
-                          {feature}
+                          {t(`amenity.${token}` as TranslationKeys)}
                         </Text>
                       </View>
                     );
