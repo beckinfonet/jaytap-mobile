@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Counts & Labels
 status: executing
-last_updated: "2026-05-26T01:41:03.829Z"
-last_activity: 2026-05-26 -- Phase 08 planning complete
+last_updated: "2026-05-26T01:43:17.572Z"
+last_activity: 2026-05-26 -- Phase 08 execution started
 progress:
   total_phases: 3
   completed_phases: 2
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md` (updated 2026-05-11 after v3.0 milestone)
 
 **Core value:** Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek (and KG/KZ/UZ expansion markets) properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
-**Current focus:** Phase 07 — Stepper Component + ContextualListingFlow Integration
+**Current focus:** Phase 08 — display-surfaces-propertycard-hospitalitycard-propertydetail
 
 ## Current Position
 
-Phase: 07
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-26 -- Phase 08 planning complete
+Phase: 08 (display-surfaces-propertycard-hospitalitycard-propertydetail) — EXECUTING
+Plan: 1 of 5
+Status: Executing Phase 08
+Last activity: 2026-05-26 -- Phase 08 execution started
 
 ## M4 Phase Map (Phases 6–10)
 
