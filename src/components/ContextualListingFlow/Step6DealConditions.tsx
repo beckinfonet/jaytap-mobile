@@ -21,6 +21,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Calendar } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import type { TranslationKeys } from '../../locales';
@@ -452,7 +453,7 @@ export function Step6DealConditions({ values, onChange, errors }: SectionProps) 
                 </Text>
               </TouchableOpacity>
             ) : null}
-            <Text style={{ color: colors.textSecondary, fontSize: 16 }}>📅</Text>
+            <Calendar size={18} color={colors.textSecondary} strokeWidth={2} />
           </View>
         </TouchableOpacity>
         <Text
