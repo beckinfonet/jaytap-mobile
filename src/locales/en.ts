@@ -726,7 +726,7 @@ export const en = {
   'contextualListing.step6.prepayment.0': 'No prepayment',
   'contextualListing.step6.prepayment.1': '1 month',
   'contextualListing.step6.prepayment.2': '2 months',
-  'contextualListing.step6.prepayment.custom': 'Custom',
+  'contextualListing.step6.prepayment.custom': 'Enter custom',
   'contextualListing.step6.prepayment.customPlaceholder': 'Months',
   'contextualListing.step6.minTermLabel': 'Minimum rental term',
   'contextualListing.step6.minTermRequired': 'Pick a minimum term',

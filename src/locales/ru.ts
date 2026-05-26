@@ -722,7 +722,7 @@ export const ru: Record<TranslationKeys, string> = {
   'contextualListing.step6.prepayment.0': 'Без предоплаты',
   'contextualListing.step6.prepayment.1': '1 месяц',
   'contextualListing.step6.prepayment.2': '2 месяца',
-  'contextualListing.step6.prepayment.custom': 'Своё',
+  'contextualListing.step6.prepayment.custom': 'Указать своё',
   'contextualListing.step6.prepayment.customPlaceholder': 'Месяцев',
   'contextualListing.step6.minTermLabel': 'Минимальный срок аренды',
   'contextualListing.step6.minTermRequired': 'Выберите минимальный срок',
