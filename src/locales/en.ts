@@ -756,6 +756,12 @@ export const en = {
   'contextualListing.step6.minTermRequired': 'Pick a minimum term',
   'contextualListing.step6.minTerm.1_month': '1 month',
   'contextualListing.step6.minTerm.3_months': '3 months',
+  // Quick-task 260526-foc — restore "Available from" date picker (optional; empty = "available now").
+  'contextualListing.step6.availableDateLabel': 'Available from',
+  'contextualListing.step6.availableDatePlaceholder': 'Select date',
+  'contextualListing.step6.availableDateHint': 'Leave empty if available now',
+  'contextualListing.step6.availableDateClear': 'Clear',
+  'contextualListing.step6.availableDateInvalid': 'Invalid date',
 
   // Phase 3 Plan 03-05 — MediaCurationScreen (mod-only) + media-upload + tour-URL UX.
   // 26 keys; mirrors UI-SPEC §"Copywriting Contract (EN + RU)" verbatim. Plan 03-06
