@@ -57,6 +57,15 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
   const [currentStep, setCurrentStep] = useState<StepIndex>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Quick 260525-x8l — photo-gate on Step 6 submit for mode='edit-mod'.
+  // Defense-in-depth UX parity with PropertyDetailsScreen.tsx:226 NeedsMediaBanner pattern.
+  // For create / edit-owner modes the value is Infinity so the `photoCount === 0` check
+  // downstream is false — only edit-mod is gated.
+  // Trust boundary stays on the backend (/approve MEDIA_REQUIRED per quick 260514-rk1;
+  // PUT /moderation/listings/:id is field-only per quick 260511-cog) — this is guidance.
+  const photoCount =
+    mode === 'edit-mod' ? props.initialListing?.media?.photos?.length ?? 0 : Infinity;
+
   // Keep an `_unused` reference so emptyFormBag is reachable for downstream plans
   // (validators.ts re-export). Eslint is configured to ignore underscore-prefixed.
   void emptyFormBag;
@@ -123,6 +132,12 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep((s) => (s + 1) as StepIndex);
     } else {
+      // Quick 260525-x8l — belt-and-braces photo-gate. Even if the button's disabled
+      // prop is bypassed (e.g. Android long-press race per threat T-x8l-04), refuse to
+      // dispatch the PUT /moderation/listings/:id call when edit-mod has zero photos.
+      if (mode === 'edit-mod' && photoCount === 0) {
+        return;
+      }
       // Submit (D-16) — real PropertyService dispatch by mode.
       //   create     → POST /api/properties (server defaults status:'pending', M2 D-22 sanitizer)
       //   edit-owner → PUT /api/properties/:id (M2 D-22 rejected→pending auto-flip preserved)
@@ -198,7 +213,7 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
         setIsSubmitting(false);
       }
     }
-  }, [currentStep, values, mode, props, onClose, t]);
+  }, [currentStep, values, mode, props, onClose, t, photoCount]);
 
   // D-13 (W-04): Android hardware back. Single-ownership in the orchestrator
   // (NOT in App.tsx). At currentStep > 1 → step back; at currentStep === 1 →
@@ -238,6 +253,12 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
       : mode === 'edit-mod'
       ? t('contextualListing.submit.modEdit')
       : t('contextualListing.submit.create');
+
+  // Quick 260525-x8l — Step 6 photo-gate trigger. ONLY fires for edit-mod on the
+  // final step with zero photos. Reuses moderation.needsMediaBanner.{title,body}
+  // i18n keys — no new strings introduced.
+  const isFinalSubmitBlocked =
+    currentStep === TOTAL_STEPS && mode === 'edit-mod' && photoCount === 0;
 
   return (
     <SafeAreaView
@@ -329,6 +350,34 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
         {stepBody}
       </ScrollView>
 
+      {/* Quick 260525-x8l — photo-gate inline warning. Renders ONLY when
+          isFinalSubmitBlocked (edit-mod + Step 6 + zero photos). Reuses the existing
+          modContextBanner styles (same visual contract as NeedsMediaBanner without
+          the "Add photos" CTA — the stepper has no in-flow photo-add affordance).
+          Stripe uses colors.warning to match NeedsMediaBanner.tsx:42 + RejectionBanner. */}
+      {isFinalSubmitBlocked ? (
+        <View
+          style={[
+            commonStyles.modContextBanner,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+          ]}
+          testID="contextual-listing-photo-gate-warning"
+        >
+          <View style={[commonStyles.modContextStripe, { backgroundColor: colors.warning }]} />
+          <View style={commonStyles.modContextBody}>
+            <Text style={[commonStyles.modContextTitle, { color: colors.text }]}>
+              {t('moderation.needsMediaBanner.title')}
+            </Text>
+            <Text
+              style={[commonStyles.modContextSubtitle, { color: colors.textSecondary }]}
+              numberOfLines={3}
+            >
+              {t('moderation.needsMediaBanner.body')}
+            </Text>
+          </View>
+        </View>
+      ) : null}
+
       {/* Footer — Back / Next (or Submit on Step 6) */}
       <View style={[commonStyles.footer, { borderTopColor: colors.border }]}>
         <TouchableOpacity
@@ -345,8 +394,14 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
         <TouchableOpacity
           testID="contextual-listing-next"
           onPress={handleNext}
-          disabled={isSubmitting}
-          style={[commonStyles.footerButton, { backgroundColor: colors.primary }]}
+          disabled={isSubmitting || isFinalSubmitBlocked}
+          style={[
+            commonStyles.footerButton,
+            { backgroundColor: colors.primary },
+            // Quick 260525-x8l — visual disabled state (opacity 0.5) matches project
+            // convention for disabled mod buttons (PropertyDetailsScreen dock pattern).
+            isFinalSubmitBlocked ? { opacity: 0.5 } : null,
+          ]}
         >
           <Text style={[commonStyles.footerButtonText, { color: colors.activeChipText }]}>
             {submitLabel}
