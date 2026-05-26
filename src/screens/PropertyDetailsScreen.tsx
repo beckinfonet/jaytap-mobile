@@ -274,6 +274,15 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const isHospitality = category === 'Hospitality';
   const insets = useSafeAreaInsets();
 
+  // Phase 8 (Plan 08-04) — specs-row derivations (DISP-01 / DISP-02 / DISP-03).
+  // Named identifiers are MANDATORY per plan §Step A — the grep-based regression
+  // fences (`bedsLabelKey` ≥ 2 / `showBedsCell` ≥ 2) depend on them.
+  const bedsLabelKey = isHospitality ? 'property.specs.rooms' : 'property.specs.bedrooms';
+  const bedsValue = isHospitality
+    ? (property.basics?.hotelRooms ?? '-')
+    : (property.basics?.bedrooms ?? '-');
+  const showBedsCell = !(property.propertyType === 'office' || property.propertyType === 'commercial');
+
   // Phase 6 (HOSP-04 / D-16) — sticky contact bar owner-field availability
   const owner = (property as any).owner;
   const hasWhatsApp = !!owner?.whatsapp;
@@ -1039,41 +1048,37 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             </View>
           </View>
 
-          {/* Specs (Residential / Commercial only — Hospitality uses rooms/maxGuests/amenities semantics).
-              Phase 2 D-20 cutover: M2 flat `specs.{beds,baths,sqft}` → M3 nested
-              `basics.{rooms,bathroom,areaSqm}`. Bathroom enum (private/shared/none) rendered
-              via the same i18n keys Plan 02-05 added. Numeric/string fallback to '-' so legacy
-              listings without basics still render the row. */}
-          {!isHospitality && (
-            <View style={[styles.specsContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <View style={styles.specItem}>
-                <Text style={styles.specIcon}>🛏</Text>
-                {/* Hotel/hostel listings write to basics.hotelRooms per M3 Phase 1 D-07 (.planning/milestones/v3.0-phases/01-schema-reshape-backend-route-shape-cutover/01-02-PLAN.md:197-198). Mirrors HospitalityCard.tsx:210. Defensive: routing now sends hospitality to HospitalityCard (260525-ggp Task 3), this fallback handles legacy data. */}
-                <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.hotelRooms ?? property.basics?.rooms ?? '-'}</Text>
-                <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.beds')}</Text>
-              </View>
-              <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
-              <View style={styles.specItem}>
-                <Text style={styles.specIcon}>🚿</Text>
-                <Text style={[styles.specValue, { color: colors.text }]}>
-                  {property.basics?.bathroom === 'private'
-                    ? t('property.bathroomPrivate' as any)
-                    : property.basics?.bathroom === 'shared'
-                      ? t('property.bathroomShared' as any)
-                      : property.basics?.bathroom === 'none'
-                        ? t('property.bathroomNone' as any)
-                        : '-'}
-                </Text>
-                <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.baths')}</Text>
-              </View>
-              <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
-              <View style={styles.specItem}>
-                <Text style={styles.specIcon}>📐</Text>
-                <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.areaSqm ?? '-'}</Text>
-                <Text style={[styles.specLabel, { color: colors.textSecondary }]}>m²</Text>
-              </View>
+          {/* Specs row — Phase 8 (Plan 08-04, DISP-01..03) rewrite.
+              D-13 / Claude's Discretion: !isHospitality gate LIFTED — row now renders on all
+              categories (residential, hospitality, commercial). Beds cell flips label between
+              property.specs.bedrooms (residential reads basics.bedrooms) and property.specs.rooms
+              (hospitality reads basics.hotelRooms); Beds cell is OMITTED entirely on
+              office/commercial. Baths cell uniformly reads basics.bathroomCount with
+              the property-specs Bathrooms label (M3 bathroom enum branch removed per D-04).
+              m² cell preserved verbatim from pre-rewrite (260525-i2i canonical placement). */}
+          <View style={[styles.specsContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            {showBedsCell && (
+              <>
+                <View style={styles.specItem}>
+                  <Text style={styles.specIcon}>🛏</Text>
+                  <Text style={[styles.specValue, { color: colors.text }]}>{bedsValue}</Text>
+                  <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t(bedsLabelKey as any)}</Text>
+                </View>
+                <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
+              </>
+            )}
+            <View style={styles.specItem}>
+              <Text style={styles.specIcon}>🚿</Text>
+              <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.bathroomCount ?? '-'}</Text>
+              <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.specs.bathrooms' as any)}</Text>
             </View>
-          )}
+            <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
+            <View style={styles.specItem}>
+              <Text style={styles.specIcon}>📐</Text>
+              <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.areaSqm ?? '-'}</Text>
+              <Text style={[styles.specLabel, { color: colors.textSecondary }]}>m²</Text>
+            </View>
+          </View>
 
           {/* Description — Phase 2 D-20 cutover: M2 flat `description` → M3 nested `content.description`. */}
           <View style={styles.section}>
