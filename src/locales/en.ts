@@ -140,6 +140,7 @@ export const en = {
   'property.specs.bedrooms': 'Bedrooms',
   'property.specs.bathrooms': 'Bathrooms',
   'property.specs.rooms': 'Rooms',
+  'property.specs.area': 'Area',
   'property.details': 'Details',
   'property.instagram': 'Instagram',
   'property.photos': 'Photos',

@@ -142,6 +142,7 @@ export const ru: Record<TranslationKeys, string> = {
   'property.specs.bedrooms': 'Спальни',
   'property.specs.bathrooms': 'Ванные',
   'property.specs.rooms': 'Комнаты',
+  'property.specs.area': 'Площадь',
   'property.details': 'Подробнее',
   'property.instagram': 'Instagram',
   'property.photos': 'Фото',
