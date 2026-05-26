@@ -202,8 +202,9 @@ describe('ListingMetaTable — Phase 8 Plan 08-05 surgical-removal regression fe
 
     // Condition row renders (hasExtras true via condition contributor).
     expect(texts.some((s) => s.includes('property.metaCondition'))).toBe(true);
-    // Condition value `'good'` surfaces.
-    expect(texts.some((s) => s === 'good')).toBe(true);
+    // Condition value now routes through t('condition.<enum>') — under the
+    // t-mock-key-verbatim convention the key string surfaces (v4.0.1 tile-grid).
+    expect(texts.some((s) => s === 'condition.good')).toBe(true);
 
     // Bathroom row + enum-resolution key both stay gone.
     expect(texts.some((s) => s.includes('property.baths'))).toBe(false);
@@ -234,9 +235,9 @@ describe('ListingMetaTable — Phase 8 Plan 08-05 surgical-removal regression fe
     expect(texts.some((s) => s.includes('property.metaPrepayment'))).toBe(true);
     expect(texts.some((s) => s.includes('property.metaNegotiable'))).toBe(true);
 
-    // Condition value `'euro'` surfaces (sentinel that one extras row's value
-    // also lands, not just its label).
-    expect(texts.some((s) => s === 'euro')).toBe(true);
+    // Condition value now routes through t('condition.<enum>') — under the
+    // t-mock-key-verbatim convention the key string surfaces (v4.0.1 tile-grid).
+    expect(texts.some((s) => s === 'condition.euro')).toBe(true);
 
     // No collateral damage: rooms + bathroom rows + enum keys all stay gone.
     expect(texts.some((s) => s.includes('property.beds'))).toBe(false);

@@ -1,8 +1,18 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import {
+  PaintBucket,
+  Sofa,
+  CalendarRange,
+  Banknote,
+  CalendarClock,
+  Handshake,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import type { Property } from '../types/Property';
+import type { TranslationKeys } from '../locales';
 
 function availabilityValueFromRaw(
   raw: unknown,
@@ -151,46 +161,105 @@ export const ListingMetaTable: React.FC<ListingMetaTableProps> = ({
           </View>
         )}
       </View>
-      {/* Phase 2 D-20: extra meta rows from nested basics + conditionAndAmenities + terms.
-          Renders only when `property` prop supplied (PropertyDetailsScreen path);
-          PropertyCard's compact use-case skips these rows because property is undefined. */}
+      {/* v4.0.1 — Airbnb-style icon-tile grid replacing the prior flowing-text
+          extras row. Each tile renders lucide icon, header label, and a
+          localized value. Tiles whose value is undefined are omitted. */}
       {hasExtras && (
-        <View style={styles.extrasGrid}>
+        <View style={styles.extrasTiles}>
           {condition != null && (
-            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
-              {t('property.metaCondition' as any)}: {condition}
-            </Text>
+            <Tile
+              icon={PaintBucket}
+              header={t('property.metaCondition' as TranslationKeys)}
+              value={t(`condition.${condition}` as TranslationKeys)}
+              colors={colors}
+              labelSize={labelSize}
+              valueSize={valueSize}
+            />
           )}
           {furnished != null && (
-            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
-              {furnished ? t('property.metaFurnishedYes' as any) : t('property.metaFurnishedNo' as any)}
-            </Text>
+            <Tile
+              icon={Sofa}
+              header={
+                furnished
+                  ? t('property.metaFurnishedYes' as TranslationKeys)
+                  : t('property.metaFurnishedNo' as TranslationKeys)
+              }
+              value={furnished ? t('common.yes' as TranslationKeys) : t('common.no' as TranslationKeys)}
+              colors={colors}
+              labelSize={labelSize}
+              valueSize={valueSize}
+            />
           )}
           {minTerm != null && (
-            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
-              {t('property.metaMinTerm' as any)}: {minTerm}
-            </Text>
+            <Tile
+              icon={CalendarRange}
+              header={t('property.metaMinTerm' as TranslationKeys)}
+              value={t(`minTerm.${minTerm}` as TranslationKeys)}
+              colors={colors}
+              labelSize={labelSize}
+              valueSize={valueSize}
+            />
           )}
           {deposit != null && (
-            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
-              {t('property.metaDeposit' as any)}: {deposit.amount} {deposit.currency}
-            </Text>
+            <Tile
+              icon={Banknote}
+              header={t('property.metaDeposit' as TranslationKeys)}
+              value={`${deposit.amount} ${deposit.currency}`}
+              colors={colors}
+              labelSize={labelSize}
+              valueSize={valueSize}
+            />
           )}
-          {prepaymentMonths != null && prepaymentMonths > 0 && (
-            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
-              {t('property.metaPrepayment' as any)}: {prepaymentMonths}
-            </Text>
+          {prepaymentMonths != null && (
+            <Tile
+              icon={CalendarClock}
+              header={t('property.metaPrepayment' as TranslationKeys)}
+              value={
+                prepaymentMonths === 0
+                  ? t('prepayment.none' as TranslationKeys)
+                  : String(prepaymentMonths)
+              }
+              colors={colors}
+              labelSize={labelSize}
+              valueSize={valueSize}
+            />
           )}
-          {negotiable === true && (
-            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
-              {t('property.metaNegotiable' as any)}
-            </Text>
+          {negotiable != null && (
+            <Tile
+              icon={Handshake}
+              header={t('property.metaNegotiable' as TranslationKeys)}
+              value={negotiable ? t('common.yes' as TranslationKeys) : t('common.no' as TranslationKeys)}
+              colors={colors}
+              labelSize={labelSize}
+              valueSize={valueSize}
+            />
           )}
         </View>
       )}
     </View>
   );
 };
+
+interface TileProps {
+  icon: LucideIcon;
+  header: string;
+  value: string;
+  colors: ReturnType<typeof useTheme>['colors'];
+  labelSize: number;
+  valueSize: number;
+}
+
+const Tile: React.FC<TileProps> = ({ icon: Icon, header, value, colors, labelSize, valueSize }) => (
+  <View style={[styles.tile, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+    <Icon size={20} color={colors.textSecondary} />
+    <Text style={[styles.tileHeader, { color: colors.textSecondary, fontSize: labelSize }]} numberOfLines={1}>
+      {header}
+    </Text>
+    <Text style={[styles.tileValue, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
+      {value}
+    </Text>
+  </View>
+);
 
 const styles = StyleSheet.create({
   table: {
@@ -260,13 +329,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#22C55E',
     flexShrink: 0,
   },
-  extrasGrid: {
+  extrasTiles: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-    marginTop: 8,
+    gap: 8,
+    marginTop: 10,
   },
-  extraText: {
-    fontWeight: '500',
+  tile: {
+    flexBasis: '48%',
+    flexGrow: 0,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    gap: 4,
+    alignItems: 'flex-start',
+  },
+  tileHeader: {
+    fontWeight: '600',
+  },
+  tileValue: {
+    fontWeight: '600',
   },
 });
