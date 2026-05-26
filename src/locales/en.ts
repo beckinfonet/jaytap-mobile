@@ -108,6 +108,10 @@ export const en = {
   // Property
   'property.forRent': 'FOR RENT',
   'property.forSale': 'FOR SALE',
+  // Quick task 260526-ebl — home-card live status badge (deal-type-aware) + 3D-tour pill
+  'property.statusBadge.live.sale': 'For sale',
+  'property.statusBadge.live.rent': 'For rent',
+  'property.tourPill': '3D Tour',
   'property.id': 'ID:',
   'property.metaId': 'ID:',
   'property.metaAvailable': 'Available:',
