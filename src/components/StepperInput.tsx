@@ -100,7 +100,11 @@ export const StepperInput: React.FC<StepperInputProps> = ({
   const valueTestID = testID ? `${testID}-value` : undefined;
   const plusTestID = testID ? `${testID}-plus` : undefined;
 
-  const circleBg = colors.activeChipBackground ?? colors.border;
+  // v4.0.1 hotfix — D-11.6 revised. Issue 1 of the design spec.
+  // - Circle: colors.warning (brand amber #F59E0B, identical in light + dark).
+  // - Glyph: literal white in both active and disabled states for guaranteed contrast.
+  // - Disabled: opacity 0.4 applied to the Pressable wrapper (not glyph color).
+  const circleBg = colors.warning;
 
   return (
     <View accessibilityLabel={accessibilityLabel}>
@@ -116,18 +120,11 @@ export const StepperInput: React.FC<StepperInputProps> = ({
           testID={minusTestID}
           style={({ pressed }) => [
             styles.hitArea,
-            { opacity: pressed && !isMinDisabled ? 0.7 : 1 },
+            { opacity: isMinDisabled ? 0.4 : pressed ? 0.7 : 1 },
           ]}
         >
           <View style={[styles.circle, { backgroundColor: circleBg }]}>
-            <Text
-              style={[
-                styles.glyph,
-                { color: isMinDisabled ? colors.textSecondary : colors.text },
-              ]}
-            >
-              {'−'}
-            </Text>
+            <Text style={[styles.glyph, { color: '#FFFFFF' }]}>{'−'}</Text>
           </View>
         </Pressable>
 
@@ -145,18 +142,11 @@ export const StepperInput: React.FC<StepperInputProps> = ({
           testID={plusTestID}
           style={({ pressed }) => [
             styles.hitArea,
-            { opacity: pressed && !isMaxDisabled ? 0.7 : 1 },
+            { opacity: isMaxDisabled ? 0.4 : pressed ? 0.7 : 1 },
           ]}
         >
           <View style={[styles.circle, { backgroundColor: circleBg }]}>
-            <Text
-              style={[
-                styles.glyph,
-                { color: isMaxDisabled ? colors.textSecondary : colors.text },
-              ]}
-            >
-              +
-            </Text>
+            <Text style={[styles.glyph, { color: '#FFFFFF' }]}>+</Text>
           </View>
         </Pressable>
       </View>

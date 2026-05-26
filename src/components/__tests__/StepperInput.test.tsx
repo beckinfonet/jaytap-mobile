@@ -30,6 +30,7 @@ const MOCK_COLORS = {
   activeChipBackground: '#A',
   surface: '#S',
   error: '#E',
+  warning: '#WARN',
 };
 
 beforeEach(() => {
@@ -134,29 +135,56 @@ describe('StepperInput (Phase 7 Plan 07-01, D-11)', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  // === Test 6 (D-11.6) ===
-  test('disabled boundary button drops glyph color to colors.textSecondary; active glyph uses colors.text', () => {
-    // value === min: minus is disabled (textSecondary glyph); plus is active (text glyph).
+  // === Test 6 (D-11.6 revised — v4.0.1 hotfix) ===
+  // Active and disabled both render WHITE glyph on `colors.warning` (amber) circle.
+  // Disabled state is signalled by `opacity: 0.4` on the Pressable wrapper, not by
+  // changing the glyph color — keeps the +/- always readable at glance distance.
+  test('+/- glyphs render white on amber circle in both active and disabled states; disabled adds opacity 0.4 on the Pressable', () => {
     const { root } = render({ value: 0, min: 0, max: 10 });
 
     const minusBtn = findByTestID(root, 'stepper-minus');
-    // Walk by component type name string ('Text' is the host component name).
-    const allTexts = minusBtn.findAll((n) => n.type === 'Text');
-    expect(allTexts.length).toBeGreaterThan(0);
-    const minusStyle = (allTexts[0].props.style as Array<Record<string, unknown>>) ?? [];
+    expect(minusBtn.props.disabled).toBe(true);
+    const minusPressableStyle = minusBtn.props.style({ pressed: false }) as Array<Record<string, unknown>>;
     expect(
-      minusStyle.some(
-        (s) => s && typeof s === 'object' && (s as { color?: string }).color === '#TS',
+      minusPressableStyle.some(
+        (s) => s && typeof s === 'object' && (s as { opacity?: number }).opacity === 0.4,
+      ),
+    ).toBe(true);
+    const minusGlyphStyle = (minusBtn.findAll((n) => n.type === 'Text')[0].props.style as Array<Record<string, unknown>>) ?? [];
+    expect(
+      minusGlyphStyle.some(
+        (s) => s && typeof s === 'object' && (s as { color?: string }).color === '#FFFFFF',
       ),
     ).toBe(true);
 
     const plusBtn = findByTestID(root, 'stepper-plus');
-    const plusTexts = plusBtn.findAll((n) => n.type === 'Text');
-    expect(plusTexts.length).toBeGreaterThan(0);
-    const plusStyle = (plusTexts[0].props.style as Array<Record<string, unknown>>) ?? [];
+    const plusPressableStyle = plusBtn.props.style({ pressed: false }) as Array<Record<string, unknown>>;
     expect(
-      plusStyle.some(
-        (s) => s && typeof s === 'object' && (s as { color?: string }).color === '#TEXT',
+      plusPressableStyle.some(
+        (s) => s && typeof s === 'object' && (s as { opacity?: number }).opacity === 0.4,
+      ),
+    ).toBe(false); // active button is opacity 1
+    const plusGlyphStyle = (plusBtn.findAll((n) => n.type === 'Text')[0].props.style as Array<Record<string, unknown>>) ?? [];
+    expect(
+      plusGlyphStyle.some(
+        (s) => s && typeof s === 'object' && (s as { color?: string }).color === '#FFFFFF',
+      ),
+    ).toBe(true);
+  });
+
+  // === Test 7 (v4.0.1 hotfix — circle uses warning amber, not activeChipBackground) ===
+  test('circle backgroundColor pulls colors.warning (brand amber), not colors.activeChipBackground', () => {
+    const { root } = render({ value: 2, min: 0, max: 10 });
+    const minusBtn = findByTestID(root, 'stepper-minus');
+    const circleView = minusBtn.findAll((n) => n.type === 'View').find(
+      (v) => (v.props.style as Array<Record<string, unknown>> | undefined)?.some(
+        (s) => s && typeof s === 'object' && 'backgroundColor' in s,
+      ),
+    );
+    const circleStyle = (circleView!.props.style as Array<Record<string, unknown>>) ?? [];
+    expect(
+      circleStyle.some(
+        (s) => s && typeof s === 'object' && (s as { backgroundColor?: string }).backgroundColor === '#WARN',
       ),
     ).toBe(true);
   });
