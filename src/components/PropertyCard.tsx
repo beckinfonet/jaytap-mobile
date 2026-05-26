@@ -277,26 +277,33 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 );
               })()
             ) : (
-              <View style={[styles.specsContainer, { backgroundColor: colors.chipBackground, borderColor: colors.chipBorder }]}>
-                <View style={styles.specItem}>
-                  <Bed size={16} color={colors.textSecondary} strokeWidth={2} />
-                  {/* Hotel/hostel listings write to basics.hotelRooms per M3 Phase 1 D-07 (.planning/milestones/v3.0-phases/01-schema-reshape-backend-route-shape-cutover/01-02-PLAN.md:197-198). Mirrors HospitalityCard.tsx:210. Defensive: routing now sends hospitality to HospitalityCard (260525-ggp Task 3), this fallback handles legacy data. */}
-                  <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.hotelRooms ?? property.basics?.rooms ?? '-'}</Text>
-                </View>
-                <View style={[styles.specDivider, { backgroundColor: colors.border }]} />
-                <View style={styles.specItem}>
-                  <Bath size={16} color={colors.textSecondary} strokeWidth={2} />
-                  <Text style={[styles.specValue, { color: colors.text }]}>
-                    {property.basics?.bathroom === 'private'
-                      ? t('property.bathroomPrivate' as any)
-                      : property.basics?.bathroom === 'shared'
-                        ? t('property.bathroomShared' as any)
-                        : property.basics?.bathroom === 'none'
-                          ? t('property.bathroomNone' as any)
-                          : '-'}
-                  </Text>
-                </View>
-              </View>
+              // Phase 8 D-01..D-04: icon/value/label cell anatomy surfacing M4 basics.bedrooms +
+              // basics.bathroomCount. D-02 hides the Beds cell entirely on office/commercial
+              // (residential-only concept). D-03 drops the dead `basics?.hotelRooms ?? basics?.rooms`
+              // fallback — PropertyCard never sees hospitality data post 260525-ggp routing fix.
+              // D-04 replaces the bathroom enum render with a single bathroomCount read.
+              (() => {
+                const showBedsCell = !(property.propertyType === 'office' || property.propertyType === 'commercial');
+                return (
+                  <View style={[styles.specsContainer, { backgroundColor: colors.chipBackground, borderColor: colors.chipBorder }]}>
+                    {showBedsCell && (
+                      <View style={styles.specItem}>
+                        <Bed size={16} color={colors.textSecondary} strokeWidth={2} />
+                        <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.bedrooms ?? '-'}</Text>
+                        <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.specs.bedrooms' as any)}</Text>
+                      </View>
+                    )}
+                    {showBedsCell && (
+                      <View style={[styles.specDivider, { backgroundColor: colors.border }]} />
+                    )}
+                    <View style={styles.specItem}>
+                      <Bath size={16} color={colors.textSecondary} strokeWidth={2} />
+                      <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.bathroomCount ?? '-'}</Text>
+                      <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.specs.bathrooms' as any)}</Text>
+                    </View>
+                  </View>
+                );
+              })()
             )}
           </View>
         </View>
@@ -461,13 +468,20 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   specItem: {
-    flexDirection: 'row',
+    // Phase 8 D-01: column-stack so each cell renders icon top / value middle / label below
+    // (mirrors PropertyDetailsScreen.tsx specItem at lines 1993-1995).
+    flexDirection: 'column',
     alignItems: 'center',
     gap: 4,
   },
   specValue: {
     fontSize: 15,
     fontWeight: '600',
+  },
+  specLabel: {
+    // Phase 8 D-01: localized label rendered below the value in each spec cell
+    // (mirrors PropertyDetailsScreen.tsx specLabel at lines 2004-2006).
+    fontSize: 12,
   },
   specDivider: {
     width: 1,
