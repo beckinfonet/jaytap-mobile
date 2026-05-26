@@ -79,6 +79,45 @@ jest.mock('@likashefqet/react-native-image-zoom', () => ({
 }));
 jest.mock('../../components/TourHeroCard', () => ({ TourHeroCard: () => null }));
 jest.mock('../../components/ListingMetaTable', () => ({ ListingMetaTable: () => null }));
+jest.mock('../../components/details/HeaderInfoCard', () => ({ HeaderInfoCard: ({ dealType, title, formattedAddress, statusPill, mapPreview }: any) => {
+  const React = require('react');
+  const { Text, View } = require('react-native');
+  const { useLanguage } = require('../../context/LanguageContext');
+  const { t } = useLanguage();
+  return React.createElement(View, { testID: 'header-info-card' },
+    React.createElement(Text, null, dealType === 'sale' ? t('property.forSale') : t('property.forRent')),
+    title ? React.createElement(Text, null, title) : null,
+    statusPill ?? null,
+    mapPreview ?? null,
+  );
+} }));
+jest.mock('../../components/details/AttributeList', () => ({
+  AttributeList: () => null,
+  derivePropertyAttributes: () => [],
+}));
+jest.mock('../../components/details/MapPreviewCard', () => ({ MapPreviewCard: ({ onOpenFullScreen }: any) => {
+  const React = require('react');
+  const { Text, TouchableOpacity } = require('react-native');
+  const { useLanguage } = require('../../context/LanguageContext');
+  const { t } = useLanguage();
+  return React.createElement(TouchableOpacity, { onPress: onOpenFullScreen },
+    React.createElement(Text, null, t('property.mapPreview.openButton')),
+  );
+} }));
+jest.mock('../../components/details/KeyStatsCard', () => ({ KeyStatsCard: ({ beds, baths, areaSqm }: any) => {
+  const React = require('react');
+  const { Text, View } = require('react-native');
+  const { useLanguage } = require('../../context/LanguageContext');
+  const { t } = useLanguage();
+  return React.createElement(View, { testID: 'key-stats-card' },
+    beds ? React.createElement(Text, null, String(beds.value)) : null,
+    beds ? React.createElement(Text, null, t(beds.labelKey)) : null,
+    React.createElement(Text, null, baths != null ? String(baths) : '-'),
+    React.createElement(Text, null, t('property.specs.bathrooms')),
+    React.createElement(Text, null, areaSqm != null ? String(areaSqm) : '-'),
+    React.createElement(Text, null, 'm²'),
+  );
+} }));
 jest.mock('../../components/StatusPill', () => ({ StatusPill: () => null }));
 jest.mock('../../components/RejectionBanner', () => ({ RejectionBanner: () => null }));
 jest.mock('../../components/NeedsMediaBanner', () => ({ NeedsMediaBanner: () => null }));
@@ -141,6 +180,7 @@ const setupMocks = (category: 'Residential' | 'Commercial' | 'Hospitality') => {
       chipBorder: '',
       error: '',
       success: '',
+      warning: '',
       buttonText: '',
     },
   });
@@ -302,5 +342,54 @@ describe('PropertyDetailsScreen specs row — Phase 8 Plan 08-04 (DISP-01..03)',
     // Both Baths cell (bathroomCount missing) and m² cell (areaSqm missing) fall back to '-'.
     const dashCount = texts.filter((s) => s === '-').length;
     expect(dashCount).toBeGreaterThanOrEqual(2);
+  });
+});
+
+// -- New contract assertions (M5 Phase 1 redesign) ---------------------------
+
+describe('PropertyDetailsScreen M5 redesign — HeaderInfoCard + MapPreviewCard wiring', () => {
+  test('does NOT render For Sale / For Rent inside the hero image overlay (now in HeaderInfoCard)', () => {
+    setupMocks('Residential');
+    const tree = renderScreen(
+      makeProperty({
+        propertyType: 'apartment',
+        dealType: 'sale',
+        basics: { bedrooms: 2, bathroomCount: 1, areaSqm: 60 },
+      }),
+    );
+    const texts = collectTexts(tree);
+    // Post-redesign: deal label appears exactly once — inside HeaderInfoCard pill.
+    // The hero-overlay statusBadge has been removed.
+    const saleCount = texts.filter((s) => s === 'property.forSale').length;
+    expect(saleCount).toBe(1);
+  });
+
+  test('renders FOR SALE in the HeaderInfoCard pill row (replaces hero badge)', () => {
+    setupMocks('Residential');
+    const tree = renderScreen(
+      makeProperty({
+        propertyType: 'apartment',
+        dealType: 'sale',
+        basics: { bedrooms: 2, bathroomCount: 1, areaSqm: 60 },
+      }),
+    );
+    // t mock returns the i18n key verbatim per project convention.
+    expect(collectTexts(tree)).toContain('property.forSale');
+  });
+
+  test('renders the MapPreviewCard "Map" button (replaces the inline map fullScreen overlay)', () => {
+    setupMocks('Residential');
+    const tree = renderScreen(
+      makeProperty({
+        propertyType: 'apartment',
+        dealType: 'sale',
+        basics: { bedrooms: 2, bathroomCount: 1, areaSqm: 60 },
+      }),
+    );
+    const texts = collectTexts(tree);
+    // New: MapPreviewCard button is present.
+    expect(texts.some((s) => s.includes('property.mapPreview.openButton'))).toBe(true);
+    // Old: inline map overlay "fullScreen" button text is gone.
+    expect(texts.some((s) => s.includes('property.fullScreen'))).toBe(false);
   });
 });

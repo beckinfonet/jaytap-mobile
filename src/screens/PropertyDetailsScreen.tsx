@@ -48,6 +48,10 @@ import { AMENITY_ICONS, type Amenity } from '../utils/amenities';
 import type { TranslationKeys } from '../locales';
 import { TourHeroCard } from '../components/TourHeroCard';
 import { ListingMetaTable } from '../components/ListingMetaTable';
+import { HeaderInfoCard } from '../components/details/HeaderInfoCard';
+import { AttributeList, derivePropertyAttributes } from '../components/details/AttributeList';
+import { MapPreviewCard } from '../components/details/MapPreviewCard';
+import { KeyStatsCard } from '../components/details/KeyStatsCard';
 import { getPropertyShareUrl } from '../constants';
 import { formatPrice } from '../utils/formatPrice';
 import { formatAddress } from '../utils/formatAddress';
@@ -794,16 +798,8 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             scrollEventThrottle={16} // smooth updates
           />
 
-          {/* Image Overlay: Status Badge & Pagination */}
+          {/* Image Overlay: Pagination only — deal badge moved to HeaderInfoCard */}
           <View style={styles.imageOverlay}>
-            <View style={[styles.statusBadge, { backgroundColor: colors.surface }]}>
-              <Text style={[styles.statusText, { color: colors.text }]}>
-                {/* Phase 2 D-20 cutover: M2 flat `type === 'rent'` → M3 nested `dealType !== 'sale'`.
-                    Tradeoff §K mirror — same caller-side derivation as Plan 02-05's list screens. */}
-                {property.dealType !== 'sale' ? t('property.forRent') : t('property.forSale')}
-              </Text>
-            </View>
-
             {images.length > 1 && (
               <View style={[styles.paginationBadge, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
                 <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '600' }}>
@@ -912,82 +908,40 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             </View>
           </View>
 
-          {/* Title, ID, Availability, Address - in a card */}
+          {/* Title, Deal pill, ID, Address, Map preview — HeaderInfoCard (M5 redesign) */}
           <View style={styles.section}>
-            <View style={[styles.listingInfoCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <Text style={[styles.title, { color: colors.text }]}>{titleText}</Text>
-              {/* D-19 / MOD-07: status pill inline below title for non-live statuses.
-                  Owner sees this for pending/rejected/archived; mods/admins see it via D-06
-                  visibility branch. Anonymous never reaches a non-live listing (server 404). */}
-              {(property.status ?? 'live') !== 'live' && (
-                <View style={{ marginTop: 6, marginBottom: 4 }}>
-                  <StatusPill status={property.status} />
-                </View>
-              )}
-              {/* Phase 2 D-20 cutover: ListingMetaTable now opts in to extras grid via the
-                  optional `property` prop (basics + conditionAndAmenities + terms rows).
-                  Plan 02-05 added the prop; PropertyDetailsScreen is the call site that uses it. */}
-              <ListingMetaTable
-                listingId={property.listingId}
-                availableDate={property.availableDate}
-                showAvailabilityDot
-                property={property}
-              />
-              {(() => {
-                const formatted = formatAddress(addressDisplay);
-                return (
-                  <View style={styles.addressRow}>
-                    <View style={{ marginRight: 6, marginTop: 2 }}>
-                      <MapPin size={16} color={colors.textSecondary} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.address, { color: colors.textSecondary, marginBottom: 0 }]} numberOfLines={1} ellipsizeMode="tail">{formatted.line1}</Text>
-                      {formatted.line2 ? (
-                        <Text style={[styles.address, { color: colors.textSecondary, marginBottom: 0 }]} numberOfLines={1} ellipsizeMode="tail">{formatted.line2}</Text>
-                      ) : null}
-                    </View>
-                  </View>
-                );
-              })()}
-            </View>
+            <HeaderInfoCard
+              dealType={property.dealType ?? 'rent'}
+              listingId={property.listingId}
+              title={titleText}
+              formattedAddress={formatAddress(addressDisplay)}
+              statusPill={
+                (property.status ?? 'live') !== 'live'
+                  ? <StatusPill status={property.status} />
+                  : undefined
+              }
+              mapPreview={
+                <MapPreviewCard
+                  coordinates={propertyCoordinates}
+                  district={property.location?.district}
+                  city={property.location?.city}
+                  onOpenFullScreen={() => setIsMapFullScreen(true)}
+                />
+              }
+            />
           </View>
 
-          {/* Specs row — Phase 8 (Plan 08-04, DISP-01..03) rewrite.
-              D-13 / Claude's Discretion: !isHospitality gate LIFTED — row now renders on all
-              categories (residential, hospitality, commercial). Beds cell flips label between
-              property.specs.bedrooms (residential reads basics.bedrooms) and property.specs.rooms
-              (hospitality reads basics.hotelRooms); Beds cell is OMITTED entirely on
-              office/commercial. Baths cell uniformly reads basics.bathroomCount with
-              the property-specs Bathrooms label (M3 bathroom enum branch removed per D-04).
-              m² cell preserved verbatim from pre-rewrite (260525-i2i canonical placement). */}
-          <View style={[styles.specsContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            {showBedsCell && (
-              <>
-                <View style={styles.specItem}>
-                  <View style={styles.specRow}>
-                    <Text style={styles.specIcon}>🛏</Text>
-                    <Text style={[styles.specValue, { color: colors.text }]}>{bedsValue}</Text>
-                  </View>
-                  <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t(bedsLabelKey as any)}</Text>
-                </View>
-                <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
-              </>
-            )}
-            <View style={styles.specItem}>
-              <View style={styles.specRow}>
-                <Text style={styles.specIcon}>🚿</Text>
-                <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.bathroomCount ?? '-'}</Text>
-              </View>
-              <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.specs.bathrooms' as any)}</Text>
-            </View>
-            <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
-            <View style={styles.specItem}>
-              <View style={styles.specRow}>
-                <Text style={styles.specIcon}>📐</Text>
-                <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.areaSqm ?? '-'}</Text>
-              </View>
-              <Text style={[styles.specLabel, { color: colors.textSecondary }]}>m²</Text>
-            </View>
+          {/* Key stats — KeyStatsCard (M5 redesign, replaces emoji specs row) */}
+          <View style={styles.section}>
+            <KeyStatsCard
+              beds={
+                showBedsCell
+                  ? { value: bedsValue, labelKey: bedsLabelKey as TranslationKeys }
+                  : undefined
+              }
+              baths={property.basics?.bathroomCount ?? '-'}
+              areaSqm={property.basics?.areaSqm}
+            />
           </View>
 
           {/* Description — Phase 2 D-20 cutover: M2 flat `description` → M3 nested `content.description`. */}
@@ -998,6 +952,11 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                 {descriptionText}
               </Text>
             </View>
+          </View>
+
+          {/* Attribute list — condition, furnished, negotiable, deposit, etc. (M5 redesign) */}
+          <View style={styles.section}>
+            <AttributeList rows={derivePropertyAttributes(property, t)} />
           </View>
 
           {/* What this place offers — v4.0.1 unified. Renders for any property type
@@ -1031,47 +990,8 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             </View>
           )}
 
-          {/* Location Map */}
-          <View style={styles.section}>
-            <View style={styles.locationHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('property.location')}</Text>
-            </View>
-            {/* Phase 2 D-20 cutover: M2 flat `address` → derived nested `addressDisplay` (location.city + district). */}
-            <Text style={[styles.address, { color: colors.textSecondary, marginBottom: 12 }]}>{addressDisplay}</Text>
-            <View style={[styles.mapContainer, { borderColor: colors.border }]}>
-              <MapView
-                provider={PROVIDER_DEFAULT}
-                style={styles.map}
-                initialRegion={{
-                  ...propertyCoordinates,
-                  latitudeDelta: 0.01,
-                  longitudeDelta: 0.01,
-                }}
-                scrollEnabled={true}
-                zoomEnabled={true}
-                pitchEnabled={false}
-                rotateEnabled={false}
-                mapType="mutedStandard"
-                userInterfaceStyle={isDark ? 'dark' : 'light'}
-              >
-                {/* Map embed site #1 — propertyCoordinates already reads location?.coordinates?.lat/lng. */}
-                <Marker
-                  coordinate={propertyCoordinates}
-                  title={titleText}
-                  description={addressDisplay}
-                />
-              </MapView>
-              {/* Elegant floating button to open full screen */}
-              <TouchableOpacity
-                style={[styles.mapOverlayButton, { backgroundColor: colors.surface, shadowColor: colors.cardShadow }]}
-                onPress={() => setIsMapFullScreen(true)}
-                activeOpacity={0.8}
-              >
-                <Text style={{ fontSize: 20, marginRight: 6 }}>🗺️</Text>
-                <Text style={[styles.mapOverlayButtonText, { color: colors.text }]}>{t('property.fullScreen')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          {/* Location Map section removed — MapPreviewCard is now embedded in HeaderInfoCard.
+              Full-screen map modal (gated by isMapFullScreen) is preserved below. */}
 
           {(() => {
             const pv = property.platformVerifications;
@@ -1825,15 +1745,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between', // Badge left, pagination right
   },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
   paginationBadge: {
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -1846,65 +1757,6 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 24,
-  },
-  listingInfoCard: {
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  addressRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginTop: 8,
-  },
-  title: {
-    fontSize: 24,
-    fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }),
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  address: {
-    fontSize: 16,
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  specsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginBottom: 24,
-  },
-  specItem: {
-    alignItems: 'center',
-    gap: 2,
-  },
-  specRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  specIcon: {
-    fontSize: 20,
-    marginBottom: 4,
-  },
-  specValue: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  specLabel: {
-    fontSize: 12,
-  },
-  verticalDivider: {
-    width: 1,
-    height: 30,
   },
   sectionTitle: {
     fontSize: 18,
@@ -2277,44 +2129,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     flexShrink: 0,
-  },
-  // Location Map Styles
-  locationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  mapContainer: {
-    height: 350,
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    marginBottom: 24,
-    position: 'relative',
-  },
-  map: {
-    width: '100%',
-    height: '100%',
-  },
-  mapOverlayButton: {
-    position: 'absolute',
-    bottom: 16,
-    right: 16,
-    zIndex: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 24,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  mapOverlayButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
   },
   // Full Screen Styles
   fullScreenContainer: {
