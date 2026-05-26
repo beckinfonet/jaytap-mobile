@@ -73,6 +73,6 @@ export const commonStyles = StyleSheet.create({
 
   // Footer (Back / Next buttons)
   footer: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, paddingVertical: 16, borderTopWidth: 1 },
-  footerButton: { flex: 1, height: 50, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  footerButton: { flex: 1, height: 50, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
   footerButtonText: { fontSize: 16, fontWeight: '600' },
 });
