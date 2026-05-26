@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, ActivityIndicator, Linking, Alert, BackHandler, Platform } from 'react-native';
+import { View, ActivityIndicator, Linking, Alert, BackHandler, Platform, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -23,6 +23,9 @@ import { ContextualListingFlow } from './src/components/ContextualListingFlow';
 import { AdminVerificationScreen } from './src/screens/AdminVerificationScreen';
 import { LandlordApplicationScreen } from './src/screens/LandlordApplicationScreen';
 import { LandlordApplicationQueueScreen } from './src/screens/LandlordApplicationQueueScreen';
+import { ApplicantProfileScreen } from './src/screens/ApplicantProfileScreen';
+import type { LandlordApplication } from './src/services/LandlordApplicationService';
+import { LandlordApplicationService } from './src/services/LandlordApplicationService';
 import { RenterListingsScreen } from './src/screens/RenterListingsScreen';
 import { OwnerListingsScreen } from './src/screens/OwnerListingsScreen';
 import { FavoritesScreen } from './src/screens/FavoritesScreen';
@@ -66,6 +69,8 @@ function AppContent() {
   const [isContextualListingFlowOpen, setIsContextualListingFlowOpen] = useState(false);
   const [isLandlordApplicationOpen, setIsLandlordApplicationOpen] = useState(false);
   const [isLandlordApplicationQueueOpen, setIsLandlordApplicationQueueOpen] = useState(false);
+  const [isApplicantProfileOpen, setIsApplicantProfileOpen] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState<LandlordApplication | null>(null);
   // Phase 3 Plan 06 — moderation queue overlay + edit-on-behalf mod-context.
   // CR-02 fix: pendingModerationCount state was REMOVED — ProfileScreen owns the
   // count entirely (it has the AppState 'active' refresh + 60s cooldown ref). The
@@ -186,6 +191,9 @@ function AppContent() {
     // collapses Profile-rooted state.
     setReturnToProfileAfterLandlordApplication(false);
     setReturnToProfileAfterLandlordApplicationQueue(false);
+    // Applicant profile overlay reset — a tab tap collapses any active profile view.
+    setIsApplicantProfileOpen(false);
+    setSelectedApplication(null);
   };
 
   // Handle deep linking for shared property links
@@ -356,6 +364,12 @@ function AppContent() {
       }
       // Phase 4.5 nav fix: Landlord Application overlays sit ABOVE Profile in
       // the visual stack, so handle them before selectedProperty/Profile.
+      // Applicant profile sits above the queue — handle before the queue check.
+      if (isApplicantProfileOpen) {
+        setIsApplicantProfileOpen(false);
+        setSelectedApplication(null);
+        return true;
+      }
       if (isLandlordApplicationQueueOpen) {
         setIsLandlordApplicationQueueOpen(false);
         if (returnToProfileAfterLandlordApplicationQueue) {
@@ -444,6 +458,7 @@ function AppContent() {
     isAdminVerificationMode,
     isLandlordApplicationOpen,
     isLandlordApplicationQueueOpen,
+    isApplicantProfileOpen,
     isModerationQueueOpen,
     isRoleManagementOpen,
     isMediaCurationOpen,
@@ -583,6 +598,22 @@ function AppContent() {
     // to Profile, not Home.
     setReturnToProfileAfterLandlordApplicationQueue(true);
     setIsLandlordApplicationQueueOpen(true);
+  }, []);
+  const handleOpenApplicantProfile = useCallback((app: LandlordApplication) => {
+    setSelectedApplication(app);
+    setIsApplicantProfileOpen(true);
+  }, []);
+  const handleCloseApplicantProfile = useCallback(() => {
+    setIsApplicantProfileOpen(false);
+    setSelectedApplication(null);
+  }, []);
+  const handleOpenAccountSettingsFromLandlordApp = useCallback(() => {
+    // Close the application screen and open AccountSettings.
+    // returnToProfileAfterLandlordApplication stays TRUE so when the user finishes
+    // editing their profile and pops AccountSettings, they land back on
+    // LandlordApplicationScreen with the gate re-evaluated against fresh AuthContext.
+    setIsLandlordApplicationOpen(false);
+    setIsAccountSettingsOpen(true);
   }, []);
   // Phase 3 Plan 06 Task 04 — Profile entry-point dispatcher for the
   // moderation queue overlay. Closes Profile, opens the queue.
@@ -1167,6 +1198,7 @@ function AppContent() {
               onSubmitted={() => {
                 setHomeRefreshKey((k) => k + 1); // refresh in case profile data changed
               }}
+              onOpenAccountSettings={handleOpenAccountSettingsFromLandlordApp}
             />
           </View>
         )}
@@ -1183,6 +1215,28 @@ function AppContent() {
                   setIsProfileOpen(true);
                   setReturnToProfileAfterLandlordApplicationQueue(false);
                 }
+              }}
+              onOpenApplicantProfile={handleOpenApplicantProfile}
+            />
+          </View>
+        )}
+        {/* Phase feat-applicant-context — Applicant profile overlay (admin/mod, opens from queue). */}
+        {isApplicantProfileOpen && selectedApplication && (
+          <View style={StyleSheet.absoluteFill}>
+            <ApplicantProfileScreen
+              application={selectedApplication}
+              onBack={handleCloseApplicantProfile}
+              onApprove={(app) => {
+                // v1 shortcut: fire approve directly, then close the overlay.
+                // (Reject modal lifting is deferred — the queue still owns it.
+                // Admin can re-tap Approve here for one-tap convenience.)
+                LandlordApplicationService.approve(app._id).finally(handleCloseApplicantProfile);
+              }}
+              onReject={(app) => {
+                // v1 shortcut: fire a default 'other' reject, then close the overlay.
+                // The queue card's Reject button still launches the full canned-reasons modal —
+                // admin can use that for nuanced rejections. This is the quick-action path.
+                LandlordApplicationService.reject(app._id, 'other').finally(handleCloseApplicantProfile);
               }}
             />
           </View>
