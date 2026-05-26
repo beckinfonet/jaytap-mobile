@@ -4,8 +4,16 @@
  * Pure-function unit tests against the 6-field derivation.
  */
 
-import { derivePropertyAttributes } from '../AttributeList';
+import React from 'react';
+import TestRenderer, { act } from 'react-test-renderer';
+import { View, Text } from 'react-native';
+import { derivePropertyAttributes, AttributeList } from '../AttributeList';
 import type { Property } from '../../../types/Property';
+
+jest.mock('../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { useTheme } = require('../../../theme/ThemeContext');
 
 const tStub = (key: string) => key;
 
@@ -112,5 +120,85 @@ describe('derivePropertyAttributes', () => {
       'property.metaDeposit',
       'property.metaPrepayment',
     ]);
+  });
+});
+
+const setupRenderMocks = () => {
+  useTheme.mockReturnValue({
+    isDark: true,
+    colors: {
+      text: '',
+      textSecondary: '',
+      textTertiary: '',
+      border: '',
+      success: '#4CAF50',
+      warning: '#F59E0B',
+      error: '#F44336',
+    },
+  });
+};
+
+const findAllText = (root: TestRenderer.ReactTestInstance): string[] =>
+  root
+    .findAllByType(Text)
+    .map((n) => (Array.isArray(n.props.children) ? n.props.children.join('') : String(n.props.children ?? '')));
+
+describe('AttributeList component', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    setupRenderMocks();
+  });
+
+  it('renders nothing when rows is empty', () => {
+    let renderer!: TestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = TestRenderer.create(<AttributeList rows={[]} />);
+    });
+    expect(renderer.toJSON()).toBeNull();
+  });
+
+  it('renders one row per item', () => {
+    const rows = [
+      {
+        kind: 'plain' as const,
+        icon: (() => null) as any,
+        label: 'A',
+        value: '1',
+      },
+      {
+        kind: 'plain' as const,
+        icon: (() => null) as any,
+        label: 'B',
+        value: '2',
+      },
+    ];
+    let renderer!: TestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = TestRenderer.create(<AttributeList rows={rows} />);
+    });
+    const text = findAllText(renderer.root);
+    expect(text).toContain('A');
+    expect(text).toContain('B');
+    expect(text).toContain('1');
+    expect(text).toContain('2');
+  });
+
+  it('drops borderBottom on the last row', () => {
+    const rows = [
+      { kind: 'plain' as const, icon: (() => null) as any, label: 'A', value: '1' },
+      { kind: 'plain' as const, icon: (() => null) as any, label: 'B', value: '2' },
+    ];
+    let renderer!: TestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = TestRenderer.create(<AttributeList rows={rows} />);
+    });
+    const allRows = renderer.root.findAllByProps({ testID: 'attribute-row' });
+    // React.forwardRef causes duplicate matches (wrapped + host). Take host Views (typeof === 'string').
+    const hostRows = allRows.filter((r) => typeof r.type === 'string');
+    expect(hostRows).toHaveLength(2);
+    // Last row's flattened style has borderBottomWidth 0; non-last rows have hairline.
+    const flatten = (style: any): any => (Array.isArray(style) ? Object.assign({}, ...style.filter(Boolean)) : style ?? {});
+    expect(flatten(hostRows[0].props.style).borderBottomWidth).toBeGreaterThan(0);
+    expect(flatten(hostRows[1].props.style).borderBottomWidth).toBe(0);
   });
 });

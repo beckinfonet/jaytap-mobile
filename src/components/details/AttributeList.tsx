@@ -7,6 +7,7 @@
  */
 
 import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import {
   PaintBucket,
   Sofa,
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react-native';
 import type { Property } from '../../types/Property';
 import type { TranslationKeys } from '../../locales';
+import { useTheme } from '../../theme/ThemeContext';
 
 type TFn = (key: TranslationKeys, params?: Record<string, string>) => string;
 
@@ -109,9 +111,123 @@ export function derivePropertyAttributes(property: Property, t: TFn): AttributeR
   return rows;
 }
 
-// AttributeList component lands in Task 5.
 export interface AttributeListProps {
   rows: AttributeRow[];
 }
 
-export const AttributeList: React.FC<AttributeListProps> = () => null;
+export const AttributeList: React.FC<AttributeListProps> = ({ rows }) => {
+  const { colors } = useTheme();
+  if (rows.length === 0) return null;
+
+  const conditionColor = (token: ConditionColorToken): string => {
+    switch (token) {
+      case 'success':
+        return colors.success;
+      case 'warning':
+        return colors.warning;
+      case 'orange':
+        return '#F0A500';
+      case 'error':
+        return colors.error;
+    }
+  };
+
+  return (
+    <View>
+      {rows.map((row, idx) => {
+        const isLast = idx === rows.length - 1;
+        const Icon = row.icon;
+        return (
+          <View
+            key={`${row.label}-${idx}`}
+            testID="attribute-row"
+            style={[
+              styles.row,
+              { borderBottomColor: colors.border },
+              !isLast && { borderBottomWidth: StyleSheet.hairlineWidth },
+              isLast && { borderBottomWidth: 0 },
+            ]}
+          >
+            <View style={styles.left}>
+              <Icon size={18} color={colors.textSecondary} strokeWidth={1.7} />
+              <Text style={[styles.label, { color: colors.textSecondary }]} numberOfLines={1}>
+                {row.label}
+              </Text>
+            </View>
+            <View style={styles.right}>
+              {row.kind === 'condition' ? (
+                <View
+                  style={[
+                    styles.dot,
+                    { backgroundColor: conditionColor(row.colorToken) },
+                  ]}
+                />
+              ) : null}
+              {row.kind === 'boolean' ? (
+                <View
+                  style={[
+                    styles.badge,
+                    { backgroundColor: row.on ? colors.success : colors.textTertiary },
+                  ]}
+                >
+                  <Text style={styles.badgeGlyph}>{row.on ? '✓' : '×'}</Text>
+                </View>
+              ) : null}
+              <Text style={[styles.value, { color: colors.text }]} numberOfLines={1}>
+                {row.value}
+              </Text>
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+  },
+  left: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  label: {
+    fontSize: 14,
+    flexShrink: 1,
+  },
+  right: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flexShrink: 0,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  badge: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeGlyph: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    lineHeight: 13,
+    fontWeight: '700',
+  },
+  value: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+});
