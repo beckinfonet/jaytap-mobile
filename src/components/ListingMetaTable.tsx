@@ -251,11 +251,19 @@ interface TileProps {
 
 const Tile: React.FC<TileProps> = ({ icon: Icon, header, value, colors, labelSize, valueSize }) => (
   <View style={[styles.tile, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-    <Icon size={20} color={colors.textSecondary} />
-    <Text style={[styles.tileHeader, { color: colors.textSecondary, fontSize: labelSize }]} numberOfLines={1}>
-      {header}
-    </Text>
-    <Text style={[styles.tileValue, { color: colors.text, fontSize: valueSize }]} numberOfLines={2}>
+    <View style={styles.tileHeaderRow}>
+      <Icon size={16} color={colors.textSecondary} />
+      <Text
+        style={[styles.tileHeader, { color: colors.textSecondary, fontSize: labelSize }]}
+        numberOfLines={1}
+      >
+        {header}
+      </Text>
+    </View>
+    <Text
+      style={[styles.tileValue, { color: colors.text, fontSize: valueSize }]}
+      numberOfLines={2}
+    >
       {value}
     </Text>
   </View>
@@ -332,21 +340,26 @@ const styles = StyleSheet.create({
   extrasTiles: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    columnGap: 8,
+    rowGap: 8,
     marginTop: 10,
   },
   tile: {
-    flexBasis: '49%',
-    flexGrow: 0,
+    width: '48%',
     borderWidth: 1,
     borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     gap: 4,
-    alignItems: 'flex-start',
+  },
+  tileHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   tileHeader: {
-    fontWeight: '600',
+    fontWeight: '500',
+    flexShrink: 1,
   },
   tileValue: {
     fontWeight: '600',
