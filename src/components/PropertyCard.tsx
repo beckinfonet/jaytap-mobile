@@ -18,7 +18,6 @@ import {
   Archive,
   ArchiveRestore,
   MapPin,
-  Maximize2,
   Box,
 } from 'lucide-react-native';
 import { Property } from '../types/Property';
@@ -206,8 +205,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               )}
               {hasArea && (
                 <View style={styles.priceOverlayStatCell}>
-                  <Maximize2 size={14} color="#FFFFFF" strokeWidth={2} />
                   <Text style={styles.priceOverlayStatValue}>{areaSqm}</Text>
+                  <Text style={styles.priceOverlayStatUnit}>m²</Text>
                 </View>
               )}
             </View>
@@ -265,7 +264,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           {/* Row 3: MapPin + district · city */}
           {(districtLabel || cityLabel) ? (
             <View style={styles.locationRow}>
-              <MapPin size={14} color={colors.textSecondary} strokeWidth={2} />
+              <MapPin size={14} color={colors.accent} strokeWidth={2.25} />
               <Text
                 style={[styles.locationText, { color: colors.textSecondary }]}
                 numberOfLines={1}
@@ -470,6 +469,12 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  priceOverlayStatUnit: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '500',
+    opacity: 0.85,
   },
   // Below-image content region (260526-ebl)
   contentContainer: {
