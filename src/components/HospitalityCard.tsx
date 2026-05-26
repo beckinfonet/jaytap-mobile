@@ -205,10 +205,17 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
 
           {/* D-10: rooms + maxGuests meta — no price formatter, no beds/baths/sqft meta table.
               hotelRooms (basics.hotelRooms) takes precedence for hotel/hostel; falls back to
-              generic basics.rooms. maxGuests stays TOP-LEVEL per D-21 (Phase 1 D-09 preserved). */}
+              generic basics.rooms. maxGuests stays TOP-LEVEL per D-21 (Phase 1 D-09 preserved).
+              Phase 8 D-06: inline `· {n} Bathrooms` fragment inserted between Rooms and Max Guests
+              when basics.bathroomCount is defined. `!== undefined` (not truthiness) so 0 renders.
+              Fragment is React.Fragment shorthand — null when absent (no orphan separator). */}
           <Text style={[styles.meta, { color: colors.textSecondary }]} numberOfLines={1}>
-            {(property.basics?.hotelRooms ?? property.basics?.rooms ?? '-')} {t('hospitality.rooms')} · {property.maxGuests ?? 0}{' '}
-            {t('hospitality.maxGuests')}
+            {(property.basics?.hotelRooms ?? property.basics?.rooms ?? '-')}{' '}
+            {t('hospitality.rooms')}
+            {property.basics?.bathroomCount !== undefined ? (
+              <>{' · '}{property.basics.bathroomCount} {t('hospitality.bathrooms')}</>
+            ) : null}
+            {' · '}{property.maxGuests ?? 0} {t('hospitality.maxGuests')}
           </Text>
 
           {/* D-10: amenity preview chips — first 3 + +N more overflow */}
