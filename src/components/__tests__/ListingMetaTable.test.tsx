@@ -1,46 +1,48 @@
 /**
  * src/components/__tests__/ListingMetaTable.test.tsx
  *
- * Phase 8 Plan 08-05 Task 2 — surgical-removal regression fence + happy-path
- * extras coverage for ListingMetaTable. NEW co-located test file (no prior
- * suite existed for this component).
+ * M5 Phase 1 Task 9 — ListingMetaTable shrunk to compact ID + Availability
+ * contract after the orphan tile-grid (v4.0.1) was removed.
  *
- * Pins Task 1's four-edit cleanup:
- *   - The `rooms != null && ...` JSX row block (deleted)
- *   - The `bathroom != null && ...` JSX row block (deleted; including the
- *     private/shared/none enum-resolution branch)
- *   - The `const rooms` / `const bathroom` derivations (deleted)
- *   - The `rooms` + `bathroom` links in the `hasExtras` chain (deleted)
+ * After M5 Phase 1, ListingMetaTable's tile-grid path was removed — the
+ * component is now scoped to ID + Availability rows used by the compact
+ * PropertyCard call site. PropertyDetailsScreen consumes AttributeList
+ * directly (see src/components/details/AttributeList.tsx).
  *
- * Mirrors 260525-i2i precedent (commit 15f1010): zero-replacement deletion of
- * the duplicate `m²` row from the same extras grid. After Phase 8 plan 04,
- * PropertyDetailsScreen's canonical specs row is the sole beds/baths surface.
+ * Coverage: ID rendering (when present), Availability rendering (with/without
+ * dot indicator), date formatting (soon vs. now), and early-return when both
+ * are absent.
  *
  * Pattern: react-test-renderer + act (no RTL / no jest-native — project
  * convention per PropertyCard.specChip.test.tsx L20-23 + StepperInput.test.tsx).
- * The `t` mock returns the i18n key VERBATIM, so all "row is absent" assertions
- * check for the literal key strings (e.g. `'property.beds'`) — not resolved EN
- * values (which would never appear under this mock convention and would mask
- * regressions).
+ * The `t` mock returns the i18n key VERBATIM, so assertions check for literal
+ * key strings (e.g. `'property.metaId'`) — not resolved EN values.
  */
 
 import React from 'react';
 import TestRenderer, { act } from 'react-test-renderer';
 import { Text } from 'react-native';
 import { ListingMetaTable } from '../ListingMetaTable';
-import type { Property } from '../../types/Property';
 
 // === Mocks ===
 
 jest.mock('../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 jest.mock('../../context/LanguageContext', () => ({ useLanguage: jest.fn() }));
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { useTheme } = require('../../theme/ThemeContext');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { useLanguage } = require('../../context/LanguageContext');
+// Get the mocked functions from the module mocks
+const getMocks = () => {
+   
+  const themeModule = require('../../theme/ThemeContext');
+   
+  const langModule = require('../../context/LanguageContext');
+  return {
+    useTheme: themeModule.useTheme as jest.Mock,
+    useLanguage: langModule.useLanguage as jest.Mock,
+  };
+};
 
 const setupMocks = () => {
+  const { useTheme, useLanguage } = getMocks();
   useTheme.mockReturnValue({
     isDark: false,
     colors: {
@@ -70,18 +72,20 @@ beforeEach(() => {
 
 // === Helpers ===
 
-const makeProperty = (overrides: Partial<Property> = {}): Property =>
-  ({
-    id: 'p1',
-    propertyType: 'apartment',
-    content: { title: 'Test' },
-    ...overrides,
-  } as unknown as Property);
-
-const renderMeta = (property: Property): TestRenderer.ReactTestRenderer => {
+const renderMeta = (
+  listingId?: string | null,
+  availableDate?: unknown,
+  showAvailabilityDot = false,
+): TestRenderer.ReactTestRenderer => {
   let tree!: TestRenderer.ReactTestRenderer;
   act(() => {
-    tree = TestRenderer.create(<ListingMetaTable property={property} />);
+    tree = TestRenderer.create(
+      <ListingMetaTable
+        listingId={listingId}
+        availableDate={availableDate}
+        showAvailabilityDot={showAvailabilityDot}
+      />,
+    );
   });
   return tree;
 };
@@ -107,143 +111,84 @@ const collectTexts = (tree: TestRenderer.ReactTestRenderer): string[] => {
 
 // === Tests ===
 
-describe('ListingMetaTable — Phase 8 Plan 08-05 surgical-removal regression fence', () => {
-  // === Test 1 — Regression fence for Edit 1 ===
-  test('rooms-only property does NOT render a Beds row AND the extras grid is gated off', () => {
-    const tree = renderMeta(
-      makeProperty({
-        basics: { rooms: '3' },
-      }),
-    );
+describe('ListingMetaTable — M5 Phase 1 compact ID + Availability contract', () => {
+  // === Test 1 — ID only ===
+  test('renders ID row when listingId is present', () => {
+    const tree = renderMeta('LIST-001');
     const texts = collectTexts(tree);
 
-    // Edit 1 verified: no `property.beds` consumer fires anywhere in the tree.
-    expect(texts.some((s) => s.includes('property.beds'))).toBe(false);
-
-    // Edit 4 verified: rooms no longer contributes to `hasExtras`, so without
-    // other extras the entire extras grid is gated off. We check NEGATIVE: no
-    // value `'3'` leaks from a rooms row, AND no other extras label appears.
-    expect(texts.some((s) => s === '3')).toBe(false);
-    expect(texts.some((s) => s.includes('property.metaCondition'))).toBe(false);
+    expect(texts.some((s) => s.includes('property.metaId'))).toBe(true);
+    expect(texts.some((s) => s === 'LIST-001')).toBe(true);
   });
 
-  // === Test 2 — Regression fence for Edit 2 ===
-  test('bathroom-only property does NOT render a Baths row AND no enum-resolution key appears', () => {
-    const tree = renderMeta(
-      makeProperty({
-        basics: { bathroom: 'private' },
-      }),
-    );
+  // === Test 2 — Availability only ===
+  test('renders Availability row when availableDate is present', () => {
+    const tree = renderMeta(undefined, new Date('2026-06-30'));
     const texts = collectTexts(tree);
 
-    // Edit 2 verified: no `property.baths` consumer fires.
-    expect(texts.some((s) => s.includes('property.baths'))).toBe(false);
-
-    // Enum-branch dead: the deleted block's t('property.bathroomPrivate')
-    // call site no longer exists, so the key never appears in the tree.
-    expect(texts.some((s) => s.includes('property.bathroomPrivate'))).toBe(false);
-    expect(texts.some((s) => s.includes('property.bathroomShared'))).toBe(false);
-    expect(texts.some((s) => s.includes('property.bathroomNone'))).toBe(false);
+    expect(texts.some((s) => s.includes('property.metaAvailable'))).toBe(true);
   });
 
-  // === Test 3 — Combined regression: rooms + bathroom together ===
-  test('rooms + bathroom only does NOT render either row; extras grid stays gated off', () => {
-    const tree = renderMeta(
-      makeProperty({
-        basics: { rooms: '2', bathroom: 'shared' },
-      }),
-    );
+  // === Test 3 — Both ID and Availability ===
+  test('renders both ID and Availability rows when both are present', () => {
+    const tree = renderMeta('LIST-002', new Date('2026-07-15'));
     const texts = collectTexts(tree);
 
-    // Both deleted row consumers must be absent. Using LITERAL i18n key strings
-    // is load-bearing — under the t-mock-key-verbatim convention, asserting on
-    // resolved EN values ('Beds:' / 'Baths:') would always be false and would
-    // silently mask a regression even if the row block were re-introduced.
-    expect(texts.some((s) => s.includes('property.beds'))).toBe(false);
-    expect(texts.some((s) => s.includes('property.baths'))).toBe(false);
-    expect(texts.some((s) => s.includes('property.bathroomShared'))).toBe(false);
-
-    // The values themselves also do not leak — proves the rows are gone, not
-    // just the labels.
-    expect(texts.some((s) => s === '2')).toBe(false);
+    expect(texts.some((s) => s.includes('property.metaId'))).toBe(true);
+    expect(texts.some((s) => s === 'LIST-002')).toBe(true);
+    expect(texts.some((s) => s.includes('property.metaAvailable'))).toBe(true);
   });
 
-  // === Test 4 — Proves rooms no longer contributes; deposit still renders ===
-  test('rooms + deposit renders ONLY the deposit row (rooms no longer contributes to hasExtras)', () => {
-    const tree = renderMeta(
-      makeProperty({
-        basics: { rooms: '3' },
-        terms: { deposit: { amount: 1000, currency: 'KGS' } },
-      }),
-    );
+  // === Test 4 — Date near (today/soon) shows "Now" ===
+  test('formats availableDate as "now" when within 30 days', () => {
+    const today = new Date();
+    today.setDate(today.getDate() + 15); // 15 days from now
+    const tree = renderMeta(undefined, today);
     const texts = collectTexts(tree);
 
-    // Deposit row renders (hasExtras true via deposit contributor).
-    expect(texts.some((s) => s.includes('property.metaDeposit'))).toBe(true);
-    // Deposit value parts surface — the currency segment `'KGS'` lands in the
-    // text tree (children are interpolated as `[label, ': ', amount, ' ', currency]`;
-    // collectTexts captures string segments only, which is sufficient to
-    // sentinel the row's value-side render).
-    expect(texts.some((s) => s.includes('KGS'))).toBe(true);
-
-    // Rooms row stays gone.
-    expect(texts.some((s) => s.includes('property.beds'))).toBe(false);
+    expect(texts.some((s) => s === 'property.now')).toBe(true);
   });
 
-  // === Test 5 — Proves bathroom no longer contributes; condition still renders ===
-  test('bathroom + condition renders ONLY the condition row (bathroom no longer contributes to hasExtras)', () => {
-    const tree = renderMeta(
-      makeProperty({
-        basics: { bathroom: 'shared' },
-        conditionAndAmenities: { condition: 'good' },
-      }),
-    );
+  // === Test 5 — Date far (> 30 days) shows formatted date ===
+  test('formats availableDate as date string when 30+ days away', () => {
+    const future = new Date();
+    future.setDate(future.getDate() + 45); // 45 days from now
+    const tree = renderMeta(undefined, future);
     const texts = collectTexts(tree);
 
-    // Condition row renders (hasExtras true via condition contributor).
-    expect(texts.some((s) => s.includes('property.metaCondition'))).toBe(true);
-    // Condition value now routes through t('condition.<enum>') — under the
-    // t-mock-key-verbatim convention the key string surfaces (v4.0.1 tile-grid).
-    expect(texts.some((s) => s === 'condition.good')).toBe(true);
-
-    // Bathroom row + enum-resolution key both stay gone.
-    expect(texts.some((s) => s.includes('property.baths'))).toBe(false);
-    expect(texts.some((s) => s.includes('property.bathroomShared'))).toBe(false);
+    // Under the t-mock-key-verbatim convention, the date will be formatted by
+    // toLocaleDateString. We can't assert the exact string, but we can verify
+    // that "property.now" is NOT used (negative assertion shows the date branch fired).
+    expect(texts.some((s) => s === 'property.now')).toBe(false);
   });
 
-  // === Test 6 — All other extras render; no collateral damage ===
-  test('all 7 other extras render correctly when present; no rooms/bathroom rows', () => {
-    const tree = renderMeta(
-      makeProperty({
-        basics: { areaSqm: 50 },
-        conditionAndAmenities: { condition: 'euro', furnished: true },
-        terms: {
-          negotiable: true,
-          deposit: { amount: 500, currency: 'USD' },
-          prepaymentMonths: 2,
-          minTerm: '3_months',
-        },
-      }),
-    );
+  // === Test 6 — Availability dot indicator ===
+  test('renders availability green dot when showAvailabilityDot is true', () => {
+    const tree = renderMeta('LIST-003', new Date('2026-08-01'), true);
     const texts = collectTexts(tree);
 
-    // Each remaining extras-row label appears.
-    expect(texts.some((s) => s.includes('property.metaCondition'))).toBe(true);
-    expect(texts.some((s) => s.includes('property.metaFurnishedYes'))).toBe(true);
-    expect(texts.some((s) => s.includes('property.metaMinTerm'))).toBe(true);
-    expect(texts.some((s) => s.includes('property.metaDeposit'))).toBe(true);
-    expect(texts.some((s) => s.includes('property.metaPrepayment'))).toBe(true);
-    expect(texts.some((s) => s.includes('property.metaNegotiable'))).toBe(true);
+    expect(texts.some((s) => s.includes('property.metaAvailable'))).toBe(true);
+    // The dot is a View, not a Text node, so we can't assert it directly in
+    // collectTexts. However, we verify the availability row renders, which
+    // implies the dot logic path was entered.
+  });
 
-    // Condition value now routes through t('condition.<enum>') — under the
-    // t-mock-key-verbatim convention the key string surfaces (v4.0.1 tile-grid).
-    expect(texts.some((s) => s === 'condition.euro')).toBe(true);
+  // === Test 7 — Hides the whole table when ID and availability are both absent ===
+  test('hides the whole table when ID and availability are both absent', () => {
+    const tree = renderMeta(undefined, undefined);
 
-    // No collateral damage: rooms + bathroom rows + enum keys all stay gone.
-    expect(texts.some((s) => s.includes('property.beds'))).toBe(false);
-    expect(texts.some((s) => s.includes('property.baths'))).toBe(false);
-    expect(texts.some((s) => s.includes('property.bathroomPrivate'))).toBe(false);
-    expect(texts.some((s) => s.includes('property.bathroomShared'))).toBe(false);
-    expect(texts.some((s) => s.includes('property.bathroomNone'))).toBe(false);
+    // When both are missing, the component returns null. We can verify this by
+    // checking that no ListingMetaTable View is rendered.
+    expect(tree.root.findAllByType(Text)).toHaveLength(0);
+  });
+
+  // === Test 8 — Empty string ID is treated as absent ===
+  test('treats empty/whitespace listingId as absent', () => {
+    const tree = renderMeta('   ', new Date('2026-09-01'));
+    const texts = collectTexts(tree);
+
+    // Only Availability should render, not ID row.
+    expect(texts.some((s) => s.includes('property.metaId'))).toBe(false);
+    expect(texts.some((s) => s.includes('property.metaAvailable'))).toBe(true);
   });
 });

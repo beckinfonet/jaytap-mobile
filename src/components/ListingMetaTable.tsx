@@ -1,18 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import {
-  PaintBucket,
-  Sofa,
-  CalendarRange,
-  Banknote,
-  CalendarClock,
-  Handshake,
-  type LucideIcon,
-} from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
-import type { Property } from '../types/Property';
-import type { TranslationKeys } from '../locales';
 
 function availabilityValueFromRaw(
   raw: unknown,
@@ -45,16 +34,6 @@ export interface ListingMetaTableProps {
   compact?: boolean;
   /** Green dot before availability value (property details) */
   showAvailabilityDot?: boolean;
-  /**
-   * Phase 2 D-20: optional full-property prop. When provided, the table also
-   * surfaces rooms/bathroom/area (basics.*), condition/furnished
-   * (conditionAndAmenities.*), and minTerm/deposit/prepaymentMonths/negotiable
-   * (terms.*) below the existing ID + availability row. Backward-compatible:
-   * existing PropertyCard call sites (listingId + availableDate only) continue
-   * to render exactly as before. PropertyDetailsScreen (Plan 02-06) will pass
-   * the full property to surface the meta rows.
-   */
-  property?: Property;
 }
 
 export const ListingMetaTable: React.FC<ListingMetaTableProps> = ({
@@ -62,7 +41,6 @@ export const ListingMetaTable: React.FC<ListingMetaTableProps> = ({
   availableDate,
   compact = false,
   showAvailabilityDot = false,
-  property,
 }) => {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -72,27 +50,7 @@ export const ListingMetaTable: React.FC<ListingMetaTableProps> = ({
   const hasId = Boolean(listingId?.trim());
   const hasAvail = availValue != null;
 
-  // Phase 2 D-20 nested-shape reads (Phase 1 D-04..D-15). All optional —
-  // gating booleans below decide whether each row renders. No flat-shape
-  // fallbacks: M2 listings without nested data simply skip extra rows.
-  const areaSqm = property?.basics?.areaSqm;
-  const condition = property?.conditionAndAmenities?.condition;
-  const furnished = property?.conditionAndAmenities?.furnished;
-  const negotiable = property?.terms?.negotiable;
-  const deposit = property?.terms?.deposit;
-  const prepaymentMonths = property?.terms?.prepaymentMonths;
-  const minTerm = property?.terms?.minTerm;
-
-  const hasExtras =
-    areaSqm != null ||
-    condition != null ||
-    furnished != null ||
-    negotiable != null ||
-    deposit != null ||
-    prepaymentMonths != null ||
-    minTerm != null;
-
-  if (!hasId && !hasAvail && !hasExtras) return null;
+  if (!hasId && !hasAvail) return null;
 
   const rowPadV = compact ? 8 : 10;
   const rowPadH = compact ? 12 : 12;
@@ -161,113 +119,9 @@ export const ListingMetaTable: React.FC<ListingMetaTableProps> = ({
           </View>
         )}
       </View>
-      {/* v4.0.1 — Airbnb-style icon-tile grid replacing the prior flowing-text
-          extras row. Each tile renders lucide icon, header label, and a
-          localized value. Tiles whose value is undefined are omitted. */}
-      {hasExtras && (
-        <View style={styles.extrasTiles}>
-          {condition != null && (
-            <Tile
-              icon={PaintBucket}
-              header={t('property.metaCondition' as TranslationKeys)}
-              value={t(`condition.${condition}` as TranslationKeys)}
-              colors={colors}
-              labelSize={labelSize}
-              valueSize={valueSize}
-            />
-          )}
-          {furnished != null && (
-            <Tile
-              icon={Sofa}
-              header={
-                furnished
-                  ? t('property.metaFurnishedYes' as TranslationKeys)
-                  : t('property.metaFurnishedNo' as TranslationKeys)
-              }
-              value={furnished ? t('common.yes' as TranslationKeys) : t('common.no' as TranslationKeys)}
-              colors={colors}
-              labelSize={labelSize}
-              valueSize={valueSize}
-            />
-          )}
-          {minTerm != null && (
-            <Tile
-              icon={CalendarRange}
-              header={t('property.metaMinTerm' as TranslationKeys)}
-              value={t(`minTerm.${minTerm}` as TranslationKeys)}
-              colors={colors}
-              labelSize={labelSize}
-              valueSize={valueSize}
-            />
-          )}
-          {deposit != null && (
-            <Tile
-              icon={Banknote}
-              header={t('property.metaDeposit' as TranslationKeys)}
-              value={`${deposit.amount} ${deposit.currency}`}
-              colors={colors}
-              labelSize={labelSize}
-              valueSize={valueSize}
-            />
-          )}
-          {prepaymentMonths != null && (
-            <Tile
-              icon={CalendarClock}
-              header={t('property.metaPrepayment' as TranslationKeys)}
-              value={
-                prepaymentMonths === 0
-                  ? t('prepayment.none' as TranslationKeys)
-                  : String(prepaymentMonths)
-              }
-              colors={colors}
-              labelSize={labelSize}
-              valueSize={valueSize}
-            />
-          )}
-          {negotiable != null && (
-            <Tile
-              icon={Handshake}
-              header={t('property.metaNegotiable' as TranslationKeys)}
-              value={negotiable ? t('common.yes' as TranslationKeys) : t('common.no' as TranslationKeys)}
-              colors={colors}
-              labelSize={labelSize}
-              valueSize={valueSize}
-            />
-          )}
-        </View>
-      )}
     </View>
   );
 };
-
-interface TileProps {
-  icon: LucideIcon;
-  header: string;
-  value: string;
-  colors: ReturnType<typeof useTheme>['colors'];
-  labelSize: number;
-  valueSize: number;
-}
-
-const Tile: React.FC<TileProps> = ({ icon: Icon, header, value, colors, labelSize, valueSize }) => (
-  <View style={[styles.tile, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-    <View style={styles.tileHeaderRow}>
-      <Icon size={16} color={colors.textSecondary} />
-      <Text
-        style={[styles.tileHeader, { color: colors.textSecondary, fontSize: labelSize }]}
-        numberOfLines={1}
-      >
-        {header}
-      </Text>
-    </View>
-    <Text
-      style={[styles.tileValue, { color: colors.text, fontSize: valueSize }]}
-      numberOfLines={2}
-    >
-      {value}
-    </Text>
-  </View>
-);
 
 const styles = StyleSheet.create({
   table: {
@@ -336,32 +190,5 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#22C55E',
     flexShrink: 0,
-  },
-  extrasTiles: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    columnGap: 8,
-    rowGap: 8,
-    marginTop: 10,
-  },
-  tile: {
-    width: '48%',
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    gap: 4,
-  },
-  tileHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  tileHeader: {
-    fontWeight: '500',
-    flexShrink: 1,
-  },
-  tileValue: {
-    fontWeight: '600',
   },
 });
