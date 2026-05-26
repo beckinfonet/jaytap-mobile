@@ -417,3 +417,286 @@ describe('ContextualListingFlow integration (Plan 02-04b)', () => {
     expect(buttonTextNodes.length).toBeGreaterThan(0);
   });
 });
+
+// Quick task 260525-x8l — Photo-gate on Step 6 for edit-mod.
+//
+// Defense-in-depth UX parity with PropertyDetailsScreen's NeedsMediaBanner pattern:
+// when a moderator opens "Edit on behalf" on a pending listing with zero photos and
+// walks to Step 6, the "Save and approve" submit button must be visibly + functionally
+// disabled, and an inline warning row must render. Steps 1-5 unchanged. Create and
+// edit-owner modes are NOT gated. Reuses existing `moderation.needsMediaBanner.title`
+// and `moderation.needsMediaBanner.body` i18n keys — no new strings.
+//
+// Backend trust boundary (PUT /moderation/listings/:id field-only per 260511-cog,
+// /approve MEDIA_REQUIRED gate per 260514-rk1) is untouched — this is client UX guidance.
+describe('ContextualListingFlow photo-gate on Step 6 for edit-mod (quick 260525-x8l)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    createPropertyMock.mockResolvedValue({ id: 'new-listing-id', _id: 'new-listing-id' });
+    updatePropertyMock.mockResolvedValue({ id: 'updated-id', _id: 'updated-id' });
+    editAsModeratorMock.mockResolvedValue({ id: 'mod-edited-id', _id: 'mod-edited-id' });
+  });
+
+  // Helper: minimal Step1-5-valid Property; `media.photos` configurable per case.
+  function buildListing(photos: string[]) {
+    return {
+      id: 'lst-x8l',
+      _id: 'lst-x8l',
+      dealType: 'rent_long',
+      propertyType: 'apartment',
+      location: {
+        city: 'bishkek',
+        district: 'asanbay',
+        coordinates: { lat: 42.87, lng: 74.57 },
+        showExactAddress: false,
+      },
+      basics: {
+        areaSqm: 80,
+        price: 1000,
+        currency: 'KGS',
+        rooms: '2',
+      },
+      conditionAndAmenities: { condition: 'good', furnished: true },
+      content: { title: 'X', description: 'Y', language: 'en' },
+      terms: { negotiable: true, prepaymentMonths: 1, minTerm: '1_month' },
+      media: { photos, videos: [] },
+      status: 'pending',
+    };
+  }
+
+  // Helper: walk a render tree from Step 1 to Step 6 by tapping the Next button 5 times.
+  // Steps 1-5 advance synchronously because all fields are pre-populated from initialListing.
+  async function advanceToStep6(root: ReactTestInstance) {
+    for (let i = 0; i < 5; i++) {
+      // eslint-disable-next-line @typescript-eslint/no-loop-func
+      await ReactTestRenderer.act(async () => {
+        await Promise.resolve();
+        findByTestID(root, 'contextual-listing-next').props.onPress();
+      });
+    }
+  }
+
+  // Case A — gate fires: edit-mod + zero photos → button disabled + warning rendered.
+  test('Case A: edit-mod with zero photos disables Step 6 submit AND renders photo-gate warning', async () => {
+    const initialListing = buildListing([]); // zero photos
+
+    let tree!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      tree = ReactTestRenderer.create(
+        <ContextualListingFlow
+          mode="edit-mod"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          initialListing={initialListing as any}
+          moderatorContext={{ editingOwnerUid: 'owner-uid' }}
+          onClose={jest.fn()}
+        />,
+      );
+    });
+    const root = tree.root;
+
+    await advanceToStep6(root);
+
+    const nextButton = findByTestID(root, 'contextual-listing-next');
+    expect(nextButton.props.disabled).toBe(true);
+
+    const warning = tryFindByTestID(root, 'contextual-listing-photo-gate-warning');
+    expect(warning).not.toBeNull();
+
+    // Warning row contains the title key from existing i18n (mock t() returns the key).
+    const titleNodes = findAllTextNodesContaining(
+      warning as ReactTestInstance,
+      'moderation.needsMediaBanner.title',
+    );
+    expect(titleNodes.length).toBeGreaterThan(0);
+
+    // Defense-in-depth: handleNext early-returns; no editAsModerator call fires.
+    await ReactTestRenderer.act(async () => {
+      nextButton.props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      await Promise.resolve();
+    });
+    expect(editAsModeratorMock).not.toHaveBeenCalled();
+  });
+
+  // Case B — gate skipped: edit-mod + photos present → button enabled, no warning.
+  test('Case B: edit-mod with >=1 photo enables Step 6 submit AND hides photo-gate warning', async () => {
+    const initialListing = buildListing(['https://example.com/a.jpg']);
+
+    let tree!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      tree = ReactTestRenderer.create(
+        <ContextualListingFlow
+          mode="edit-mod"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          initialListing={initialListing as any}
+          moderatorContext={{ editingOwnerUid: 'owner-uid' }}
+          onClose={jest.fn()}
+        />,
+      );
+    });
+    const root = tree.root;
+
+    await advanceToStep6(root);
+
+    const nextButton = findByTestID(root, 'contextual-listing-next');
+    expect(nextButton.props.disabled).toBeFalsy();
+    expect(tryFindByTestID(root, 'contextual-listing-photo-gate-warning')).toBeNull();
+  });
+
+  // Case C — gate skipped: edit-owner mode + zero photos → never gated.
+  test('Case C: edit-owner with zero photos does NOT gate Step 6 submit', async () => {
+    const initialListing = buildListing([]);
+
+    let tree!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      tree = ReactTestRenderer.create(
+        <ContextualListingFlow
+          mode="edit-owner"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          initialListing={initialListing as any}
+          onClose={jest.fn()}
+        />,
+      );
+    });
+    const root = tree.root;
+
+    await advanceToStep6(root);
+
+    const nextButton = findByTestID(root, 'contextual-listing-next');
+    expect(nextButton.props.disabled).toBeFalsy();
+    expect(tryFindByTestID(root, 'contextual-listing-photo-gate-warning')).toBeNull();
+  });
+
+  // Case D — gate skipped: create mode (no initialListing) → never gated.
+  // Walks the same 5-step path as INT-1 to land on Step 6.
+  test('Case D: create mode does NOT gate Step 6 submit even though no photos exist', async () => {
+    let tree!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      tree = ReactTestRenderer.create(
+        <ContextualListingFlow mode="create" onClose={jest.fn()} />,
+      );
+    });
+    const root = tree.root;
+
+    // Step 1
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'deal-type-chip-rent_long').props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'property-type-chip-apartment').props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'contextual-listing-next').props.onPress();
+    });
+    // Step 2
+    await ReactTestRenderer.act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'city-chip-bishkek').props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'district-chip-asanbay').props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'mock-mapview').props.onPress({
+        nativeEvent: { coordinate: { latitude: 42.87, longitude: 74.57 } },
+      });
+    });
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'contextual-listing-next').props.onPress();
+    });
+    // Step 3
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'basics-areaSqm').props.onChangeText('80');
+    });
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'basics-price').props.onChangeText('1000');
+    });
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'currency-chip-KGS').props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'rooms-chip-2').props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'contextual-listing-next').props.onPress();
+    });
+    // Step 4
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'condition-chip-good').props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'furnished-chip-yes').props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'contextual-listing-next').props.onPress();
+    });
+    // Step 5
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'content-title').props.onChangeText('T');
+    });
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'content-description').props.onChangeText('D');
+    });
+    await ReactTestRenderer.act(async () => {
+      findByTestID(root, 'contextual-listing-next').props.onPress();
+    });
+
+    // Now on Step 6 — assert NOT gated.
+    const nextButton = findByTestID(root, 'contextual-listing-next');
+    expect(nextButton.props.disabled).toBeFalsy();
+    expect(tryFindByTestID(root, 'contextual-listing-photo-gate-warning')).toBeNull();
+  });
+
+  // Case E — gate does NOT affect Steps 1-5: edit-mod + zero photos still shows
+  // enabled Next at Step 1 and Step 3 (mid-stepper). Only Step 6 activates the gate.
+  test('Case E: edit-mod with zero photos does NOT gate Steps 1-5', async () => {
+    const initialListing = buildListing([]);
+
+    let tree!: ReactTestRenderer.ReactTestRenderer;
+    await ReactTestRenderer.act(async () => {
+      tree = ReactTestRenderer.create(
+        <ContextualListingFlow
+          mode="edit-mod"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          initialListing={initialListing as any}
+          moderatorContext={{ editingOwnerUid: 'owner-uid' }}
+          onClose={jest.fn()}
+        />,
+      );
+    });
+    const root = tree.root;
+
+    // Step 1 — Next enabled (label === t('common.next')), warning not rendered.
+    {
+      const nextButton = findByTestID(root, 'contextual-listing-next');
+      expect(nextButton.props.disabled).toBeFalsy();
+      expect(tryFindByTestID(root, 'contextual-listing-photo-gate-warning')).toBeNull();
+      const nextLabelNodes = findAllTextNodesContaining(nextButton, 'common.next');
+      expect(nextLabelNodes.length).toBeGreaterThan(0);
+    }
+
+    // Advance to Step 3 (tap Next twice).
+    for (let i = 0; i < 2; i++) {
+      // eslint-disable-next-line @typescript-eslint/no-loop-func
+      await ReactTestRenderer.act(async () => {
+        await Promise.resolve();
+        findByTestID(root, 'contextual-listing-next').props.onPress();
+      });
+    }
+
+    // Step 3 — Next still enabled, warning still hidden.
+    {
+      const nextButton = findByTestID(root, 'contextual-listing-next');
+      expect(nextButton.props.disabled).toBeFalsy();
+      expect(tryFindByTestID(root, 'contextual-listing-photo-gate-warning')).toBeNull();
+    }
+  });
+});
