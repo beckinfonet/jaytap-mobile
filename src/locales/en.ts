@@ -308,6 +308,15 @@ export const en = {
   'amenity.commonarea': 'Common area',
   'amenity.lockers': 'Lockers',
   'amenity.ensuite': 'En-suite bathroom',
+  // v4.0.1 — residential + commercial amenity labels (new tokens beyond the M2 hospitality 12)
+  'amenity.washer': 'Washer',
+  'amenity.dryer': 'Dryer',
+  'amenity.garage': 'Garage',
+  'amenity.balcony': 'Balcony',
+  'amenity.elevator': 'Elevator',
+  'amenity.gasStove': 'Gas stove',
+  'amenity.petFriendly': 'Pet-friendly',
+  'amenity.security': 'Security',
 
   // Phase 6 (HOSP-01 / D-02) — HospitalitySection strip header on Home/Favorites/Owner/Renter
   'home.hospitalitySectionTitle': 'Hostels & Hotels',

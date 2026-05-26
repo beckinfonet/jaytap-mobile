@@ -310,6 +310,15 @@ export const ru: Record<TranslationKeys, string> = {
   'amenity.commonarea': 'Общая зона',
   'amenity.lockers': 'Камеры хранения',
   'amenity.ensuite': 'Санузел в номере',
+  // v4.0.1 — residential + commercial amenity labels
+  'amenity.washer': 'Стиральная машина',
+  'amenity.dryer': 'Сушильная машина',
+  'amenity.garage': 'Гараж',
+  'amenity.balcony': 'Балкон',
+  'amenity.elevator': 'Лифт',
+  'amenity.gasStove': 'Газовая плита',
+  'amenity.petFriendly': 'Можно с животными',
+  'amenity.security': 'Охрана',
 
   // Phase 6 (HOSP-01 / D-02)
   'home.hospitalitySectionTitle': 'Хостелы и отели',
