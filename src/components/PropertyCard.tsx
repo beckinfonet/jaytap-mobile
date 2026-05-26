@@ -288,8 +288,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                   <View style={[styles.specsContainer, { backgroundColor: colors.chipBackground, borderColor: colors.chipBorder }]}>
                     {showBedsCell && (
                       <View style={styles.specItem}>
-                        <Bed size={16} color={colors.textSecondary} strokeWidth={2} />
-                        <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.bedrooms ?? '-'}</Text>
+                        <View style={styles.specRow}>
+                          <Bed size={16} color={colors.textSecondary} strokeWidth={2} />
+                          <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.bedrooms ?? '-'}</Text>
+                        </View>
                         <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.specs.bedrooms' as any)}</Text>
                       </View>
                     )}
@@ -297,8 +299,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                       <View style={[styles.specDivider, { backgroundColor: colors.border }]} />
                     )}
                     <View style={styles.specItem}>
-                      <Bath size={16} color={colors.textSecondary} strokeWidth={2} />
-                      <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.bathroomCount ?? '-'}</Text>
+                      <View style={styles.specRow}>
+                        <Bath size={16} color={colors.textSecondary} strokeWidth={2} />
+                        <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.bathroomCount ?? '-'}</Text>
+                      </View>
                       <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.specs.bathrooms' as any)}</Text>
                     </View>
                   </View>
@@ -468,11 +472,17 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   specItem: {
-    // Phase 8 D-01: column-stack so each cell renders icon top / value middle / label below
-    // (mirrors PropertyDetailsScreen.tsx specItem at lines 1993-1995).
+    // v4.0.1 polish — row 1: icon + value inline; row 2: localized label below.
+    // Replaces the previous 3-row column stack (Phase 8 D-01 mirror reference is
+    // now stale — see PropertyDetailsScreen specItem for the matching pattern).
     flexDirection: 'column',
     alignItems: 'center',
-    gap: 4,
+    gap: 2,
+  },
+  specRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   specValue: {
     fontSize: 15,

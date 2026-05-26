@@ -964,22 +964,28 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             {showBedsCell && (
               <>
                 <View style={styles.specItem}>
-                  <Text style={styles.specIcon}>🛏</Text>
-                  <Text style={[styles.specValue, { color: colors.text }]}>{bedsValue}</Text>
+                  <View style={styles.specRow}>
+                    <Text style={styles.specIcon}>🛏</Text>
+                    <Text style={[styles.specValue, { color: colors.text }]}>{bedsValue}</Text>
+                  </View>
                   <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t(bedsLabelKey as any)}</Text>
                 </View>
                 <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
               </>
             )}
             <View style={styles.specItem}>
-              <Text style={styles.specIcon}>🚿</Text>
-              <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.bathroomCount ?? '-'}</Text>
+              <View style={styles.specRow}>
+                <Text style={styles.specIcon}>🚿</Text>
+                <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.bathroomCount ?? '-'}</Text>
+              </View>
               <Text style={[styles.specLabel, { color: colors.textSecondary }]}>{t('property.specs.bathrooms' as any)}</Text>
             </View>
             <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
             <View style={styles.specItem}>
-              <Text style={styles.specIcon}>📐</Text>
-              <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.areaSqm ?? '-'}</Text>
+              <View style={styles.specRow}>
+                <Text style={styles.specIcon}>📐</Text>
+                <Text style={[styles.specValue, { color: colors.text }]}>{property.basics?.areaSqm ?? '-'}</Text>
+              </View>
               <Text style={[styles.specLabel, { color: colors.textSecondary }]}>m²</Text>
             </View>
           </View>
@@ -1878,6 +1884,12 @@ const styles = StyleSheet.create({
   },
   specItem: {
     alignItems: 'center',
+    gap: 2,
+  },
+  specRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   specIcon: {
     fontSize: 20,
