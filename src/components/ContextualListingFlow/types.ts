@@ -4,6 +4,7 @@
 // FormErrorBag uses dotted-path string keys ('location.city', 'basics.areaSqm') because FormBag is nested.
 
 import type { Property } from '../../types/Property';
+import type { Amenity } from '../../utils/amenities';
 
 export interface FormBag {
   // === Step 1 (REQUIRED to advance from Step 1) ===
@@ -36,6 +37,7 @@ export interface FormBag {
   conditionAndAmenities: {
     condition: 'rough' | 'whitebox' | 'good' | 'euro' | '';
     furnished: boolean | null; // tri-state (null = unset)
+    amenities: Amenity[]; // v4.0.1 — optional multi-select; default [].
   };
 
   // === Step 5 ===

@@ -37,7 +37,7 @@ export function emptyFormBag(): FormBag {
     propertyType: '',
     location: { city: '', district: '', coordinates: null, showExactAddress: false },
     basics: { areaSqm: '', price: '', currency: '' },
-    conditionAndAmenities: { condition: '', furnished: null },
+    conditionAndAmenities: { condition: '', furnished: null, amenities: [] },
     content: { title: '', description: '', language: 'ru' },
     terms: {},
   };
