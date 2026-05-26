@@ -255,7 +255,7 @@ const Tile: React.FC<TileProps> = ({ icon: Icon, header, value, colors, labelSiz
     <Text style={[styles.tileHeader, { color: colors.textSecondary, fontSize: labelSize }]} numberOfLines={1}>
       {header}
     </Text>
-    <Text style={[styles.tileValue, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
+    <Text style={[styles.tileValue, { color: colors.text, fontSize: valueSize }]} numberOfLines={2}>
       {value}
     </Text>
   </View>
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   tile: {
-    flexBasis: '48%',
+    flexBasis: '49%',
     flexGrow: 0,
     borderWidth: 1,
     borderRadius: 10,
