@@ -65,8 +65,6 @@ export const ListingMetaTable: React.FC<ListingMetaTableProps> = ({
   // Phase 2 D-20 nested-shape reads (Phase 1 D-04..D-15). All optional —
   // gating booleans below decide whether each row renders. No flat-shape
   // fallbacks: M2 listings without nested data simply skip extra rows.
-  const rooms = property?.basics?.rooms;
-  const bathroom = property?.basics?.bathroom;
   const areaSqm = property?.basics?.areaSqm;
   const condition = property?.conditionAndAmenities?.condition;
   const furnished = property?.conditionAndAmenities?.furnished;
@@ -76,8 +74,6 @@ export const ListingMetaTable: React.FC<ListingMetaTableProps> = ({
   const minTerm = property?.terms?.minTerm;
 
   const hasExtras =
-    rooms != null ||
-    bathroom != null ||
     areaSqm != null ||
     condition != null ||
     furnished != null ||
@@ -160,20 +156,6 @@ export const ListingMetaTable: React.FC<ListingMetaTableProps> = ({
           PropertyCard's compact use-case skips these rows because property is undefined. */}
       {hasExtras && (
         <View style={styles.extrasGrid}>
-          {rooms != null && (
-            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
-              {t('property.beds')}: {rooms}
-            </Text>
-          )}
-          {bathroom != null && (
-            <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
-              {t('property.baths')}: {bathroom === 'private'
-                ? t('property.bathroomPrivate' as any)
-                : bathroom === 'shared'
-                  ? t('property.bathroomShared' as any)
-                  : t('property.bathroomNone' as any)}
-            </Text>
-          )}
           {condition != null && (
             <Text style={[styles.extraText, { color: colors.text, fontSize: valueSize }]} numberOfLines={1}>
               {t('property.metaCondition' as any)}: {condition}
