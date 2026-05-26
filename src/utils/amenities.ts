@@ -162,7 +162,7 @@ export const AMENITY_LABEL_KEYS: Record<Amenity, string> = {
  * just doesn't render (defensive — covers data-migration edge cases).
  */
 export function getAmenitiesForPropertyType(
-  propertyType: 'apartment' | 'house' | 'hotel' | 'hostel' | 'office' | 'commercial' | string | undefined,
+  propertyType: 'apartment' | 'house' | 'hotel' | 'hostel' | 'office' | 'commercial' | (string & {}) | undefined,
 ): readonly Amenity[] {
   switch (propertyType) {
     case 'apartment':
