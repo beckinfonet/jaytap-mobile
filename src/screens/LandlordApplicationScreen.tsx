@@ -1,7 +1,7 @@
 // Phase 4.5 — User-facing application form + pending-review state.
 // On mount, fetches current applications. If a 'submitted' application exists, renders a
 // status view with a Withdraw action instead of the empty form. Otherwise, renders the form.
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import * as ImagePicker from 'react-native-image-picker';
-import { Camera, Upload, ChevronLeft, Check, Clock } from 'lucide-react-native';
+import { Camera, Upload, ChevronLeft, Check, Clock, Settings } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -24,12 +24,19 @@ import {
   LandlordApplicationService,
   LandlordApplication,
   ListingTypeIntent,
+  ProfileIncompleteError,
 } from '../services/LandlordApplicationService';
+import { profileMissingFields } from '../utils/profileCompleteness';
+import type { ProfileMissingField } from '../utils/profileCompleteness';
 
 interface LandlordApplicationScreenProps {
   onBack: () => void;
   /** Called after a successful submit so the parent can refresh status banner / close screen. */
   onSubmitted?: () => void;
+  /** Wired by App.tsx to AccountSettingsScreen. Required when the gate banner is rendered. */
+  onOpenAccountSettings: () => void;
+  /** TEST-ONLY: forces the gate banner with the given missingFields. Do not use in production code. */
+  _testForceGateFields?: ProfileMissingField[];
 }
 
 const INTENT_OPTIONS: ListingTypeIntent[] = ['residential', 'commercial', 'hospitality'];
@@ -37,10 +44,21 @@ const INTENT_OPTIONS: ListingTypeIntent[] = ['residential', 'commercial', 'hospi
 export const LandlordApplicationScreen: React.FC<LandlordApplicationScreenProps> = ({
   onBack,
   onSubmitted,
+  onOpenAccountSettings,
+  _testForceGateFields,
 }) => {
   const { colors, isDark } = useTheme();
   const { user, refreshRole } = useAuth();
   const { t } = useLanguage();
+
+  const clientMissingFields = useMemo(
+    () => profileMissingFields(user?.backendProfile),
+    [user?.backendProfile]
+  );
+  const [serverMissingFields, setServerMissingFields] = useState<ProfileMissingField[] | null>(null);
+  const effectiveMissingFields: ProfileMissingField[] =
+    _testForceGateFields ?? serverMissingFields ?? clientMissingFields;
+  const isGated = effectiveMissingFields.length > 0;
 
   // Initial loading: fetching the user's applications.
   const [loading, setLoading] = useState(true);
@@ -152,12 +170,17 @@ export const LandlordApplicationScreen: React.FC<LandlordApplicationScreenProps>
         applicantNote: applicantNote.trim() || undefined,
         idPhoto,
       });
+      setServerMissingFields(null);
       Alert.alert(t('landlordApp.submittedTitle'), t('landlordApp.submittedMessage'));
       onSubmitted?.();
       // Stay on screen, but flip to the pending state.
       setActiveApplication(created);
       setLatestRejected(null);
     } catch (error: any) {
+      if (error instanceof ProfileIncompleteError) {
+        setServerMissingFields(error.missingFields);
+        return; // banner re-renders; no Alert
+      }
       const code = error?.response?.data?.code;
       if (code === 'ACTIVE_APPLICATION_EXISTS') {
         Alert.alert(t('landlordApp.alreadyActiveTitle'), t('landlordApp.alreadyActiveMessage'));
@@ -205,6 +228,40 @@ export const LandlordApplicationScreen: React.FC<LandlordApplicationScreenProps>
       ]
     );
   };
+
+  const renderGateBanner = () => (
+    <View
+      style={[
+        styles.gateBanner,
+        { backgroundColor: colors.surface, borderColor: colors.warning },
+      ]}
+      testID="profile-gate-banner"
+    >
+      <Text style={[styles.gateTitle, { color: colors.text }]}>
+        {t('landlordApp.gateTitle')}
+      </Text>
+      <Text style={[styles.gateBody, { color: colors.textSecondary }]}>
+        {t('landlordApp.gateBody')}
+      </Text>
+      <View style={styles.gateList}>
+        {effectiveMissingFields.map((f) => (
+          <Text key={f} style={[styles.gateItem, { color: colors.text }]}>
+            {'• '}{t(`landlordApp.gateMissing.${f}` as any)}
+          </Text>
+        ))}
+      </View>
+      <TouchableOpacity
+        style={[styles.gateButton, { backgroundColor: colors.primary }]}
+        onPress={onOpenAccountSettings}
+        accessibilityRole="button"
+      >
+        <Settings size={16} color={isDark ? '#121212' : '#FFFFFF'} />
+        <Text style={[styles.gateButtonText, { color: isDark ? '#121212' : '#FFFFFF' }]}>
+          {t('landlordApp.gateOpenSettings')}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   const Header = (
     <View style={[styles.header, { borderBottomColor: colors.border }]}>
@@ -321,117 +378,123 @@ export const LandlordApplicationScreen: React.FC<LandlordApplicationScreenProps>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       {Header}
 
-      <KeyboardAwareScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={[styles.intro, { color: colors.textSecondary }]}>{t('landlordApp.intro')}</Text>
+      {isGated ? (
+        <KeyboardAwareScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {renderGateBanner()}
+        </KeyboardAwareScrollView>
+      ) : (
+        <KeyboardAwareScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <Text style={[styles.intro, { color: colors.textSecondary }]}>{t('landlordApp.intro')}</Text>
 
-        {latestRejected && (
-          <View style={[styles.rejectedBanner, { backgroundColor: colors.surface, borderColor: '#DC2626' }]}>
-            <Text style={[styles.rejectedTitle, { color: '#DC2626' }]}>
-              {t('landlordApp.rejectedBannerTitle')}
-            </Text>
-            <Text style={[styles.rejectedBody, { color: colors.text }]}>
-              {t(`landlordApp.rejectReason.${latestRejected.rejectionReasonCode || 'other'}` as any)}
-              {latestRejected.rejectionReasonNote ? ` — ${latestRejected.rejectionReasonNote}` : ''}
-            </Text>
+          {latestRejected && (
+            <View style={[styles.rejectedBanner, { backgroundColor: colors.surface, borderColor: '#DC2626' }]}>
+              <Text style={[styles.rejectedTitle, { color: '#DC2626' }]}>
+                {t('landlordApp.rejectedBannerTitle')}
+              </Text>
+              <Text style={[styles.rejectedBody, { color: colors.text }]}>
+                {t(`landlordApp.rejectReason.${latestRejected.rejectionReasonCode || 'other'}` as any)}
+                {latestRejected.rejectionReasonNote ? ` — ${latestRejected.rejectionReasonNote}` : ''}
+              </Text>
+            </View>
+          )}
+
+          {/* Phone */}
+          <View style={styles.section}>
+            <Text style={[styles.label, { color: colors.text }]}>{t('landlordApp.phoneLabel')}</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
+              placeholder={t('landlordApp.phonePlaceholder')}
+              placeholderTextColor={colors.textSecondary}
+              keyboardType="phone-pad"
+              value={phone}
+              onChangeText={setPhone}
+            />
           </View>
-        )}
 
-        {/* Phone */}
-        <View style={styles.section}>
-          <Text style={[styles.label, { color: colors.text }]}>{t('landlordApp.phoneLabel')}</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
-            placeholder={t('landlordApp.phonePlaceholder')}
-            placeholderTextColor={colors.textSecondary}
-            keyboardType="phone-pad"
-            value={phone}
-            onChangeText={setPhone}
-          />
-        </View>
-
-        {/* ID photo */}
-        <View style={styles.section}>
-          <Text style={[styles.label, { color: colors.text }]}>{t('landlordApp.idPhotoLabel')}</Text>
-          <Text style={[styles.helper, { color: colors.textSecondary }]}>{t('landlordApp.idPhotoHelper')}</Text>
-          {idPhoto ? (
-            <View style={styles.photoPreviewWrapper}>
-              <Image source={{ uri: idPhoto.uri }} style={styles.photoPreview} />
+          {/* ID photo */}
+          <View style={styles.section}>
+            <Text style={[styles.label, { color: colors.text }]}>{t('landlordApp.idPhotoLabel')}</Text>
+            <Text style={[styles.helper, { color: colors.textSecondary }]}>{t('landlordApp.idPhotoHelper')}</Text>
+            {idPhoto ? (
+              <View style={styles.photoPreviewWrapper}>
+                <Image source={{ uri: idPhoto.uri }} style={styles.photoPreview} />
+                <TouchableOpacity
+                  style={[styles.replacePhotoBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  onPress={handlePickIdPhoto}
+                >
+                  <Camera size={16} color={colors.text} />
+                  <Text style={[styles.replacePhotoText, { color: colors.text }]}>{t('landlordApp.replacePhoto')}</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
               <TouchableOpacity
-                style={[styles.replacePhotoBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                style={[styles.uploadButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
                 onPress={handlePickIdPhoto}
               >
-                <Camera size={16} color={colors.text} />
-                <Text style={[styles.replacePhotoText, { color: colors.text }]}>{t('landlordApp.replacePhoto')}</Text>
+                <Upload size={20} color={colors.text} />
+                <Text style={[styles.uploadButtonText, { color: colors.text }]}>{t('landlordApp.uploadPhoto')}</Text>
               </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={[styles.uploadButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={handlePickIdPhoto}
-            >
-              <Upload size={20} color={colors.text} />
-              <Text style={[styles.uploadButtonText, { color: colors.text }]}>{t('landlordApp.uploadPhoto')}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Listing type intent — multi-select */}
-        <View style={styles.section}>
-          <Text style={[styles.label, { color: colors.text }]}>{t('landlordApp.intentLabel')}</Text>
-          <Text style={[styles.helper, { color: colors.textSecondary }]}>{t('landlordApp.intentHelper')}</Text>
-          <View style={styles.intentGroup}>
-            {INTENT_OPTIONS.map((opt) => {
-              const selected = intents.has(opt);
-              return (
-                <TouchableOpacity
-                  key={opt}
-                  style={[
-                    styles.intentRow,
-                    { backgroundColor: colors.surface, borderColor: selected ? colors.primary : colors.border },
-                  ]}
-                  onPress={() => toggleIntent(opt)}
-                >
-                  <View style={[
-                    styles.checkboxBox,
-                    { borderColor: selected ? colors.primary : colors.border, backgroundColor: selected ? colors.primary : 'transparent' },
-                  ]}>
-                    {selected && <Check size={14} color={isDark ? '#121212' : '#FFFFFF'} />}
-                  </View>
-                  <Text style={[styles.intentText, { color: colors.text }]}>{t(`landlordApp.intent.${opt}` as any)}</Text>
-                </TouchableOpacity>
-              );
-            })}
+            )}
           </View>
-        </View>
 
-        {/* Applicant note (optional) */}
-        <View style={styles.section}>
-          <Text style={[styles.label, { color: colors.text }]}>{t('landlordApp.noteLabel')}</Text>
-          <TextInput
-            style={[styles.textarea, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
-            placeholder={t('landlordApp.notePlaceholder')}
-            placeholderTextColor={colors.textSecondary}
-            multiline
-            numberOfLines={4}
-            value={applicantNote}
-            onChangeText={setApplicantNote}
-          />
-        </View>
+          {/* Listing type intent — multi-select */}
+          <View style={styles.section}>
+            <Text style={[styles.label, { color: colors.text }]}>{t('landlordApp.intentLabel')}</Text>
+            <Text style={[styles.helper, { color: colors.textSecondary }]}>{t('landlordApp.intentHelper')}</Text>
+            <View style={styles.intentGroup}>
+              {INTENT_OPTIONS.map((opt) => {
+                const selected = intents.has(opt);
+                return (
+                  <TouchableOpacity
+                    key={opt}
+                    style={[
+                      styles.intentRow,
+                      { backgroundColor: colors.surface, borderColor: selected ? colors.primary : colors.border },
+                    ]}
+                    onPress={() => toggleIntent(opt)}
+                  >
+                    <View style={[
+                      styles.checkboxBox,
+                      { borderColor: selected ? colors.primary : colors.border, backgroundColor: selected ? colors.primary : 'transparent' },
+                    ]}>
+                      {selected && <Check size={14} color={isDark ? '#121212' : '#FFFFFF'} />}
+                    </View>
+                    <Text style={[styles.intentText, { color: colors.text }]}>{t(`landlordApp.intent.${opt}` as any)}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
 
-        <Text style={[styles.disclaimer, { color: colors.textSecondary }]}>{t('landlordApp.disclaimer')}</Text>
+          {/* Applicant note (optional) */}
+          <View style={styles.section}>
+            <Text style={[styles.label, { color: colors.text }]}>{t('landlordApp.noteLabel')}</Text>
+            <TextInput
+              style={[styles.textarea, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
+              placeholder={t('landlordApp.notePlaceholder')}
+              placeholderTextColor={colors.textSecondary}
+              multiline
+              numberOfLines={4}
+              value={applicantNote}
+              onChangeText={setApplicantNote}
+            />
+          </View>
 
-        <TouchableOpacity
-          style={[styles.submitBtn, { backgroundColor: colors.primary, opacity: submitting ? 0.6 : 1 }]}
-          onPress={handleSubmit}
-          disabled={submitting}
-        >
-          {submitting ? (
-            <ActivityIndicator color={submitTextColor} />
-          ) : (
-            <Text style={[styles.submitBtnText, { color: submitTextColor }]}>{t('landlordApp.submit')}</Text>
-          )}
-        </TouchableOpacity>
-      </KeyboardAwareScrollView>
+          <Text style={[styles.disclaimer, { color: colors.textSecondary }]}>{t('landlordApp.disclaimer')}</Text>
+
+          <TouchableOpacity
+            style={[styles.submitBtn, { backgroundColor: colors.primary, opacity: submitting ? 0.6 : 1 }]}
+            onPress={handleSubmit}
+            disabled={submitting}
+          >
+            {submitting ? (
+              <ActivityIndicator color={submitTextColor} />
+            ) : (
+              <Text style={[styles.submitBtnText, { color: submitTextColor }]}>{t('landlordApp.submit')}</Text>
+            )}
+          </TouchableOpacity>
+        </KeyboardAwareScrollView>
+      )}
     </SafeAreaView>
   );
 };
@@ -551,4 +614,25 @@ const styles = StyleSheet.create({
   },
   rejectedTitle: { fontSize: 14, fontWeight: '700', marginBottom: 4 },
   rejectedBody: { fontSize: 13, lineHeight: 18 },
+  // Profile gate banner
+  gateBanner: {
+    margin: 16,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  gateTitle: { fontSize: 17, fontWeight: '700', marginBottom: 4 },
+  gateBody: { fontSize: 14, marginBottom: 12 },
+  gateList: { marginBottom: 16 },
+  gateItem: { fontSize: 14, lineHeight: 22 },
+  gateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    gap: 8,
+  },
+  gateButtonText: { fontSize: 14, fontWeight: '700' },
 });

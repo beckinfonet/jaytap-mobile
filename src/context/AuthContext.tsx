@@ -43,7 +43,7 @@ interface AuthContextType {
   recheckEmailVerified: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Phase 2 D-17: Module-scope cooldown timestamp for AppState 'active' role-refresh
 // debounce (60s). NOT shared with apiClient.ts's 403 interceptor refresh path — the

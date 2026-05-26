@@ -10,6 +10,9 @@
 # superpowers brainstorming mockups + scratch
 .superpowers/
 
+# git worktrees for feature branches
+.worktrees/
+
 APP_STORE_SUBMISSION_CHECKLIST.md
 # Xcode
 #

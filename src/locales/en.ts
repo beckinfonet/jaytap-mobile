@@ -546,6 +546,14 @@ export const en = {
   'landlordApp.rejectModalSubtitle': 'Pick a reason. Optional note will be shown to the applicant.',
   'landlordApp.rejectNotePlaceholder': 'Optional note (visible to applicant)...',
   'landlordApp.rejectConfirm': 'Reject',
+  // Gate banner (Task 7)
+  'landlordApp.gateTitle': 'Add your details first',
+  'landlordApp.gateBody': 'Admins need this info to approve you:',
+  'landlordApp.gateOpenSettings': 'Open settings',
+  'landlordApp.gateMissing.firstName': 'First name',
+  'landlordApp.gateMissing.lastName': 'Last name',
+  'landlordApp.gateMissing.phone': 'Phone number',
+  'landlordApp.gateMissing.messagingChannel': 'WhatsApp or Telegram',
   // PHASE 3 — Moderation queue + actions + edit-on-behalf (MOD-10..MOD-18)
   'moderation.queue.entryPoint': 'Moderation Queue',
   'moderation.queue.title': 'Moderation Queue',
@@ -812,6 +820,22 @@ export const en = {
   'country.KG': 'Kyrgyzstan',
   'country.KZ': 'Kazakhstan',
   'country.UZ': 'Uzbekistan',
+
+  // Task 8 — ApplicantProfileScreen
+  'applicantProfile.title': 'Applicant profile',
+  'applicantProfile.contact': 'Contact',
+  'applicantProfile.application': 'Application',
+  'applicantProfile.joined': 'Joined {{date}}',
+  'applicantProfile.notProvided': '(not provided)',
+  'applicantProfile.profileIncomplete': 'Profile incomplete',
+  'applicantProfile.profilePhone': 'Phone (profile)',
+  'applicantProfile.appPhone': 'Phone (application)',
+  'applicantProfile.whatsapp': 'WhatsApp',
+  'applicantProfile.telegram': 'Telegram',
+  'applicantProfile.idPhoto': 'ID photo',
+  'applicantProfile.intent': 'Plans to list',
+  'applicantProfile.submittedAt': 'Submitted {{date}}',
+  'applicantProfile.viewProfile': 'View profile',
 } as const;
 
 export type TranslationKeys = keyof typeof en;

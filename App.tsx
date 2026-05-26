@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, ActivityIndicator, Linking, Alert, BackHandler, Platform } from 'react-native';
+import { View, ActivityIndicator, Linking, Alert, BackHandler, Platform, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -23,6 +23,9 @@ import { ContextualListingFlow } from './src/components/ContextualListingFlow';
 import { AdminVerificationScreen } from './src/screens/AdminVerificationScreen';
 import { LandlordApplicationScreen } from './src/screens/LandlordApplicationScreen';
 import { LandlordApplicationQueueScreen } from './src/screens/LandlordApplicationQueueScreen';
+import { ApplicantProfileScreen } from './src/screens/ApplicantProfileScreen';
+import type { LandlordApplication } from './src/services/LandlordApplicationService';
+import { LandlordApplicationService } from './src/services/LandlordApplicationService';
 import { RenterListingsScreen } from './src/screens/RenterListingsScreen';
 import { OwnerListingsScreen } from './src/screens/OwnerListingsScreen';
 import { FavoritesScreen } from './src/screens/FavoritesScreen';
@@ -66,6 +69,8 @@ function AppContent() {
   const [isContextualListingFlowOpen, setIsContextualListingFlowOpen] = useState(false);
   const [isLandlordApplicationOpen, setIsLandlordApplicationOpen] = useState(false);
   const [isLandlordApplicationQueueOpen, setIsLandlordApplicationQueueOpen] = useState(false);
+  const [isApplicantProfileOpen, setIsApplicantProfileOpen] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState<LandlordApplication | null>(null);
   // Phase 3 Plan 06 — moderation queue overlay + edit-on-behalf mod-context.
   // CR-02 fix: pendingModerationCount state was REMOVED — ProfileScreen owns the
   // count entirely (it has the AppState 'active' refresh + 60s cooldown ref). The
@@ -125,6 +130,10 @@ function AppContent() {
   // returnToProfileAfterFavorites / returnToProfileAfterAppointments pattern above.
   const [returnToProfileAfterLandlordApplication, setReturnToProfileAfterLandlordApplication] = useState(false);
   const [returnToProfileAfterLandlordApplicationQueue, setReturnToProfileAfterLandlordApplicationQueue] = useState(false);
+  // Phase feat-applicant-context nav fix: when the user taps "Open settings" from
+  // the gate banner, remember to re-open LandlordApplicationScreen once they close
+  // AccountSettings — so the banner re-evaluates against the fresh AuthContext profile.
+  const [returnToLandlordApplicationAfterAccountSettings, setReturnToLandlordApplicationAfterAccountSettings] = useState(false);
   const [ownerListingsUid, setOwnerListingsUid] = useState<string | null>(null);
   const [ownerListingsName, setOwnerListingsName] = useState<string>('');
   const [tabEverMounted, setTabEverMounted] = useState({
@@ -186,6 +195,12 @@ function AppContent() {
     // collapses Profile-rooted state.
     setReturnToProfileAfterLandlordApplication(false);
     setReturnToProfileAfterLandlordApplicationQueue(false);
+    // Phase feat-applicant-context nav fix: a tab tap collapses the AccountSettings
+    // → LandlordApplication return path too.
+    setReturnToLandlordApplicationAfterAccountSettings(false);
+    // Applicant profile overlay reset — a tab tap collapses any active profile view.
+    setIsApplicantProfileOpen(false);
+    setSelectedApplication(null);
   };
 
   // Handle deep linking for shared property links
@@ -356,6 +371,12 @@ function AppContent() {
       }
       // Phase 4.5 nav fix: Landlord Application overlays sit ABOVE Profile in
       // the visual stack, so handle them before selectedProperty/Profile.
+      // Applicant profile sits above the queue — handle before the queue check.
+      if (isApplicantProfileOpen) {
+        setIsApplicantProfileOpen(false);
+        setSelectedApplication(null);
+        return true;
+      }
       if (isLandlordApplicationQueueOpen) {
         setIsLandlordApplicationQueueOpen(false);
         if (returnToProfileAfterLandlordApplicationQueue) {
@@ -444,6 +465,7 @@ function AppContent() {
     isAdminVerificationMode,
     isLandlordApplicationOpen,
     isLandlordApplicationQueueOpen,
+    isApplicantProfileOpen,
     isModerationQueueOpen,
     isRoleManagementOpen,
     isMediaCurationOpen,
@@ -583,6 +605,22 @@ function AppContent() {
     // to Profile, not Home.
     setReturnToProfileAfterLandlordApplicationQueue(true);
     setIsLandlordApplicationQueueOpen(true);
+  }, []);
+  const handleOpenApplicantProfile = useCallback((app: LandlordApplication) => {
+    setSelectedApplication(app);
+    setIsApplicantProfileOpen(true);
+  }, []);
+  const handleCloseApplicantProfile = useCallback(() => {
+    setIsApplicantProfileOpen(false);
+    setSelectedApplication(null);
+  }, []);
+  const handleOpenAccountSettingsFromLandlordApp = useCallback(() => {
+    // Remember to re-open LandlordApplicationScreen when AccountSettings closes,
+    // so the gate banner can re-evaluate against the fresh AuthContext profile.
+    // (Spec 4.2.4: "returning from AccountSettings re-renders the screen with fresh AuthContext.")
+    setReturnToLandlordApplicationAfterAccountSettings(true);
+    setIsLandlordApplicationOpen(false);
+    setIsAccountSettingsOpen(true);
   }, []);
   // Phase 3 Plan 06 Task 04 — Profile entry-point dispatcher for the
   // moderation queue overlay. Closes Profile, opens the queue.
@@ -787,9 +825,20 @@ function AppContent() {
           {(tabEverMounted.accountSettings || showAccountSettings) && (
             <View style={mainStackScreenStyle(showAccountSettings)}>
               <AccountSettingsScreen
-                onBack={() => setIsAccountSettingsOpen(false)}
-                onAccountDeleted={() => {
+                onBack={() => {
                   setIsAccountSettingsOpen(false);
+                  // Phase feat-applicant-context nav fix: if the user navigated here
+                  // from the gate banner's "Open settings" CTA, return them to
+                  // LandlordApplicationScreen so it re-evaluates against fresh AuthContext.
+                  if (returnToLandlordApplicationAfterAccountSettings) {
+                    setReturnToLandlordApplicationAfterAccountSettings(false);
+                    setIsLandlordApplicationOpen(true);
+                  }
+                }}
+                onAccountDeleted={() => {
+                  // Account deletion is a wholesale reset — do NOT re-open landlord.
+                  setIsAccountSettingsOpen(false);
+                  setReturnToLandlordApplicationAfterAccountSettings(false);
                   setIsProfileOpen(false);
                 }}
                 onApplyLandlord={onProfileApplyLandlord}
@@ -1167,6 +1216,7 @@ function AppContent() {
               onSubmitted={() => {
                 setHomeRefreshKey((k) => k + 1); // refresh in case profile data changed
               }}
+              onOpenAccountSettings={handleOpenAccountSettingsFromLandlordApp}
             />
           </View>
         )}
@@ -1183,6 +1233,42 @@ function AppContent() {
                   setIsProfileOpen(true);
                   setReturnToProfileAfterLandlordApplicationQueue(false);
                 }
+              }}
+              onOpenApplicantProfile={handleOpenApplicantProfile}
+            />
+          </View>
+        )}
+        {/* Phase feat-applicant-context — Applicant profile overlay (admin/mod, opens from queue). */}
+        {isApplicantProfileOpen && selectedApplication && (
+          <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
+            <ApplicantProfileScreen
+              application={selectedApplication}
+              onBack={handleCloseApplicantProfile}
+              onApprove={(app) => {
+                // v1 shortcut: fire approve directly, then close the overlay.
+                // (Reject modal lifting is deferred — the queue still owns it.
+                // Admin can re-tap Approve here for one-tap convenience.)
+                LandlordApplicationService.approve(app._id)
+                  .then(handleCloseApplicantProfile)
+                  .catch((err: any) => {
+                    Alert.alert(
+                      t('common.error'),
+                      err?.response?.data?.message || err?.message || t('landlordApp.adminApproveFailed'),
+                    );
+                  });
+              }}
+              onReject={(app) => {
+                // v1 shortcut: fire a default 'other' reject, then close the overlay.
+                // The queue card's Reject button still launches the full canned-reasons modal —
+                // admin can use that for nuanced rejections. This is the quick-action path.
+                LandlordApplicationService.reject(app._id, 'other')
+                  .then(handleCloseApplicantProfile)
+                  .catch((err: any) => {
+                    Alert.alert(
+                      t('common.error'),
+                      err?.response?.data?.message || err?.message || t('landlordApp.adminRejectFailed'),
+                    );
+                  });
               }}
             />
           </View>
