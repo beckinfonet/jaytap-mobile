@@ -84,7 +84,7 @@ describe('Phase 2 adapters — round-trip invariants (Plan 02-02)', () => {
         showExactAddress: false,
       },
       basics: { areaSqm: '80', price: '1000', currency: 'KGS', rooms: '2' },
-      conditionAndAmenities: { condition: 'good', furnished: true },
+      conditionAndAmenities: { condition: 'good', furnished: true, amenities: [] },
       content: { title: 'X', description: 'Y', language: 'en' },
       terms: { negotiable: true, prepaymentMonths: 1, minTerm: '1_month' },
     };
@@ -109,7 +109,7 @@ describe('Phase 2 adapters — round-trip invariants (Plan 02-02)', () => {
         showExactAddress: true,
       },
       basics: { areaSqm: '120', price: '50', currency: 'USD', hotelRooms: '4+', hotelClass: 'comfort' },
-      conditionAndAmenities: { condition: 'euro', furnished: true },
+      conditionAndAmenities: { condition: 'euro', furnished: true, amenities: [] },
       content: { title: 'Hotel X', description: 'Lux', language: 'en' },
       terms: {},
     };
@@ -189,5 +189,58 @@ describe('Plan 07-03 adapters — bedrooms + bathroomCount (M4 FORM-04 / FORM-05
     const back = formBagToPropertyPayload(bag) as { basics: { bedrooms?: number; bathroomCount?: number } };
     expect(back.basics.bedrooms).toBe(3);
     expect(back.basics.bathroomCount).toBe(2.5);
+  });
+});
+
+import {
+  RESIDENTIAL_AMENITIES,
+  HOSPITALITY_AMENITIES,
+} from '../../../utils/amenities';
+
+describe('v4.0.1 amenities round-trip', () => {
+  test('propertyToFormBag rehydrates amenities by intersecting with the type-valid set', () => {
+    const p = {
+      propertyType: 'apartment' as const,
+      amenities: ['aircon', 'washer', 'breakfast', 'reception24'], // breakfast + reception24 are hospitality-only
+    } as Property;
+    const bag = propertyToFormBag(p);
+    // breakfast + reception24 must be dropped — they're not in RESIDENTIAL_AMENITIES.
+    expect(bag.conditionAndAmenities.amenities).toEqual(['aircon', 'washer']);
+  });
+
+  test('propertyToFormBag rehydrates full hospitality set on a hotel listing', () => {
+    const p = {
+      propertyType: 'hotel' as const,
+      amenities: [...HOSPITALITY_AMENITIES],
+    } as Property;
+    const bag = propertyToFormBag(p);
+    expect(bag.conditionAndAmenities.amenities).toEqual([...HOSPITALITY_AMENITIES]);
+  });
+
+  test('propertyToFormBag with no amenities returns []', () => {
+    const p = { propertyType: 'apartment' as const } as Property;
+    const bag = propertyToFormBag(p);
+    expect(bag.conditionAndAmenities.amenities).toEqual([]);
+  });
+
+  test('propertyToFormBag with unrecognized propertyType returns [] amenities', () => {
+    const p = { propertyType: undefined, amenities: ['wifi', 'aircon'] as any } as unknown as Property;
+    const bag = propertyToFormBag(p);
+    expect(bag.conditionAndAmenities.amenities).toEqual([]);
+  });
+
+  test('formBagToPropertyPayload writes amenities to the top-level field', () => {
+    const bag = {
+      ...({} as any),
+      dealType: 'rent_long',
+      propertyType: 'apartment',
+      location: { city: 'bishkek', district: 'alamedin-1', coordinates: null, showExactAddress: false },
+      basics: { areaSqm: '50', price: '500', currency: 'USD' },
+      conditionAndAmenities: { condition: 'good', furnished: true, amenities: ['aircon', 'washer'] },
+      content: { title: 't', description: 'd', language: 'ru' },
+      terms: {},
+    };
+    const payload = formBagToPropertyPayload(bag);
+    expect(payload.amenities).toEqual(['aircon', 'washer']);
   });
 });

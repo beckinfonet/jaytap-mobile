@@ -8,6 +8,8 @@
 import type { Property } from '../../types/Property';
 import type { FormBag } from './types';
 import { emptyFormBag } from './validators';
+import { getAmenitiesForPropertyType } from '../../utils/amenities';
+import type { Amenity } from '../../utils/amenities';
 
 export function propertyToFormBag(p: Property | undefined): FormBag {
   const base = emptyFormBag();
@@ -39,6 +41,13 @@ export function propertyToFormBag(p: Property | undefined): FormBag {
     conditionAndAmenities: {
       condition: (p.conditionAndAmenities?.condition ?? '') as FormBag['conditionAndAmenities']['condition'],
       furnished: p.conditionAndAmenities?.furnished ?? null,
+      // v4.0.1 — intersect persisted amenities with the type-valid set so the
+      // form only surfaces toggles the user can act on. Out-of-set tokens
+      // (e.g. 'breakfast' on a re-typed hostel→apartment listing) are dropped.
+      amenities: (() => {
+        const valid = new Set<Amenity>(getAmenitiesForPropertyType(p.propertyType) as readonly Amenity[]);
+        return (p.amenities ?? []).filter((a) => valid.has(a as Amenity)) as Amenity[];
+      })(),
     },
     content: {
       title: p.content?.title ?? '',
@@ -91,6 +100,9 @@ export function formBagToPropertyPayload(v: FormBag): Record<string, unknown> {
       condition: v.conditionAndAmenities.condition,
       furnished: v.conditionAndAmenities.furnished ?? undefined,
     },
+    // v4.0.1 — amenities persist at top level (matches M2 schema); FormBag groups
+    // them under conditionAndAmenities purely as a form-time UX adjacency to condition + furnished.
+    amenities: v.conditionAndAmenities.amenities,
     content: {
       title: v.content.title.trim(),
       description: v.content.description.trim(),
