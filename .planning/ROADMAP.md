@@ -109,7 +109,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
   4. HospitalityCard continues rendering `basics.hotelRooms` with the "Rooms" label unchanged AND adds a bathroomCount line when `basics.bathroomCount` is present (visual treatment matches existing M1 Phase 6 tour-first density).
   5. EN+RU lockstep parity gate (`scripts/check-i18n-parity.sh`) exits 0 after the specs-row label key additions; no raw English strings added to any new render path.
 **Plans**: 5 plans
-  - [ ] 08-01-PLAN.md — i18n keys: 3 specs-row label keys × EN/RU (property.specs.bedrooms/bathrooms/rooms; parity gate) (DISP-05)
+  - [x] 08-01-PLAN.md — i18n keys: 3 specs-row label keys × EN/RU (property.specs.bedrooms/bathrooms/rooms; parity gate) (DISP-05)
   - [ ] 08-02-PLAN.md — PropertyCard specs-strip redesign (icon/value/label cell anatomy; office/commercial Beds-hide; bathroomCount unification; specItem flexDirection mutation) + new PropertyCard.test.tsx 5 cases (DISP-01, DISP-02, DISP-05)
   - [ ] 08-03-PLAN.md — HospitalityCard inline bathroomCount fragment (conditional render; preserves M1 Phase 6 D-10 tour-first invariant) + new HospitalityCard.test.tsx 4 cases (DISP-04, DISP-05)
   - [ ] 08-04-PLAN.md — PropertyDetailsScreen specs row rewrite (!isHospitality gate lifted; category-aware label flip; office/commercial Beds-hide; bathroomCount unification; m² preserved per 260525-i2i) + new PropertyDetailsScreen.test.tsx 5 cases (DISP-01, DISP-02, DISP-03, DISP-05)
