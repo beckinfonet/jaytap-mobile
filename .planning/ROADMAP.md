@@ -94,8 +94,8 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
   - [x] 07-01-PLAN.md — StepperInput component (FORM-01 + FORM-03) + co-located unit tests (D-11 6 cases)
   - [x] 07-02-PLAN.md — i18n keys: 2 labels + 2 error strings × EN/RU (8 entries total; parity gate)
   - [x] 07-03-PLAN.md — FormBag.basics extension + adapters (D-07/D-08) + validators defensive Step-3 checks (D-09 / FORM-04)
-  - [ ] 07-04-PLAN.md — Step3BasicInfo conditional stepper rows (FORM-02 / D-05 / D-06) + Step3 integration tests (D-12 ≥4 cases)
-  - [ ] 07-05-PLAN.md — index.tsx propertyType-clear extension + submit-catch M4_* discriminator (D-10 / FORM-05)
+  - [x] 07-04-PLAN.md — Step3BasicInfo conditional stepper rows (FORM-02 / D-05 / D-06) + Step3 integration tests (D-12 ≥4 cases)
+  - [x] 07-05-PLAN.md — index.tsx propertyType-clear extension + submit-catch M4_* discriminator (D-10 / FORM-05)
 **UI hint**: yes
 
 ### Phase 8: Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen)
