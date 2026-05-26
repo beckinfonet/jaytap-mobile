@@ -21,6 +21,12 @@ import { useLanguage } from '../../context/LanguageContext';
 import type { TranslationKeys } from '../../locales';
 import { commonStyles } from './styles';
 import type { SectionProps, FormBag } from './types';
+import {
+  getAmenitiesForPropertyType,
+  AMENITY_ICONS,
+  AMENITY_LABEL_KEYS,
+  type Amenity,
+} from '../../utils/amenities';
 
 const CONDITIONS: Array<Exclude<FormBag['conditionAndAmenities']['condition'], ''>> = [
   'rough',
@@ -45,6 +51,16 @@ export function Step4ConditionAmenities({ values, onChange, errors }: SectionPro
 
   const setCA = (patch: Partial<FormBag['conditionAndAmenities']>) =>
     onChange('conditionAndAmenities', { ...values.conditionAndAmenities, ...patch });
+
+  const validAmenities = getAmenitiesForPropertyType(values.propertyType);
+  const selectedAmenities = values.conditionAndAmenities.amenities;
+
+  const toggleAmenity = (token: Amenity): void => {
+    const next = selectedAmenities.includes(token)
+      ? selectedAmenities.filter((a) => a !== token)
+      : [...selectedAmenities, token];
+    setCA({ amenities: next });
+  };
 
   return (
     <View>
@@ -145,6 +161,51 @@ export function Step4ConditionAmenities({ values, onChange, errors }: SectionPro
           </Text>
         ) : null}
       </View>
+
+      {/* Amenity multi-select — v4.0.1. Renders empty when propertyType resolves to []. */}
+      {validAmenities.length > 0 && (
+        <View style={commonStyles.section}>
+          <Text style={[commonStyles.sectionLabel, { color: colors.text }]}>
+            {t('property.whatThisPlaceOffers')}
+          </Text>
+          <View style={commonStyles.chipRow} testID="amenity-chip-row">
+            {validAmenities.map((token) => {
+              const isActive = selectedAmenities.includes(token);
+              const Icon = AMENITY_ICONS[token];
+              return (
+                <TouchableOpacity
+                  key={token}
+                  testID={`amenity-chip-${token}`}
+                  style={[
+                    commonStyles.chip,
+                    {
+                      backgroundColor: isActive
+                        ? colors.activeChipBackground
+                        : isDark
+                        ? '#2C2C2E'
+                        : '#F2F2F7',
+                      borderColor: isDark ? '#3A3A3C' : '#E5E5EA',
+                      flexDirection: 'row',
+                      gap: 6,
+                    },
+                  ]}
+                  onPress={() => toggleAmenity(token)}
+                >
+                  <Icon size={14} color={isActive ? colors.activeChipText : colors.text} />
+                  <Text
+                    style={[
+                      commonStyles.chipText,
+                      { color: isActive ? colors.activeChipText : colors.text },
+                    ]}
+                  >
+                    {t(AMENITY_LABEL_KEYS[token] as TranslationKeys)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      )}
     </View>
   );
 }

@@ -17,6 +17,11 @@ import type { ReactTestInstance } from 'react-test-renderer';
 import { Step4ConditionAmenities } from '../Step4ConditionAmenities';
 import { emptyFormBag } from '../validators';
 import type { FormBag, FormErrorBag } from '../types';
+import {
+  RESIDENTIAL_AMENITIES,
+  HOSPITALITY_AMENITIES,
+  COMMERCIAL_AMENITIES,
+} from '../../../utils/amenities';
 
 jest.mock('../../../theme/ThemeContext', () => ({
   useTheme: () => ({
@@ -98,7 +103,7 @@ describe('Step4ConditionAmenities (Plan 02-04a)', () => {
     const inactiveYesStyle = JSON.stringify(inactiveYes.props.style);
 
     const activeRender = await renderStep4({
-      values: { ...emptyFormBag(), conditionAndAmenities: { condition: '', furnished: true } },
+      values: { ...emptyFormBag(), conditionAndAmenities: { condition: '', furnished: true, amenities: [] } },
     });
     const activeYes = findByTestID(activeRender.root, 'furnished-chip-yes');
     const activeYesStyle = JSON.stringify(activeYes.props.style);
@@ -147,7 +152,7 @@ describe('Step4ConditionAmenities (Plan 02-04a)', () => {
   test('re-tapping the active condition chip leaves it active (no toggle-off — picking is required to advance)', async () => {
     const values: FormBag = {
       ...emptyFormBag(),
-      conditionAndAmenities: { condition: 'good', furnished: null },
+      conditionAndAmenities: { condition: 'good', furnished: null, amenities: [] },
     };
     const { root, onChange } = await renderStep4({ values });
     const chip = findByTestID(root, 'condition-chip-good');
@@ -174,5 +179,67 @@ describe('Step4ConditionAmenities (Plan 02-04a)', () => {
       errors: { 'conditionAndAmenities.furnished': 'contextualListing.step4.furnishedRequired' },
     });
     expect(tryFindByTestID(root, 'furnished-error')).not.toBeNull();
+  });
+});
+
+describe('Step4ConditionAmenities — v4.0.1 amenity multi-select', () => {
+  test('apartment propertyType renders all 12 residential amenity chips', async () => {
+    const values: FormBag = { ...emptyFormBag(), propertyType: 'apartment' };
+    const { root } = await renderStep4({ values });
+    for (const token of RESIDENTIAL_AMENITIES) {
+      expect(findByTestID(root, `amenity-chip-${token}`)).toBeTruthy();
+    }
+  });
+
+  test('hotel propertyType renders all 12 hospitality amenity chips', async () => {
+    const values: FormBag = { ...emptyFormBag(), propertyType: 'hotel' };
+    const { root } = await renderStep4({ values });
+    for (const token of HOSPITALITY_AMENITIES) {
+      expect(findByTestID(root, `amenity-chip-${token}`)).toBeTruthy();
+    }
+  });
+
+  test('office propertyType renders 5 commercial amenity chips', async () => {
+    const values: FormBag = { ...emptyFormBag(), propertyType: 'office' };
+    const { root } = await renderStep4({ values });
+    for (const token of COMMERCIAL_AMENITIES) {
+      expect(findByTestID(root, `amenity-chip-${token}`)).toBeTruthy();
+    }
+    // And NOT a residential-only chip.
+    expect(tryFindByTestID(root, 'amenity-chip-washer')).toBeNull();
+  });
+
+  test('empty/unknown propertyType renders no amenity chip row', async () => {
+    // emptyFormBag() defaults propertyType: '' → resolver returns [] → row omitted.
+    const { root } = await renderStep4();
+    expect(tryFindByTestID(root, 'amenity-chip-row')).toBeNull();
+  });
+
+  test('tapping an amenity chip adds it to amenities', async () => {
+    const values: FormBag = { ...emptyFormBag(), propertyType: 'apartment' };
+    const { root, onChange } = await renderStep4({ values });
+    const chip = findByTestID(root, 'amenity-chip-aircon');
+    await ReactTestRenderer.act(async () => {
+      chip.props.onPress();
+    });
+    const last = onChange.mock.calls[onChange.mock.calls.length - 1];
+    expect(last[0]).toBe('conditionAndAmenities');
+    expect((last[1] as FormBag['conditionAndAmenities']).amenities).toEqual(['aircon']);
+  });
+
+  test('tapping an already-selected chip removes it from amenities', async () => {
+    const values: FormBag = {
+      ...emptyFormBag(),
+      propertyType: 'apartment',
+      conditionAndAmenities: { condition: '', furnished: null, amenities: ['aircon', 'washer'] },
+    };
+    const { root, onChange } = await renderStep4({ values });
+    const chip = findByTestID(root, 'amenity-chip-aircon');
+    await ReactTestRenderer.act(async () => {
+      chip.props.onPress();
+    });
+    const last = onChange.mock.calls[onChange.mock.calls.length - 1];
+    expect(last[0]).toBe('conditionAndAmenities');
+    expect((last[1] as FormBag['conditionAndAmenities']).amenities).toEqual(['washer']);
   });
 });
