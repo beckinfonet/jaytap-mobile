@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
@@ -89,32 +89,39 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const isLive = status === 'live';
   const liveBadgeKey = isSale ? 'property.statusBadge.live.sale' : 'property.statusBadge.live.rent';
 
-  const handleShare = async (e: any) => {
-    e.stopPropagation(); // Prevent card press
+  // Swallows the outer-card onPress that iOS fires when the user taps OUTSIDE
+  // the share sheet to dismiss it — that dismiss tap lands on the card and
+  // navigates to details. `e.stopPropagation()` doesn't cover it because the
+  // native modal interrupts the responder chain.
+  const cardPressBlockedRef = useRef(false);
 
-    // Generate shareable URL
+  const handleShare = async (e: any) => {
+    e.stopPropagation();
+    cardPressBlockedRef.current = true;
+
     const propertyId = property.id || property.listingId || '';
     const shareUrl = getPropertyShareUrl(propertyId);
-
-    // Create share message
     const priceText = formatPrice(property, t('property.perMonth'));
     const shareMessage = `${title}\n${addressDisplay}\n${priceText}\n\n${shareUrl}`;
 
     try {
-      const result = await Share.share({
+      await Share.share({
         message: shareMessage,
-        url: shareUrl, // iOS will use this for universal links
+        url: shareUrl,
         title,
       });
-
-      if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          // Shared with activity type
-        }
-      }
     } catch (error: any) {
       console.error('Error sharing:', error.message);
+    } finally {
+      setTimeout(() => {
+        cardPressBlockedRef.current = false;
+      }, 500);
     }
+  };
+
+  const handleCardPress = () => {
+    if (cardPressBlockedRef.current) return;
+    onPress(property);
   };
 
   return (
@@ -125,7 +132,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         { backgroundColor: colors.surface },
       ]}
     >
-      <TouchableOpacity activeOpacity={0.95} onPress={() => onPress(property)}>
+      <TouchableOpacity activeOpacity={0.95} onPress={handleCardPress}>
         {/* Image Section */}
         <View style={[styles.imageWrapper, groupWithFooter && styles.imageWrapperGroupedFooter]}>
           <Image
