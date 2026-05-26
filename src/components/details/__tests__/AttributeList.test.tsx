@@ -6,7 +6,7 @@
 
 import React from 'react';
 import TestRenderer, { act } from 'react-test-renderer';
-import { View, Text } from 'react-native';
+import { Text } from 'react-native';
 import { derivePropertyAttributes, AttributeList } from '../AttributeList';
 import type { Property } from '../../../types/Property';
 
