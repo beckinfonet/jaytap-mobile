@@ -127,6 +127,10 @@ export const ru: Record<TranslationKeys, string> = {
   'property.bathroomPrivate': 'Отдельная',
   'property.bathroomShared': 'Общая',
   'property.bathroomNone': 'Нет',
+  // Phase 08 (Plan 08-01) — specs-row labels for PropertyCard + PropertyDetailsScreen (DISP-01..DISP-05).
+  'property.specs.bedrooms': 'Спальни',
+  'property.specs.bathrooms': 'Ванные',
+  'property.specs.rooms': 'Комнаты',
   'property.details': 'Подробнее',
   'property.instagram': 'Instagram',
   'property.photos': 'Фото',

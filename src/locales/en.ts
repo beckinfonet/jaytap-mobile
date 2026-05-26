@@ -125,6 +125,10 @@ export const en = {
   'property.bathroomPrivate': 'Private',
   'property.bathroomShared': 'Shared',
   'property.bathroomNone': 'None',
+  // Phase 08 (Plan 08-01) — specs-row labels for PropertyCard + PropertyDetailsScreen (DISP-01..DISP-05).
+  'property.specs.bedrooms': 'Bedrooms',
+  'property.specs.bathrooms': 'Bathrooms',
+  'property.specs.rooms': 'Rooms',
   'property.details': 'Details',
   'property.instagram': 'Instagram',
   'property.photos': 'Photos',
