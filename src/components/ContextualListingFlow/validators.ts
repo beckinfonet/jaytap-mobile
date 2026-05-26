@@ -28,7 +28,7 @@ export const FIELD_ORDER_PER_STEP: Record<1 | 2 | 3 | 4 | 5 | 6, string[]> = {
   ],
   4: ['conditionAndAmenities.condition', 'conditionAndAmenities.furnished'],
   5: ['content.title', 'content.description'],
-  6: ['terms.negotiable', 'terms.deposit', 'terms.prepaymentMonths', 'terms.minTerm'],
+  6: ['terms.negotiable', 'terms.deposit', 'terms.prepaymentMonths', 'terms.minTerm', 'terms.availableDate'],
 };
 
 export function emptyFormBag(): FormBag {
@@ -119,6 +119,20 @@ export function validateStep(stepN: 1 | 2 | 3 | 4 | 5 | 6, values: FormBag): Val
         errors['terms.negotiable'] = 'contextualListing.step6.negotiableRequired';
     }
     // rent_daily: no required fields
+
+    // Quick-task 260526-foc — defensive only; the date picker UI emits ISO-8601
+    // 'YYYY-MM-DD' strings, so this check catches direct-write code paths
+    // (e.g. copy/paste from another listing). availableDate is OPTIONAL for all
+    // dealTypes — empty/undefined means "available now" (rendered by ListingMetaTable).
+    // Format check: 4 digits, '-', 2 digits, '-', 2 digits AND parses to a real Date.
+    if (values.terms.availableDate !== undefined && values.terms.availableDate !== '') {
+      const v = values.terms.availableDate;
+      const formatOk = /^\d{4}-\d{2}-\d{2}$/.test(v);
+      const d = formatOk ? new Date(v + 'T12:00:00') : null;
+      if (!formatOk || !d || isNaN(d.getTime())) {
+        errors['terms.availableDate'] = 'contextualListing.step6.availableDateInvalid';
+      }
+    }
   }
 
   return { isValid: Object.keys(errors).length === 0, errors };

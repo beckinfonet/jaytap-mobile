@@ -64,6 +64,10 @@ export function propertyToFormBag(p: Property | undefined): FormBag {
         : undefined,
       prepaymentMonths: p.terms?.prepaymentMonths,
       minTerm: p.terms?.minTerm as FormBag['terms']['minTerm'],
+      // Quick-task 260526-foc — Property.availableDate is TOP-LEVEL on the M3 schema
+      // (see src/types/Property.ts line 32). FormBag groups it under terms.* purely as
+      // a form-time UX adjacency to deposit + minTerm. Adapter bridges the two shapes.
+      availableDate: p.availableDate,
     },
   };
 }
@@ -103,6 +107,11 @@ export function formBagToPropertyPayload(v: FormBag): Record<string, unknown> {
     // v4.0.1 — amenities persist at top level (matches M2 schema); FormBag groups
     // them under conditionAndAmenities purely as a form-time UX adjacency to condition + furnished.
     amenities: v.conditionAndAmenities.amenities,
+    // Quick-task 260526-foc — availableDate persists at TOP LEVEL (matches existing
+    // Property schema); FormBag groups it under terms.* purely as a form-time UX
+    // adjacency to deposit + minTerm. undefined survives — listings with no specified
+    // date render "Available now" downstream (ListingMetaTable).
+    availableDate: v.terms.availableDate,
     content: {
       title: v.content.title.trim(),
       description: v.content.description.trim(),
