@@ -2,30 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
-
-function availabilityValueFromRaw(
-  raw: unknown,
-  tNow: string,
-  locale: string
-): string | null {
-  if (raw == null || raw === '') return null;
-  const date =
-    typeof raw === 'string'
-      ? new Date(raw)
-      : raw instanceof Date
-        ? raw
-        : null;
-  if (!date || isNaN(date.getTime())) return null;
-  const now = new Date();
-  const oneMonthMs = 30 * 24 * 60 * 60 * 1000;
-  const isSoon = date.getTime() - now.getTime() > oneMonthMs;
-  const formattedDate = date.toLocaleDateString(locale, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-  return isSoon ? formattedDate : tNow;
-}
+import { availabilityValueFromRaw } from '../utils/availability';
 
 export interface ListingMetaTableProps {
   listingId?: string | null;
