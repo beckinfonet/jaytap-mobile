@@ -47,7 +47,6 @@ import { propertyTypeToCategory } from '../utils/propertyCategory';
 import { AMENITY_ICONS, type Amenity } from '../utils/amenities';
 import type { TranslationKeys } from '../locales';
 import { TourHeroCard } from '../components/TourHeroCard';
-import { ListingMetaTable } from '../components/ListingMetaTable';
 import { HeaderInfoCard } from '../components/details/HeaderInfoCard';
 import { AttributeList, derivePropertyAttributes } from '../components/details/AttributeList';
 import { MapPreviewCard } from '../components/details/MapPreviewCard';
