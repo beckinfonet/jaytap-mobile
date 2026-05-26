@@ -20,7 +20,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Check, X } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Check, X } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import {
@@ -31,11 +31,13 @@ import {
 
 interface Props {
   onBack: () => void;
+  /** Tap on the card header opens the read-only ApplicantProfileScreen via App.tsx. */
+  onOpenApplicantProfile: (app: LandlordApplication) => void;
 }
 
 const REJECT_CODES: RejectionReasonCode[] = ['incomplete-info', 'invalid-id', 'duplicate', 'other'];
 
-export const LandlordApplicationQueueScreen: React.FC<Props> = ({ onBack }) => {
+export const LandlordApplicationQueueScreen: React.FC<Props> = ({ onBack, onOpenApplicantProfile }) => {
   const { colors, isDark } = useTheme();
   const { t } = useLanguage();
 
@@ -111,33 +113,57 @@ export const LandlordApplicationQueueScreen: React.FC<Props> = ({ onBack }) => {
 
   const renderItem = ({ item }: { item: LandlordApplication }) => {
     const isDeciding = decidingId === item._id;
+    const a = item.applicant;
+    const notProvided = t('applicantProfile.notProvided');
+    const fullName =
+      a && (a.firstName || a.lastName)
+        ? `${a.firstName ?? ''} ${a.lastName ?? ''}`.trim()
+        : a === null
+        ? item.uid // orphan fallback — show raw uid so admin has SOMETHING to identify
+        : notProvided;
+    const email = a?.email ?? notProvided;
+    const showChip = a === null || a?.profileComplete === false;
+
     return (
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <View style={styles.cardHeader}>
-          <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>
-            {item.uid}
-          </Text>
-          <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
-            {new Date(item.submittedAt).toLocaleDateString()}
-          </Text>
-        </View>
+        {/* Tappable header — opens ApplicantProfileScreen */}
+        <TouchableOpacity
+          testID={`card-header-${item._id}`}
+          style={[styles.headerRow, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}
+          onPress={() => onOpenApplicantProfile(item)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.headerText}>
+            <Text style={[styles.headerName, { color: colors.text }]} numberOfLines={1}>
+              {fullName}
+            </Text>
+            <Text style={[styles.headerEmail, { color: colors.textSecondary }]} numberOfLines={1}>
+              {email}
+            </Text>
+            {showChip && (
+              <View style={[styles.chip, { borderColor: colors.warning }]}>
+                <Text style={[styles.chipText, { color: colors.text }]}>
+                  {t('applicantProfile.profileIncomplete')}
+                </Text>
+              </View>
+            )}
+          </View>
+          <ChevronRight size={18} color={colors.accent} />
+        </TouchableOpacity>
+
+        <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
+          {new Date(item.submittedAt).toLocaleDateString()}
+        </Text>
+
         <Image source={{ uri: item.idPhotoUrl }} style={styles.idPhoto} resizeMode="cover" />
-        <View style={styles.row}>
-          <Text style={[styles.rowLabel, { color: colors.textSecondary }]}>{t('landlordApp.phoneLabel')}</Text>
-          <Text style={[styles.rowValue, { color: colors.text }]}>{item.phone}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={[styles.rowLabel, { color: colors.textSecondary }]}>{t('landlordApp.intentLabel')}</Text>
-          <Text style={[styles.rowValue, { color: colors.text }]}>
-            {(item.listingTypeIntents || []).map((i) => t(`landlordApp.intent.${i}` as any)).join(', ')}
-          </Text>
-        </View>
+
         {item.applicantNote ? (
           <View style={styles.noteBlock}>
             <Text style={[styles.rowLabel, { color: colors.textSecondary }]}>{t('landlordApp.noteLabel')}</Text>
             <Text style={[styles.noteText, { color: colors.text }]}>{item.applicantNote}</Text>
           </View>
         ) : null}
+
         <View style={styles.actionsRow}>
           <TouchableOpacity
             style={[styles.actionBtn, styles.rejectBtn]}
@@ -297,13 +323,30 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 14,
   },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  cardTitle: { fontSize: 14, fontWeight: '600', flex: 1, marginRight: 8 },
-  cardMeta: { fontSize: 12 },
+  cardMeta: { fontSize: 12, marginBottom: 10 },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  headerText: { flex: 1, marginRight: 8 },
+  headerName: { fontSize: 16, fontWeight: '700' },
+  headerEmail: { fontSize: 12, marginTop: 2 },
+  chip: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginTop: 6,
+  },
+  chipText: { fontSize: 11, fontWeight: '600' },
   idPhoto: { width: '100%', height: 200, borderRadius: 10, marginBottom: 12 },
-  row: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
   rowLabel: { fontSize: 13, width: 100 },
-  rowValue: { fontSize: 14, flex: 1 },
   noteBlock: { marginTop: 6, marginBottom: 6 },
   noteText: { fontSize: 14, marginTop: 4, lineHeight: 19 },
   actionsRow: { flexDirection: 'row', gap: 10, marginTop: 14 },
