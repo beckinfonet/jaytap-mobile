@@ -120,6 +120,7 @@ export const ru: Record<TranslationKeys, string> = {
   'property.metaDeposit': 'Депозит',
   'property.metaPrepayment': 'Предоплата (мес.)',
   'property.metaNegotiable': 'Цена обсуждаема',
+  'property.mapPreview.openButton': 'Карта',
   // v4.0.1 — Airbnb-style tile grid value translations
   'condition.rough': 'Без ремонта',
   'condition.whitebox': 'Белая отделка',
@@ -786,4 +787,9 @@ export const ru: Record<TranslationKeys, string> = {
   'moderation.filter.allPending': 'Все ожидающие',
   'moderation.filter.needsMedia': 'Требуются фото',
   'moderation.filter.hasMedia': 'С фото',
+
+  // Country lookup labels — see src/utils/cityToCountry.ts. Used by MapPreviewCard.
+  'country.KG': 'Кыргызстан',
+  'country.KZ': 'Казахстан',
+  'country.UZ': 'Узбекистан',
 };

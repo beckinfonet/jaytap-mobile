@@ -118,6 +118,7 @@ export const en = {
   'property.metaDeposit': 'Deposit',
   'property.metaPrepayment': 'Prepayment (months)',
   'property.metaNegotiable': 'Price negotiable',
+  'property.mapPreview.openButton': 'Map',
   // v4.0.1 — Airbnb-style tile grid value translations
   'condition.rough': 'Rough',
   'condition.whitebox': 'White box',
@@ -795,6 +796,11 @@ export const en = {
   'moderation.filter.allPending': 'All pending',
   'moderation.filter.needsMedia': 'Needs media',
   'moderation.filter.hasMedia': 'Has media',
+
+  // Country lookup labels — see src/utils/cityToCountry.ts. Used by MapPreviewCard.
+  'country.KG': 'Kyrgyzstan',
+  'country.KZ': 'Kazakhstan',
+  'country.UZ': 'Uzbekistan',
 } as const;
 
 export type TranslationKeys = keyof typeof en;
