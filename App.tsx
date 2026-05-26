@@ -130,6 +130,10 @@ function AppContent() {
   // returnToProfileAfterFavorites / returnToProfileAfterAppointments pattern above.
   const [returnToProfileAfterLandlordApplication, setReturnToProfileAfterLandlordApplication] = useState(false);
   const [returnToProfileAfterLandlordApplicationQueue, setReturnToProfileAfterLandlordApplicationQueue] = useState(false);
+  // Phase feat-applicant-context nav fix: when the user taps "Open settings" from
+  // the gate banner, remember to re-open LandlordApplicationScreen once they close
+  // AccountSettings — so the banner re-evaluates against the fresh AuthContext profile.
+  const [returnToLandlordApplicationAfterAccountSettings, setReturnToLandlordApplicationAfterAccountSettings] = useState(false);
   const [ownerListingsUid, setOwnerListingsUid] = useState<string | null>(null);
   const [ownerListingsName, setOwnerListingsName] = useState<string>('');
   const [tabEverMounted, setTabEverMounted] = useState({
@@ -191,6 +195,9 @@ function AppContent() {
     // collapses Profile-rooted state.
     setReturnToProfileAfterLandlordApplication(false);
     setReturnToProfileAfterLandlordApplicationQueue(false);
+    // Phase feat-applicant-context nav fix: a tab tap collapses the AccountSettings
+    // → LandlordApplication return path too.
+    setReturnToLandlordApplicationAfterAccountSettings(false);
     // Applicant profile overlay reset — a tab tap collapses any active profile view.
     setIsApplicantProfileOpen(false);
     setSelectedApplication(null);
@@ -608,10 +615,10 @@ function AppContent() {
     setSelectedApplication(null);
   }, []);
   const handleOpenAccountSettingsFromLandlordApp = useCallback(() => {
-    // Close the application screen and open AccountSettings.
-    // returnToProfileAfterLandlordApplication stays TRUE so when the user finishes
-    // editing their profile and pops AccountSettings, they land back on
-    // LandlordApplicationScreen with the gate re-evaluated against fresh AuthContext.
+    // Remember to re-open LandlordApplicationScreen when AccountSettings closes,
+    // so the gate banner can re-evaluate against the fresh AuthContext profile.
+    // (Spec 4.2.4: "returning from AccountSettings re-renders the screen with fresh AuthContext.")
+    setReturnToLandlordApplicationAfterAccountSettings(true);
     setIsLandlordApplicationOpen(false);
     setIsAccountSettingsOpen(true);
   }, []);
@@ -818,9 +825,20 @@ function AppContent() {
           {(tabEverMounted.accountSettings || showAccountSettings) && (
             <View style={mainStackScreenStyle(showAccountSettings)}>
               <AccountSettingsScreen
-                onBack={() => setIsAccountSettingsOpen(false)}
-                onAccountDeleted={() => {
+                onBack={() => {
                   setIsAccountSettingsOpen(false);
+                  // Phase feat-applicant-context nav fix: if the user navigated here
+                  // from the gate banner's "Open settings" CTA, return them to
+                  // LandlordApplicationScreen so it re-evaluates against fresh AuthContext.
+                  if (returnToLandlordApplicationAfterAccountSettings) {
+                    setReturnToLandlordApplicationAfterAccountSettings(false);
+                    setIsLandlordApplicationOpen(true);
+                  }
+                }}
+                onAccountDeleted={() => {
+                  // Account deletion is a wholesale reset — do NOT re-open landlord.
+                  setIsAccountSettingsOpen(false);
+                  setReturnToLandlordApplicationAfterAccountSettings(false);
                   setIsProfileOpen(false);
                 }}
                 onApplyLandlord={onProfileApplyLandlord}
@@ -1222,7 +1240,7 @@ function AppContent() {
         )}
         {/* Phase feat-applicant-context — Applicant profile overlay (admin/mod, opens from queue). */}
         {isApplicantProfileOpen && selectedApplication && (
-          <View style={StyleSheet.absoluteFill}>
+          <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
             <ApplicantProfileScreen
               application={selectedApplication}
               onBack={handleCloseApplicantProfile}
@@ -1230,13 +1248,27 @@ function AppContent() {
                 // v1 shortcut: fire approve directly, then close the overlay.
                 // (Reject modal lifting is deferred — the queue still owns it.
                 // Admin can re-tap Approve here for one-tap convenience.)
-                LandlordApplicationService.approve(app._id).finally(handleCloseApplicantProfile);
+                LandlordApplicationService.approve(app._id)
+                  .then(handleCloseApplicantProfile)
+                  .catch((err: any) => {
+                    Alert.alert(
+                      t('common.error'),
+                      err?.response?.data?.message || err?.message || t('landlordApp.adminApproveFailed'),
+                    );
+                  });
               }}
               onReject={(app) => {
                 // v1 shortcut: fire a default 'other' reject, then close the overlay.
                 // The queue card's Reject button still launches the full canned-reasons modal —
                 // admin can use that for nuanced rejections. This is the quick-action path.
-                LandlordApplicationService.reject(app._id, 'other').finally(handleCloseApplicantProfile);
+                LandlordApplicationService.reject(app._id, 'other')
+                  .then(handleCloseApplicantProfile)
+                  .catch((err: any) => {
+                    Alert.alert(
+                      t('common.error'),
+                      err?.response?.data?.message || err?.message || t('landlordApp.adminRejectFailed'),
+                    );
+                  });
               }}
             />
           </View>
