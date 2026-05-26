@@ -295,7 +295,6 @@ export const ru: Record<TranslationKeys, string> = {
   'hospitality.rooms': 'Комнаты',
   'hospitality.maxGuests': 'Макс. гостей',
   'hospitality.bathrooms': 'Ванные',
-  'hospitality.amenities': 'Удобства',
 
   // Phase 6 (HOSP-05) — 12 amenity labels
   'amenity.wifi': 'Wi-Fi',

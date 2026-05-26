@@ -293,7 +293,6 @@ export const en = {
   'hospitality.rooms': 'Rooms',
   'hospitality.maxGuests': 'Max Guests',
   'hospitality.bathrooms': 'Bathrooms',
-  'hospitality.amenities': 'Amenities',
 
   // Phase 6 (HOSP-05) — 12 amenity labels (canonical token → EN label)
   'amenity.wifi': 'Wi-Fi',

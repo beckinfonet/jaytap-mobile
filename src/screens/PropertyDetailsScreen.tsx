@@ -27,27 +27,6 @@ import {
   Mail,
   Phone,
   Calendar,
-  Wifi,
-  Tv,
-  WashingMachine,
-  AirVent,
-  Car,
-  Flame,
-  MoveVertical,
-  Dumbbell,
-  WavesLadder,
-  SquareParking,
-  Utensils,
-  Flower2,
-  PawPrint,
-  Thermometer,
-  ThermometerSun,
-  Lock,
-  Shield,
-  Coffee,
-  Microwave,
-  Laptop,
-  Waves,
   Check,
   X,
   Edit3,
@@ -126,81 +105,6 @@ interface PropertyDetailsScreenProps {
 }
 
 const { width, height } = Dimensions.get('window');
-
-// Map feature names to Lucide icons (Airbnb-style)
-// Covers common property amenities listing owners may add
-const FEATURE_ICONS: Record<string, React.ComponentType<{ size?: number; color?: string }>> = {
-  // Climate & comfort
-  ac: AirVent,
-  'air conditioning': AirVent,
-  heating: ThermometerSun,
-  heat: ThermometerSun,
-  thermostat: Thermometer,
-  // Parking & garage
-  garage: Car,
-  parking: SquareParking,
-  'parking spot': SquareParking,
-  'free parking': SquareParking,
-  // Laundry
-  washer: WashingMachine,
-  washing: WashingMachine,
-  'washing machine': WashingMachine,
-  dryer: Flame,
-  'hair dryer': Flame,
-  laundry: WashingMachine,
-  // Connectivity & entertainment
-  wifi: Wifi,
-  'wi-fi': Wifi,
-  internet: Wifi,
-  tv: Tv,
-  television: Tv,
-  // Building
-  elevator: MoveVertical,
-  lift: MoveVertical,
-  // Fitness & recreation
-  gym: Dumbbell,
-  fitness: Dumbbell,
-  'fitness center': Dumbbell,
-  'swimming pool': WavesLadder,
-  pool: WavesLadder,
-  'hot tub': Waves,
-  'jacuzzi': Waves,
-  spa: Waves,
-  // Kitchen & dining
-  kitchen: Utensils,
-  kitchenette: Utensils,
-  'full kitchen': Utensils,
-  'kitchen equipped': Utensils,
-  microwave: Microwave,
-  coffee: Coffee,
-  'coffee maker': Coffee,
-  'espresso machine': Coffee,
-  // Outdoor
-  garden: Flower2,
-  balcony: Flower2,
-  terrace: Flower2,
-  patio: Flower2,
-  'outdoor space': Flower2,
-  // Pets
-  'pet friendly': PawPrint,
-  pets: PawPrint,
-  'dogs allowed': PawPrint,
-  'cats allowed': PawPrint,
-  // Security
-  security: Shield,
-  '24/7 security': Shield,
-  'secure building': Lock,
-  'doorman': Shield,
-  // Workspace
-  'workspace': Laptop,
-  'dedicated workspace': Laptop,
-  'desk': Laptop,
-  'wifi workspace': Laptop,
-};
-const getFeatureIcon = (feature: string) => {
-  const key = feature.toLowerCase().trim();
-  return FEATURE_ICONS[key] ?? Check;
-};
 
 export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   property: initialProperty,
