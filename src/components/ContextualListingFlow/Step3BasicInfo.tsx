@@ -21,6 +21,7 @@ import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../theme/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import type { TranslationKeys } from '../../locales';
+import { StepperInput } from '../StepperInput';
 import { commonStyles } from './styles';
 import type { SectionProps, FormBag } from './types';
 
@@ -268,6 +269,51 @@ export function Step3BasicInfo({ values, onChange, errors }: SectionProps) {
             ) : null}
           </View>
         </>
+      ) : null}
+
+      {/* M4 FORM-02 — bedrooms stepper: apartment / house only (D-05 + D-06). */}
+      {pt === 'apartment' || pt === 'house' ? (
+        <View style={commonStyles.section}>
+          <StepperInput
+            testID="basics-bedrooms"
+            label={t('contextualListing.step3.bedroomsLabel')}
+            value={values.basics.bedrooms}
+            onChange={(v) => setBasics({ bedrooms: v })}
+            min={0}
+            max={10}
+            step={1}
+          />
+          {errors['basics.bedrooms'] ? (
+            <Text style={[commonStyles.errorText, { color: colors.error }]}>
+              {t(errors['basics.bedrooms'] as TranslationKeys)}
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
+
+      {/* M4 FORM-02 — bathroomCount stepper: apartment / house / hotel / hostel / office / commercial (D-05 + D-06). */}
+      {pt === 'apartment' ||
+      pt === 'house' ||
+      pt === 'hotel' ||
+      pt === 'hostel' ||
+      pt === 'office' ||
+      pt === 'commercial' ? (
+        <View style={commonStyles.section}>
+          <StepperInput
+            testID="basics-bathroomCount"
+            label={t('contextualListing.step3.bathroomCountLabel')}
+            value={values.basics.bathroomCount}
+            onChange={(v) => setBasics({ bathroomCount: v })}
+            min={0}
+            max={10}
+            step={0.5}
+          />
+          {errors['basics.bathroomCount'] ? (
+            <Text style={[commonStyles.errorText, { color: colors.error }]}>
+              {t(errors['basics.bathroomCount'] as TranslationKeys)}
+            </Text>
+          ) : null}
+        </View>
       ) : null}
     </View>
   );
