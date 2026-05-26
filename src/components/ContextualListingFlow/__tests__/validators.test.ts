@@ -156,7 +156,7 @@ describe('Phase 2 validators — Step 4 (Plan 02-04a)', () => {
   test('V9: condition set + furnished=null → still error on furnished (null = missing)', () => {
     const bag = {
       ...emptyFormBag(),
-      conditionAndAmenities: { condition: 'good' as const, furnished: null },
+      conditionAndAmenities: { condition: 'good' as const, furnished: null, amenities: [] },
     };
     const r = validateStep(4, bag);
     expect(r.errors['conditionAndAmenities.furnished']).toBeDefined();
@@ -166,7 +166,7 @@ describe('Phase 2 validators — Step 4 (Plan 02-04a)', () => {
   test('V10: condition + furnished=true → isValid', () => {
     const bag = {
       ...emptyFormBag(),
-      conditionAndAmenities: { condition: 'good' as const, furnished: true },
+      conditionAndAmenities: { condition: 'good' as const, furnished: true, amenities: [] },
     };
     expect(validateStep(4, bag).isValid).toBe(true);
   });
@@ -174,7 +174,7 @@ describe('Phase 2 validators — Step 4 (Plan 02-04a)', () => {
   test('V11: condition + furnished=false → isValid (false is valid; only null is missing)', () => {
     const bag = {
       ...emptyFormBag(),
-      conditionAndAmenities: { condition: 'good' as const, furnished: false },
+      conditionAndAmenities: { condition: 'good' as const, furnished: false, amenities: [] },
     };
     expect(validateStep(4, bag).isValid).toBe(true);
   });
