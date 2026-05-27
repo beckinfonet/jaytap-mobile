@@ -247,7 +247,7 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
   const hasPendingMedia = pendingPhotos.length > 0 || pendingVideos.length > 0;
   const isSaveEnabled = !submittingSave && (hasPendingMedia || tourUrlChanged);
 
-  const validateTourUrl = useCallback((value: string): boolean => {
+  const validateHttpsUrl = useCallback((value: string): boolean => {
     if (!value) return true; // empty is valid (server treats undefined as "leave alone")
     try {
       const u = new URL(value);
@@ -258,8 +258,8 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
   }, []);
 
   const handleTourUrlBlur = useCallback(() => {
-    setTourUrlValid(validateTourUrl(tourUrlDraft));
-  }, [tourUrlDraft, validateTourUrl]);
+    setTourUrlValid(validateHttpsUrl(tourUrlDraft));
+  }, [tourUrlDraft, validateHttpsUrl]);
 
   const handleSave = useCallback(async () => {
     if (submittingSave) return;
@@ -267,7 +267,7 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
       tourUrlChanged && tourUrlDraft ? tourUrlDraft : undefined;
     if (!hasPendingMedia && !tourUrlToSend) return;
 
-    if (tourUrlToSend && !validateTourUrl(tourUrlToSend)) {
+    if (tourUrlToSend && !validateHttpsUrl(tourUrlToSend)) {
       setTourUrlValid(false);
       Alert.alert(
         t('common.error'),
@@ -344,7 +344,7 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
     tourUrlChanged,
     hasPendingMedia,
     submittingSave,
-    validateTourUrl,
+    validateHttpsUrl,
     t,
   ]);
 
