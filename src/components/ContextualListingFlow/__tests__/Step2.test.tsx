@@ -73,6 +73,16 @@ jest.mock('../../../services/locationService', () => ({
   createDistrict: jest.fn(),
 }));
 
+// Phase 11 GEO-01 + GEO-02 — Step2Location now imports geocodeService; without
+// this mock the real apiClient fires Railway POSTs during the map onPress / drag
+// tests (return null → tests still pass via the anti-clobber guard, but log noise
+// + flakiness risk is unacceptable). Both helpers default to null (= "miss") so
+// existing tests' guards behave exactly as they would for a not-found geocode.
+jest.mock('../../../services/geocodeService', () => ({
+  geocodeAddress: jest.fn().mockResolvedValue(null),
+  reverseGeocode: jest.fn().mockResolvedValue(null),
+}));
+
 import {
   fetchCities,
   fetchDistricts,

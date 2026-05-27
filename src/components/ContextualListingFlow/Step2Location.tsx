@@ -14,7 +14,7 @@
  *     <Marker coordinate={...}> render (read lat → render latitude).
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -38,6 +38,7 @@ import {
   type City,
   type District,
 } from '../../services/locationService';
+import { geocodeAddress, reverseGeocode } from '../../services/geocodeService';
 import { commonStyles } from './styles';
 import type { SectionProps } from './types';
 
@@ -68,6 +69,13 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
 
   const isHospitality = values.propertyType === 'hotel' || values.propertyType === 'hostel';
 
+  // Phase 11 GEO-01 — address-input gate. Visible when the toggle is on OR for hospitality
+  // (where the toggle is hidden but showExactAddress is force-true by the effect below).
+  const showAddressInput = values.location.showExactAddress || isHospitality;
+  const [addressInput, setAddressInput] = useState<string>(values.location.address ?? '');
+  const [geocodingState, setGeocodingState] = useState<'idle' | 'loading' | 'notFound'>('idle');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // FLOW-06: hide the exact-address toggle for hotel/hostel and force showExactAddress=true.
   // Sync after first render if the FormBag default (false) drifted from the forced policy.
   useEffect(() => {
@@ -78,6 +86,23 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
     // values.location keystroke (would re-trigger onChange→re-render storms).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHospitality, values.location.showExactAddress]);
+
+  // Phase 11 GEO-02 — mirror parent-driven address changes (e.g. reverse-geocode fill via
+  // handleMapPress) into local input state. Local-typed updates flow via onChangeText →
+  // scheduleGeocode → onChange (parent). This effect closes the loop in the parent→child
+  // direction so the input doesn't go stale when reverse-geocode populates an empty address.
+  useEffect(() => {
+    setAddressInput(values.location.address ?? '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values.location.address]);
+
+  // Phase 11 GEO-01 — clear pending debounce timer on unmount to avoid stale callbacks
+  // firing after Step2Location has unmounted (back-button mid-typing race).
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   // Mount: fetch cities once.
   useEffect(() => {
@@ -147,32 +172,95 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
     [onChange, values.location],
   );
 
+  // Phase 11 GEO-01 — debounced forward geocode (300ms after typing pauses).
+  // On success: write BOTH address (canonical displayName) AND coordinates to FormBag,
+  // re-center the map via the marker re-render. On failure: preserve typed text, DO NOT
+  // move pin (anti-"random pin" defense; see 11-CONTEXT.md "THREE layers"). 3-char min +
+  // trim prevents firing for single-letter typos. Backend's 5s AbortController fires
+  // before apiClient's 15s on slow Nominatim.
+  const scheduleGeocode = useCallback(
+    (text: string) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      const trimmed = text.trim();
+      if (!trimmed || trimmed.length < 3) {
+        setGeocodingState('idle');
+        return;
+      }
+      setGeocodingState('loading');
+      debounceRef.current = setTimeout(async () => {
+        const result = await geocodeAddress({
+          address: trimmed,
+          citySlug: values.location.city || undefined,
+          lang: language as 'en' | 'ru',
+        });
+        if (result) {
+          setGeocodingState('idle');
+          onChange('location', {
+            ...values.location,
+            address: result.displayName,
+            coordinates: { lat: result.lat, lng: result.lng },
+          });
+          // canonicalize the input mirror — the prop-sync effect would do this too, but
+          // setting it inline avoids the one-frame flash of pre-canonical text.
+          setAddressInput(result.displayName);
+        } else {
+          // explicitly preserve typed text + static pin
+          setGeocodingState('notFound');
+        }
+      }, 300);
+    },
+    [onChange, values.location, language],
+  );
+
   // Tap-to-drop initial AND tap-to-move fallback per Pitfall 1 (Issue #5445).
   const handleMapPress = useCallback(
     (e: { nativeEvent: { coordinate: { latitude: number; longitude: number } } }) => {
+      const lat = e.nativeEvent.coordinate.latitude;
+      const lng = e.nativeEvent.coordinate.longitude;
       onChange('location', {
         ...values.location,
-        coordinates: {
-          lat: e.nativeEvent.coordinate.latitude,
-          lng: e.nativeEvent.coordinate.longitude,
-        },
+        coordinates: { lat, lng },
+      });
+      // Phase 11 GEO-02 — best-effort reverse geocode. Only fills address if currently
+      // empty (never clobbers typed text — T-11-18 mitigation). Silent on failure (no
+      // toast, no error label): pin-drop's primary purpose is coordinates, address fill
+      // is opportunistic.
+      reverseGeocode({ lat, lng, lang: language as 'en' | 'ru' }).then((r) => {
+        if (r && r.displayName && !(values.location.address ?? '').trim()) {
+          onChange('location', {
+            ...values.location,
+            coordinates: { lat, lng },
+            address: r.displayName,
+          });
+          setAddressInput(r.displayName);
+        }
       });
     },
-    [onChange, values.location],
+    [onChange, values.location, language],
   );
 
   // Primary refinement path (iOS-reliable; Android-uncertain per Issue #5445).
   const handleMarkerDragEnd = useCallback(
     (e: { nativeEvent: { coordinate: { latitude: number; longitude: number } } }) => {
+      const lat = e.nativeEvent.coordinate.latitude;
+      const lng = e.nativeEvent.coordinate.longitude;
       onChange('location', {
         ...values.location,
-        coordinates: {
-          lat: e.nativeEvent.coordinate.latitude,
-          lng: e.nativeEvent.coordinate.longitude,
-        },
+        coordinates: { lat, lng },
+      });
+      // Phase 11 GEO-02 — same shape + anti-clobber guard as handleMapPress.
+      reverseGeocode({ lat, lng, lang: language as 'en' | 'ru' }).then((r) => {
+        if (r && r.displayName && !(values.location.address ?? '').trim()) {
+          onChange('location', {
+            ...values.location,
+            coordinates: { lat, lng },
+            address: r.displayName,
+          });
+          setAddressInput(r.displayName);
+        }
       });
     },
-    [onChange, values.location],
+    [onChange, values.location, language],
   );
 
   const openOtherModal = useCallback((kind: 'city' | 'district') => {
@@ -461,6 +549,66 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
               onChange('location', { ...values.location, showExactAddress: v })
             }
           />
+        </View>
+      ) : null}
+
+      {/* Phase 11 GEO-01 + GEO-02 — address input + debounced forward geocode.
+          Visible when toggle is on (long-term/sale) OR for hospitality (toggle hidden,
+          force-true). Inline spinner during request; "addressNotFound" error label on
+          null result. Pin DOES NOT MOVE on failure (anti-"random pin" defense layer 3). */}
+      {showAddressInput ? (
+        <View style={commonStyles.section} testID="step2-address-input-section">
+          <Text style={[commonStyles.sectionLabel, { color: colors.text }]}>
+            {/* TODO(11-05): remove cast once keys land in TranslationKeys union */}
+            {t('contextualListing.step2.addressLabel' as TranslationKeys)}
+          </Text>
+          <View style={{ position: 'relative' }}>
+            <TextInput
+              testID="step2-address-input"
+              value={addressInput}
+              onChangeText={(v) => {
+                setAddressInput(v);
+                scheduleGeocode(v);
+              }}
+              // TODO(11-05): remove cast once keys land in TranslationKeys union
+              placeholder={t('contextualListing.step2.addressPlaceholder' as TranslationKeys)}
+              placeholderTextColor={colors.textSecondary}
+              style={{
+                borderWidth: 1,
+                borderColor: isDark ? '#3A3A3C' : '#E5E5EA',
+                borderRadius: 8,
+                padding: 12,
+                paddingRight: 36,
+                color: colors.text,
+                backgroundColor: colors.surface,
+              }}
+              autoCorrect={false}
+              autoCapitalize="words"
+            />
+            {geocodingState === 'loading' ? (
+              <View
+                style={{ position: 'absolute', right: 12, top: 12 }}
+                testID="step2-address-geocoding-spinner"
+              >
+                <ActivityIndicator size="small" />
+              </View>
+            ) : null}
+          </View>
+          {geocodingState === 'loading' ? (
+            <Text style={{ color: colors.textSecondary, marginTop: 4, fontSize: 12 }}>
+              {/* TODO(11-05): remove cast once keys land in TranslationKeys union */}
+              {t('contextualListing.step2.addressGeocoding' as TranslationKeys)}
+            </Text>
+          ) : null}
+          {geocodingState === 'notFound' ? (
+            <Text
+              testID="step2-address-not-found-error"
+              style={[commonStyles.errorText, { color: colors.error }]}
+            >
+              {/* TODO(11-05): remove cast once keys land in TranslationKeys union */}
+              {t('contextualListing.step2.addressNotFound' as TranslationKeys)}
+            </Text>
+          ) : null}
         </View>
       ) : null}
 
