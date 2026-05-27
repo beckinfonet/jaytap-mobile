@@ -852,7 +852,7 @@ export const en = {
   'adminListing.manage.submittedAt': 'Submitted',
   'adminListing.manage.approvedAt': 'Approved',
   'adminListing.manage.approvedBy': 'Approved by',
-  'adminListing.manage.ownerUid': 'Owner uid',
+  'adminListing.manage.ownerUid': 'Owner',
   'adminListing.manage.archivedAt': 'Suspended',
   'adminListing.manage.archivedBy': 'Suspended by',
   'adminListing.manage.archivedReason': 'Reason',

@@ -119,6 +119,24 @@ export interface Property {
     lastName?: string;
   };
 
+  // === Moderator identity enrichment — populated server-side at GET /:id only
+  // when the caller is mod+ (mirrors stripModIdentity). Consumed by
+  // ListingAdminScreen so the audit card shows human-readable names instead of
+  // raw Firebase uids. May be absent if the user record was deleted or for
+  // legacy listings approved before the M2 audit-field rollout. ===
+  approvedBy?: {
+    uid?: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+  };
+  archivedBy?: {
+    uid?: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+  };
+
   // === Schema version marker (Claude's Discretion #5 — RECOMMENDED) ===
   schemaVersion?: 'm3-nested-v1';
 }

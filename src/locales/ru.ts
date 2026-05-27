@@ -845,7 +845,7 @@ export const ru: Record<TranslationKeys, string> = {
   'adminListing.manage.submittedAt': 'Отправлено',
   'adminListing.manage.approvedAt': 'Одобрено',
   'adminListing.manage.approvedBy': 'Одобрил',
-  'adminListing.manage.ownerUid': 'UID владельца',
+  'adminListing.manage.ownerUid': 'Владелец',
   'adminListing.manage.archivedAt': 'Приостановлено',
   'adminListing.manage.archivedBy': 'Приостановил',
   'adminListing.manage.archivedReason': 'Причина',

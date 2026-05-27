@@ -78,7 +78,11 @@ export const ListingAdminScreen: React.FC<ListingAdminScreenProps> = ({
   onOpenLiveMediaEdit,
   onListingDeleted,
 }) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  // Text color on a `colors.primary` button. `primary` flips white in dark /
+  // dark in light, so the label must flip the opposite way. Mirrors the
+  // pattern used by PropertyDetailsScreen's contact button.
+  const onPrimary = isDark ? '#121212' : '#FFFFFF';
   const { t } = useLanguage();
   const { can } = useRole();
   const { is403PermissionError, onPermissionDenied } = useModActionGuard();
@@ -251,6 +255,17 @@ export const ListingAdminScreen: React.FC<ListingAdminScreenProps> = ({
   // falling back to `owner.uid` is the closest correct mapping.
   const ownerUid = listing?.ownerUid || listing?.owner?.uid || '';
 
+  // Human-readable name builder for the audit rows. Falls back to '' so the
+  // row renderer can collapse to a uid-only display when the user record was
+  // deleted or the listing predates the audit-field rollout.
+  const fullName = (u?: { firstName?: string; lastName?: string } | null): string => {
+    if (!u) return '';
+    return `${u.firstName || ''} ${u.lastName || ''}`.trim();
+  };
+  const ownerName = fullName(listing?.owner);
+  const approvedByName = fullName(listing?.approvedBy);
+  const archivedByName = fullName(listing?.archivedBy);
+
   // -- Status pill color mapping (mirrors StatusPill.tsx, but inline so
   //    we can show a 'live' pill too — StatusPill returns null for live). --
   const statusPillBg = (() => {
@@ -292,22 +307,46 @@ export const ListingAdminScreen: React.FC<ListingAdminScreenProps> = ({
 
   // -- Row sub-renderer (label + value, value is `selectable` so admins
   //    can long-press to copy — no clipboard dep needed). -----------------
-  const renderRow = (label: string, value: string, opts?: { mono?: boolean }) => (
+  //
+  // `secondary` is an optional second line below the primary value, used to
+  // show the raw uid beneath a human-readable name. When omitted the row
+  // collapses to the original single-line layout.
+  const renderRow = (
+    label: string,
+    value: string,
+    opts?: { mono?: boolean; secondary?: string },
+  ) => (
     <View style={styles.row}>
       <Text style={[styles.rowLabel, { color: colors.textSecondary }]} numberOfLines={1}>
         {label}
       </Text>
-      <Text
-        style={[
-          styles.rowValue,
-          { color: colors.text },
-          opts?.mono && styles.rowValueMono,
-        ]}
-        selectable
-        numberOfLines={2}
-      >
-        {value || '—'}
-      </Text>
+      <View style={styles.rowValueColumn}>
+        <Text
+          style={[
+            styles.rowValue,
+            { color: colors.text },
+            opts?.mono && styles.rowValueMono,
+          ]}
+          selectable
+          numberOfLines={2}
+        >
+          {value || '—'}
+        </Text>
+        {opts?.secondary ? (
+          <Text
+            style={[
+              styles.rowValueSecondary,
+              styles.rowValueMono,
+              { color: colors.textTertiary },
+            ]}
+            selectable
+            numberOfLines={1}
+            ellipsizeMode="middle"
+          >
+            {opts.secondary}
+          </Text>
+        ) : null}
+      </View>
     </View>
   );
 
@@ -368,19 +407,34 @@ export const ListingAdminScreen: React.FC<ListingAdminScreenProps> = ({
             </View>
           </View>
 
-          {/* Audit metadata card */}
+          {/* Audit metadata card. Owner + approvedBy rows render the human
+              name on the primary line with the raw uid as a secondary mono
+              line — falls back to uid-only when the user record is missing
+              (deleted user or pre-enrichment legacy listing). */}
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             {renderRow(t('adminListing.manage.submittedAt'), formatDate(listing.submittedAt))}
             {renderRow(t('adminListing.manage.approvedAt'), formatDate(listing.approvedAt))}
-            {renderRow(t('adminListing.manage.approvedBy'), listing.approvedByUid || '', { mono: true })}
-            {renderRow(t('adminListing.manage.ownerUid'), ownerUid, { mono: true })}
+            {approvedByName
+              ? renderRow(t('adminListing.manage.approvedBy'), approvedByName, {
+                  secondary: listing.approvedByUid || undefined,
+                })
+              : renderRow(t('adminListing.manage.approvedBy'), listing.approvedByUid || '', { mono: true })}
+            {ownerName
+              ? renderRow(t('adminListing.manage.ownerUid'), ownerName, {
+                  secondary: ownerUid || undefined,
+                })
+              : renderRow(t('adminListing.manage.ownerUid'), ownerUid, { mono: true })}
           </View>
 
           {/* Archive metadata card — shown only when archived. */}
           {isArchived && (
             <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               {renderRow(t('adminListing.manage.archivedAt'), formatDate(listing.archivedAt))}
-              {renderRow(t('adminListing.manage.archivedBy'), listing.archivedByUid || '', { mono: true })}
+              {archivedByName
+                ? renderRow(t('adminListing.manage.archivedBy'), archivedByName, {
+                    secondary: listing.archivedByUid || undefined,
+                  })
+                : renderRow(t('adminListing.manage.archivedBy'), listing.archivedByUid || '', { mono: true })}
               {renderRow(t('adminListing.manage.archivedReason'), listing.archivedReasonCode || '')}
               {renderRow(t('adminListing.manage.archivedNote'), listing.archivedReasonNote || '')}
             </View>
@@ -401,7 +455,7 @@ export const ListingAdminScreen: React.FC<ListingAdminScreenProps> = ({
               ]}
               accessibilityRole="button"
             >
-              <Text style={[styles.actionBtnText, { color: colors.onAccent }]}>
+              <Text style={[styles.actionBtnText, { color: onPrimary }]}>
                 {t('adminListing.menu.editMedia')}
               </Text>
             </TouchableOpacity>
@@ -420,7 +474,7 @@ export const ListingAdminScreen: React.FC<ListingAdminScreenProps> = ({
                 ]}
                 accessibilityRole="button"
               >
-                <Text style={[styles.actionBtnText, { color: colors.onAccent }]}>
+                <Text style={[styles.actionBtnText, { color: onPrimary }]}>
                   {t('adminListing.menu.suspend')}
                 </Text>
               </TouchableOpacity>
@@ -437,7 +491,7 @@ export const ListingAdminScreen: React.FC<ListingAdminScreenProps> = ({
                 ]}
                 accessibilityRole="button"
               >
-                <Text style={[styles.actionBtnText, { color: colors.onAccent }]}>
+                <Text style={[styles.actionBtnText, { color: onPrimary }]}>
                   {t('adminListing.menu.restore')}
                 </Text>
               </TouchableOpacity>
@@ -459,7 +513,12 @@ export const ListingAdminScreen: React.FC<ListingAdminScreenProps> = ({
                   accessibilityRole="button"
                   accessibilityState={{ disabled: !deleteEnabled }}
                 >
-                  <Text style={[styles.actionBtnText, { color: colors.onAccent }]}>
+                  <Text
+                    style={[
+                      styles.actionBtnText,
+                      { color: deleteEnabled ? colors.onAccent : colors.textTertiary },
+                    ]}
+                  >
                     {t('adminListing.menu.delete')}
                   </Text>
                 </TouchableOpacity>
@@ -573,10 +632,18 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     maxWidth: '40%',
   },
+  rowValueColumn: {
+    flexShrink: 1,
+    alignItems: 'flex-end',
+    gap: 2,
+  },
   rowValue: {
     fontSize: 13,
     fontWeight: '400',
     flexShrink: 1,
+    textAlign: 'right',
+  },
+  rowValueSecondary: {
     textAlign: 'right',
   },
   rowValueMono: {
