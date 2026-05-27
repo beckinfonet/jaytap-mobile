@@ -72,6 +72,7 @@ describe('Phase 2 validators — Step 2 (Plan 02-03)', () => {
         district: 'mkr-3',
         coordinates: { lat: 42.87, lng: 74.57 },
         showExactAddress: false,
+        address: '',
       },
     };
     const r = validateStep(2, bag);

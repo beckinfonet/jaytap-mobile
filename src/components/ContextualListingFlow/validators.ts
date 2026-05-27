@@ -13,7 +13,7 @@ export interface ValidateResult {
 // Mirrors M1 P5 `FIELD_ORDER_BY_CATEGORY`.
 export const FIELD_ORDER_PER_STEP: Record<1 | 2 | 3 | 4 | 5 | 6, string[]> = {
   1: ['dealType', 'propertyType'],
-  2: ['location.city', 'location.district', 'location.coordinates'],
+  2: ['location.city', 'location.district', 'location.coordinates', 'location.address'],
   3: [
     'basics.areaSqm',
     'basics.price',
@@ -35,7 +35,7 @@ export function emptyFormBag(): FormBag {
   return {
     dealType: '',
     propertyType: '',
-    location: { city: '', district: '', coordinates: null, showExactAddress: false },
+    location: { city: '', district: '', coordinates: null, showExactAddress: false, address: '' },
     basics: { areaSqm: '', price: '', currency: '' },
     conditionAndAmenities: { condition: '', furnished: null, amenities: [] },
     content: { title: '', description: '', language: 'ru' },
