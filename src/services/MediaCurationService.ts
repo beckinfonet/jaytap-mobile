@@ -54,9 +54,10 @@ export const MediaCurationService = {
    * server-side 400 MEDIA_TOO_MANY_FILES round-trip.
    *
    * Field shape (matches multer upload.fields shape on the backend):
-   *   - photos[]   — multipart files
-   *   - videos[]   — multipart files
-   *   - tourUrl    — string (https:// only; backend validates protocol)
+   *   - photos[]       — multipart files
+   *   - videos[]       — multipart files
+   *   - tourUrl        — string (https:// only; backend validates protocol)
+   *   - tourPhotosUrl  — string (https:// only; backend validates protocol)
    *
    * Returns the updated Property document (server-shape; _id, media.{...}).
    * 409 ALREADY_MODERATED bubbles up unchanged for the caller to surface as
@@ -67,6 +68,7 @@ export const MediaCurationService = {
     photos: PendingAsset[],
     videos: PendingAsset[],
     tourUrl?: string,
+    tourPhotosUrl?: string,
   ): Promise<any> => {
     await assertModCapability();
 
@@ -86,6 +88,7 @@ export const MediaCurationService = {
       } as any);
     });
     if (tourUrl) formData.append('tourUrl', tourUrl);
+    if (tourPhotosUrl) formData.append('tourPhotosUrl', tourPhotosUrl);
 
     // apiClient auto-detects FormData and lets RN's fetch shim set the
     // Content-Type with the multipart boundary — same pattern as
