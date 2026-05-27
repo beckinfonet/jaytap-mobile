@@ -99,6 +99,15 @@ jest.mock('../../../services/locationService', () => ({
   createDistrict: jest.fn(),
 }));
 
+// Phase 11 GEO-01 + GEO-02 — geocodeService mock matches Step2.test.tsx. Without
+// this, the integration test's mock-mapview.onPress simulations (lines 221, 608)
+// would fire real Railway POSTs via the apiClient. Both helpers default to null
+// (= "miss") — same shape Step2Location's failure path handles.
+jest.mock('../../../services/geocodeService', () => ({
+  geocodeAddress: jest.fn().mockResolvedValue(null),
+  reverseGeocode: jest.fn().mockResolvedValue(null),
+}));
+
 // PropertyService mock — surface dispatch methods so we can assert calls.
 jest.mock('../../../services/PropertyService', () => ({
   PropertyService: {
