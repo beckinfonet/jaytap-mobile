@@ -19,8 +19,9 @@
  */
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, BackHandler } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { X, ChevronLeft } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -342,13 +343,16 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
         </View>
       ) : null}
 
-      {/* Step body */}
-      <ScrollView
+      {/* Step body — KeyboardAwareScrollView (project pattern from LandlordApplicationScreen
+          / ForgotPasswordScreen) auto-scrolls focused inputs above the keyboard. Required
+          for Phase 11 Step 2 address input (sits below the map fold). M1 KBD-02 invariant
+          preserved — no banned offset prop, no behavior= prop on a library KAV. */}
+      <KeyboardAwareScrollView
         contentContainerStyle={commonStyles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
         {stepBody}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* Quick 260525-x8l — photo-gate inline warning. Renders ONLY when
           isFinalSubmitBlocked (edit-mod + Step 6 + zero photos). Reuses the existing
