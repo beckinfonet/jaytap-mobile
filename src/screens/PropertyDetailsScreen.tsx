@@ -927,7 +927,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                     disabled={!photoActive}
                   >
                     <ImageIcon size={24} color={photoActive ? colors.text : colors.textSecondary} />
-                    <Text style={[styles.mediaGridLabel, { color: photoActive ? colors.text : colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">{t('property.photos')}</Text>
+                    <Text style={[styles.mediaGridLabel, { color: photoActive ? colors.text : colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">{t('property.photos360')}</Text>
                     <ChevronRight size={20} color={photoActive ? colors.textSecondary : colors.textTertiary} />
                   </TouchableOpacity>
                 );
