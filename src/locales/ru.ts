@@ -672,6 +672,14 @@ export const ru: Record<TranslationKeys, string> = {
   'contextualListing.step2.coordinatesRequired': 'Нажмите на карту, чтобы поставить точку',
   'contextualListing.step2.exactAddressToggle': 'Показать точный адрес?',
 
+  // Phase 11 (Plan 11-05) — Шаг 2: строки UI для ввода адреса (прямой + обратный геокод).
+  // Закрывает касты `as TranslationKeys`, вставленные Планом 11-04 в Step2Location.tsx.
+  // ЗАФИКСИРОВАННЫЕ строки по 11-CONTEXT.md decision 10.
+  'contextualListing.step2.addressGeocoding': 'Поиск адреса…',
+  'contextualListing.step2.addressLabel': 'Адрес',
+  'contextualListing.step2.addressNotFound': 'Не удалось найти адрес — поставьте точку на карте',
+  'contextualListing.step2.addressPlaceholder': 'напр. ул. Манаса 100',
+
   // Phase 2 (Plan 02-03) — ContextualListingFlow Шаг 3: Основные сведения (площадь + цена + валюта + условные подполя по типу недвижимости).
   'contextualListing.step3.title': 'Основные сведения',
   'contextualListing.step3.areaLabel': 'Площадь (м²)',
