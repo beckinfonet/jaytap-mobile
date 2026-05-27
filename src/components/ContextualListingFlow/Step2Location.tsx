@@ -75,6 +75,13 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
   const [addressInput, setAddressInput] = useState<string>(values.location.address ?? '');
   const [geocodingState, setGeocodingState] = useState<'idle' | 'loading' | 'notFound'>('idle');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // CR-01 / CR-02 fix: deferred geocode callbacks read latest values from a ref instead of
+  // the useCallback closure, so a city/district pick or a newer pin-drop made BETWEEN the
+  // debounce arming and the network response is not silently reverted.
+  const valuesRef = useRef(values);
+  useEffect(() => {
+    valuesRef.current = values;
+  });
 
   // FLOW-06: hide the exact-address toggle for hotel/hostel and force showExactAddress=true.
   // Sync after first render if the FormBag default (false) drifted from the forced policy.
@@ -188,15 +195,19 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
       }
       setGeocodingState('loading');
       debounceRef.current = setTimeout(async () => {
+        // CR-01: read from valuesRef so a city pick or pin drop in the 300ms+network
+        // window is not reverted by the stale closure spread below.
+        const latestAtArming = valuesRef.current.location;
         const result = await geocodeAddress({
           address: trimmed,
-          citySlug: values.location.city || undefined,
+          citySlug: latestAtArming.city || undefined,
           lang: language as 'en' | 'ru',
         });
         if (result) {
           setGeocodingState('idle');
+          const latest = valuesRef.current.location;
           onChange('location', {
-            ...values.location,
+            ...latest,
             address: result.displayName,
             coordinates: { lat: result.lat, lng: result.lng },
           });
@@ -222,14 +233,17 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
         coordinates: { lat, lng },
       });
       // Phase 11 GEO-02 — best-effort reverse geocode. Only fills address if currently
-      // empty (never clobbers typed text — T-11-18 mitigation). Silent on failure (no
-      // toast, no error label): pin-drop's primary purpose is coordinates, address fill
-      // is opportunistic.
+      // empty (never clobbers typed text — T-11-18 mitigation). Silent on failure.
+      // CR-02 fix: anti-clobber guard AND payload spread read from valuesRef so typed
+      // text or newer pin drops between the drop and the ~1-5s Nominatim response are
+      // honored; closes the T-11-18 race that Plan 11-04 originally accepted as residual.
       reverseGeocode({ lat, lng, lang: language as 'en' | 'ru' }).then((r) => {
-        if (r && r.displayName && !(values.location.address ?? '').trim()) {
+        const latest = valuesRef.current.location;
+        if (r && r.displayName && !(latest.address ?? '').trim()) {
           onChange('location', {
-            ...values.location,
-            coordinates: { lat, lng },
+            ...latest,
+            // a newer pin drop/drag may already have replaced these coords — keep latest.
+            coordinates: latest.coordinates ?? { lat, lng },
             address: r.displayName,
           });
           setAddressInput(r.displayName);
@@ -249,11 +263,13 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
         coordinates: { lat, lng },
       });
       // Phase 11 GEO-02 — same shape + anti-clobber guard as handleMapPress.
+      // CR-02 fix: same valuesRef pattern as handleMapPress.
       reverseGeocode({ lat, lng, lang: language as 'en' | 'ru' }).then((r) => {
-        if (r && r.displayName && !(values.location.address ?? '').trim()) {
+        const latest = valuesRef.current.location;
+        if (r && r.displayName && !(latest.address ?? '').trim()) {
           onChange('location', {
-            ...values.location,
-            coordinates: { lat, lng },
+            ...latest,
+            coordinates: latest.coordinates ?? { lat, lng },
             address: r.displayName,
           });
           setAddressInput(r.displayName);

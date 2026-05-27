@@ -89,11 +89,17 @@ import {
   createCity,
   createDistrict,
 } from '../../../services/locationService';
+import {
+  geocodeAddress,
+  reverseGeocode,
+} from '../../../services/geocodeService';
 
 const fetchCitiesMock = fetchCities as jest.Mock;
 const fetchDistrictsMock = fetchDistricts as jest.Mock;
 const createCityMock = createCity as jest.Mock;
 const createDistrictMock = createDistrict as jest.Mock;
+const geocodeAddressMock = geocodeAddress as jest.Mock;
+const reverseGeocodeMock = reverseGeocode as jest.Mock;
 
 function findByTestID(root: ReactTestInstance, testID: string): ReactTestInstance {
   return root.findByProps({ testID });
@@ -346,5 +352,206 @@ describe('Step2Location (Plan 02-03)', () => {
     const sw = findByTestID(root, 'exact-address-toggle');
     expect(sw).toBeTruthy();
     expect(sw.props.value).toBe(false);
+  });
+
+  // Phase 11 GEO-01 / GEO-02 — address input gating + debounced forward + reverse
+  // geocode behavior. Closes CR-03 from the Phase 11 code review.
+
+  // Test G1 — address input HIDDEN when showExactAddress=false on non-hospitality.
+  test('GEO: address input hidden when showExactAddress=false and not hospitality', async () => {
+    const values: FormBag = {
+      ...emptyFormBag(),
+      propertyType: 'apartment',
+      location: { ...emptyFormBag().location, showExactAddress: false },
+    };
+    const { root } = await renderStep2({ values });
+    expect(tryFindByTestID(root, 'step2-address-input')).toBeNull();
+  });
+
+  // Test G2 — address input VISIBLE when showExactAddress=true.
+  test('GEO: address input visible when showExactAddress=true', async () => {
+    const values: FormBag = {
+      ...emptyFormBag(),
+      propertyType: 'apartment',
+      location: { ...emptyFormBag().location, showExactAddress: true },
+    };
+    const { root } = await renderStep2({ values });
+    expect(tryFindByTestID(root, 'step2-address-input')).not.toBeNull();
+  });
+
+  // Test G3 — address input FORCE-VISIBLE for hospitality (toggle hidden per FLOW-06,
+  // but the effect inside Step2Location flips showExactAddress=true on mount).
+  test('GEO: address input force-visible for propertyType="hotel"', async () => {
+    const values: FormBag = { ...emptyFormBag(), propertyType: 'hotel' };
+    const { onChange, root } = await renderStep2({ values });
+    // The mount-time effect dispatches an onChange to flip showExactAddress=true. The
+    // input itself is gated by `values.location.showExactAddress || isHospitality`, so
+    // it also renders on first commit because isHospitality alone is sufficient.
+    expect(tryFindByTestID(root, 'step2-address-input')).not.toBeNull();
+    expect(
+      onChange.mock.calls.some(
+        ([f, v]: [string, FormBag['location']]) => f === 'location' && v.showExactAddress === true,
+      ),
+    ).toBe(true);
+  });
+
+  // Test G4 + G5 — typing fires the 300ms debounce; on success, onChange writes BOTH
+  // address and coordinates (the canonical Nominatim displayName + the resolved lat/lng).
+  test('GEO-01: successful forward geocode writes address AND coordinates after 300ms debounce', async () => {
+    jest.useFakeTimers();
+    try {
+      geocodeAddressMock.mockResolvedValueOnce({
+        lat: 42.876,
+        lng: 74.612,
+        displayName: '100 Manas St, Bishkek, Kyrgyzstan',
+      });
+      const values: FormBag = {
+        ...emptyFormBag(),
+        propertyType: 'apartment',
+        location: { ...emptyFormBag().location, showExactAddress: true, city: 'bishkek' },
+      };
+      const { root, onChange } = await renderStep2({ values });
+      const input = findByTestID(root, 'step2-address-input');
+      await ReactTestRenderer.act(async () => {
+        input.props.onChangeText('100 Manas St');
+      });
+      // Pre-debounce: only the synchronous onChange for the unrelated city flip (if any)
+      // should have fired. The geocode mock is NOT called yet.
+      expect(geocodeAddressMock).not.toHaveBeenCalled();
+      await ReactTestRenderer.act(async () => {
+        jest.advanceTimersByTime(310);
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(geocodeAddressMock).toHaveBeenCalledTimes(1);
+      const args = geocodeAddressMock.mock.calls[0][0];
+      expect(args.address).toBe('100 Manas St');
+      expect(args.citySlug).toBe('bishkek');
+      // onChange should now contain a call with the resolved address + coordinates.
+      const writeCall = onChange.mock.calls.find(
+        ([f, v]: [string, FormBag['location']]) =>
+          f === 'location' && v.address === '100 Manas St, Bishkek, Kyrgyzstan',
+      );
+      expect(writeCall).toBeTruthy();
+      const [, value] = writeCall as [string, FormBag['location']];
+      expect(value.coordinates).toEqual({ lat: 42.876, lng: 74.612 });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  // Test G6 — anti-"random pin" defense layer 3: on null forward-geocode, the typed
+  // text is preserved (no onChange overwrite) and the pin (coordinates) does NOT move.
+  // This is the single most important invariant of the phase per CONTEXT.md decision 9.
+  test('GEO-01: null forward geocode preserves typed text and does NOT move pin (anti-random-pin)', async () => {
+    jest.useFakeTimers();
+    try {
+      geocodeAddressMock.mockResolvedValueOnce(null);
+      const startingCoords = { lat: 42.0, lng: 74.0 };
+      const values: FormBag = {
+        ...emptyFormBag(),
+        propertyType: 'apartment',
+        location: {
+          ...emptyFormBag().location,
+          showExactAddress: true,
+          city: 'bishkek',
+          coordinates: startingCoords,
+        },
+      };
+      const { root, onChange } = await renderStep2({ values });
+      const input = findByTestID(root, 'step2-address-input');
+      const onChangesBeforeType = onChange.mock.calls.length;
+      await ReactTestRenderer.act(async () => {
+        input.props.onChangeText('gibberish-asdfasdf');
+      });
+      await ReactTestRenderer.act(async () => {
+        jest.advanceTimersByTime(310);
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(geocodeAddressMock).toHaveBeenCalledTimes(1);
+      // Critical assertion: NO onChange call mutated location.coordinates or location.address
+      // after the gibberish typed (any new onChange call between onChangesBeforeType and
+      // now must NOT contain a coordinates flip or a non-empty address write).
+      const newCalls = onChange.mock.calls.slice(onChangesBeforeType);
+      for (const [field, value] of newCalls) {
+        expect(field).toBe('location');
+        // pin must NOT have moved from startingCoords
+        expect((value as FormBag['location']).coordinates).toEqual(startingCoords);
+        // address must NOT have been auto-populated with a displayName
+        // (the typed text lives in local state, not the FormBag; address stays empty)
+        expect((value as FormBag['location']).address).toBe('');
+      }
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  // Test G7 — reverse-geocode on pin-drop fills EMPTY address opportunistically.
+  test('GEO-02: pin drop with empty address triggers reverse-geocode and fills displayName', async () => {
+    reverseGeocodeMock.mockResolvedValueOnce({ displayName: 'Reverse Address from Pin' });
+    const values: FormBag = {
+      ...emptyFormBag(),
+      propertyType: 'apartment',
+      location: {
+        ...emptyFormBag().location,
+        showExactAddress: true,
+        city: 'bishkek',
+        address: '',
+      },
+    };
+    const { root, onChange } = await renderStep2({ values });
+    const map = findByTestID(root, 'step2-map-container').findByProps({ testID: 'mock-mapview' });
+    await ReactTestRenderer.act(async () => {
+      map.props.onPress({
+        nativeEvent: { coordinate: { latitude: 43.1, longitude: 74.7 } },
+      });
+      // flush the reverse-geocode microtask
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(reverseGeocodeMock).toHaveBeenCalledWith(
+      expect.objectContaining({ lat: 43.1, lng: 74.7 }),
+    );
+    const addressFill = onChange.mock.calls.find(
+      ([f, v]: [string, FormBag['location']]) =>
+        f === 'location' && v.address === 'Reverse Address from Pin',
+    );
+    expect(addressFill).toBeTruthy();
+  });
+
+  // Test G8 — CR-02 fix: reverse-geocode does NOT clobber a PRE-EXISTING non-empty
+  // address even when the response arrives. This is the anti-clobber guard that
+  // protects user-typed text from being overwritten by an opportunistic reverse fill.
+  test('GEO-02: pin drop with non-empty address does NOT clobber typed text', async () => {
+    reverseGeocodeMock.mockResolvedValueOnce({ displayName: 'Reverse Address from Pin' });
+    const values: FormBag = {
+      ...emptyFormBag(),
+      propertyType: 'apartment',
+      location: {
+        ...emptyFormBag().location,
+        showExactAddress: true,
+        city: 'bishkek',
+        address: 'User Typed This',
+      },
+    };
+    const { root, onChange } = await renderStep2({ values });
+    const map = findByTestID(root, 'step2-map-container').findByProps({ testID: 'mock-mapview' });
+    await ReactTestRenderer.act(async () => {
+      map.props.onPress({
+        nativeEvent: { coordinate: { latitude: 43.1, longitude: 74.7 } },
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    // Reverse-geocode call still fires (it's opportunistic), but the guard blocks the
+    // address-write onChange. The only onChange should be the synchronous coordinate
+    // write — no subsequent call should contain 'Reverse Address from Pin'.
+    expect(reverseGeocodeMock).toHaveBeenCalled();
+    const clobberAttempt = onChange.mock.calls.find(
+      ([f, v]: [string, FormBag['location']]) =>
+        f === 'location' && v.address === 'Reverse Address from Pin',
+    );
+    expect(clobberAttempt).toBeUndefined();
   });
 });
