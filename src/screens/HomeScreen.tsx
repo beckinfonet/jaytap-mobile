@@ -180,16 +180,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
       }
 
       // 4. District Filter (D-10: chips stay HARDCODED — only the listing-render reads
-      // switch to nested. Match against location.district + location.city + content.description.)
+      // switch to nested. Match against location.district + location.city + content.description.
+      // Quick-task 260527-0cg: ALSO match against location.address — the chip-text-vs-address
+      // bridge for NEW (post-Phase-12) listings that no longer have a curated district slug.
+      // Legacy listings keep matching via the existing districtMatch branch.)
       if (selectedDistrict !== 'Bishkek (All)') {
         const searchDistrict = selectedDistrict.toLowerCase();
         const districtMatch = p.location?.district?.toLowerCase().includes(searchDistrict);
         const cityMatch = p.location?.city?.toLowerCase().includes(searchDistrict);
         const descMatch = p.content?.description?.toLowerCase().includes(searchDistrict);
-        if (!districtMatch && !cityMatch && !descMatch) return false;
+        const addressMatch = p.location?.address?.toLowerCase().includes(searchDistrict);
+        if (!districtMatch && !cityMatch && !descMatch && !addressMatch) return false;
       }
 
-      // 5. Search Query (listingId, title, city, district, description)
+      // 5. Search Query (listingId, title, city, district, address, description)
       if (searchQuery) {
         const query = searchQuery.toLowerCase().trim();
         // Remove dashes and spaces for listingId search (e.g., "123-456" or "123456" both work)
@@ -198,6 +202,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         const cityLc = p.location?.city?.toLowerCase() ?? '';
         const districtLc = p.location?.district?.toLowerCase() ?? '';
         const descLc = p.content?.description?.toLowerCase() ?? '';
+        // Quick-task 260527-0cg — freetext search now also matches canonical address text
+        // (so users can find new listings by typing a street name or microdistrict word).
+        const addressLc = p.location?.address?.toLowerCase() ?? '';
 
         return (
           // Search by title
@@ -208,6 +215,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
           districtLc.includes(query) ||
           // Search inside description body
           descLc.includes(query) ||
+          // Quick-task 260527-0cg — search inside canonical address text
+          addressLc.includes(query) ||
           // Search by listing ID (with or without dashes)
           (p.listingId && (
             p.listingId.toLowerCase().includes(query) ||
