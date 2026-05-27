@@ -834,13 +834,13 @@ export const en = {
   'adminListing.restore.title': 'Restore listing?',
   'adminListing.restore.body': 'This listing will go back to the pending queue for re-approval.',
   'adminListing.restore.confirm': 'Restore',
-  'adminListing.restore.cancel': 'Cancel',
+  // restore.cancel reuses common.cancel (project convention — see Phase 5 admin block).
   'adminListing.restore.success': 'Listing restored',
   'adminListing.delete.title': 'Permanently delete listing?',
   'adminListing.delete.body': 'This action cannot be undone. The listing and all its media will be removed from the database. Type DELETE to confirm.',
   'adminListing.delete.inputPlaceholder': 'Type DELETE',
   'adminListing.delete.confirm': 'Delete forever',
-  'adminListing.delete.cancel': 'Cancel',
+  // delete.cancel reuses common.cancel (project convention).
   'adminListing.delete.blockedReason': 'Suspend the listing before deleting.',
   'adminListing.delete.success': 'Listing deleted',
   'adminListing.manage.title': 'Manage listing',
