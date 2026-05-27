@@ -35,7 +35,7 @@ The activated tile must host a 360° panoramic photos URL (typically Ricoh, some
 | D-2 | **Capture surface:** admin-side `MediaCurationScreen` only | Mirrors M3 media-flow inversion — `media.tourUrl` is already admin-only. Smallest surface change. ContextualListingFlow untouched. |
 | D-3 | **Tile label:** new i18n key `property.photos360` → "360° Photos" / "360° Фото" | Renter taps expecting regular photos would otherwise be surprised by a 360° viewer. Mirrors the "360° VIEW" badge already used in `TourSelectionScreen`. |
 | D-4 | **Render path:** unchanged — existing `setActivePhotosUrl` overlay + `Tour3DScreen` WebView | The 260525-eva refactor set this up; the new field flips `getTourPhotosUrl` from `undefined` to the URL and the rest of the pipeline activates automatically. |
-| D-5 | **Validator:** `https://`-only, factored from the existing `validateTourUrl` in `MediaCurationScreen` | Same input shape, same validation invariant. |
+| D-5 | **Validator:** rename the existing `validateTourUrl` callback in `MediaCurationScreen` (lines 250–258) to `validateHttpsUrl` and reuse it for both inputs | Its body is already generic — `new URL(value)` + `u.protocol === 'https:'` + empty-string-is-valid escape hatch. Two consumers, one identity-stable `useCallback`, no duplication. |
 | D-6 | **Old key `property.photos` kept in place** (additive, not value-swap) | Diff stays additive; key semantically honest. Currently only referenced by the one tile JSX line we're changing, so leaving it costs nothing and avoids future surprise if it's ever reused. |
 
 ## Architecture
@@ -127,7 +127,7 @@ New input rendered directly below the existing 3D tour URL input. Mirrors the ex
 |---|---|
 | State | `tourPhotosUrlDraft`, `tourPhotosUrlValid` |
 | Initial load | `setTourPhotosUrlDraft(data?.media?.tourPhotosUrl ?? '')` |
-| Validator | `https://`-only — factor a shared `validateHttpsUrl` helper from the existing `validateTourUrl`, or inline the check (decided during planning based on how the existing helper is structured) |
+| Validator | Rename existing `validateTourUrl` (`useCallback`, `[]` deps, body is already protocol-agnostic) → `validateHttpsUrl`. Both `tourUrlDraft` and `tourPhotosUrlDraft` use it. |
 | Diff | `tourPhotosUrlChanged` joins `isSaveEnabled` |
 | Save | `tourPhotosUrlToSend` added to PATCH payload alongside `tourUrlToSend` |
 | Post-save sync | `setTourPhotosUrlDraft(updated?.media?.tourPhotosUrl ?? '')` |
