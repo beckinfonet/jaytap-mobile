@@ -58,16 +58,19 @@ Open `src/__tests__/moderationRoutes.test.js`. Below the existing test at ~line 
 
 ```js
 test('POST with only tourPhotosUrl (no files) → 200; tourPhotosUrl set, photos preserved', async () => {
+  const token = await buildToken({ sub: 'mod-a-uid', role: 'moderator', kind: 'valid' });
   await Property.findByIdAndUpdate(pendingListing._id, { 'media.photos': ['https://prev.com/p.jpg'] });
   const res = await request(app)
     .post(`/api/moderation/listings/${pendingListing._id}/media`)
-    .set('Authorization', `Bearer ${modToken}`)
+    .set('Authorization', `Bearer ${token}`)
     .field('tourPhotosUrl', 'https://my.ricoh360.com/r/abc123');
   expect(res.status).toBe(200);
   expect(res.body.media.tourPhotosUrl).toBe('https://my.ricoh360.com/r/abc123');
   expect(res.body.media.photos).toEqual(['https://prev.com/p.jpg']); // preserved
 });
 ```
+
+**Note on token pattern:** the existing tourUrl tests in this describe block do NOT have a `modToken` defined at describe-scope — each test builds its own `const token = await buildToken({ sub: 'mod-a-uid', role: 'moderator', kind: 'valid' });`. Mirror that pattern in every test you add. Do NOT reference a `modToken` variable; it doesn't exist.
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -264,27 +267,30 @@ In `src/__tests__/moderationRoutes.test.js`, after the test from Task 1 Step 1, 
 
 ```js
 test('POST with http:// tourPhotosUrl → 400 MEDIA_INVALID_TOUR_PHOTOS_URL', async () => {
+  const token = await buildToken({ sub: 'mod-a-uid', role: 'moderator', kind: 'valid' });
   const res = await request(app)
     .post(`/api/moderation/listings/${pendingListing._id}/media`)
-    .set('Authorization', `Bearer ${modToken}`)
+    .set('Authorization', `Bearer ${token}`)
     .field('tourPhotosUrl', 'http://insecure-ricoh.com/r/abc');
   expect(res.status).toBe(400);
   expect(res.body.code).toBe('MEDIA_INVALID_TOUR_PHOTOS_URL');
 });
 
 test('POST with javascript: tourPhotosUrl → 400 MEDIA_INVALID_TOUR_PHOTOS_URL (T-05 mitigation)', async () => {
+  const token = await buildToken({ sub: 'mod-a-uid', role: 'moderator', kind: 'valid' });
   const res = await request(app)
     .post(`/api/moderation/listings/${pendingListing._id}/media`)
-    .set('Authorization', `Bearer ${modToken}`)
+    .set('Authorization', `Bearer ${token}`)
     .field('tourPhotosUrl', 'javascript:alert(1)');
   expect(res.status).toBe(400);
   expect(res.body.code).toBe('MEDIA_INVALID_TOUR_PHOTOS_URL');
 });
 
 test('POST with both tourUrl and tourPhotosUrl → 200; both fields set', async () => {
+  const token = await buildToken({ sub: 'mod-a-uid', role: 'moderator', kind: 'valid' });
   const res = await request(app)
     .post(`/api/moderation/listings/${pendingListing._id}/media`)
-    .set('Authorization', `Bearer ${modToken}`)
+    .set('Authorization', `Bearer ${token}`)
     .field('tourUrl',        'https://my.matterport.com/show/?m=xyz')
     .field('tourPhotosUrl',  'https://my.ricoh360.com/r/abc');
   expect(res.status).toBe(200);
