@@ -167,7 +167,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
 | 8. Display Surfaces | 0/5 | Planned | — |
 | 9. i18n Audit + Sentinel | 0/TBD | Not started | — |
 | 10. Hardening + QA + Release v4.0.0 | 0/TBD | Not started | — |
-| 11. Listing Address Geocode (M5 GSD-tracked #1) | 2/6 | In Progress|  |
+| 11. Listing Address Geocode (M5 GSD-tracked #1) | 3/6 | In Progress|  |
 
 ### Phase 11: Listing Address Geocode (Forward + Reverse)
 **Goal**: On Step 2 ("Where is the listing?") of `<ContextualListingFlow>`, a user can type a street address ("100 Manas Street") and the pin auto-places at the geocoded lat/lon; and dropping a pin best-effort fills the address field — both directions persist `location.address` end-to-end (FormBag → Property type → backend Mongoose) and the underlying Nominatim helper has the AbortController/viewbox/language fixes baked in.
