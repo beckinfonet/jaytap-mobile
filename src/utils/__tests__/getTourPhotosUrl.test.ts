@@ -1,30 +1,26 @@
 /**
  * @format
  *
- * Pins the CURRENT behavior of `getTourPhotosUrl`: it must return `undefined`
- * for every property shape, because the M3 nested `Property` type has no
- * tour-photos URL field (the legacy `panoramicPhotosUrl` was removed at
- * M3 Phase 2 D-20 cutover).
+ * 2026-05-26 tour-photos plan — Property.media now has a `tourPhotosUrl`
+ * field. The reader returns it when present, undefined otherwise.
  *
- * This is the forcing function: when a future milestone adds a tour-photos
- * field to the schema, the implementation in `getTourPhotosUrl.ts` will
- * change to read from that field — and these tests will need to be updated
- * to reflect the new behavior. That coupling is intentional.
+ * The "no fallback to media.photos" and "no duplication of media.tourUrl"
+ * invariants from the original 260525-eva fix are preserved.
  *
- * @see quick task 260525-eva
+ * @see docs/superpowers/specs/2026-05-26-tour-photos-url-design.md
  */
 import { getTourPhotosUrl } from '../getTourPhotosUrl';
 import type { Property } from '../../types/Property';
 
-describe('getTourPhotosUrl (quick task 260525-eva — current behavior)', () => {
+describe('getTourPhotosUrl (2026-05-26 plan — schema-aware behavior)', () => {
   test('returns undefined for an empty property', () => {
     const property: Property = { id: 'prop-empty' };
     expect(getTourPhotosUrl(property)).toBeUndefined();
   });
 
-  test('returns undefined when media.photos is populated (does NOT misuse the photo carousel as a fallback — that was the original bug)', () => {
+  test('returns undefined when media.photos is populated but tourPhotosUrl is not (no fallback misuse)', () => {
     const property: Property = {
-      id: 'prop-with-photos',
+      id: 'prop-with-photos-only',
       media: {
         photos: [
           'https://example.com/photo-1.jpg',
@@ -36,9 +32,9 @@ describe('getTourPhotosUrl (quick task 260525-eva — current behavior)', () => 
     expect(getTourPhotosUrl(property)).toBeUndefined();
   });
 
-  test('returns undefined when media.tourUrl is populated (does NOT duplicate the 3D Virtual Tour target)', () => {
+  test('returns undefined when media.tourUrl is populated but tourPhotosUrl is not (no duplication of 3D Virtual Tour target)', () => {
     const property: Property = {
-      id: 'prop-with-tour',
+      id: 'prop-with-3d-tour-only',
       media: {
         photos: [],
         videos: [],
@@ -48,11 +44,48 @@ describe('getTourPhotosUrl (quick task 260525-eva — current behavior)', () => 
     expect(getTourPhotosUrl(property)).toBeUndefined();
   });
 
-  test('returns undefined when instagramUrl is populated (does NOT confuse social with tour-photos)', () => {
+  test('returns undefined when instagramUrl is populated but tourPhotosUrl is not (no cross-channel confusion)', () => {
     const property: Property = {
-      id: 'prop-with-instagram',
+      id: 'prop-with-instagram-only',
       instagramUrl: 'https://instagram.com/jaytap-listing',
     };
     expect(getTourPhotosUrl(property)).toBeUndefined();
+  });
+
+  test('returns the URL when media.tourPhotosUrl is populated (Ricoh)', () => {
+    const property: Property = {
+      id: 'prop-with-ricoh',
+      media: {
+        photos: [],
+        videos: [],
+        tourPhotosUrl: 'https://my.ricoh360.com/r/abc123',
+      },
+    };
+    expect(getTourPhotosUrl(property)).toBe('https://my.ricoh360.com/r/abc123');
+  });
+
+  test('returns the URL when media.tourPhotosUrl is populated (Matterport-style)', () => {
+    const property: Property = {
+      id: 'prop-with-matterport-photos',
+      media: {
+        photos: [],
+        videos: [],
+        tourPhotosUrl: 'https://my.matterport.com/show/?m=panphotos',
+      },
+    };
+    expect(getTourPhotosUrl(property)).toBe('https://my.matterport.com/show/?m=panphotos');
+  });
+
+  test('returns the URL even when tourUrl is also set (independent fields)', () => {
+    const property: Property = {
+      id: 'prop-with-both-tours',
+      media: {
+        photos: [],
+        videos: [],
+        tourUrl:        'https://my.matterport.com/show/?m=walk',
+        tourPhotosUrl:  'https://my.ricoh360.com/r/pan',
+      },
+    };
+    expect(getTourPhotosUrl(property)).toBe('https://my.ricoh360.com/r/pan');
   });
 });
