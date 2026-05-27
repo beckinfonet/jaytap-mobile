@@ -46,8 +46,6 @@ interface PropertyDetailsHostProps {
   // are stubbed in App.tsx and wired in Tasks 6/7/8.
   onOpenLiveMediaEdit?: (listingId: string) => void;
   onOpenListingAdmin?: (listingId: string) => void;
-  onSuspendListing?: (listingId: string) => void;
-  onRestoreListing?: (listingId: string) => void;
   onDeleteListing?: (listingId: string) => void;
 }
 
@@ -70,8 +68,6 @@ const PropertyDetailsHost: React.FC<PropertyDetailsHostProps> = ({
   onOpenMediaCuration,
   onOpenLiveMediaEdit,
   onOpenListingAdmin,
-  onSuspendListing,
-  onRestoreListing,
   onDeleteListing,
 }) => {
   return (
@@ -95,8 +91,6 @@ const PropertyDetailsHost: React.FC<PropertyDetailsHostProps> = ({
         onOpenMediaCuration={onOpenMediaCuration}
         onOpenLiveMediaEdit={onOpenLiveMediaEdit}
         onOpenListingAdmin={onOpenListingAdmin}
-        onSuspendListing={onSuspendListing}
-        onRestoreListing={onRestoreListing}
         onDeleteListing={onDeleteListing}
       />
     </View>

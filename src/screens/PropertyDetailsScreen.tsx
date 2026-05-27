@@ -114,12 +114,6 @@ interface PropertyDetailsScreenProps {
   /** admin-live-listing-actions Task 8 — kebab "Manage listing…" dispatcher.
    *  Opens ListingAdminScreen. Stubbed at Task 5; wired at Task 8. */
   onOpenListingAdmin?: (listingId: string) => void;
-  /** admin-live-listing-actions Task 6 — kebab "Suspend listing" dispatcher.
-   *  Will be wired to ArchiveListingModal in Task 6; stubbed at Task 5. */
-  onSuspendListing?: (listingId: string) => void;
-  /** admin-live-listing-actions Task 6 — kebab "Restore listing" dispatcher.
-   *  Stubbed at Task 5; wired at Task 6. */
-  onRestoreListing?: (listingId: string) => void;
   /** admin-live-listing-actions Task 7 — kebab "Delete listing" dispatcher.
    *  Stubbed at Task 5; wired at Task 7 via HardDeleteConfirmModal. */
   onDeleteListing?: (listingId: string) => void;
@@ -145,8 +139,6 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   onOpenMediaCuration,
   onOpenLiveMediaEdit,
   onOpenListingAdmin,
-  onSuspendListing,
-  onRestoreListing,
   onDeleteListing,
 }) => {
   const { colors, isDark } = useTheme();
@@ -559,11 +551,19 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
     ? photos
     : ['https://via.placeholder.com/800'];
 
-  // admin-live-listing-actions Task 5 — kebab dispatch. Hoisted out of JSX so
-  // each render doesn't allocate a fresh arrow + closes over 5 callback props.
+  // admin-live-listing-actions Task 5/6 — kebab dispatch. Hoisted out of JSX so
+  // each render doesn't allocate a fresh arrow + closes over the callback props.
   // The `never` default-case is the standard exhaustiveness guard: adding a
   // 6th AdminListingMenuAction value would cause this to fail to compile,
   // preventing a silent no-op dispatch.
+  //
+  // Task 6: 'suspend' and 'restore' route to the existing internal handlers
+  // already shipped by Phase 4 Plan 07 (setIsArchiveModalOpen +
+  // ArchiveListingModal sibling mount for suspend; handleRestore Alert.alert
+  // flow for restore — both share useModActionGuard's 403/409/generic
+  // precedence). The action-footer buttons (gated by can('archiveAnyListing'))
+  // and the kebab coexist as two entry points into the same flow — no parallel
+  // infrastructure required, hence no onSuspendListing / onRestoreListing prop.
   const handleKebabAction = (action: AdminListingMenuAction) => {
     const id = property?.id;
     if (!id) return;
@@ -572,10 +572,10 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         onOpenLiveMediaEdit?.(id);
         break;
       case 'suspend':
-        onSuspendListing?.(id);
+        setIsArchiveModalOpen(true);
         break;
       case 'restore':
-        onRestoreListing?.(id);
+        handleRestore();
         break;
       case 'delete':
         onDeleteListing?.(id);

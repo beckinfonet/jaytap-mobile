@@ -1079,22 +1079,16 @@ function AppContent() {
             // status === 'pending' && photos.length === 0; tapping CTA dispatches the
             // MediaCurationScreen overlay (declared in Plan 03-05).
             onOpenMediaCuration={openMediaCuration}
-            // admin-live-listing-actions Task 5 — header kebab dispatchers.
-            // editMedia is wired here; the other four are stubbed pending
-            // Tasks 6/7/8 (suspend/restore → Task 6, delete → Task 7,
-            // manage → Task 8). Grep "TODO Task [678]" to find them.
+            // admin-live-listing-actions Task 5/6 — header kebab dispatchers.
+            // editMedia + suspend + restore are wired (suspend/restore route to
+            // PropertyDetailsScreen's internal ArchiveListingModal + handleRestore
+            // already shipped in Phase 4 Plan 07, so no callback prop is needed
+            // for them). delete/manage remain stubbed pending Tasks 7/8 —
+            // grep "TODO Task [78]" to find them.
             onOpenLiveMediaEdit={(id) => openMediaCuration(id, 'edit-live-media')}
             onOpenListingAdmin={(id) => {
               // TODO Task 8 — wire to ListingAdminScreen overlay
               if (__DEV__) console.log('[admin-live-listing-actions Task 8] onOpenListingAdmin', id);
-            }}
-            onSuspendListing={(id) => {
-              // TODO Task 6 — wire to ArchiveListingModal
-              if (__DEV__) console.log('[admin-live-listing-actions Task 6] onSuspendListing', id);
-            }}
-            onRestoreListing={(id) => {
-              // TODO Task 6 — wire to restore confirm
-              if (__DEV__) console.log('[admin-live-listing-actions Task 6] onRestoreListing', id);
             }}
             onDeleteListing={(id) => {
               // TODO Task 7 — wire to HardDeleteConfirmModal
