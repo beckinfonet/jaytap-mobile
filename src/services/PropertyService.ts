@@ -199,14 +199,21 @@ export const PropertyService = {
    * Belt-and-suspenders permission guard via canFromUser (Phase 1 ROLE-12 pattern);
    * server-side requireMinRole('moderator') is the authoritative gate.
    */
-  getModerationQueue: async (): Promise<{ items: any[]; totalCount: number }> => {
+  getModerationQueue: async (
+    status: 'pending' | 'archived' = 'pending',
+  ): Promise<{ items: any[]; totalCount: number }> => {
     try {
       const userData = await AuthService.getUserData();
       if (!canFromUser(userData, 'approveListings')) {
         console.error('[PropertyService.getModerationQueue] permission denied', { userId: userData?.localId });
         throw new PermissionDeniedError();
       }
-      const response = await apiClient.get('/moderation/queue');
+      // archive-recovery (2026-05-27): backend accepts ?status= for admin
+      // discoverability of archived listings. Default 'pending' preserves the
+      // existing pending-queue callers (and the pending-count badge that
+      // piggybacks on this call via getModerationQueueCount).
+      const url = status === 'pending' ? '/moderation/queue' : `/moderation/queue?status=${status}`;
+      const response = await apiClient.get(url);
       // WR-03 fix — defensively coerce _id to String so keyExtractor consumers always
       // receive a string, even if a future backend change uses .lean() without toJSON
       // (in which case _id would arrive as an ObjectId-shaped object instead of the

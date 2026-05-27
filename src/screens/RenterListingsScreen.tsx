@@ -111,13 +111,15 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
     }
   };
 
-  // Phase 4 Plan 07 D-13 (Pitfall 4 conditional gate): owners may only restore listings they
-  // archived themselves. If the listing was archived by a moderator/admin, the owner sees no
-  // restore affordance — they must contact a moderator. Backend enforces the same rule on
-  // POST /api/properties/:id/unarchive (req.user.uid === ownerUid AND archivedByUid === ownerUid).
-  // Plan 05 added archivedByUid to the Property type (PATTERNS §11 prerequisite).
-  const canSelfRestore = (p: Property): boolean =>
-    p.archivedByUid != null && p.archivedByUid === user?.localId;
+  // archive-recovery (2026-05-27): owners may send any of their own archived
+  // listings back to review, regardless of who archived them. The previous
+  // D-13 gate (only self-archived was restorable) created a dead-end when an
+  // admin/mod archived a listing — owners had no path to remediate. Now
+  // unarchive flips status → 'pending' and the listing re-enters the
+  // moderation queue for re-review. Backend enforces the loosened rule on
+  // POST /api/properties/:id/unarchive (owner gate only; archivedByUid no
+  // longer checked).
+  const canSelfRestore = (p: Property): boolean => p.status === 'archived';
 
   // Phase 4 Plan 07: owner-side hard-delete press handler + confirm handler STRIPPED per
   // D-10 + D-14 (Pitfall 6 atomic strip). Hard-delete is now admin-only and lives on

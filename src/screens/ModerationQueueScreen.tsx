@@ -73,7 +73,12 @@ interface ModerationQueueScreenProps {
 // `'all-pending'` is the default (D-03 — preserves M2 first-render behavior).
 // `'needs-media'` / `'has-media'` are derived purely from media.photos.length;
 // tourUrl + videos do NOT factor into the predicate (RESEARCH §Open Question #1).
-type ModFilterChip = 'all-pending' | 'needs-media' | 'has-media';
+// archive-recovery (2026-05-27): 'archived' added so admins can discover and
+// restore listings that were taken down. Unlike the other three (which filter
+// pending listings client-side), 'archived' triggers a re-fetch against
+// ?status=archived. When active, the media-count sub-filter is N/A — archived
+// listings show flat.
+type ModFilterChip = 'all-pending' | 'needs-media' | 'has-media' | 'archived';
 
 // Per-screen AppState cooldown — sibling to AuthContext's refreshRole cooldown
 // (PATTERNS §E). Each AppState consumer uses its OWN cooldown ref because they perform
@@ -129,9 +134,15 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
   // Per-screen cooldown ref — useRef survives re-renders; resets on screen unmount.
   const lastRefreshAt = useRef<number | null>(null);
 
+  // archive-recovery (2026-05-27): which data set the queue is fetching.
+  // The 'archived' chip triggers a re-fetch against ?status=archived; the
+  // other three chips all share the pending fetch (client-side filter only).
+  const fetchStatus: 'pending' | 'archived' =
+    activeFilter === 'archived' ? 'archived' : 'pending';
+
   const load = useCallback(async () => {
     try {
-      const { items: queueItems } = await PropertyService.getModerationQueue();
+      const { items: queueItems } = await PropertyService.getModerationQueue(fetchStatus);
       setItems(queueItems as Property[]);
     } catch (err: any) {
       console.error('Failed to load moderation queue:', err);
@@ -154,7 +165,7 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
       setLoading(false);
       setRefreshing(false);
     }
-  }, [t, onBack]);
+  }, [fetchStatus, t, onBack]);
 
   useEffect(() => {
     load();
@@ -319,6 +330,9 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
   const filteredItems = useMemo(() => {
     return items.filter((listing) => {
       if (activeFilter === 'all-pending') return true;
+      // archive-recovery: 'archived' bypasses the media-count sub-filter; the
+      // fetch itself scopes the data to archived listings.
+      if (activeFilter === 'archived') return true;
       const photoCount = listing.media?.photos?.length ?? 0;
       if (activeFilter === 'needs-media') return photoCount === 0;
       if (activeFilter === 'has-media') return photoCount > 0;
@@ -561,7 +575,11 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
 
   // Locations tab counts (drives tab label badges).
   const pendingLocationsCount = pendingCities.length + pendingDistricts.length;
-  const pendingListingsCount = items.length;
+  // archive-recovery (2026-05-27): when fetching archived, items.length is the
+  // archived count — surfacing that in the Listings tab badge would be
+  // misleading. Show 0 in that case; the authoritative pending count lives in
+  // ProfileScreen's badge which uses a separate getModerationQueueCount call.
+  const pendingListingsCount = fetchStatus === 'pending' ? items.length : 0;
   const listingsTabLabel = t('moderation.queue.tabs.listings', {
     count: String(pendingListingsCount),
   });
@@ -659,14 +677,16 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
             active via the parent's display:'none' wrapper). Chip pattern
             mirrors Step4ConditionAmenities (visual continuity). */}
         <View style={chipStyles.chipRow} testID="moderation-filter-chip-row">
-          {(['all-pending', 'needs-media', 'has-media'] as const).map((chip) => {
+          {(['all-pending', 'needs-media', 'has-media', 'archived'] as const).map((chip) => {
             const isActive = activeFilter === chip;
             const labelKey: TranslationKeys =
               chip === 'all-pending'
                 ? 'moderation.filter.allPending'
                 : chip === 'needs-media'
                 ? 'moderation.filter.needsMedia'
-                : 'moderation.filter.hasMedia';
+                : chip === 'has-media'
+                ? 'moderation.filter.hasMedia'
+                : 'moderation.filter.archived';
             return (
               <TouchableOpacity
                 key={chip}

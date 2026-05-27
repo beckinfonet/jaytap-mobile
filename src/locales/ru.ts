@@ -869,6 +869,7 @@ export const ru: Record<TranslationKeys, string> = {
   'moderation.filter.allPending': 'Все ожидающие',
   'moderation.filter.needsMedia': 'Требуются фото',
   'moderation.filter.hasMedia': 'С фото',
+  'moderation.filter.archived': 'Архив',
 
   // Country lookup labels — see src/utils/cityToCountry.ts. Used by MapPreviewCard.
   'country.KG': 'Кыргызстан',

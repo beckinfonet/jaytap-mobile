@@ -879,6 +879,7 @@ export const en = {
   'moderation.filter.allPending': 'All pending',
   'moderation.filter.needsMedia': 'Needs media',
   'moderation.filter.hasMedia': 'Has media',
+  'moderation.filter.archived': 'Archived',
 
   // Country lookup labels — see src/utils/cityToCountry.ts. Used by MapPreviewCard.
   'country.KG': 'Kyrgyzstan',
