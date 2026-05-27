@@ -1079,6 +1079,27 @@ function AppContent() {
             // status === 'pending' && photos.length === 0; tapping CTA dispatches the
             // MediaCurationScreen overlay (declared in Plan 03-05).
             onOpenMediaCuration={openMediaCuration}
+            // admin-live-listing-actions Task 5 — header kebab dispatchers.
+            // editMedia is wired here; the other four are stubbed pending
+            // Tasks 6/7/8 (suspend/restore → Task 6, delete → Task 7,
+            // manage → Task 8). Grep "TODO Task [678]" to find them.
+            onOpenLiveMediaEdit={(id) => openMediaCuration(id, 'edit-live-media')}
+            onOpenListingAdmin={(id) => {
+              // TODO Task 8 — wire to ListingAdminScreen overlay
+              console.log('[admin-live-listing-actions Task 8] onOpenListingAdmin', id);
+            }}
+            onSuspendListing={(id) => {
+              // TODO Task 6 — wire to ArchiveListingModal
+              console.log('[admin-live-listing-actions Task 6] onSuspendListing', id);
+            }}
+            onRestoreListing={(id) => {
+              // TODO Task 6 — wire to restore confirm
+              console.log('[admin-live-listing-actions Task 6] onRestoreListing', id);
+            }}
+            onDeleteListing={(id) => {
+              // TODO Task 7 — wire to HardDeleteConfirmModal
+              console.log('[admin-live-listing-actions Task 7] onDeleteListing', id);
+            }}
           />
         )}
         {(renterListingsEverMounted || isRenterListingsOpen) && (

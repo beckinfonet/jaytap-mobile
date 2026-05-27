@@ -41,6 +41,14 @@ interface PropertyDetailsHostProps {
   // App.tsx forwards openMediaCuration here; this host passes it through to
   // PropertyDetailsScreen unchanged.
   onOpenMediaCuration?: (listingId: string) => void;
+  // admin-live-listing-actions Task 5 — pass-through props for the new header
+  // kebab (AdminListingMenu). editMedia is wired at Task 5; the other four
+  // are stubbed in App.tsx and wired in Tasks 6/7/8.
+  onOpenLiveMediaEdit?: (listingId: string) => void;
+  onOpenListingAdmin?: (listingId: string) => void;
+  onSuspendListing?: (listingId: string) => void;
+  onRestoreListing?: (listingId: string) => void;
+  onDeleteListing?: (listingId: string) => void;
 }
 
 const PropertyDetailsHost: React.FC<PropertyDetailsHostProps> = ({
@@ -60,6 +68,11 @@ const PropertyDetailsHost: React.FC<PropertyDetailsHostProps> = ({
   onEditOnBehalfPressed,
   onRefreshProperty,
   onOpenMediaCuration,
+  onOpenLiveMediaEdit,
+  onOpenListingAdmin,
+  onSuspendListing,
+  onRestoreListing,
+  onDeleteListing,
 }) => {
   return (
     <View style={styles.fullScreenOverlay}>
@@ -80,6 +93,11 @@ const PropertyDetailsHost: React.FC<PropertyDetailsHostProps> = ({
         onEditOnBehalfPressed={onEditOnBehalfPressed}
         onRefreshProperty={onRefreshProperty}
         onOpenMediaCuration={onOpenMediaCuration}
+        onOpenLiveMediaEdit={onOpenLiveMediaEdit}
+        onOpenListingAdmin={onOpenListingAdmin}
+        onSuspendListing={onSuspendListing}
+        onRestoreListing={onRestoreListing}
+        onDeleteListing={onDeleteListing}
       />
     </View>
   );

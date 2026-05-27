@@ -69,6 +69,7 @@ import { StatusPill } from '../components/StatusPill';
 import RejectListingModal from '../components/RejectListingModal';
 import ArchiveListingModal from '../components/ArchiveListingModal';
 import { DeleteListingModal } from '../components/DeleteListingModal';
+import { AdminListingMenu, AdminListingMenuAction } from '../components/AdminListingMenu';
 
 interface PropertyDetailsScreenProps {
   property: Property;
@@ -106,6 +107,22 @@ interface PropertyDetailsScreenProps {
    *  predicate gates the entire mount, but the prop's optionality keeps existing
    *  call sites tsc-green pre-wire). */
   onOpenMediaCuration?: (listingId: string) => void;
+  /** admin-live-listing-actions Task 5 — kebab "Edit media" dispatcher. Opens
+   *  MediaCurationScreen in 'edit-live-media' mode. App.tsx wires this to
+   *  openMediaCuration(id, 'edit-live-media'). */
+  onOpenLiveMediaEdit?: (listingId: string) => void;
+  /** admin-live-listing-actions Task 8 — kebab "Manage listing…" dispatcher.
+   *  Opens ListingAdminScreen. Stubbed at Task 5; wired at Task 8. */
+  onOpenListingAdmin?: (listingId: string) => void;
+  /** admin-live-listing-actions Task 6 — kebab "Suspend listing" dispatcher.
+   *  Will be wired to ArchiveListingModal in Task 6; stubbed at Task 5. */
+  onSuspendListing?: (listingId: string) => void;
+  /** admin-live-listing-actions Task 6 — kebab "Restore listing" dispatcher.
+   *  Stubbed at Task 5; wired at Task 6. */
+  onRestoreListing?: (listingId: string) => void;
+  /** admin-live-listing-actions Task 7 — kebab "Delete listing" dispatcher.
+   *  Stubbed at Task 5; wired at Task 7 via HardDeleteConfirmModal. */
+  onDeleteListing?: (listingId: string) => void;
 }
 
 const { width, height } = Dimensions.get('window');
@@ -126,6 +143,11 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   onEditOnBehalfPressed,
   onRefreshProperty,
   onOpenMediaCuration,
+  onOpenLiveMediaEdit,
+  onOpenListingAdmin,
+  onSuspendListing,
+  onRestoreListing,
+  onDeleteListing,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -820,6 +842,33 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               />
             )}
           </TouchableOpacity>
+          {/* admin-live-listing-actions Task 5 — admin/moderator kebab.
+              Returns null for non-privileged viewers via internal
+              can('editAnyListing') gate, so it's safe to mount unconditionally. */}
+          <AdminListingMenu
+            listingStatus={property?.status}
+            onSelect={(action: AdminListingMenuAction) => {
+              const id = property?.id;
+              if (!id) return;
+              switch (action) {
+                case 'editMedia':
+                  onOpenLiveMediaEdit?.(id);
+                  break;
+                case 'suspend':
+                  onSuspendListing?.(id);
+                  break;
+                case 'restore':
+                  onRestoreListing?.(id);
+                  break;
+                case 'delete':
+                  onDeleteListing?.(id);
+                  break;
+                case 'manage':
+                  onOpenListingAdmin?.(id);
+                  break;
+              }
+            }}
+          />
         </View>
       </View>
 
