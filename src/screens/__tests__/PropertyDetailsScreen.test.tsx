@@ -131,6 +131,7 @@ jest.mock('../../components/ArchiveListingModal', () => ({
   default: () => null,
 }));
 jest.mock('../../components/DeleteListingModal', () => ({ DeleteListingModal: () => null }));
+jest.mock('../../components/HardDeleteConfirmModal', () => ({ HardDeleteConfirmModal: () => null }));
 
 // Lucide icon set — render to null, not asserted.
 jest.mock('lucide-react-native', () => {

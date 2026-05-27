@@ -1084,15 +1084,11 @@ function AppContent() {
             // PropertyDetailsScreen's internal ArchiveListingModal + handleRestore
             // already shipped in Phase 4 Plan 07, so no callback prop is needed
             // for them). delete/manage remain stubbed pending Tasks 7/8 —
-            // grep "TODO Task [78]" to find them.
+            // grep "TODO Task 8" to find them.
             onOpenLiveMediaEdit={(id) => openMediaCuration(id, 'edit-live-media')}
             onOpenListingAdmin={(id) => {
               // TODO Task 8 — wire to ListingAdminScreen overlay
               if (__DEV__) console.log('[admin-live-listing-actions Task 8] onOpenListingAdmin', id);
-            }}
-            onDeleteListing={(id) => {
-              // TODO Task 7 — wire to HardDeleteConfirmModal
-              if (__DEV__) console.log('[admin-live-listing-actions Task 7] onDeleteListing', id);
             }}
           />
         )}

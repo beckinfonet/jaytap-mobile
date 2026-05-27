@@ -68,7 +68,7 @@ import { NeedsMediaBanner } from '../components/NeedsMediaBanner';
 import { StatusPill } from '../components/StatusPill';
 import RejectListingModal from '../components/RejectListingModal';
 import ArchiveListingModal from '../components/ArchiveListingModal';
-import { DeleteListingModal } from '../components/DeleteListingModal';
+import { HardDeleteConfirmModal } from '../components/HardDeleteConfirmModal';
 import { AdminListingMenu, AdminListingMenuAction } from '../components/AdminListingMenu';
 
 interface PropertyDetailsScreenProps {
@@ -114,9 +114,10 @@ interface PropertyDetailsScreenProps {
   /** admin-live-listing-actions Task 8 — kebab "Manage listing…" dispatcher.
    *  Opens ListingAdminScreen. Stubbed at Task 5; wired at Task 8. */
   onOpenListingAdmin?: (listingId: string) => void;
-  /** admin-live-listing-actions Task 7 — kebab "Delete listing" dispatcher.
-   *  Stubbed at Task 5; wired at Task 7 via HardDeleteConfirmModal. */
-  onDeleteListing?: (listingId: string) => void;
+  // admin-live-listing-actions Task 7 — kebab "Delete listing" no longer
+  // needs a parent dispatcher prop; the kebab toggles internal
+  // isHardDeleteModalOpen state directly (same pattern as Task 6's
+  // suspend → setIsArchiveModalOpen).
 }
 
 const { width, height } = Dimensions.get('window');
@@ -139,7 +140,6 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   onOpenMediaCuration,
   onOpenLiveMediaEdit,
   onOpenListingAdmin,
-  onDeleteListing,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -578,7 +578,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         handleRestore();
         break;
       case 'delete':
-        onDeleteListing?.(id);
+        setIsHardDeleteModalOpen(true);
         break;
       case 'manage':
         onOpenListingAdmin?.(id);
@@ -1913,13 +1913,15 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
         submitting={submittingAction}
       />
 
-      {/* Phase 4 Plan 07 D-10 — DeleteListingModal sibling mount (admin only).
-          Hard-delete UX moved here from RenterListingsScreen (Plan 07 Task 2 atomic strip). */}
-      <DeleteListingModal
+      {/* admin-live-listing-actions Task 7 — HardDeleteConfirmModal sibling mount (admin only).
+          Replaces the soft "Are you sure?" DeleteListingModal with a typed-DELETE gate.
+          confirmHardDelete still owns the PropertyService.hardDeleteListing call +
+          useModActionGuard 403 handling shipped in Phase 4 Plan 07. */}
+      <HardDeleteConfirmModal
         visible={isHardDeleteModalOpen}
+        submitting={submittingAction}
         onClose={() => setIsHardDeleteModalOpen(false)}
         onConfirm={confirmHardDelete}
-        property={property}
       />
     </SafeAreaView>
   );
