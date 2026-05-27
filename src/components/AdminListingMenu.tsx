@@ -19,6 +19,8 @@ import {
   Modal,
   StyleSheet,
   Pressable,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MoreVertical } from 'lucide-react-native';
@@ -41,11 +43,15 @@ type ListingStatus = 'pending' | 'live' | 'rejected' | 'archived';
 interface AdminListingMenuProps {
   listingStatus: ListingStatus | null | undefined;
   onSelect: (action: AdminListingMenuAction) => void;
+  /** Optional style applied to the kebab trigger so parents can match the
+   *  surrounding header's icon-button shape (rounded surface, shadow, etc.). */
+  triggerStyle?: StyleProp<ViewStyle>;
 }
 
 export const AdminListingMenu: React.FC<AdminListingMenuProps> = ({
   listingStatus,
   onSelect,
+  triggerStyle,
 }) => {
   const { colors } = useTheme();
   const { t } = useLanguage();
@@ -74,6 +80,7 @@ export const AdminListingMenu: React.FC<AdminListingMenuProps> = ({
         accessibilityLabel={t('adminListing.menu.a11y')}
         onPress={() => setOpen(true)}
         hitSlop={{ top: 12, right: 12, bottom: 12, left: 12 }}
+        style={triggerStyle}
       >
         <MoreVertical color={colors.text} size={22} />
       </TouchableOpacity>

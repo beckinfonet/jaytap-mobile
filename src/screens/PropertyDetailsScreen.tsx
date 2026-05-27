@@ -559,6 +559,37 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
     ? photos
     : ['https://via.placeholder.com/800'];
 
+  // admin-live-listing-actions Task 5 — kebab dispatch. Hoisted out of JSX so
+  // each render doesn't allocate a fresh arrow + closes over 5 callback props.
+  // The `never` default-case is the standard exhaustiveness guard: adding a
+  // 6th AdminListingMenuAction value would cause this to fail to compile,
+  // preventing a silent no-op dispatch.
+  const handleKebabAction = (action: AdminListingMenuAction) => {
+    const id = property?.id;
+    if (!id) return;
+    switch (action) {
+      case 'editMedia':
+        onOpenLiveMediaEdit?.(id);
+        break;
+      case 'suspend':
+        onSuspendListing?.(id);
+        break;
+      case 'restore':
+        onRestoreListing?.(id);
+        break;
+      case 'delete':
+        onDeleteListing?.(id);
+        break;
+      case 'manage':
+        onOpenListingAdmin?.(id);
+        break;
+      default: {
+        const _exhaustive: never = action;
+        void _exhaustive;
+      }
+    }
+  };
+
   const handleShare = async () => {
     // Generate shareable URL
     const propertyId = property.id || property.listingId || '';
@@ -844,30 +875,13 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           </TouchableOpacity>
           {/* admin-live-listing-actions Task 5 — admin/moderator kebab.
               Returns null for non-privileged viewers via internal
-              can('editAnyListing') gate, so it's safe to mount unconditionally. */}
+              can('editAnyListing') gate, so it's safe to mount unconditionally.
+              triggerStyle matches the surrounding iconButton row so the kebab
+              visually aligns with share / favorite / admin-verify chips. */}
           <AdminListingMenu
             listingStatus={property?.status}
-            onSelect={(action: AdminListingMenuAction) => {
-              const id = property?.id;
-              if (!id) return;
-              switch (action) {
-                case 'editMedia':
-                  onOpenLiveMediaEdit?.(id);
-                  break;
-                case 'suspend':
-                  onSuspendListing?.(id);
-                  break;
-                case 'restore':
-                  onRestoreListing?.(id);
-                  break;
-                case 'delete':
-                  onDeleteListing?.(id);
-                  break;
-                case 'manage':
-                  onOpenListingAdmin?.(id);
-                  break;
-              }
-            }}
+            onSelect={handleKebabAction}
+            triggerStyle={[styles.iconButton, { backgroundColor: colors.surface }]}
           />
         </View>
       </View>
