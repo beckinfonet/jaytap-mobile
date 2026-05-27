@@ -808,7 +808,7 @@ export const en = {
   'moderation.mediaCuration.approve.disabled.hint': 'Add at least one photo to enable approval',
   'moderation.mediaCuration.error.invalidType': 'Some files were rejected. Use JPEG, PNG, WebP, MP4, or MOV.',
   'moderation.mediaCuration.error.invalidTourUrl': 'Tour URL is not a valid https:// link.',
-  'moderation.mediaCuration.error.invalidTourPhotosUrl': '360° photos URL must start with https://',
+  'moderation.mediaCuration.error.invalidTourPhotosUrl': '360° photos URL is not a valid https:// link.',
   'moderation.mediaCuration.error.tooLarge': 'File too large. Max 25 MB per file.',
   'moderation.mediaCuration.error.tooManyFiles': 'Too many files. Max 45 files per upload.',
   'moderation.mediaCuration.error.uploadFailed': 'Upload failed. Check your connection and try again.',
