@@ -520,9 +520,14 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   const descriptionText = property.content?.description ?? '';
   const cityLabel = property.location?.city ?? '';
   const districtLabel = property.location?.district ?? '';
-  // Address line synthesized from nested location (no flat property.address on M3 shape).
-  // Render slug-as-is — M4 owns dynamic-dictionary label lookup (Plan 02-05 D-10).
-  const addressDisplay = [districtLabel, cityLabel].filter(Boolean).join(', ');
+  // Phase 11 GEO-06: address line prefers the geocoded `location.address` (typed by
+  // the lister in Step 2 or reverse-geocoded from pin drop) when non-empty. Falls back
+  // to the synthesized [district, city] slug pair when address is absent/empty (existing
+  // pre-Phase-11 listings + listings where the lister never typed an address). M5 Phase 1
+  // details redesign layout is preserved — only this one derivation flips precedence,
+  // which propagates through HeaderInfoCard / share / email / fullScreenMap consumers.
+  const addressDisplay = (property.location?.address ?? '').trim()
+    || [districtLabel, cityLabel].filter(Boolean).join(', ');
   const photos = property.media?.photos ?? [];
   const tourUrl = property.media?.tourUrl;
   const videoUrl = property.media?.videos?.[0];
