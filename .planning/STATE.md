@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Counts & Labels
-status: milestone_complete
-last_updated: "2026-05-26T18:30:00.000Z"
-last_activity: 2026-05-26 -- Completed quick task 260526-foc: restore availableDate calendar to Step 6 of ContextualListingFlow (dropped in M3 redesign).
+status: executing
+last_updated: "2026-05-27T01:47:15.508Z"
+last_activity: 2026-05-27 -- Phase 11 execution started
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 3
-  total_plans: 12
-  completed_plans: 7
-  percent: 100
+  total_plans: 18
+  completed_plans: 12
+  percent: 67
 ---
 
 # STATE: JayTap
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md` (updated 2026-05-11 after v3.0 milestone)
 
 **Core value:** Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek (and KG/KZ/UZ expansion markets) properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
-**Current focus:** Phase 08 — display-surfaces-propertycard-hospitalitycard-propertydetail
+**Current focus:** Phase 11 — listing-address-geocode
 
 ## Current Position
 
-Phase: 08
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-05-26 -- Completed quick task 260526-foc: restore availableDate calendar to Step 6 of ContextualListingFlow (dropped in M3 redesign)
+Phase: 11 (listing-address-geocode) — EXECUTING
+Plan: 1 of 6
+Status: Executing Phase 11
+Last activity: 2026-05-27 -- Phase 11 execution started
 
 ## M4 Phase Map (Phases 6–10)
 
