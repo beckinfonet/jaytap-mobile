@@ -63,11 +63,25 @@ import {
 } from '../services/MediaCurationService';
 import { PropertyService } from '../services/PropertyService';
 
+/**
+ * MediaCurationScreen modes:
+ *  - 'edit-mod' (default): pre-approval moderation. Renders both Save and
+ *    "Approve & publish" buttons; gated by 'approveListings'. Existing flow.
+ *  - 'edit-live-media': post-approval admin URL curation on a status='live'
+ *    listing. Renders only Save (no Approve); gated by 'editAnyListing';
+ *    uses adminListing.mediaEdit.* i18n keys; fires onSaveSuccess on
+ *    successful save so the parent can close the overlay.
+ */
+export type MediaCurationMode = 'edit-mod' | 'edit-live-media';
+
 interface MediaCurationScreenProps {
   listingId: string;
+  mode?: MediaCurationMode; // defaults to 'edit-mod' for back-compat
   onClose: () => void;
-  /** Fires after a successful POST /approve so the parent can refresh queue + close. */
+  /** Fires after a successful POST /approve (edit-mod only). */
   onApproveSuccess?: () => void;
+  /** Fires after a successful media save (edit-live-media only). */
+  onSaveSuccess?: () => void;
 }
 
 // Photo grid sizing (UI-SPEC §"Photo grid sizing" lines 319-324).
@@ -80,8 +94,10 @@ const VIDEOS_CAP = 5;
 
 export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
   listingId,
+  mode = 'edit-mod',
   onClose,
   onApproveSuccess,
+  onSaveSuccess,
 }) => {
   const { colors } = useTheme();
   const { t } = useLanguage();
@@ -252,6 +268,10 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
     [tourPhotosUrlDraft, listing],
   );
   const hasPendingMedia = pendingPhotos.length > 0 || pendingVideos.length > 0;
+  // isSaveEnabled is mode-agnostic: it enables Save whenever there's any pending
+  // change. The photo-gate (>=1 photo) only blocks the Approve button — that
+  // button is only rendered in mode='edit-mod', so live-media admins can save
+  // URL changes regardless of photo count.
   const isSaveEnabled = !submittingSave && (hasPendingMedia || tourUrlChanged || tourPhotosUrlChanged);
 
   const validateHttpsUrl = useCallback((value: string): boolean => {
@@ -314,8 +334,16 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
       setTourPhotosUrlDraft(updated?.media?.tourPhotosUrl || '');
       Alert.alert(
         t('common.success'),
-        t('moderation.mediaCuration.save.success'),
+        mode === 'edit-live-media'
+          ? t('adminListing.mediaEdit.saveSuccess')
+          : t('moderation.mediaCuration.save.success'),
       );
+      // edit-mod's flow is "Save → keep editing → eventually Approve & publish
+      // → onApproveSuccess closes the overlay". Live-media has no Approve step,
+      // so onSaveSuccess is the close trigger here.
+      if (mode === 'edit-live-media') {
+        onSaveSuccess?.();
+      }
     } catch (err: any) {
       const code = err?.response?.data?.code;
       const status = err?.response?.status;
@@ -377,6 +405,8 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
     submittingSave,
     validateHttpsUrl,
     t,
+    mode,
+    onSaveSuccess,
   ]);
 
   // -- Approve handler (D-12 — disabled until photos.length > 0) ----------
@@ -473,7 +503,11 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
   // — only the JSX render is gated. Do NOT move this block above the
   // hooks; do NOT add hooks below it.
   // ---------------------------------------------------------------------
-  if (!can('approveListings')) {
+  // Mode-aware gate: edit-live-media is post-approval admin URL curation
+  // (only admins can edit a live listing's media URLs — 'editAnyListing'),
+  // while edit-mod is pre-approval moderation ('approveListings' = mod + admin).
+  const requiredAction = mode === 'edit-live-media' ? 'editAnyListing' : 'approveListings';
+  if (!can(requiredAction)) {
     console.error(
       '[MediaCurationScreen] mounted by non-mod — gating closed (belt-and-suspenders)',
     );
@@ -644,7 +678,9 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
           ]}
           numberOfLines={1}
         >
-          {t('moderation.mediaCuration.header.title')}
+          {mode === 'edit-live-media'
+            ? t('adminListing.mediaEdit.headerTitle')
+            : t('moderation.mediaCuration.header.title')}
         </Text>
         <View style={styles.headerSpacer} />
       </View>
@@ -850,38 +886,46 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
               <ActivityIndicator color={colors.text} size="small" />
             ) : (
               <Text style={[styles.footerButtonText, { color: colors.text }]}>
-                {t('moderation.mediaCuration.save.button')}
+                {mode === 'edit-live-media'
+                  ? t('adminListing.mediaEdit.saveButton')
+                  : t('moderation.mediaCuration.save.button')}
               </Text>
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={handleApprove}
-            disabled={!isApproveEnabled}
-            style={[
-              styles.footerButton,
-              {
-                backgroundColor: colors.success,
-                opacity: isApproveEnabled ? 1 : 0.5,
-              },
-            ]}
-          >
-            {submittingApprove ? (
-              <ActivityIndicator color={colors.onAccent} size="small" />
-            ) : (
-              <Text
-                style={[styles.footerButtonText, { color: colors.onAccent }]}
-              >
-                {t('moderation.mediaCuration.approve.button')}
-              </Text>
-            )}
-          </TouchableOpacity>
+          {/* Approve & publish is a pre-approval moderation action only. In
+              edit-live-media mode (post-approval URL curation on a status='live'
+              listing) it must not render — the listing is already published. */}
+          {mode === 'edit-mod' && (
+            <TouchableOpacity
+              onPress={handleApprove}
+              disabled={!isApproveEnabled}
+              style={[
+                styles.footerButton,
+                {
+                  backgroundColor: colors.success,
+                  opacity: isApproveEnabled ? 1 : 0.5,
+                },
+              ]}
+            >
+              {submittingApprove ? (
+                <ActivityIndicator color={colors.onAccent} size="small" />
+              ) : (
+                <Text
+                  style={[styles.footerButtonText, { color: colors.onAccent }]}
+                >
+                  {t('moderation.mediaCuration.approve.button')}
+                </Text>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* UI-SPEC §Surface 1 line 376 — Disabled-hint below the row. Render
             ONLY when Approve is disabled because of the photos-empty rule
-            (D-12). Suppress while submitting (transient disabled state). */}
-        {!submittingApprove && (listing?.media?.photos?.length ?? 0) === 0 && (
+            (D-12). Suppress while submitting (transient disabled state).
+            edit-live-media mode has no Approve button, so the hint is N/A. */}
+        {mode === 'edit-mod' && !submittingApprove && (listing?.media?.photos?.length ?? 0) === 0 && (
           <Text
             style={[
               styles.footerHint,

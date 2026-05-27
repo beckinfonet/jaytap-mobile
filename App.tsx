@@ -91,6 +91,11 @@ function AppContent() {
   const [isMediaCurationOpen, setIsMediaCurationOpen] = useState(false);
   const [currentMediaCurationListingId, setCurrentMediaCurationListingId] =
     useState<string | null>(null);
+  // admin-live-listing-actions Task 3: mode selector for MediaCurationScreen.
+  // 'edit-mod' (default) preserves the pre-approval moderation flow; Task 5
+  // (PropertyDetailsScreen kebab + ListingAdminScreen) will start passing
+  // 'edit-live-media' through openMediaCuration to curate URLs on live listings.
+  const [mediaCurationMode, setMediaCurationMode] = useState<'edit-mod' | 'edit-live-media'>('edit-mod');
   const [moderatorContext, setModeratorContext] = useState<{ editingOwnerUid: string; reason?: string; ownerEmail?: string; ownerName?: string } | null>(null);
   const [moderationCountRefreshKey, setModerationCountRefreshKey] = useState(0);
   const [propertyToEdit, setPropertyToEdit] = useState<Property | null>(null);
@@ -637,10 +642,14 @@ function AppContent() {
   // the MediaCurationScreen overlay (Plan 03-06 wires this from
   // ModerationQueueScreen filter chips + the NeedsMediaBanner CTA).
   // Receivers accept the prop as optional today to keep tsc green pre-wire.
-  const openMediaCuration = useCallback((listingId: string) => {
-    setCurrentMediaCurationListingId(listingId);
-    setIsMediaCurationOpen(true);
-  }, []);
+  const openMediaCuration = useCallback(
+    (listingId: string, mode: 'edit-mod' | 'edit-live-media' = 'edit-mod') => {
+      setCurrentMediaCurationListingId(listingId);
+      setMediaCurationMode(mode);
+      setIsMediaCurationOpen(true);
+    },
+    [],
+  );
   const onProfileViewListings = useCallback(() => setIsRenterListingsOpen(true), []);
   // Phase 2 D-15 / MOD-09: HomeRejectionBanner CTA target. Opens RenterListings
   // ('My Listings') with the Rejected tab pre-selected so the owner lands on the
@@ -1330,16 +1339,27 @@ function AppContent() {
           <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
             <MediaCurationScreen
               listingId={currentMediaCurationListingId}
+              mode={mediaCurationMode}
               onClose={() => {
                 setIsMediaCurationOpen(false);
                 setCurrentMediaCurationListingId(null);
+                setMediaCurationMode('edit-mod'); // reset to default on close
               }}
               onApproveSuccess={() => {
                 setIsMediaCurationOpen(false);
                 setCurrentMediaCurationListingId(null);
+                setMediaCurationMode('edit-mod');
                 // Mirror the moderation-queue refresh-key bump pattern so the
                 // queue badge updates immediately after the moderator approves.
                 setModerationCountRefreshKey((k) => k + 1);
+              }}
+              onSaveSuccess={() => {
+                // Live-media save complete — close the overlay so the user lands back
+                // on the screen underneath (PropertyDetailsScreen / ListingAdminScreen).
+                // Those screens re-fetch the listing on focus to pick up new media URLs.
+                setIsMediaCurationOpen(false);
+                setCurrentMediaCurationListingId(null);
+                setMediaCurationMode('edit-mod');
               }}
             />
           </View>
