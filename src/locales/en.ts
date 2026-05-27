@@ -678,6 +678,10 @@ export const en = {
   'contextualListing.step2.addressLabel': 'Street address',
   'contextualListing.step2.addressNotFound': "Couldn't find that address — drop a pin instead",
   'contextualListing.step2.addressPlaceholder': 'e.g. 100 Manas St',
+  // Quick-task 260527-0cg (Phase 12 address-flow redesign) — city-gate helper text
+  // shown below the address input when no city has been selected yet. RU matches the
+  // existing `districts.disabled` value (same idea expressed twice in the spec).
+  'contextualListing.step2.addressCityGate': 'Select a city first',
 
   // Phase 2 (Plan 02-03) — ContextualListingFlow Step 3: Basic info (area + price + currency + per-propertyType conditional sub-fields).
   'contextualListing.step3.title': 'Basic information',

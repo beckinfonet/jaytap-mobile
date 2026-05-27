@@ -13,7 +13,8 @@ export interface ValidateResult {
 // Mirrors M1 P5 `FIELD_ORDER_BY_CATEGORY`.
 export const FIELD_ORDER_PER_STEP: Record<1 | 2 | 3 | 4 | 5 | 6, string[]> = {
   1: ['dealType', 'propertyType'],
-  2: ['location.city', 'location.district', 'location.coordinates', 'location.address'],
+  // Quick-task 260527-0cg (Phase 12 address-flow redesign): district dropped from Step 2.
+  2: ['location.city', 'location.coordinates', 'location.address'],
   3: [
     'basics.areaSqm',
     'basics.price',
@@ -50,8 +51,11 @@ export function validateStep(stepN: 1 | 2 | 3 | 4 | 5 | 6, values: FormBag): Val
     if (!values.dealType) errors['dealType'] = 'contextualListing.step1.dealTypeRequired';
     if (!values.propertyType) errors['propertyType'] = 'contextualListing.step1.propertyTypeRequired';
   } else if (stepN === 2) {
+    // Quick-task 260527-0cg (Phase 12 address-flow redesign): district dropped as a
+    // Step 2 requirement — the district chip row + "Other district" modal were removed
+    // from Step2Location.tsx. `district: ''` stays on the FormBag shape for round-trip
+    // compatibility with legacy backend data, but the validator no longer flags it.
     if (!values.location.city) errors['location.city'] = 'contextualListing.step2.cityRequired';
-    if (!values.location.district) errors['location.district'] = 'contextualListing.step2.districtRequired';
     if (!values.location.coordinates)
       errors['location.coordinates'] = 'contextualListing.step2.coordinatesRequired';
   } else if (stepN === 3) {
