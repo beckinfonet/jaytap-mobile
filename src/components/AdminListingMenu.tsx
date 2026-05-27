@@ -20,6 +20,7 @@ import {
   StyleSheet,
   Pressable,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MoreVertical } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -32,8 +33,13 @@ export type AdminListingMenuAction =
   | 'delete'
   | 'manage';
 
+/** Listing status union — matches src/types/Property.ts `status?`. Accepts null
+ *  in addition to undefined because API-backed fields elsewhere in the codebase
+ *  routinely surface as `string | null` after JSON deserialization. */
+type ListingStatus = 'pending' | 'live' | 'rejected' | 'archived';
+
 interface AdminListingMenuProps {
-  listingStatus: 'pending' | 'live' | 'rejected' | 'archived' | undefined;
+  listingStatus: ListingStatus | null | undefined;
   onSelect: (action: AdminListingMenuAction) => void;
 }
 
@@ -44,6 +50,7 @@ export const AdminListingMenu: React.FC<AdminListingMenuProps> = ({
   const { colors } = useTheme();
   const { t } = useLanguage();
   const { can } = useRole();
+  const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
 
   if (!can('editAnyListing')) return null;
@@ -78,10 +85,26 @@ export const AdminListingMenu: React.FC<AdminListingMenuProps> = ({
         onRequestClose={() => setOpen(false)}
       >
         <Pressable
-          style={[styles.backdrop, { backgroundColor: colors.scrim }]}
+          style={[
+            styles.backdrop,
+            {
+              backgroundColor: colors.scrim,
+              // Header height (~56) + safe-area top inset so the menu clears
+              // notched / Dynamic Island devices. Project convention is to use
+              // useSafeAreaInsets() for vertical offsets near system chrome.
+              paddingTop: insets.top + 56,
+            },
+          ]}
           onPress={() => setOpen(false)}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.dismiss')}
         >
-          <View
+          {/* Intercept presses on the menu card so they don't bubble to the
+              backdrop's onPress and close the sheet. Without this no-op
+              Pressable, empty padding strips inside the card would close the
+              menu on tap (RN Pressable propagation footgun). */}
+          <Pressable
+            onPress={() => {}}
             style={[
               styles.menu,
               {
@@ -89,6 +112,7 @@ export const AdminListingMenu: React.FC<AdminListingMenuProps> = ({
                 shadowColor: colors.cardShadow,
               },
             ]}
+            accessibilityViewIsModal
           >
             <MenuItem
               label={t('adminListing.menu.editMedia')}
@@ -111,9 +135,7 @@ export const AdminListingMenu: React.FC<AdminListingMenuProps> = ({
             {canDelete && (
               <MenuItem
                 label={t('adminListing.menu.delete')}
-                onPress={
-                  deleteEnabled ? () => handlePick('delete') : undefined
-                }
+                onPress={() => handlePick('delete')}
                 disabled={!deleteEnabled}
                 helper={
                   !deleteEnabled
@@ -129,7 +151,7 @@ export const AdminListingMenu: React.FC<AdminListingMenuProps> = ({
               onPress={() => handlePick('manage')}
               textColor={colors.text}
             />
-          </View>
+          </Pressable>
         </Pressable>
       </Modal>
     </>
@@ -138,10 +160,11 @@ export const AdminListingMenu: React.FC<AdminListingMenuProps> = ({
 
 interface MenuItemProps {
   label: string;
-  onPress?: () => void;
+  onPress: () => void;
   disabled?: boolean;
   helper?: string;
   textColor: string;
+  /** Required when `helper` is set so the helper Text has a defined color. */
   helperColor?: string;
 }
 
@@ -154,11 +177,17 @@ const MenuItem: React.FC<MenuItemProps> = ({
   helperColor,
 }) => (
   <TouchableOpacity
-    onPress={onPress}
-    disabled={disabled || !onPress}
+    onPress={disabled ? undefined : onPress}
+    disabled={disabled}
     style={styles.item}
     accessibilityRole="button"
     accessibilityState={{ disabled: !!disabled }}
+    // Concatenate the helper into the a11y label so screen readers announce
+    // the disabled reason in the same breath as the label; also set
+    // accessibilityHint as a redundant hook for assistive tech that reads
+    // hints separately from labels.
+    accessibilityLabel={helper ? `${label}. ${helper}` : label}
+    accessibilityHint={helper}
   >
     <Text style={[styles.label, { color: textColor }]}>{label}</Text>
     {helper && (
@@ -172,15 +201,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'flex-end',
-    paddingTop: 56, // sits below the header
     paddingRight: 12,
   },
   menu: {
     minWidth: 220,
     borderRadius: 12,
     paddingVertical: 6,
-    elevation: 6,
-    shadowOpacity: 0.18,
+    // Popover/floating-menu elevation tier — matches DeleteListingModal /
+    // DeleteAccountModal precedent for floating surfaces sitting above
+    // both the main stack and the scrim.
+    elevation: 8,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
   },
@@ -190,7 +221,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   helper: {
     fontSize: 12,
