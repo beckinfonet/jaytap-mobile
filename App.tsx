@@ -48,7 +48,7 @@ import PropertyDetailsHost from './src/components/PropertyDetailsHost';
 import ModerationQueueScreen from './src/screens/ModerationQueueScreen';
 import RoleManagementScreen from './src/screens/RoleManagementScreen';
 // Phase 3 Plan 03-05 — mod-only media-curation overlay (entry-points wired by Plan 03-06).
-import { MediaCurationScreen } from './src/screens/MediaCurationScreen';
+import { MediaCurationScreen, type MediaCurationMode } from './src/screens/MediaCurationScreen';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -95,7 +95,7 @@ function AppContent() {
   // 'edit-mod' (default) preserves the pre-approval moderation flow; Task 5
   // (PropertyDetailsScreen kebab + ListingAdminScreen) will start passing
   // 'edit-live-media' through openMediaCuration to curate URLs on live listings.
-  const [mediaCurationMode, setMediaCurationMode] = useState<'edit-mod' | 'edit-live-media'>('edit-mod');
+  const [mediaCurationMode, setMediaCurationMode] = useState<MediaCurationMode>('edit-mod');
   const [moderatorContext, setModeratorContext] = useState<{ editingOwnerUid: string; reason?: string; ownerEmail?: string; ownerName?: string } | null>(null);
   const [moderationCountRefreshKey, setModerationCountRefreshKey] = useState(0);
   const [propertyToEdit, setPropertyToEdit] = useState<Property | null>(null);
@@ -643,7 +643,7 @@ function AppContent() {
   // ModerationQueueScreen filter chips + the NeedsMediaBanner CTA).
   // Receivers accept the prop as optional today to keep tsc green pre-wire.
   const openMediaCuration = useCallback(
-    (listingId: string, mode: 'edit-mod' | 'edit-live-media' = 'edit-mod') => {
+    (listingId: string, mode: MediaCurationMode = 'edit-mod') => {
       setCurrentMediaCurationListingId(listingId);
       setMediaCurationMode(mode);
       setIsMediaCurationOpen(true);
