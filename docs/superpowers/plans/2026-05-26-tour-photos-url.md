@@ -577,10 +577,10 @@ In `src/locales/en.ts`, find line 798 (`'moderation.mediaCuration.tourUrl.invali
   'moderation.mediaCuration.tourPhotosUrl.placeholder': 'https://my.ricoh360.com/r/…',
   'moderation.mediaCuration.tourPhotosUrl.hint': 'Paste a Ricoh, Matterport, or other https:// panoramic-photos link. Optional.',
   'moderation.mediaCuration.tourPhotosUrl.invalid': '360° photos URL must start with https://',
-  'moderation.mediaCuration.error.invalidTourPhotosUrl': '360° photos URL must start with https://',
+  'moderation.mediaCuration.error.invalidTourPhotosUrl': '360° photos URL is not a valid https:// link.',
 ```
 
-(The extra `error.invalidTourPhotosUrl` key parallels the existing `error.invalidTourUrl` consumed by `handleSave`'s Alert.alert in Task 7.)
+(The `tourPhotosUrl.invalid` key is the inline field error; the `error.invalidTourPhotosUrl` key is the Alert.alert dialog body. These mirror the existing `tourUrl.invalid` / `error.invalidTourUrl` pair, which use DIFFERENT strings — "Tour URL must start with https://" vs "Tour URL is not a valid https:// link." Preserve that split here.)
 
 - [ ] **Step 4: Add 4 `moderation.mediaCuration.tourPhotosUrl.*` keys (RU)**
 
@@ -591,7 +591,7 @@ In `src/locales/ru.ts`, find the corresponding `'moderation.mediaCuration.tourUr
   'moderation.mediaCuration.tourPhotosUrl.placeholder': 'https://my.ricoh360.com/r/…',
   'moderation.mediaCuration.tourPhotosUrl.hint': 'Вставьте ссылку Ricoh, Matterport или другую https:// — необязательно.',
   'moderation.mediaCuration.tourPhotosUrl.invalid': 'Ссылка на 360° фото должна начинаться с https://',
-  'moderation.mediaCuration.error.invalidTourPhotosUrl': 'Ссылка на 360° фото должна начинаться с https://',
+  'moderation.mediaCuration.error.invalidTourPhotosUrl': 'Ссылка на 360° фото не является действительной https://-ссылкой.',
 ```
 
 - [ ] **Step 5: Run i18n parity check**
