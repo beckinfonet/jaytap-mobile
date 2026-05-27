@@ -40,6 +40,7 @@ export interface Property {
     district?: string;
     coordinates?: { lat: number; lng: number };
     showExactAddress?: boolean;
+    address?: string; // Phase 11 GEO-03 — Nominatim displayName persisted as free-form string. Optional; backend default ''.
   };
 
   // === Nested basics (SPEC §"Step 3 — Basic Information") ===

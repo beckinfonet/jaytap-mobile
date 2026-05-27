@@ -17,6 +17,7 @@ export interface FormBag {
     district: string; // district slug
     coordinates: { lat: number; lng: number } | null;
     showExactAddress: boolean; // forced true if propertyType ∈ {hotel, hostel} per D-07
+    address: string; // Phase 11 GEO-03 — required-but-defaults-to-'' per FormBag convention. Plan 11-04 Step2Location TextInput writes this.
   };
 
   // === Step 3 (REQUIRED area + price + currency; conditional sub-fields) ===

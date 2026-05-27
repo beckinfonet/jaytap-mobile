@@ -25,6 +25,7 @@ export function propertyToFormBag(p: Property | undefined): FormBag {
         ? { lat: p.location.coordinates.lat, lng: p.location.coordinates.lng }
         : null,
       showExactAddress: p.location?.showExactAddress ?? false,
+      address: p.location?.address ?? '',
     },
     basics: {
       areaSqm: p.basics?.areaSqm != null ? String(p.basics.areaSqm) : '',
@@ -87,6 +88,7 @@ export function formBagToPropertyPayload(v: FormBag): Record<string, unknown> {
       district: v.location.district,
       coordinates: v.location.coordinates ?? undefined,
       showExactAddress: v.location.showExactAddress,
+      address: v.location.address || undefined,
     },
     basics: {
       areaSqm: v.basics.areaSqm ? parseFloat(v.basics.areaSqm) : undefined,
