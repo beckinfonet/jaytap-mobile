@@ -80,6 +80,17 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
   const [addressInput, setAddressInput] = useState<string>(values.location.address ?? '');
   const [geocodingState, setGeocodingState] = useState<'idle' | 'loading' | 'notFound'>('idle');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Quick-task 260527-tail — after a programmatic address write-back (forward or reverse
+  // geocode), iOS keeps the cursor (and therefore the visible scroll window) at the END
+  // of the new text. The canonical Nominatim displayName runs street → district → city →
+  // postcode → country, so the user sees the country tail and the street number scrolls
+  // off-left. Snap selection to {0,0} after each write-back so the street is visible.
+  const addressInputRef = useRef<TextInput>(null);
+  const scrollAddressInputToStart = useCallback(() => {
+    requestAnimationFrame(() => {
+      addressInputRef.current?.setNativeProps({ selection: { start: 0, end: 0 } });
+    });
+  }, []);
   // CR-01 / CR-02 fix: deferred geocode callbacks read latest values from a ref instead of
   // the useCallback closure, so a city/district pick or a newer pin-drop made BETWEEN the
   // debounce arming and the network response is not silently reverted.
@@ -200,6 +211,7 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
           // canonicalize the input mirror — the prop-sync effect would do this too, but
           // setting it inline avoids the one-frame flash of pre-canonical text.
           setAddressInput(result.displayName);
+          scrollAddressInputToStart();
         } else {
           // explicitly preserve typed text + static pin
           setGeocodingState('notFound');
@@ -233,10 +245,11 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
             address: r.displayName,
           });
           setAddressInput(r.displayName);
+          scrollAddressInputToStart();
         }
       });
     },
-    [onChange, values.location, language],
+    [onChange, values.location, language, scrollAddressInputToStart],
   );
 
   // Primary refinement path (iOS-reliable; Android-uncertain per Issue #5445).
@@ -259,10 +272,11 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
             address: r.displayName,
           });
           setAddressInput(r.displayName);
+          scrollAddressInputToStart();
         }
       });
     },
-    [onChange, values.location, language],
+    [onChange, values.location, language, scrollAddressInputToStart],
   );
 
   // Quick-task 260527-0cg — `openOtherModal` simplified to take no args (district
@@ -470,6 +484,7 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
           <View style={{ position: 'relative' }}>
             <TextInput
               testID="step2-address-input"
+              ref={addressInputRef}
               value={addressInput}
               onChangeText={(v) => {
                 setAddressInput(v);
