@@ -1,17 +1,25 @@
 /**
  * Phase 2 Plan 02-03 — Step 2: Location capture (FLOW-04 + FLOW-05 + FLOW-06).
  *
- * Composition (per CONTEXT D-07 + D-08 + D-09):
+ * Composition (per CONTEXT D-07 + D-08 + D-09; quick-task 260527-0cg redesign):
  *   - City chip row (FlatList horizontal) + "Other" chip → submit-as-pending modal.
- *   - District chip row (filtered to selected city) + "Other" chip; disabled when no city.
  *   - Map pin (react-native-maps draggable Marker WITH tap-to-move fallback per Pitfall 1).
  *   - Exact-address toggle (FLOW-06): hidden + forced-true for hotel/hostel; visible-default-false otherwise.
+ *   - Address text input — gated on city selection (disabled until city chip is picked).
+ *     Forward-geocode debounce 800ms; citySlug bias guaranteed non-empty.
  *
  * Boundary convention:
  *   - react-native-maps API uses { latitude, longitude } (lifted verbatim per the lib's prop shape).
  *   - FormBag storage uses { lat, lng } (CONTEXT D-08; matches backend nested schema after Phase 1 cutover).
  *   - Conversion happens in handleMapPress / handleMarkerDragEnd (read latitude → write lat) and at
  *     <Marker coordinate={...}> render (read lat → render latitude).
+ *
+ * Quick-task 260527-0cg (Phase 12 address-flow redesign):
+ *   - District chip row + "Other district" modal REMOVED. district stays on FormBag for
+ *     round-trip compat with legacy data, but is no longer surfaced or required.
+ *   - Address input city-gate added (disabled until city picked; helper text below).
+ *   - Forward-geocode debounce bumped 300ms → 800ms.
+ *   - citySlug passed to geocodeService as guaranteed non-empty (drop `|| undefined`).
  */
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -30,13 +38,12 @@ import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useTheme } from '../../theme/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import type { TranslationKeys } from '../../locales';
+// Quick-task 260527-0cg (Phase 12) — district chip row + Other-district modal removed.
+// `fetchDistricts`, `createDistrict`, `District` are no longer consumed by Step2Location.
 import {
   fetchCities,
-  fetchDistricts,
   createCity,
-  createDistrict,
   type City,
-  type District,
 } from '../../services/locationService';
 import { geocodeAddress, reverseGeocode } from '../../services/geocodeService';
 import { commonStyles } from './styles';
@@ -53,13 +60,11 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
   const { t, language } = useLanguage();
 
   const [cities, setCities] = useState<City[]>([]);
-  const [districts, setDistricts] = useState<District[]>([]);
   const [loadingCities, setLoadingCities] = useState(true);
-  const [loadingDistricts, setLoadingDistricts] = useState(false);
-  const [otherModal, setOtherModal] = useState<{ open: boolean; kind: 'city' | 'district' }>({
-    open: false,
-    kind: 'city',
-  });
+  // Quick-task 260527-0cg — `otherModal` was generic (city|district). District modal
+  // path is unreachable now (no district chip → no openOtherModal('district') call).
+  // Simplified to a plain boolean; the modal is hard-coded to the city pathway.
+  const [otherModalOpen, setOtherModalOpen] = useState(false);
   const [otherInput, setOtherInput] = useState<{
     ru: string;
     en: string;
@@ -129,30 +134,9 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
     };
   }, []);
 
-  // City change: refetch districts. Empty city → clear districts.
-  useEffect(() => {
-    let cancelled = false;
-    if (!values.location.city) {
-      setDistricts([]);
-      return () => {
-        cancelled = true;
-      };
-    }
-    setLoadingDistricts(true);
-    fetchDistricts(values.location.city)
-      .then((d) => {
-        if (cancelled) return;
-        setDistricts(d);
-        setLoadingDistricts(false);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setLoadingDistricts(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [values.location.city]);
+  // Quick-task 260527-0cg (Phase 12) — district fetch effect REMOVED.
+  // Districts are no longer surfaced on Step 2; the chip row + Other-district modal
+  // were dropped, so fetchDistricts has no caller.
 
   const cityCentersMap = useMemo(() => {
     const m = new Map<string, { lat: number; lng: number }>();
@@ -172,14 +156,11 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
     [onChange, values.location],
   );
 
-  const handleSelectDistrict = useCallback(
-    (slug: string) => {
-      onChange('location', { ...values.location, district: slug });
-    },
-    [onChange, values.location],
-  );
+  // Quick-task 260527-0cg (Phase 12) — handleSelectDistrict REMOVED. No callers.
 
-  // Phase 11 GEO-01 — debounced forward geocode (300ms after typing pauses).
+  // Phase 11 GEO-01 — debounced forward geocode (800ms after typing pauses; quick-task
+  // 260527-0cg bumped 300ms → 800ms because typing pauses within a word are 200-400ms,
+  // and a too-short debounce was firing cross-border misfires on slow typers).
   // On success: write BOTH address (canonical displayName) AND coordinates to FormBag,
   // re-center the map via the marker re-render. On failure: preserve typed text, DO NOT
   // move pin (anti-"random pin" defense; see 11-CONTEXT.md "THREE layers"). 3-char min +
@@ -198,9 +179,14 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
         // CR-01: read from valuesRef so a city pick or pin drop in the 300ms+network
         // window is not reverted by the stale closure spread below.
         const latestAtArming = valuesRef.current.location;
+        // Quick-task 260527-0cg — drop `|| undefined` fallback. The city-gate on the
+        // address input guarantees `latestAtArming.city` is a non-empty string by the
+        // time the user can type (input is disabled + editable=false until a city is
+        // picked). Passing the slug as guaranteed-non-empty keeps the Nominatim viewbox
+        // bias active (was silently disabled when city was empty).
         const result = await geocodeAddress({
           address: trimmed,
-          citySlug: latestAtArming.city || undefined,
+          citySlug: latestAtArming.city,
           lang: language as 'en' | 'ru',
         });
         if (result) {
@@ -218,7 +204,7 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
           // explicitly preserve typed text + static pin
           setGeocodingState('notFound');
         }
-      }, 300);
+      }, 800);
     },
     [onChange, values.location, language],
   );
@@ -279,13 +265,16 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
     [onChange, values.location, language],
   );
 
-  const openOtherModal = useCallback((kind: 'city' | 'district') => {
+  // Quick-task 260527-0cg — `openOtherModal` simplified to take no args (district
+  // pathway removed). Hard-codes the city pathway. `closeOtherModal` + `submitOther`
+  // also simplified to city-only (the district `else` branch was unreachable).
+  const openOtherModal = useCallback(() => {
     setOtherInput({ ru: '', en: '', country: 'KG' });
-    setOtherModal({ open: true, kind });
+    setOtherModalOpen(true);
   }, []);
 
   const closeOtherModal = useCallback(() => {
-    setOtherModal((m) => ({ ...m, open: false }));
+    setOtherModalOpen(false);
   }, []);
 
   const submitOther = useCallback(async () => {
@@ -295,40 +284,31 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
     }
     setOtherSubmitting(true);
     try {
-      if (otherModal.kind === 'city') {
-        // Per Tradeoff §F: client supplies centroid (drop-pin-first UX). For "Other"
-        // city, derive from current map coords if user already dropped a pin; else
-        // fall back to BISHKEK_DEFAULT.
-        const centroid = values.location.coordinates
-          ? { lat: values.location.coordinates.lat, lng: values.location.coordinates.lng }
-          : { lat: BISHKEK_DEFAULT.latitude, lng: BISHKEK_DEFAULT.longitude };
-        const r = await createCity({
-          label: { ru: otherInput.ru.trim(), en: otherInput.en.trim() },
-          country: otherInput.country,
-          centroid,
-        });
-        // D-07 optimistic-use: use the new slug immediately.
-        onChange('location', { ...values.location, city: r.city.slug, district: '' });
-        // Refresh chip list so the new (pending) city is visible to caller.
-        const updated = await fetchCities();
-        setCities(updated);
-      } else {
-        if (!values.location.city) return;
-        const r = await createDistrict(values.location.city, {
-          label: { ru: otherInput.ru.trim(), en: otherInput.en.trim() },
-        });
-        onChange('location', { ...values.location, district: r.district.slug });
-        const updated = await fetchDistricts(values.location.city);
-        setDistricts(updated);
-      }
-      setOtherModal({ open: false, kind: 'city' });
+      // Per Tradeoff §F: client supplies centroid (drop-pin-first UX). For "Other"
+      // city, derive from current map coords if user already dropped a pin; else
+      // fall back to BISHKEK_DEFAULT.
+      const centroid = values.location.coordinates
+        ? { lat: values.location.coordinates.lat, lng: values.location.coordinates.lng }
+        : { lat: BISHKEK_DEFAULT.latitude, lng: BISHKEK_DEFAULT.longitude };
+      const r = await createCity({
+        label: { ru: otherInput.ru.trim(), en: otherInput.en.trim() },
+        country: otherInput.country,
+        centroid,
+      });
+      // D-07 optimistic-use: use the new slug immediately. Defensive: clear district
+      // (still on FormBag for round-trip compat) in case a legacy bag arrives populated.
+      onChange('location', { ...values.location, city: r.city.slug, district: '' });
+      // Refresh chip list so the new (pending) city is visible to caller.
+      const updated = await fetchCities();
+      setCities(updated);
+      setOtherModalOpen(false);
       setOtherInput({ ru: '', en: '', country: 'KG' });
     } catch {
       Alert.alert(t('common.error'), t('contextualListing.step2.cityOther.duplicate'));
     } finally {
       setOtherSubmitting(false);
     }
-  }, [otherInput, otherModal.kind, values.location, onChange, t]);
+  }, [otherInput, values.location, onChange, t]);
 
   const renderCityChip = ({ item }: { item: City | { slug: '__other__'; label: { ru: string; en: string } } }) => {
     const isOther = item.slug === '__other__';
@@ -347,7 +327,7 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
             borderColor: isDark ? '#3A3A3C' : '#E5E5EA',
           },
         ]}
-        onPress={() => (isOther ? openOtherModal('city') : handleSelectCity(item.slug))}
+        onPress={() => (isOther ? openOtherModal() : handleSelectCity(item.slug))}
       >
         <Text
           style={[
@@ -373,17 +353,12 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
     [cities, t],
   );
 
-  const districtData = useMemo(
-    () => [
-      ...districts,
-      {
-        _id: '__other__',
-        slug: '__other__' as const,
-        label: { ru: t('contextualListing.step2.cityOther'), en: t('contextualListing.step2.cityOther') },
-      },
-    ],
-    [districts, t],
-  );
+  // Quick-task 260527-0cg (Phase 12) — districtData memo REMOVED (no consumer).
+
+  // Quick-task 260527-0cg — city-gate predicate for the address input. Disables the
+  // input + shows helper text until the user picks a city. Once city is set, input is
+  // enabled at full opacity and the helper text is hidden.
+  const cityPicked = !!values.location.city;
 
   return (
     <View>
@@ -418,95 +393,9 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
         ) : null}
       </View>
 
-      {/* District chip row */}
-      <View style={commonStyles.section}>
-        <Text style={[commonStyles.sectionLabel, { color: colors.text }]}>
-          {t('contextualListing.step2.districtLabel')}
-        </Text>
-        {!values.location.city ? (
-          <Text
-            testID="districts-disabled"
-            style={{ color: colors.text, opacity: 0.5 }}
-          >
-            {t('contextualListing.step2.districts.disabled')}
-          </Text>
-        ) : loadingDistricts ? (
-          <ActivityIndicator />
-        ) : districts.length === 0 ? (
-          <View>
-            <Text
-              testID="districts-empty"
-              style={{ color: colors.text, opacity: 0.7 }}
-            >
-              {t('contextualListing.step2.districts.empty')}
-            </Text>
-            <TouchableOpacity
-              testID="district-chip-other"
-              style={[
-                commonStyles.chip,
-                {
-                  marginTop: 8,
-                  alignSelf: 'flex-start',
-                  backgroundColor: colors.activeChipBackground,
-                  borderColor: isDark ? '#3A3A3C' : '#E5E5EA',
-                },
-              ]}
-              onPress={() => openOtherModal('district')}
-            >
-              <Text
-                style={[commonStyles.chipText, { color: colors.activeChipText }]}
-              >
-                {t('contextualListing.step2.cityOther')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <FlatList
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={districtData}
-            keyExtractor={(d) => d._id}
-            contentContainerStyle={commonStyles.chipRowHorizontal}
-            renderItem={({ item }) => {
-              const isOther = item.slug === '__other__';
-              const isActive = !isOther && values.location.district === item.slug;
-              return (
-                <TouchableOpacity
-                  testID={isOther ? 'district-chip-other' : `district-chip-${item.slug}`}
-                  style={[
-                    commonStyles.chip,
-                    {
-                      backgroundColor: isActive
-                        ? colors.activeChipBackground
-                        : isDark
-                        ? '#2C2C2E'
-                        : '#F2F2F7',
-                      borderColor: isDark ? '#3A3A3C' : '#E5E5EA',
-                    },
-                  ]}
-                  onPress={() =>
-                    isOther ? openOtherModal('district') : handleSelectDistrict(item.slug)
-                  }
-                >
-                  <Text
-                    style={[
-                      commonStyles.chipText,
-                      { color: isActive ? colors.activeChipText : colors.text },
-                    ]}
-                  >
-                    {(item.label as { ru: string; en: string })[language as 'ru' | 'en']}
-                  </Text>
-                </TouchableOpacity>
-              );
-            }}
-          />
-        )}
-        {errors['location.district'] ? (
-          <Text style={[commonStyles.errorText, { color: colors.error }]}>
-            {t(errors['location.district'] as TranslationKeys)}
-          </Text>
-        ) : null}
-      </View>
+      {/* Quick-task 260527-0cg (Phase 12 address-flow redesign) — district chip row
+          + "Other district" modal block REMOVED. Step 2 flow now reduces to:
+          city chip row → map pin → exact-address toggle → (gated) address input. */}
 
       {/* Map pin (D-08 + Pitfall 1: tap-to-drop AND tap-to-move fallback) */}
       <View style={commonStyles.section}>
@@ -586,8 +475,11 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
                 setAddressInput(v);
                 scheduleGeocode(v);
               }}
-              // TODO(11-05): remove cast once keys land in TranslationKeys union
-              placeholder={t('contextualListing.step2.addressPlaceholder' as TranslationKeys)}
+              // Quick-task 260527-0cg — input gated on city selection. While disabled,
+              // opacity drops to 0.5 to communicate the state visually; the helper text
+              // below the field tells the user to pick a city first.
+              editable={cityPicked}
+              placeholder={t('contextualListing.step2.addressPlaceholder')}
               placeholderTextColor={colors.textSecondary}
               style={{
                 borderWidth: 1,
@@ -597,6 +489,7 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
                 paddingRight: 36,
                 color: colors.text,
                 backgroundColor: colors.surface,
+                opacity: cityPicked ? 1 : 0.5,
               }}
               autoCorrect={false}
               autoCapitalize="words"
@@ -610,10 +503,19 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
               </View>
             ) : null}
           </View>
+          {/* Quick-task 260527-0cg — city-gate helper text. Only renders when the
+              input is disabled (no city picked). Disappears the moment cityPicked flips. */}
+          {!cityPicked ? (
+            <Text
+              testID="step2-address-city-gate"
+              style={{ color: colors.textSecondary, marginTop: 4, fontSize: 12 }}
+            >
+              {t('contextualListing.step2.addressCityGate')}
+            </Text>
+          ) : null}
           {geocodingState === 'loading' ? (
             <Text style={{ color: colors.textSecondary, marginTop: 4, fontSize: 12 }}>
-              {/* TODO(11-05): remove cast once keys land in TranslationKeys union */}
-              {t('contextualListing.step2.addressGeocoding' as TranslationKeys)}
+              {t('contextualListing.step2.addressGeocoding')}
             </Text>
           ) : null}
           {geocodingState === 'notFound' ? (
@@ -621,16 +523,15 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
               testID="step2-address-not-found-error"
               style={[commonStyles.errorText, { color: colors.error }]}
             >
-              {/* TODO(11-05): remove cast once keys land in TranslationKeys union */}
-              {t('contextualListing.step2.addressNotFound' as TranslationKeys)}
+              {t('contextualListing.step2.addressNotFound')}
             </Text>
           ) : null}
         </View>
       ) : null}
 
-      {/* Other modal (city + district share infrastructure) */}
+      {/* Quick-task 260527-0cg — Other modal is now city-only (district pathway dead). */}
       <Modal
-        visible={otherModal.open}
+        visible={otherModalOpen}
         transparent
         animationType="slide"
         onRequestClose={closeOtherModal}
@@ -651,19 +552,13 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
             }}
           >
             <Text style={[commonStyles.sectionTitle, { color: colors.text }]}>
-              {otherModal.kind === 'city'
-                ? t('contextualListing.step2.cityOther.modalTitle')
-                : t('contextualListing.step2.districtOther.modalTitle')}
+              {t('contextualListing.step2.cityOther.modalTitle')}
             </Text>
             <TextInput
               testID="other-input-ru"
               value={otherInput.ru}
               onChangeText={(v) => setOtherInput((s) => ({ ...s, ru: v }))}
-              placeholder={`RU: ${
-                otherModal.kind === 'city'
-                  ? t('contextualListing.step2.cityOther.placeholder')
-                  : t('contextualListing.step2.districtOther.placeholder')
-              }`}
+              placeholder={`RU: ${t('contextualListing.step2.cityOther.placeholder')}`}
               placeholderTextColor={colors.textSecondary}
               style={[
                 commonStyles.input,
@@ -679,11 +574,7 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
               testID="other-input-en"
               value={otherInput.en}
               onChangeText={(v) => setOtherInput((s) => ({ ...s, en: v }))}
-              placeholder={`EN: ${
-                otherModal.kind === 'city'
-                  ? t('contextualListing.step2.cityOther.placeholder')
-                  : t('contextualListing.step2.districtOther.placeholder')
-              }`}
+              placeholder={`EN: ${t('contextualListing.step2.cityOther.placeholder')}`}
               placeholderTextColor={colors.textSecondary}
               style={[
                 commonStyles.input,
@@ -695,40 +586,39 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
                 },
               ]}
             />
-            {otherModal.kind === 'city' ? (
-              <View style={[commonStyles.chipRow, { marginTop: 12 }]}>
-                {COUNTRIES.map((c) => (
-                  <TouchableOpacity
-                    key={c}
-                    testID={`other-country-${c}`}
-                    onPress={() => setOtherInput((s) => ({ ...s, country: c }))}
-                    style={[
-                      commonStyles.chip,
-                      {
-                        backgroundColor:
-                          otherInput.country === c
-                            ? colors.activeChipBackground
-                            : isDark
-                            ? '#2C2C2E'
-                            : '#F2F2F7',
-                        borderColor: isDark ? '#3A3A3C' : '#E5E5EA',
-                      },
-                    ]}
+            {/* Country picker — city modal only path now. */}
+            <View style={[commonStyles.chipRow, { marginTop: 12 }]}>
+              {COUNTRIES.map((c) => (
+                <TouchableOpacity
+                  key={c}
+                  testID={`other-country-${c}`}
+                  onPress={() => setOtherInput((s) => ({ ...s, country: c }))}
+                  style={[
+                    commonStyles.chip,
+                    {
+                      backgroundColor:
+                        otherInput.country === c
+                          ? colors.activeChipBackground
+                          : isDark
+                          ? '#2C2C2E'
+                          : '#F2F2F7',
+                      borderColor: isDark ? '#3A3A3C' : '#E5E5EA',
+                    },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color:
+                        otherInput.country === c
+                          ? colors.activeChipText
+                          : colors.text,
+                    }}
                   >
-                    <Text
-                      style={{
-                        color:
-                          otherInput.country === c
-                            ? colors.activeChipText
-                            : colors.text,
-                      }}
-                    >
-                      {t(`contextualListing.step2.cityOther.country.${c}` as TranslationKeys)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            ) : null}
+                    {t(`contextualListing.step2.cityOther.country.${c}` as TranslationKeys)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
             <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
               <TouchableOpacity
                 onPress={closeOtherModal}

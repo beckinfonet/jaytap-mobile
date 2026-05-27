@@ -218,13 +218,8 @@ describe('ContextualListingFlow integration (Plan 02-04b)', () => {
     await ReactTestRenderer.act(async () => {
       findByTestID(root, 'city-chip-bishkek').props.onPress();
     });
-    await ReactTestRenderer.act(async () => {
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-    await ReactTestRenderer.act(async () => {
-      findByTestID(root, 'district-chip-asanbay').props.onPress();
-    });
+    // Quick-task 260527-0cg — district chip row removed; flow reduces to:
+    // wait for cities → press city chip → drop pin → Next.
     // Drop pin via mock MapView onPress passthrough
     await ReactTestRenderer.act(async () => {
       findByTestID(root, 'mock-mapview').props.onPress({
@@ -302,7 +297,9 @@ describe('ContextualListingFlow integration (Plan 02-04b)', () => {
       propertyType: 'apartment',
       location: {
         city: 'bishkek',
-        district: 'asanbay',
+        // Quick-task 260527-0cg — district chip row removed; FormBag still carries
+        // the field but the user never sets it, so the payload contains empty string.
+        district: '',
         coordinates: { lat: 42.87, lng: 74.57 },
         showExactAddress: false,
       },
@@ -375,7 +372,8 @@ describe('ContextualListingFlow integration (Plan 02-04b)', () => {
       propertyType: 'apartment',
       location: {
         city: 'bishkek',
-        district: 'asanbay',
+        // Quick-task 260527-0cg — district no longer required at Step 2.
+        district: '',
         coordinates: { lat: 42.87, lng: 74.57 },
         showExactAddress: false,
       },
@@ -455,7 +453,8 @@ describe('ContextualListingFlow photo-gate on Step 6 for edit-mod (quick 260525-
       propertyType: 'apartment',
       location: {
         city: 'bishkek',
-        district: 'asanbay',
+        // Quick-task 260527-0cg — district no longer required at Step 2.
+        district: '',
         coordinates: { lat: 42.87, lng: 74.57 },
         showExactAddress: false,
       },
@@ -606,13 +605,7 @@ describe('ContextualListingFlow photo-gate on Step 6 for edit-mod (quick 260525-
     await ReactTestRenderer.act(async () => {
       findByTestID(root, 'city-chip-bishkek').props.onPress();
     });
-    await ReactTestRenderer.act(async () => {
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-    await ReactTestRenderer.act(async () => {
-      findByTestID(root, 'district-chip-asanbay').props.onPress();
-    });
+    // Quick-task 260527-0cg — district chip row removed; just drop the pin after city.
     await ReactTestRenderer.act(async () => {
       findByTestID(root, 'mock-mapview').props.onPress({
         nativeEvent: { coordinate: { latitude: 42.87, longitude: 74.57 } },
