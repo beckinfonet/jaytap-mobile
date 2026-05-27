@@ -83,6 +83,7 @@ export interface Property {
     photos: string[];
     videos: string[];
     tourUrl?: string;
+    tourPhotosUrl?: string; // 2026-05-26 plan — panoramic photos URL (Ricoh / Matterport / any https://)
   };
 
   // === Top-level admin trust signals (D-10 keep) ===
