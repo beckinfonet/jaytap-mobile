@@ -680,6 +680,9 @@ export const ru: Record<TranslationKeys, string> = {
   'contextualListing.step2.addressLabel': 'Адрес',
   'contextualListing.step2.addressNotFound': 'Не удалось найти адрес — поставьте точку на карте',
   'contextualListing.step2.addressPlaceholder': 'напр. ул. Манаса 100',
+  // Quick-task 260527-0cg (Phase 12 address-flow redesign) — подсказка под полем
+  // адреса, когда город ещё не выбран. Совпадает с `districts.disabled` по смыслу.
+  'contextualListing.step2.addressCityGate': 'Сначала выберите город',
 
   // Phase 2 (Plan 02-03) — ContextualListingFlow Шаг 3: Основные сведения (площадь + цена + валюта + условные подполя по типу недвижимости).
   'contextualListing.step3.title': 'Основные сведения',

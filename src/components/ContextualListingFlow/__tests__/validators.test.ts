@@ -55,13 +55,17 @@ describe('Phase 2 validators — Step 3 currency-empty sentinel guard (W-01, Pla
 });
 
 // V1, V2 — Step 2 cases (Plan 02-03).
+// Quick-task 260527-0cg — district requirement dropped (Phase 12 address-flow redesign).
+//   `emptyFormBag → 3 errors` → `emptyFormBag → 2 errors` (location.city + location.coordinates).
+//   Two NEW cases added below — district-empty isValid + FIELD_ORDER cleanup.
 describe('Phase 2 validators — Step 2 (Plan 02-03)', () => {
-  test('emptyFormBag → 3 errors: location.city, location.district, location.coordinates', () => {
+  test('emptyFormBag → 2 errors: location.city, location.coordinates', () => {
     const r = validateStep(2, emptyFormBag());
     expect(r.isValid).toBe(false);
     expect(r.errors['location.city']).toBe('contextualListing.step2.cityRequired');
-    expect(r.errors['location.district']).toBe('contextualListing.step2.districtRequired');
     expect(r.errors['location.coordinates']).toBe('contextualListing.step2.coordinatesRequired');
+    // Quick-task 260527-0cg invariant: district is no longer a Step 2 requirement.
+    expect(r.errors['location.district']).toBeUndefined();
   });
 
   test('all 3 set → isValid', () => {
@@ -78,6 +82,30 @@ describe('Phase 2 validators — Step 2 (Plan 02-03)', () => {
     const r = validateStep(2, bag);
     expect(r.isValid).toBe(true);
     expect(r.errors).toEqual({});
+  });
+
+  // Quick-task 260527-0cg — district dropped from Step 2 (Phase 12 address-flow redesign).
+  // City + coordinates set, district empty → isValid (district no longer surfaces in form).
+  test('city + coordinates set, district empty → isValid (quick-task 260527-0cg)', () => {
+    const bag = {
+      ...emptyFormBag(),
+      location: {
+        city: 'bishkek',
+        district: '',
+        coordinates: { lat: 42.87, lng: 74.57 },
+        showExactAddress: false,
+        address: '',
+      },
+    };
+    const r = validateStep(2, bag);
+    expect(r.isValid).toBe(true);
+    expect(r.errors).toEqual({});
+  });
+
+  // Quick-task 260527-0cg — FIELD_ORDER_PER_STEP[2] must NOT reference the deleted district.
+  // Scroll-to-first-error wiring would otherwise target a non-existent field.
+  test('FIELD_ORDER_PER_STEP[2] does not contain location.district (quick-task 260527-0cg)', () => {
+    expect(FIELD_ORDER_PER_STEP[2]).not.toContain('location.district');
   });
 });
 
