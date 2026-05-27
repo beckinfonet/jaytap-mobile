@@ -72,7 +72,12 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
   const title = property.content?.title ?? '';
   const cityLabel = property.location?.city ?? '';
   const districtLabel = property.location?.district ?? '';
-  const addressDisplay = [districtLabel, cityLabel].filter(Boolean).join(', ');
+  // Phase 11 GEO-06 / CONTEXT.md Decision 11: prefer geocoded location.address (Step 2
+  // typed or reverse-geocoded) when non-empty; fall back to district+city synthesis for
+  // pre-Phase-11 listings or empty-address listings. Fallback separator preserved
+  // verbatim (`, `) so pre-Phase-11 browse-strip cards render byte-identically.
+  const addressDisplay = (property.location?.address ?? '').trim()
+    || [districtLabel, cityLabel].filter(Boolean).join(', ');
 
   // Hero source order (D-08): media.photos[0] (Phase 1 D-12 first-photo wins flatten)
   // — tour thumbnail flattened to media.tourUrl is just a URL string, not a thumbnail

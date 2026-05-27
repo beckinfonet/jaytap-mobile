@@ -71,7 +71,18 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const heroPhoto = property.media?.photos?.[0];
   const cityLabel = property.location?.city ?? '';
   const districtLabel = property.location?.district ?? '';
-  const addressDisplay = [districtLabel, cityLabel].filter(Boolean).join(' · ');
+  // Phase 11 GEO-06 / CONTEXT.md Decision 11: prefer geocoded location.address (Step 2
+  // typed or reverse-geocoded) when non-empty; fall back to district+city synthesis for
+  // pre-Phase-11 listings or empty-address listings. Fallback separator preserved
+  // verbatim (` · ` bullet) so pre-Phase-11 share messages render byte-identically.
+  // INTENTIONAL EXCLUSION: the Row 3 MapPin label JSX at line ~291 keeps its own inline
+  // [districtLabel, cityLabel].filter(Boolean).join(' · ') expression — that row is the
+  // geographic-context label (district + city area-at-a-glance), parallel to
+  // MapPreviewCard's role on PropertyDetailsScreen. Granular street address lives in the
+  // share message (which uses THIS const) and on PropertyDetailsScreen, not in the
+  // single-line truncated Row 3.
+  const addressDisplay = (property.location?.address ?? '').trim()
+    || [districtLabel, cityLabel].filter(Boolean).join(' · ');
   // Tradeoff §K: hospitality strip uses dealType !== 'sale'; PropertyCard's M2 status
   // badge maps the sale/rent split via the same rule so it renders correctly on M3 data.
   const isSale = property.dealType === 'sale';

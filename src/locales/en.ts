@@ -670,6 +670,14 @@ export const en = {
   'contextualListing.step2.coordinatesRequired': 'Tap on the map to drop a pin',
   'contextualListing.step2.exactAddressToggle': 'Show exact address?',
 
+  // Phase 11 (Plan 11-05) — Step 2 address input (forward + reverse geocode UI strings).
+  // Closes the `as TranslationKeys` casts Plan 11-04 inserted into Step2Location.tsx.
+  // LOCKED text per 11-CONTEXT.md decision 10.
+  'contextualListing.step2.addressGeocoding': 'Looking up address…',
+  'contextualListing.step2.addressLabel': 'Street address',
+  'contextualListing.step2.addressNotFound': "Couldn't find that address — drop a pin instead",
+  'contextualListing.step2.addressPlaceholder': 'e.g. 100 Manas St',
+
   // Phase 2 (Plan 02-03) — ContextualListingFlow Step 3: Basic info (area + price + currency + per-propertyType conditional sub-fields).
   'contextualListing.step3.title': 'Basic information',
   'contextualListing.step3.areaLabel': 'Area (m²)',
