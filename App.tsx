@@ -49,6 +49,8 @@ import ModerationQueueScreen from './src/screens/ModerationQueueScreen';
 import RoleManagementScreen from './src/screens/RoleManagementScreen';
 // Phase 3 Plan 03-05 — mod-only media-curation overlay (entry-points wired by Plan 03-06).
 import { MediaCurationScreen, type MediaCurationMode } from './src/screens/MediaCurationScreen';
+// admin-live-listing-actions Task 8 — admin "Manage listing" overlay reached via the kebab.
+import { ListingAdminScreen } from './src/screens/ListingAdminScreen';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -96,6 +98,10 @@ function AppContent() {
   // (PropertyDetailsScreen kebab + ListingAdminScreen) will start passing
   // 'edit-live-media' through openMediaCuration to curate URLs on live listings.
   const [mediaCurationMode, setMediaCurationMode] = useState<MediaCurationMode>('edit-mod');
+  // admin-live-listing-actions Task 8 — ListingAdminScreen overlay state ("Manage listing").
+  // Opened by the PropertyDetailsScreen kebab via openListingAdmin(id) below.
+  const [isListingAdminOpen, setIsListingAdminOpen] = useState(false);
+  const [currentListingAdminId, setCurrentListingAdminId] = useState<string | null>(null);
   const [moderatorContext, setModeratorContext] = useState<{ editingOwnerUid: string; reason?: string; ownerEmail?: string; ownerName?: string } | null>(null);
   const [moderationCountRefreshKey, setModerationCountRefreshKey] = useState(0);
   const [propertyToEdit, setPropertyToEdit] = useState<Property | null>(null);
@@ -164,6 +170,7 @@ function AppContent() {
     !!user && isModerationQueueOpen, // Phase 3 Plan 06 — moderation queue overlay
     !!user && isRoleManagementOpen,  // Phase 5 — admin role management overlay
     !!user && isMediaCurationOpen,   // Phase 3 Plan 03-05 — media-curation overlay
+    !!user && isListingAdminOpen,    // admin-live-listing-actions Task 8 — Manage listing overlay
   ];
   const hideMainStackUnderOverlay = OVERLAY_FLAGS.some(Boolean);
 
@@ -650,6 +657,12 @@ function AppContent() {
     },
     [],
   );
+  // admin-live-listing-actions Task 8 — stable callback for the kebab's "Manage
+  // listing…" action. Mounts the ListingAdminScreen overlay over PropertyDetails.
+  const openListingAdmin = useCallback((listingId: string) => {
+    setCurrentListingAdminId(listingId);
+    setIsListingAdminOpen(true);
+  }, []);
   const onProfileViewListings = useCallback(() => setIsRenterListingsOpen(true), []);
   // Phase 2 D-15 / MOD-09: HomeRejectionBanner CTA target. Opens RenterListings
   // ('My Listings') with the Rejected tab pre-selected so the owner lands on the
@@ -1079,17 +1092,13 @@ function AppContent() {
             // status === 'pending' && photos.length === 0; tapping CTA dispatches the
             // MediaCurationScreen overlay (declared in Plan 03-05).
             onOpenMediaCuration={openMediaCuration}
-            // admin-live-listing-actions Task 5/6 — header kebab dispatchers.
+            // admin-live-listing-actions Task 5/6/8 — header kebab dispatchers.
             // editMedia + suspend + restore are wired (suspend/restore route to
             // PropertyDetailsScreen's internal ArchiveListingModal + handleRestore
             // already shipped in Phase 4 Plan 07, so no callback prop is needed
-            // for them). delete/manage remain stubbed pending Tasks 7/8 —
-            // grep "TODO Task 8" to find them.
+            // for them). manage → openListingAdmin mounts the Task 8 overlay.
             onOpenLiveMediaEdit={(id) => openMediaCuration(id, 'edit-live-media')}
-            onOpenListingAdmin={(id) => {
-              // TODO Task 8 — wire to ListingAdminScreen overlay
-              if (__DEV__) console.log('[admin-live-listing-actions Task 8] onOpenListingAdmin', id);
-            }}
+            onOpenListingAdmin={(id) => openListingAdmin(id)}
           />
         )}
         {(renterListingsEverMounted || isRenterListingsOpen) && (
@@ -1371,6 +1380,36 @@ function AppContent() {
                 setIsMediaCurationOpen(false);
                 setCurrentMediaCurationListingId(null);
                 setMediaCurationMode('edit-mod');
+              }}
+            />
+          </View>
+        )}
+        {/* admin-live-listing-actions Task 8 — ListingAdminScreen overlay.
+            Same mount pattern as MediaCurationScreen above. onListingDeleted
+            closes BOTH this overlay AND the underlying PropertyDetailsScreen
+            (clearing selectedProperty exposes the renter list view). */}
+        {!!user && isListingAdminOpen && currentListingAdminId && (
+          <View style={[fullScreenOverlayWrap, { pointerEvents: 'auto' }]}>
+            <ListingAdminScreen
+              listingId={currentListingAdminId}
+              onClose={() => {
+                setIsListingAdminOpen(false);
+                setCurrentListingAdminId(null);
+              }}
+              onOpenLiveMediaEdit={(id) => {
+                // Close ListingAdminScreen first so MediaCurationScreen mounts on top
+                // of PropertyDetailsScreen (not on top of this overlay).
+                setIsListingAdminOpen(false);
+                setCurrentListingAdminId(null);
+                openMediaCuration(id, 'edit-live-media');
+              }}
+              onListingDeleted={() => {
+                setIsListingAdminOpen(false);
+                setCurrentListingAdminId(null);
+                // Clear the underlying PropertyDetailsScreen — the listing is gone,
+                // so we drop the user back to whatever was under it (RenterListings
+                // / HomeScreen / OwnerListings depending on entry path).
+                setSelectedProperty(null);
               }}
             />
           </View>
