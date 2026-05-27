@@ -314,4 +314,34 @@ describe('MediaCurationScreen — Phase 3 Plan 03-05 smoke', () => {
     // Empty state renders when photos === 0 + pendingPhotos === 0.
     expect(json).toContain('moderation.mediaCuration.empty.title');
   });
+
+  test('360° photos URL input renders with tourPhotosUrl label', async () => {
+    (useRole as jest.Mock).mockReturnValue({
+      can: (a: string) => a === 'approveListings',
+    });
+    PropertyService.getPropertyById.mockResolvedValue({
+      _id: 'L1',
+      status: 'pending',
+      media: { photos: ['https://prev.com/p.jpg'], videos: [], tourUrl: undefined, tourPhotosUrl: undefined },
+    });
+
+    let tree: ReactTestRenderer.ReactTestRenderer | null = null;
+    await ReactTestRenderer.act(async () => {
+      tree = ReactTestRenderer.create(
+        <MediaCurationScreen
+          listingId="L1"
+          onClose={jest.fn()}
+          onApproveSuccess={jest.fn()}
+        />,
+      );
+    });
+    await ReactTestRenderer.act(async () => {
+      await Promise.resolve();
+    });
+    const json = JSON.stringify(tree!.toJSON());
+    // The tour-photos URL label key must render (translator mock is identity — returns the key).
+    expect(json).toContain('moderation.mediaCuration.tourPhotosUrl.label');
+    // Hint also renders (valid state on mount — draft is empty, which is valid).
+    expect(json).toContain('moderation.mediaCuration.tourPhotosUrl.hint');
+  });
 });

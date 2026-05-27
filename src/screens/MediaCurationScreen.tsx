@@ -93,6 +93,8 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
   const [pendingVideos, setPendingVideos] = useState<PendingAsset[]>([]);
   const [tourUrlDraft, setTourUrlDraft] = useState<string>('');
   const [tourUrlValid, setTourUrlValid] = useState<boolean>(true);
+  const [tourPhotosUrlDraft, setTourPhotosUrlDraft] = useState<string>('');
+  const [tourPhotosUrlValid, setTourPhotosUrlValid] = useState<boolean>(true);
   const [submittingSave, setSubmittingSave] = useState<boolean>(false);
   const [submittingApprove, setSubmittingApprove] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -121,6 +123,7 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
         if (!mounted) return;
         setListing(data);
         setTourUrlDraft(data?.media?.tourUrl || '');
+        setTourPhotosUrlDraft(data?.media?.tourPhotosUrl || '');
       } catch (err: any) {
         if (mounted) {
           setLoadError(err?.message || 'Failed to load listing');
@@ -244,8 +247,12 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
     () => tourUrlDraft !== (listing?.media?.tourUrl || ''),
     [tourUrlDraft, listing],
   );
+  const tourPhotosUrlChanged = useMemo(
+    () => tourPhotosUrlDraft !== (listing?.media?.tourPhotosUrl || ''),
+    [tourPhotosUrlDraft, listing],
+  );
   const hasPendingMedia = pendingPhotos.length > 0 || pendingVideos.length > 0;
-  const isSaveEnabled = !submittingSave && (hasPendingMedia || tourUrlChanged);
+  const isSaveEnabled = !submittingSave && (hasPendingMedia || tourUrlChanged || tourPhotosUrlChanged);
 
   const validateHttpsUrl = useCallback((value: string): boolean => {
     if (!value) return true; // empty is valid (server treats undefined as "leave alone")
@@ -261,17 +268,32 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
     setTourUrlValid(validateHttpsUrl(tourUrlDraft));
   }, [tourUrlDraft, validateHttpsUrl]);
 
+  const handleTourPhotosUrlBlur = useCallback(() => {
+    setTourPhotosUrlValid(validateHttpsUrl(tourPhotosUrlDraft));
+  }, [tourPhotosUrlDraft, validateHttpsUrl]);
+
   const handleSave = useCallback(async () => {
     if (submittingSave) return;
     const tourUrlToSend =
       tourUrlChanged && tourUrlDraft ? tourUrlDraft : undefined;
-    if (!hasPendingMedia && !tourUrlToSend) return;
+    const tourPhotosUrlToSend =
+      tourPhotosUrlChanged && tourPhotosUrlDraft ? tourPhotosUrlDraft : undefined;
+    if (!hasPendingMedia && !tourUrlToSend && !tourPhotosUrlToSend) return;
 
     if (tourUrlToSend && !validateHttpsUrl(tourUrlToSend)) {
       setTourUrlValid(false);
       Alert.alert(
         t('common.error'),
         t('moderation.mediaCuration.error.invalidTourUrl'),
+      );
+      return;
+    }
+
+    if (tourPhotosUrlToSend && !validateHttpsUrl(tourPhotosUrlToSend)) {
+      setTourPhotosUrlValid(false);
+      Alert.alert(
+        t('common.error'),
+        t('moderation.mediaCuration.error.invalidTourPhotosUrl'),
       );
       return;
     }
@@ -283,11 +305,13 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
         pendingPhotos,
         pendingVideos,
         tourUrlToSend,
+        tourPhotosUrlToSend,
       );
       setListing(updated);
       setPendingPhotos([]);
       setPendingVideos([]);
       setTourUrlDraft(updated?.media?.tourUrl || '');
+      setTourPhotosUrlDraft(updated?.media?.tourPhotosUrl || '');
       Alert.alert(
         t('common.success'),
         t('moderation.mediaCuration.save.success'),
@@ -317,6 +341,11 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
           t('common.error'),
           t('moderation.mediaCuration.error.invalidTourUrl'),
         );
+      } else if (code === 'MEDIA_INVALID_TOUR_PHOTOS_URL') {
+        Alert.alert(
+          t('common.error'),
+          t('moderation.mediaCuration.error.invalidTourPhotosUrl'),
+        );
       } else if (code === 'MEDIA_FILE_TOO_LARGE') {
         Alert.alert(
           t('common.error'),
@@ -342,6 +371,8 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
     pendingVideos,
     tourUrlDraft,
     tourUrlChanged,
+    tourPhotosUrlDraft,
+    tourPhotosUrlChanged,
     hasPendingMedia,
     submittingSave,
     validateHttpsUrl,
@@ -735,6 +766,55 @@ export const MediaCurationScreen: React.FC<MediaCurationScreenProps> = ({
                 ]}
               >
                 {t('moderation.mediaCuration.tourUrl.invalid')}
+              </Text>
+            )}
+          </View>
+
+          {/* 2026-05-26 tour-photos plan — panoramic photos URL (Ricoh / Matterport). */}
+          <View style={commonStyles.section}>
+            <Text
+              style={[commonStyles.sectionLabel, { color: colors.text }]}
+            >
+              {t('moderation.mediaCuration.tourPhotosUrl.label')}
+            </Text>
+            <TextInput
+              style={[
+                commonStyles.input,
+                {
+                  borderColor: tourPhotosUrlValid ? colors.border : colors.error,
+                  backgroundColor: colors.inputBackground,
+                  color: colors.text,
+                },
+              ]}
+              value={tourPhotosUrlDraft}
+              onChangeText={(v) => {
+                setTourPhotosUrlDraft(v);
+                if (!tourPhotosUrlValid) setTourPhotosUrlValid(true); // clear stale invalid on edit
+              }}
+              onBlur={handleTourPhotosUrlBlur}
+              placeholder={t('moderation.mediaCuration.tourPhotosUrl.placeholder')}
+              placeholderTextColor={colors.textTertiary}
+              keyboardType="url"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {tourPhotosUrlValid ? (
+              <Text
+                style={[
+                  styles.fieldHint,
+                  { color: colors.textSecondary },
+                ]}
+              >
+                {t('moderation.mediaCuration.tourPhotosUrl.hint')}
+              </Text>
+            ) : (
+              <Text
+                style={[
+                  styles.fieldError,
+                  { color: colors.error },
+                ]}
+              >
+                {t('moderation.mediaCuration.tourPhotosUrl.invalid')}
               </Text>
             )}
           </View>
