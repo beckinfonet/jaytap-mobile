@@ -266,6 +266,51 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
     );
   };
 
+  // archive-recovery (2026-05-27 follow-up): admin restores an archived
+  // listing directly from the queue tile when the Archived chip is active.
+  // Mirrors handleApprove's structure (confirm → await → remove row on
+  // success → useModActionGuard 403 + 409 + generic). PropertyService.restoreListing
+  // role-routes to /moderation/properties/:id/restore for mods/admins; result
+  // status flips to 'pending', so the row leaves the archived view.
+  const handleRestoreFromQueue = (property: Property) => {
+    Alert.alert(
+      t('adminListing.restore.title'),
+      t('adminListing.restore.body'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('adminListing.restore.confirm'),
+          onPress: async () => {
+            setActingId(property.id);
+            try {
+              await PropertyService.restoreListing(property.id);
+              // Pessimistic UI: remove the row only after the await resolves.
+              setItems((prev) => prev.filter((p) => p.id !== property.id));
+            } catch (err: any) {
+              if (is403PermissionError(err)) {
+                await onPermissionDenied({
+                  closeModal: () => {},
+                  resetLoading: () => setActingId(null),
+                });
+                return;
+              }
+              if (err?.response?.status === 409) {
+                await handleRaceConflict();
+                return;
+              }
+              Alert.alert(
+                t('common.error'),
+                err?.response?.data?.message || err?.message || t('common.errorGeneric'),
+              );
+            } finally {
+              setActingId(null);
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const handleRejectSubmit = async (params: {
     reasonCode: RejectReasonCode;
     reasonNote?: string;
@@ -366,52 +411,81 @@ const ModerationQueueScreen: React.FC<ModerationQueueScreenProps> = ({
           groupWithFooter
         />
         <View style={[styles.actionsBlock, { borderTopColor: colors.border }]}>
-          <View style={styles.actionsRowTop}>
+          {activeFilter === 'archived' ? (
+            // archive-recovery (2026-05-27 follow-up): Approve/Reject/Edit-on-behalf
+            // don't apply to archived listings (backend rejects with 409 because
+            // those routes require status: 'pending'). Restore is the correct
+            // primary action — it flips status to 'pending' and the row leaves
+            // the archived view (where it'll re-surface in 'All pending').
             <TouchableOpacity
               style={[
                 styles.actionBtn,
-                styles.actionBtnHalf,
+                styles.actionBtnFull,
                 { backgroundColor: colors.success },
-                !isApproveEnabled && { opacity: 0.5 },
               ]}
-              onPress={() => handleApprove(item)}
-              disabled={isActing || !isApproveEnabled}
+              onPress={() => handleRestoreFromQueue(item)}
+              disabled={isActing}
               activeOpacity={0.7}
-              accessibilityState={{ disabled: isActing || !isApproveEnabled }}
+              accessibilityRole="button"
+              accessibilityLabel={t('adminListing.menu.restore')}
+              accessibilityState={{ disabled: isActing }}
             >
               {isActing ? (
                 <ActivityIndicator color="#FFF" size="small" />
               ) : (
-                <Text style={styles.actionBtnText}>{t('moderation.action.approve')}</Text>
+                <Text style={styles.actionBtnText}>{t('adminListing.menu.restore')}</Text>
               )}
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionBtn, styles.actionBtnHalf, { backgroundColor: colors.error }]}
-              onPress={() => setRejectTarget(item)}
-              disabled={isActing}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.actionBtnText}>{t('moderation.action.reject')}</Text>
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity
-            style={[
-              styles.actionBtn,
-              styles.actionBtnFull,
-              {
-                backgroundColor: colors.surface,
-                borderWidth: 1,
-                borderColor: colors.border,
-              },
-            ]}
-            onPress={() => onEditOnBehalf(item)}
-            disabled={isActing}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.actionBtnText, { color: colors.text }]}>
-              {t('moderation.action.editOnBehalf')}
-            </Text>
-          </TouchableOpacity>
+          ) : (
+            <>
+              <View style={styles.actionsRowTop}>
+                <TouchableOpacity
+                  style={[
+                    styles.actionBtn,
+                    styles.actionBtnHalf,
+                    { backgroundColor: colors.success },
+                    !isApproveEnabled && { opacity: 0.5 },
+                  ]}
+                  onPress={() => handleApprove(item)}
+                  disabled={isActing || !isApproveEnabled}
+                  activeOpacity={0.7}
+                  accessibilityState={{ disabled: isActing || !isApproveEnabled }}
+                >
+                  {isActing ? (
+                    <ActivityIndicator color="#FFF" size="small" />
+                  ) : (
+                    <Text style={styles.actionBtnText}>{t('moderation.action.approve')}</Text>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionBtn, styles.actionBtnHalf, { backgroundColor: colors.error }]}
+                  onPress={() => setRejectTarget(item)}
+                  disabled={isActing}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.actionBtnText}>{t('moderation.action.reject')}</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                style={[
+                  styles.actionBtn,
+                  styles.actionBtnFull,
+                  {
+                    backgroundColor: colors.surface,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                  },
+                ]}
+                onPress={() => onEditOnBehalf(item)}
+                disabled={isActing}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.actionBtnText, { color: colors.text }]}>
+                  {t('moderation.action.editOnBehalf')}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
     );
