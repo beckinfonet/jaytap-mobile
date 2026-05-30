@@ -1,128 +1,136 @@
-// Phase 3 Plan 03-06 — NeedsMediaBanner (mod-only).
-//
-// Banner with vertical accent stripe (colors.warning) + AlertTriangle icon + title +
-// body + "Add photos" CTA. Mounted on PropertyDetailsScreen above the existing mod
-// action footer when can('approveListings') && status === 'pending' && photos.length === 0.
-// CTA fires `onAddPhotos`, which the parent screen wires to App.tsx's openMediaCuration
-// callback (Plan 03-05 declared the callback; Plan 03-06 wires it).
-//
-// Visual contract mirrors RejectionBanner (accent stripe + title + body + CTA) but with
-// the warning palette (colors.warning) and an accent CTA (colors.accent + colors.onAccent).
-//
-// W6 (revision 2) zero-hex compliance: this component must contain ZERO hex / rgba
-// literals. The CTA label `color` is applied INLINE via JSX style array merging
-// (`[styles.ctaLabel, { color: colors.onAccent }]`) — NOT in the static StyleSheet —
-// because static StyleSheet.create cannot reference runtime theme tokens. The static
-// `ctaLabel` block intentionally omits `color:` so the inline token wins.
+/**
+ * NeedsMediaBanner — EMPTY-state dropzone for the admin review surface.
+ * Spec: docs/superpowers/specs/2026-05-29-admin-review-dock-redesign-design.md § 1
+ *
+ * Replaces the old amber side-stripe banner. Now renders as a full-width tappable
+ * dashed-border dropzone with a lock pill ("Admins only · required"), a soft-accent
+ * camera tile, a big title, body copy, and an inset green CTA pill. Both the
+ * container AND the CTA pill fire `onAddPhotos` (which the parent wires to
+ * MediaCurationScreen navigation).
+ *
+ * W6 strict: zero hex/rgba in this file. All colors via useTheme(); alpha tints
+ * applied inline at the JSX style array (static StyleSheet has no color keys).
+ *
+ * testIDs preserved from the prior implementation: `needs-media-banner` and
+ * `needs-media-banner-cta`. The `inDock` prop is retained for caller backwards
+ * compatibility but is now a no-op visual modifier (the dropzone is always
+ * full-width with internal padding).
+ */
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { AlertTriangle } from 'lucide-react-native';
+import { Camera, Lock, Plus } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 
 interface NeedsMediaBannerProps {
   onAddPhotos: () => void;
-  /** Nested in PropertyDetailsScreen moderation dock — parent supplies horizontal padding */
+  /** Retained for caller backwards-compat; no-op in the new design. */
   inDock?: boolean;
 }
 
-export const NeedsMediaBanner: React.FC<NeedsMediaBannerProps> = ({ onAddPhotos, inDock }) => {
+export const NeedsMediaBanner: React.FC<NeedsMediaBannerProps> = ({ onAddPhotos }) => {
   const { colors } = useTheme();
   const { t } = useLanguage();
 
   return (
-    <View
+    <TouchableOpacity
+      testID="needs-media-banner"
+      onPress={onAddPhotos}
+      activeOpacity={0.85}
+      accessibilityRole="button"
+      accessibilityLabel={t('adminReview.dropzone.title')}
       style={[
         styles.container,
-        inDock && styles.containerInDock,
-        { backgroundColor: colors.surface, borderColor: colors.border },
+        { borderColor: colors.border, backgroundColor: colors.surface },
       ]}
-      testID="needs-media-banner"
     >
-      <View style={[styles.accentStripe, { backgroundColor: colors.warning }]} />
-      <View style={styles.body}>
-        <View style={styles.titleRow}>
-          <AlertTriangle size={16} color={colors.warning} style={styles.icon} />
-          <Text style={[styles.title, { color: colors.text }]}>
-            {t('moderation.needsMediaBanner.title')}
-          </Text>
-        </View>
-        <Text
-          style={[styles.subtitle, { color: colors.textSecondary }]}
-          numberOfLines={3}
-        >
-          {t('moderation.needsMediaBanner.body')}
+      <View style={[styles.pill, { backgroundColor: colors.background }]}>
+        <Lock size={11} color={colors.textSecondary} />
+        <Text style={[styles.pillLabel, { color: colors.textSecondary }]}>
+          {t('adminReview.dropzone.pill')}
         </Text>
-        <TouchableOpacity
-          style={[styles.cta, { backgroundColor: colors.accent }]}
-          onPress={onAddPhotos}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel={t('moderation.needsMediaBanner.action')}
-          testID="needs-media-banner-cta"
-        >
-          <Text style={[styles.ctaLabel, { color: colors.onAccent }]}>
-            {t('moderation.needsMediaBanner.action')}
-          </Text>
-        </TouchableOpacity>
       </View>
-    </View>
+      <View style={[styles.iconTile, { backgroundColor: colors.success }]}>
+        <Camera size={26} color={colors.onAccent} />
+      </View>
+      <Text style={[styles.title, { color: colors.text }]}>
+        {t('adminReview.dropzone.title')}
+      </Text>
+      <Text style={[styles.subtext, { color: colors.textSecondary }]} numberOfLines={3}>
+        {t('adminReview.dropzone.subtext')}
+      </Text>
+      <TouchableOpacity
+        testID="needs-media-banner-cta"
+        onPress={onAddPhotos}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={t('adminReview.dropzone.cta')}
+        style={[styles.cta, { backgroundColor: colors.success }]}
+      >
+        <Plus size={16} color={colors.onAccent} />
+        <Text style={[styles.ctaLabel, { color: colors.onAccent }]}>
+          {t('adminReview.dropzone.cta')}
+        </Text>
+      </TouchableOpacity>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    borderRadius: 14,
-    borderWidth: 1,
-    marginBottom: 16,
     marginHorizontal: 16,
-    overflow: 'hidden',
+    marginBottom: 16,
+    paddingVertical: 26,
+    paddingHorizontal: 20,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    gap: 12,
   },
-  containerInDock: {
-    marginHorizontal: 0,
-    marginBottom: 0,
-  },
-  accentStripe: {
-    width: 4,
-  },
-  body: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  titleRow: {
+  pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    gap: 5,
+    paddingVertical: 4,
+    paddingHorizontal: 9,
+    borderRadius: 999,
   },
-  icon: {
-    marginRight: 8,
+  pillLabel: {
+    fontSize: 10.5,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  iconTile: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 14,
-    fontWeight: '600',
-    lineHeight: 20,
+    fontSize: 19,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
-  subtitle: {
-    fontSize: 13,
-    fontWeight: '400',
+  subtext: {
+    fontSize: 12.5,
     lineHeight: 18,
-    marginBottom: 10,
+    textAlign: 'center',
+    maxWidth: 250,
   },
   cta: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 11,
+    paddingHorizontal: 20,
     borderRadius: 12,
-    alignSelf: 'flex-start',
+    marginTop: 4,
   },
-  // NOTE (W6 strict): no `color:` here — the inline `{ color: colors.onAccent }` wins
-  // when this style is composed via JSX array. Keeping color out of the static style
-  // is intentional so this file stays at zero hex literals.
   ctaLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    lineHeight: 20,
+    fontWeight: '700',
   },
 });
 
