@@ -298,6 +298,13 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   // Client-side disable is UX guidance ONLY; backend Plan 03-03's MEDIA_REQUIRED
   // gate is the trust boundary (T-02 defense-in-depth).
   const isApproveEnabled = photoCount > 0;
+  // Admin-only photo confirmation grid — shown when a mod/admin is reviewing
+  // a pending listing that ALREADY has 1+ photos. Mutually exclusive with
+  // showNeedsMediaBanner (which fires on 0 photos).
+  const showAdminPhotoGrid =
+    can('approveListings') &&
+    property?.status === 'pending' &&
+    photoCount > 0;
   // Phase 4 Plan 07 D-06 — mod/admin Archive/Restore/Hard-Delete render predicates.
   // Backend HARD_DELETE_REQUIRES_ARCHIVED still gates non-archived listings via the
   // backend route's 400 response (Plan 04-04); the client predicate is permissive so
@@ -1020,6 +1027,23 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               </TouchableOpacity>
             </View>
           </View>
+
+          {showNeedsMediaBanner && (
+            <NeedsMediaBanner
+              onAddPhotos={() => onOpenMediaCuration?.(String(property.id))}
+            />
+          )}
+
+          {showAdminPhotoGrid && (
+            <AdminPhotoGrid
+              photos={(property.media?.photos ?? []).map((p: string) => ({
+                uri: p,
+                key: p,
+              }))}
+              onOpenCuration={() => onOpenMediaCuration?.(String(property.id))}
+              onAddMore={() => onOpenMediaCuration?.(String(property.id))}
+            />
+          )}
 
           {/* Title, Deal pill, ID, Address — HeaderInfoCard (M5 redesign) */}
           <View style={styles.section}>
