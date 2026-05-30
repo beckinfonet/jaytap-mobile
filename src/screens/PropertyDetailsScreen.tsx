@@ -1056,6 +1056,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
                   ? <StatusPill status={property.status} />
                   : undefined
               }
+              pendingReviewEyebrow={property?.status === 'pending'}
             />
           </View>
 
