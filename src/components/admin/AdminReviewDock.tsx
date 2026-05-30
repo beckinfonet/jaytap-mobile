@@ -35,6 +35,7 @@ import {
   ArchiveRestore,
   Trash2,
 } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -69,6 +70,7 @@ export const AdminReviewDock: React.FC<AdminReviewDockProps> = ({
 }) => {
   const { colors, isDark } = useTheme();
   const { t } = useLanguage();
+  const insets = useSafeAreaInsets();
   const [moreOpen, setMoreOpen] = useState(false);
 
   const approveDisabled = !isApproveEnabled || submittingAction;
@@ -102,7 +104,7 @@ export const AdminReviewDock: React.FC<AdminReviewDockProps> = ({
         blurAmount={Platform.OS === 'ios' ? 22 : 32}
         reducedTransparencyFallbackColor={colors.surface}
       />
-      <View style={styles.dockContent}>
+      <View style={[styles.dockContent, { paddingBottom: Math.max(insets.bottom, 14) }]}>
         {/* Approve button — locked vs unlocked */}
         <TouchableOpacity
           testID="admin-review-dock-approve"
@@ -282,7 +284,6 @@ const styles = StyleSheet.create({
   dockContent: {
     paddingHorizontal: 16,
     paddingTop: 14,
-    paddingBottom: 22,
     gap: 10,
   },
   approveBtn: {

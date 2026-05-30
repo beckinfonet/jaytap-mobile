@@ -905,7 +905,21 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
           </View>
         )}
 
-        {/* Image Carousel */}
+        {/* Admin EMPTY-state dropzone (page hero). Renders above everything else
+            when a mod/admin opens a 0-photo pending listing — replaces the empty
+            hero carousel slot AND suppresses the 3D-Tour / media tiles row below
+            (those are noise when the listing has nothing to show off). */}
+        {showNeedsMediaBanner && (
+          <View style={{ paddingTop: 12 }}>
+            <NeedsMediaBanner
+              onAddPhotos={() => onOpenMediaCuration?.(String(property.id))}
+            />
+          </View>
+        )}
+
+        {/* Image Carousel — suppressed in the admin EMPTY review state to keep
+            the dropzone above as the only top-of-page surface. */}
+        {!showNeedsMediaBanner && (
         <View style={styles.carouselContainer}>
           <FlatList
             data={images}
@@ -929,10 +943,15 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             )}
           </View>
         </View>
+        )}
 
         <View style={styles.contentContainer}>
 
-          {/* Media Buttons - Redesigned: Hero 3D Tour + 2x2 Grid */}
+          {/* Media Buttons — also suppressed in the admin EMPTY review state.
+              When the listing has no photos there's nothing for these tiles to
+              point at; surfacing them disabled is noise that competes with the
+              dropzone for attention. */}
+          {!showNeedsMediaBanner && (
           <View style={styles.mediaButtonsContainer}>
             {/* Hero 3D Tour Card - platform-specific component.
                 Phase 2 D-20 cutover: M2 flat `is3DTourAvailable && tours[]` → M3 nested
@@ -1027,12 +1046,11 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
               </TouchableOpacity>
             </View>
           </View>
-
-          {showNeedsMediaBanner && (
-            <NeedsMediaBanner
-              onAddPhotos={() => onOpenMediaCuration?.(String(property.id))}
-            />
           )}
+
+          {/* NeedsMediaBanner is now rendered ABOVE the carousel (page hero
+              slot) — the duplicate mount that used to sit here was removed
+              during the QA hotfix that moved the dropzone to the top. */}
 
           {showAdminPhotoGrid && (
             <AdminPhotoGrid
