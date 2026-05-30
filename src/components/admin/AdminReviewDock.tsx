@@ -41,7 +41,7 @@ import { useLanguage } from '../../context/LanguageContext';
 export interface AdminReviewDockProps {
   isApproveEnabled: boolean;
   submittingAction: boolean;
-  canApprove: boolean;
+  canReviewActions: boolean;
   canArchive: boolean;
   canRestore: boolean;
   canHardDelete: boolean;
@@ -56,7 +56,7 @@ export interface AdminReviewDockProps {
 export const AdminReviewDock: React.FC<AdminReviewDockProps> = ({
   isApproveEnabled,
   submittingAction,
-  canApprove,
+  canReviewActions,
   canArchive,
   canRestore,
   canHardDelete,
@@ -72,7 +72,7 @@ export const AdminReviewDock: React.FC<AdminReviewDockProps> = ({
   const [moreOpen, setMoreOpen] = useState(false);
 
   const approveDisabled = !isApproveEnabled || submittingAction;
-  const hasAnySecondary = canApprove || canArchive || canRestore || canHardDelete;
+  const hasAnySecondary = canReviewActions || canArchive || canRestore || canHardDelete;
 
   const closeMenuAnd = (handler: () => void) => () => {
     setMoreOpen(false);
@@ -163,7 +163,7 @@ export const AdminReviewDock: React.FC<AdminReviewDockProps> = ({
                 {t('adminReview.moreActions.menuHeader')}
               </Text>
             </View>
-            {canApprove && (
+            {canReviewActions && (
               <TouchableOpacity
                 testID="admin-review-dock-row-reject"
                 style={[styles.menuRow, { borderTopColor: colors.border }]}
@@ -177,7 +177,7 @@ export const AdminReviewDock: React.FC<AdminReviewDockProps> = ({
                 </Text>
               </TouchableOpacity>
             )}
-            {canApprove && (
+            {canReviewActions && (
               <TouchableOpacity
                 testID="admin-review-dock-row-edit"
                 style={[styles.menuRow, { borderTopColor: colors.border }]}

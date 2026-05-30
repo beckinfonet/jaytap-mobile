@@ -38,7 +38,7 @@ import { AdminReviewDock } from '../AdminReviewDock';
 const defaultProps = {
   isApproveEnabled: false,
   submittingAction: false,
-  canApprove: true,
+  canReviewActions: true,
   canArchive: true,
   canRestore: false,
   canHardDelete: true,
@@ -178,18 +178,19 @@ describe('AdminReviewDock — more-actions disclosure', () => {
 });
 
 describe('AdminReviewDock — role gating', () => {
-  it('omits Reject + Edit when canApprove is false', () => {
+  it('omits Reject + Edit when canReviewActions is false', () => {
     let renderer!: TestRenderer.ReactTestRenderer;
     act(() => {
-      renderer = TestRenderer.create(<AdminReviewDock {...defaultProps} canApprove={false} />);
+      renderer = TestRenderer.create(<AdminReviewDock {...defaultProps} canReviewActions={false} />);
     });
     const trigger = renderer.root.findByProps({ testID: 'admin-review-dock-more-trigger' });
     act(() => trigger.props.onPress());
-    const findRow = (id: string) =>
-      renderer.root.findAllByProps({ testID: id }).filter((n) => typeof n.type !== 'string').length > 0 ||
-      renderer.root.findAllByProps({ testID: id }).filter((n) => typeof n.type === 'string').length > 0;
-    expect(findRow('admin-review-dock-row-reject')).toBe(false);
-    expect(findRow('admin-review-dock-row-edit')).toBe(false);
+    expect(
+      renderer.root.findAllByProps({ testID: 'admin-review-dock-row-reject' }).length,
+    ).toBe(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'admin-review-dock-row-edit' }).length,
+    ).toBe(0);
   });
 
   it('renders Restore (not Archive) when canRestore is true and canArchive is false', () => {
