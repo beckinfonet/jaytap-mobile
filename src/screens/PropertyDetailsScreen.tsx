@@ -1038,7 +1038,6 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
             <AdminPhotoGrid
               photos={(property.media?.photos ?? []).map((p: string) => ({
                 uri: p,
-                key: p,
               }))}
               onOpenCuration={() => onOpenMediaCuration?.(String(property.id))}
               onAddMore={() => onOpenMediaCuration?.(String(property.id))}
