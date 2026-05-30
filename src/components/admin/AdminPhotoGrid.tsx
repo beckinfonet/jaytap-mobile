@@ -23,7 +23,12 @@ export interface AdminPhotoGridPhoto {
 
 export interface AdminPhotoGridProps {
   photos: AdminPhotoGridPhoto[];
+  /** Fires when any thumbnail cell is tapped. Today wired to MediaCurationScreen
+   *  for reorder/cover-photo edits; could diverge later to e.g. browse-mode. */
   onOpenCuration: () => void;
+  /** Fires when the "+ Add more" header link is tapped. Today also wired to
+   *  MediaCurationScreen; the split is intentional so a future change could
+   *  route this directly to the upload picker without re-entering curation. */
   onAddMore: () => void;
 }
 
@@ -88,12 +93,17 @@ export const AdminPhotoGrid: React.FC<AdminPhotoGridProps> = ({
       <View style={styles.grid}>
         {photos.map((photo, idx) => (
           <TouchableOpacity
-            key={photo.key ?? photo.uri ?? `cell-${idx}`}
+            key={photo.key ?? `cell-${idx}`}
             testID="admin-photo-grid-cell"
             style={[styles.cell, { borderColor: colors.border }]}
             onPress={onOpenCuration}
             activeOpacity={0.85}
             accessibilityRole="button"
+            accessibilityLabel={
+              idx === 0
+                ? t('adminReview.grid.coverBadge')
+                : `${idx + 1}`
+            }
           >
             <CellImage uri={photo.uri} />
             {idx === 0 ? (
