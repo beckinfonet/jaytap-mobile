@@ -105,47 +105,51 @@ export const AdminReviewDock: React.FC<AdminReviewDockProps> = ({
         reducedTransparencyFallbackColor={colors.surface}
       />
       <View style={[styles.dockContent, { paddingBottom: Math.max(insets.bottom, 14) }]}>
-        {/* Approve button — locked vs unlocked */}
-        <TouchableOpacity
-          testID="admin-review-dock-approve"
-          onPress={onApprove}
-          disabled={approveDisabled}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityState={{ disabled: approveDisabled }}
-          accessibilityLabel={
-            isApproveEnabled
-              ? t('adminReview.approve.unlocked.label')
-              : t('adminReview.approve.locked.label')
-          }
-          style={[
-            styles.approveBtn,
-            isApproveEnabled
-              ? [{ backgroundColor: colors.success }, approveGlow]
-              : { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
-          ]}
-        >
-          {submittingAction ? (
-            <ActivityIndicator color={isApproveEnabled ? colors.onAccent : colors.textTertiary} />
-          ) : isApproveEnabled ? (
-            <>
-              <Check size={18} color={colors.onAccent} />
-              <Text style={[styles.approveLabel, { color: colors.onAccent }]}>
-                {t('adminReview.approve.unlocked.label')}
-              </Text>
-            </>
-          ) : (
-            <>
-              <Lock size={15} color={colors.textTertiary} />
-              <Text style={[styles.approveLabel, { color: colors.textTertiary }]}>
-                {t('adminReview.approve.locked.label')}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
+        {/* Approve button — locked vs unlocked. Renders only when the listing
+            is in a reviewable state (pending). For live/archived listings the
+            dock still mounts for Archive/Restore/Delete via "More actions". */}
+        {canReviewActions && (
+          <TouchableOpacity
+            testID="admin-review-dock-approve"
+            onPress={onApprove}
+            disabled={approveDisabled}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: approveDisabled }}
+            accessibilityLabel={
+              isApproveEnabled
+                ? t('adminReview.approve.unlocked.label')
+                : t('adminReview.approve.locked.label')
+            }
+            style={[
+              styles.approveBtn,
+              isApproveEnabled
+                ? [{ backgroundColor: colors.success }, approveGlow]
+                : { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+            ]}
+          >
+            {submittingAction ? (
+              <ActivityIndicator color={isApproveEnabled ? colors.onAccent : colors.textTertiary} />
+            ) : isApproveEnabled ? (
+              <>
+                <Check size={18} color={colors.onAccent} />
+                <Text style={[styles.approveLabel, { color: colors.onAccent }]}>
+                  {t('adminReview.approve.unlocked.label')}
+                </Text>
+              </>
+            ) : (
+              <>
+                <Lock size={15} color={colors.textTertiary} />
+                <Text style={[styles.approveLabel, { color: colors.textTertiary }]}>
+                  {t('adminReview.approve.locked.label')}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
 
-        {/* Helper line — only when locked */}
-        {!isApproveEnabled && (
+        {/* Helper line — only when Approve is mounted AND locked. */}
+        {canReviewActions && !isApproveEnabled && (
           <View style={styles.helperRow}>
             <AlertTriangle size={12} color={colors.warning} />
             <Text style={[styles.helperText, { color: colors.textSecondary }]}>

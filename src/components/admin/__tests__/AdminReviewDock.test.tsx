@@ -180,6 +180,40 @@ describe('AdminReviewDock — more-actions disclosure', () => {
   });
 });
 
+describe('AdminReviewDock — Approve button visibility (live-listing regression)', () => {
+  it('hides Approve button + helper when canReviewActions is false (live listing)', () => {
+    let renderer!: TestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = TestRenderer.create(
+        <AdminReviewDock {...defaultProps} canReviewActions={false} />,
+      );
+    });
+    expect(
+      renderer.root.findAllByProps({ testID: 'admin-review-dock-approve' }).length,
+    ).toBe(0);
+    expect(findAllText(renderer.root)).not.toContain('adminReview.approve.locked.label');
+    expect(findAllText(renderer.root)).not.toContain('adminReview.approve.locked.helper');
+    expect(findAllText(renderer.root)).not.toContain('adminReview.approve.unlocked.label');
+  });
+
+  it('still shows More actions trigger when only admin actions are gated true', () => {
+    let renderer!: TestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = TestRenderer.create(
+        <AdminReviewDock
+          {...defaultProps}
+          canReviewActions={false}
+          canArchive={true}
+          canHardDelete={true}
+        />,
+      );
+    });
+    expect(
+      renderer.root.findAllByProps({ testID: 'admin-review-dock-more-trigger' }).length,
+    ).toBeGreaterThan(0);
+  });
+});
+
 describe('AdminReviewDock — role gating', () => {
   it('omits Reject + Edit when canReviewActions is false', () => {
     let renderer!: TestRenderer.ReactTestRenderer;
