@@ -10,7 +10,7 @@
  */
 import React from 'react';
 import TestRenderer, { act } from 'react-test-renderer';
-import { Text, TouchableOpacity } from 'react-native';
+import { Text } from 'react-native';
 
 jest.mock('../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
 jest.mock('../../../context/LanguageContext', () => ({ useLanguage: jest.fn() }));
