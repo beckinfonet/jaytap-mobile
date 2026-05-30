@@ -17,6 +17,9 @@ export interface HeaderInfoCardProps {
   formattedAddress: { line1: string; line2?: string };
   statusPill?: React.ReactNode;
   mapPreview?: React.ReactNode;
+  /** When true, renders an amber "PENDING REVIEW" eyebrow above the pill row.
+   *  Visible to anyone who can see a pending listing (admin/mod + the owner). */
+  pendingReviewEyebrow?: boolean;
 }
 
 export const HeaderInfoCard: React.FC<HeaderInfoCardProps> = ({
@@ -26,6 +29,7 @@ export const HeaderInfoCard: React.FC<HeaderInfoCardProps> = ({
   formattedAddress,
   statusPill,
   mapPreview,
+  pendingReviewEyebrow,
 }) => {
   const { colors } = useTheme();
   const { t } = useLanguage();
@@ -39,6 +43,14 @@ export const HeaderInfoCard: React.FC<HeaderInfoCardProps> = ({
 
   return (
     <View style={styles.container}>
+      {pendingReviewEyebrow ? (
+        <View style={styles.eyebrowRow}>
+          <View style={[styles.eyebrowRule, { backgroundColor: colors.warning }]} />
+          <Text style={[styles.eyebrowLabel, { color: colors.warning }]}>
+            {t('adminReview.pendingReviewEyebrow' as TranslationKeys)}
+          </Text>
+        </View>
+      ) : null}
       <View style={styles.pillRow}>
         <View style={styles.dealPill}>
           <View style={[styles.accentBar, { backgroundColor: colors.accent }]} />
@@ -156,5 +168,22 @@ const styles = StyleSheet.create({
   },
   mapSlot: {
     marginTop: 14,
+  },
+  eyebrowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  eyebrowRule: {
+    width: 13,
+    height: 1.5,
+    borderRadius: 1,
+  },
+  eyebrowLabel: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
 });

@@ -26,6 +26,7 @@ beforeEach(() => {
       surface: '',
       border: '',
       accent: '#FF385C',
+      warning: '#F59E0B',
     },
   });
   useLanguage.mockReturnValue({ t: (k: string) => k, language: 'en' });
@@ -110,5 +111,33 @@ describe('HeaderInfoCard', () => {
       renderer = TestRenderer.create(<HeaderInfoCard {...defaultProps} mapPreview={sentinel} />);
     });
     expect(renderer.root.findAllByProps({ testID: 'map-sentinel' }).filter((r) => typeof r.type === 'string')).toHaveLength(1);
+  });
+
+  it('renders PENDING REVIEW eyebrow when pendingReviewEyebrow is true', () => {
+    let renderer!: TestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = TestRenderer.create(
+        <HeaderInfoCard {...defaultProps} pendingReviewEyebrow={true} />,
+      );
+    });
+    expect(findAllText(renderer.root)).toContain('adminReview.pendingReviewEyebrow');
+  });
+
+  it('does not render PENDING REVIEW eyebrow when pendingReviewEyebrow is false', () => {
+    let renderer!: TestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = TestRenderer.create(
+        <HeaderInfoCard {...defaultProps} pendingReviewEyebrow={false} />,
+      );
+    });
+    expect(findAllText(renderer.root)).not.toContain('adminReview.pendingReviewEyebrow');
+  });
+
+  it('does not render PENDING REVIEW eyebrow when prop is omitted (default)', () => {
+    let renderer!: TestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = TestRenderer.create(<HeaderInfoCard {...defaultProps} />);
+    });
+    expect(findAllText(renderer.root)).not.toContain('adminReview.pendingReviewEyebrow');
   });
 });
