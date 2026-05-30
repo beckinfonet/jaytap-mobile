@@ -268,9 +268,16 @@ export const AdminReviewDock: React.FC<AdminReviewDockProps> = ({
 
 const styles = StyleSheet.create({
   dockOuter: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    position: 'relative',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 100,
+    elevation: 28,
     overflow: 'hidden',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   dockContent: {
     paddingHorizontal: 16,
