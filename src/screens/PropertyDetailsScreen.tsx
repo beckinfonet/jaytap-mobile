@@ -58,8 +58,8 @@ import { useRole } from '../hooks/useRole';
 import { useModActionGuard } from '../hooks/useModActionGuard';
 import { Gated } from '../components/Gated';
 import { RejectionBanner } from '../components/RejectionBanner';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- re-used in Task 7 (hoist banner into scroll body)
 import { NeedsMediaBanner } from '../components/NeedsMediaBanner';
+import { AdminPhotoGrid } from '../components/admin/AdminPhotoGrid';
 import { StatusPill } from '../components/StatusPill';
 import RejectListingModal from '../components/RejectListingModal';
 import ArchiveListingModal from '../components/ArchiveListingModal';
@@ -133,7 +133,7 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   onEditListing,
   onEditOnBehalfPressed,
   onRefreshProperty,
-  onOpenMediaCuration: _onOpenMediaCuration,
+  onOpenMediaCuration,
   onOpenLiveMediaEdit,
   onOpenListingAdmin,
 }) => {
@@ -290,7 +290,6 @@ export const PropertyDetailsScreen: React.FC<PropertyDetailsScreenProps> = ({
   // is viewing a pending listing that has no photos. Mutually exclusive with
   // RejectionBanner (pending != rejected) so no co-render stacking required.
   const photoCount = property?.media?.photos?.length ?? 0;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- re-used in Task 7 (hoist banner into scroll body)
   const showNeedsMediaBanner =
     can('approveListings') &&
     property?.status === 'pending' &&
