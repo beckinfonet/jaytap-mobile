@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Filter Variants + Profile Reskin
 status: planning
-last_updated: "2026-05-31T15:31:36.197Z"
+last_updated: "2026-05-31T16:00:00.000Z"
 last_activity: 2026-05-31
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,30 +17,54 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-05-11 after v3.0 milestone)
+See: `.planning/PROJECT.md` (updated 2026-05-31 — M6 added as current milestone)
 
 **Core value:** Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek (and KG/KZ/UZ expansion markets) properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
-**Current focus:** Phase 11 — listing-address-geocode
+**Current focus:** M6 Phase 12 — Whole-App Palette Migration (foundation phase; every later M6 phase builds on the new tokens)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (M6 roadmap landed — ready for `/gsd-plan-phase 12`)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-31 — Milestone v6.0 started
+Status: Roadmap complete; awaiting Phase 12 planning
+Last activity: 2026-05-31 — M6 v6.0 roadmap landed via `/gsd-roadmap` (5 phases 12–16, 15 v1 reqs, 100% coverage)
 
-## M4 Phase Map (Phases 6–10)
+## M6 Phase Map (Phases 12–16) — CURRENT MILESTONE
+
+| # | Phase | Requirements | Status |
+|---|-------|--------------|--------|
+| 12 | Whole-App Palette Migration (Dark + Light) + Visual-Regression Sweep | PAL-01..03 (3) | Not started — foundation phase |
+| 13 | Shared Filter Data Model + AsyncStorage Persistence | DATA-01..03 (3) | Not started — depends on Phase 12 |
+| 14 | Filter UI Variants (Guided Steps + Cascading Reveal) + HomeScreen Variant Dispatch | FILT-01..03 (3) | Not started — depends on Phase 12 + Phase 13 |
+| 15 | Account Settings Restructure + Filter-Style Picker | SET-01..03 (3) | Not started — depends on Phase 12 + Phase 13; cross-cuts Phase 14 |
+| 16 | Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | PROF-01..03 (3) | Not started — depends on Phase 12 only |
+
+Full per-phase goals + success criteria in `.planning/ROADMAP.md § Phase Details`. Per-requirement mapping in `.planning/REQUIREMENTS.md § Traceability (M6)`.
+
+**M6 deferred (Phase B — out of M6 v1 scope):**
+- FILT-04 Master–Detail variant
+- FILT-05 Sentence Builder variant
+- SET-04 Un-gate Master-Detail + Sentence options in the picker
+
+**M6 release:** Out of scope for this roadmap. Will ride M4 Phase 10's hardening cycle OR get a separate release phase added later (user decision).
+
+## M4 Phase Map (Phases 6–10) — CONCURRENT IN-FLIGHT
 
 | # | Phase | Requirements | Status |
 |---|-------|--------------|--------|
 | 6 | Schema Extension (Backend Mongoose + RN Type Stub + Body-Strip Validator) | SCHEMA-01..04 (4) | ✅ Complete 2026-05-25 |
-| 7 | Stepper Component + ContextualListingFlow Integration | FORM-01..05 (5) | 📋 Planned (5/5 plans, 0 executed) |
-| 8 | Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen) | DISP-01..05 (5) | Not started |
+| 7 | Stepper Component + ContextualListingFlow Integration | FORM-01..05 (5) | ✅ Complete 2026-05-25 |
+| 8 | Display Surfaces (PropertyCard + HospitalityCard + PropertyDetailsScreen) | DISP-01..05 (5) | ✅ Complete 2026-05-26 |
 | 9 | i18n Audit + Sentinel (Property-Type / Category / Deal-Type Display Strings) | I18N-01..07 (7) | Not started |
 | 10 | Hardening + Manual Physical-Device QA + Release v4.0.0 | REL-01..06 (6) | Not started |
 
-Full per-phase goals + success criteria in `.planning/ROADMAP.md § Phase Details`. Per-requirement mapping in `.planning/REQUIREMENTS.md § Traceability`.
+## M5 Phase Map (Phase 11+) — CONCURRENT IN-FLIGHT
+
+| # | Phase | Requirements | Status |
+|---|-------|--------------|--------|
+| — | Property Details Redesign (M5 Phase 1) | n/a — merged outside GSD 2026-05-26 | ✅ Merged outside GSD |
+| 11 | Listing Address Geocode (Forward + Reverse) | TBD | ✅ Complete 2026-05-27 |
 
 ## Quick Tasks Completed
 
@@ -99,15 +123,18 @@ From `.planning/milestones/v3.0-REQUIREMENTS.md § "Future Requirements (M4+ —
 
 - **No Firebase SDK** in either repo (RN client OR backend) — REPO RULE per memory `no-firebase-sdk.md`. Backend uses `jose` for JWKS verification.
 - **No `react-navigation` migration** — custom `App.tsx` state machine stays.
+- **No backend changes in M6** — client-only milestone.
 - **MongoDB `userType` is the role authority** — Firebase ID token proves uid only.
 - **EN+RU bilingual parity** required for every new UI string (CI gate `scripts/check-i18n-parity.sh`).
-- **Manual physical-device QA** on iPhone 15 Pro Max + Moto G XT2513V (M3 also accepts empirical-sampling-mass-disposition for feature-surface milestones — see RETROSPECTIVE.md M3 lesson 4).
+- **Manual physical-device QA** on iPhone 15 Pro Max + Moto G XT2513V × EN/RU × light/dark (M6 explicitly requires both modes due to palette migration).
 - **Sentinel chain in backend `npm test`:** `actoruid` → `landlord-uid` → `media-stripped` → `i18n-parity` → `create-listing-screen-removed` → jest. **M4 adds RN-client sentinel `check-no-raw-property-type-strings.sh` chained into RN-client jest pre-test step (I18N-06).**
 - **M1 D-02 pattern (Android versionCode rejection):** pre-archive Wave-0 query Play Console + TestFlight for highest-accepted version-code per track. Fired twice (M1 + M3); M4 must also re-query at submission time.
 - **M1 KBD-02 grep gate:** `keyboardVerticalOffset` count in `src/` must remain 0 (held across 3 milestones).
+- **M6 language pill stays in HomeScreen header** — handoff's "after" SearchHeader proposal explicitly rejected (memory `m6-language-pill-stays-in-header.md`).
+- **M6 filter variants are the value** — ≥2 variants in v1; collapsing to one rejected (memory `m6-filter-variants-are-the-point.md`).
 - **Geographic scope:** KG launch market (Bishkek). KZ + UZ expansion remains M4+ — KZT + UZS currencies deferred.
 - **Backend repo location:** `/Users/beckmaldinVL/development/mobileApps/backend-services/JayTap-services` (same maintainer as RN client). Backend Node ≥22.12 (`nvm use 24` before backend npm/node ops; jose@6 ESM-only).
 
 ---
 
-*STATE.md updated 2026-05-25 — M4 roadmap landed via `/gsd-roadmap`. 5 phases (Phases 6–10) covering 27 v1 requirements; 100% coverage validated. Phase 6 ready for `/gsd-plan-phase 6`. Prior in-flight session content + accreted execution history archived implicitly in git history (see `git log --oneline` for granular activity, or `.planning/milestones/v3.0-phases/05-hardening-manual-qa-release-v3/05-CONTEXT.md` for the M3 end-of-phase session snapshot).*
+*STATE.md updated 2026-05-31 — M6 v6.0 "Filter Variants + Profile Reskin" roadmap landed via `/gsd-roadmap`. 5 phases (Phases 12–16) covering 15 v1 requirements; 100% coverage validated. Phase 12 (palette migration foundation) ready for `/gsd-plan-phase 12`. M6 starts as a parallel third in-flight milestone alongside M4 (Phases 9–10 open) and M5 (Phase 11 closed 2026-05-27). Prior STATE: M4 roadmap landed 2026-05-25; Phase 6 closed 2026-05-25; Phase 7 closed 2026-05-25; Phase 8 closed 2026-05-26. Prior in-flight session content + accreted execution history archived implicitly in git history (see `git log --oneline` for granular activity).*

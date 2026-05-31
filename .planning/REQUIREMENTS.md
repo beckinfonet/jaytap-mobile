@@ -272,13 +272,45 @@ Two layout variants by role: grouped rows for regular users, tile dashboard for 
 - **Tweaks panel from handoff** — the prototype's tweaks panel (Appearance / Accent switcher) is scaffolding, not product. Not ported.
 - **Green accent option** — handoff's green `#36c98f` accent is exposed in the prototype as a tweak. Not ported; pink stays as the brand default in v1.
 - **3D Tour pill / 360° Photos / Photo tile visual changes** — out of M6 scope. M5 Phase 1 already redesigned details; M6 only swaps tokens.
+- **M6 release / store submission phase** — out of scope for this roadmap. M6 will ride M4 Phase 10's hardening cycle OR get a separate release phase added later. Phase 16 is the last M6 phase; no Phase 17 release block.
 
 ---
 
 ## Traceability (M6)
 
-Filled by `/gsd-roadmap` next. Phase numbering for M6 to be assigned by roadmapper (continuing from latest GSD-tracked phase: M4 Phase 10 and M5 Phase 11 → M6 starts at Phase 12).
+Every M6 v1 requirement maps to exactly one phase. Phase numbering continues from M4 Phase 10 + M5 Phase 11 (M6 starts at Phase 12; no `--reset-phase-numbers`).
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| PAL-01 | Phase 12 — Whole-App Palette Migration (Dark + Light) + Visual-Regression Sweep | Pending |
+| PAL-02 | Phase 12 — Whole-App Palette Migration (Dark + Light) + Visual-Regression Sweep | Pending |
+| PAL-03 | Phase 12 — Whole-App Palette Migration (Dark + Light) + Visual-Regression Sweep | Pending |
+| DATA-01 | Phase 13 — Shared Filter Data Model + AsyncStorage Persistence | Pending |
+| DATA-02 | Phase 13 — Shared Filter Data Model + AsyncStorage Persistence | Pending |
+| DATA-03 | Phase 13 — Shared Filter Data Model + AsyncStorage Persistence | Pending |
+| FILT-01 | Phase 14 — Filter UI Variants (Guided Steps + Cascading Reveal) + HomeScreen Variant Dispatch | Pending |
+| FILT-02 | Phase 14 — Filter UI Variants (Guided Steps + Cascading Reveal) + HomeScreen Variant Dispatch | Pending |
+| FILT-03 | Phase 14 — Filter UI Variants (Guided Steps + Cascading Reveal) + HomeScreen Variant Dispatch | Pending |
+| SET-01 | Phase 15 — Account Settings Restructure + Filter-Style Picker | Pending |
+| SET-02 | Phase 15 — Account Settings Restructure + Filter-Style Picker | Pending |
+| SET-03 | Phase 15 — Account Settings Restructure + Filter-Style Picker | Pending |
+| PROF-01 | Phase 16 — Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | Pending |
+| PROF-02 | Phase 16 — Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | Pending |
+| PROF-03 | Phase 16 — Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | Pending |
+
+**Coverage:** 15/15 v1 requirements mapped to exactly one phase. No orphans. No duplicates.
+
+**Phase-to-Requirements rollup:**
+
+| Phase | Requirements | Count |
+|-------|-------------|-------|
+| Phase 12 — Whole-App Palette Migration (Dark + Light) + VR Sweep | PAL-01, PAL-02, PAL-03 | 3 |
+| Phase 13 — Shared Filter Data Model + AsyncStorage Persistence | DATA-01, DATA-02, DATA-03 | 3 |
+| Phase 14 — Filter UI Variants (Guided + Cascading) + HomeScreen Dispatch | FILT-01, FILT-02, FILT-03 | 3 |
+| Phase 15 — Account Settings Restructure + Filter-Style Picker | SET-01, SET-02, SET-03 | 3 |
+| Phase 16 — Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | PROF-01, PROF-02, PROF-03 | 3 |
+| **Total** | — | **15** |
 
 ---
 
-*M6 section appended 2026-05-31 via `/gsd-new-milestone`. M6 starts as a parallel third in-flight milestone alongside M4 (Phases 9–10 open) and M5 (Phase 11 open). 15 v1 requirements across 5 categories (PAL × 3, DATA × 3, FILT × 3, SET × 3, PROF × 3).*
+*M6 section appended 2026-05-31 via `/gsd-new-milestone`. Traceability filled by `/gsd-roadmap` 2026-05-31 — 15 v1 requirements mapped to 5 phases (Phases 12–16). M6 starts as a parallel third in-flight milestone alongside M4 (Phases 9–10 open) and M5 (Phase 11 closed 2026-05-27). 5 categories: PAL × 3, DATA × 3, FILT × 3, SET × 3, PROF × 3. M6 release is out of scope for this roadmap — will ride M4 Phase 10's hardening cycle OR get a separate release phase added later.*
