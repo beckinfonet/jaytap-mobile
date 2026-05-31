@@ -262,7 +262,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
 | 10. Hardening + QA + Release v4.0.0 | 0/TBD | Not started | — |
 | 11. Listing Address Geocode (M5 GSD-tracked #1) | 6/6 | ✅ Complete    | 2026-05-27 |
 | 12. Whole-App Palette Migration (Dark + Light) + VR Sweep | 2/2 | Complete   | 2026-05-31 |
-| 13. Shared Filter Data Model + AsyncStorage Persistence | 0/TBD | Not started | — |
+| 13. Shared Filter Data Model + AsyncStorage Persistence | 2/2 | Complete   | 2026-05-31 |
 | 14. Filter UI Variants (Guided + Cascading) + HomeScreen Dispatch | 0/TBD | Not started | — |
 | 15. Account Settings Restructure + Filter-Style Picker | 0/TBD | Not started | — |
 | 16. Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | 0/TBD | Not started | — |

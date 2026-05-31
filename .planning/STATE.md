@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Filter Variants + Profile Reskin
-status: Phase 13 planned (2 plans, wave 1 parallel); ready for `/gsd-execute-phase 13`
-last_updated: "2026-05-31T19:30:00.000Z"
-last_activity: 2026-05-31 -- Phase 13 plans landed (13-01 buildFilterQuery + 13-02 FilterStyleContext); plan-checker PASS; research + pattern-mapper skipped (CONTEXT.md fully locked)
+status: executing
+last_updated: "2026-05-31T18:47:08.482Z"
+last_activity: 2026-05-31 -- Phase 13 execution started
 progress:
   total_phases: 6
   completed_phases: 5
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md` (updated 2026-05-31 — M6 added as current mileston
 
 **Core value:** Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek (and KG/KZ/UZ expansion markets) properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
-**Current focus:** Phase 13 planned 2026-05-31 — two plans landed in wave 1 (parallel-safe, zero file overlap), plan-checker PASS. Next action: `/gsd-execute-phase 13`. The 9 new Phase 12 tokens remain unconsumed — first consumer is Phase 14.
+**Current focus:** Phase 13 — shared-filter-data-model-asyncstorage-persistence
 
 ## Current Position
 
-Phase: 13 — Planned (2026-05-31; DATA-01..03 covered across 13-01 + 13-02)
-Plan: 0 of 2 executed
-Status: Phase 13 planned; ready for `/gsd-execute-phase 13`
-Last activity: 2026-05-31 -- Phase 12 closed (verifier PASS-WITH-CAVEATS, code review NOT YET RUN — paired-gates pattern reminder per memory `gsd-verifier-misses-regressions.md`)
+Phase: 13 (shared-filter-data-model-asyncstorage-persistence) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 13
+Last activity: 2026-05-31 -- Phase 13 execution started
 
 ## M6 Phase Map (Phases 12–16) — CURRENT MILESTONE
 
