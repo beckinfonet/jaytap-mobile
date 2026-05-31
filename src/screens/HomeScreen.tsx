@@ -44,6 +44,8 @@ import { buildFilterQuery } from '../utils/buildFilterQuery';
 // Phase 14 Plan 14-02 (FILT-02) — variant dispatch precursor.
 import { useFilterStyle } from '../context/FilterStyleContext';
 import CascadingFilter from '../components/filters/CascadingFilter';
+// Phase 14 Plan 14-03 (FILT-01, FILT-03) — Guided sheet variant sibling mount.
+import GuidedFilterSheet from '../components/filters/GuidedFilterSheet';
 import { HospitalityCard } from '../components/HospitalityCard';
 import { HospitalitySection } from '../components/HospitalitySection';
 import { HomeRejectionBanner } from '../components/HomeRejectionBanner';
@@ -517,10 +519,27 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
       )}
 
       {/* Filter Section — Phase 14 Plan 14-02 (FILT-02). Inline JSX block deleted;
-          CascadingFilter is the first variant mount. Plan 14-03 will add the
-          'guided' branch alongside this. */}
+          CascadingFilter is the first variant mount. Plan 14-03 added the
+          'guided' branch as a sibling below. */}
       {filterStyle === 'cascading' && isFiltersExpanded && (
         <CascadingFilter transactionType={transactionType}
+          setTransactionType={setTransactionType}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          types={types}
+          setTypes={setTypes}
+          liveCount={filteredProperties.length}
+        />
+      )}
+
+      {/* Phase 14 Plan 14-03 (FILT-01, FILT-03) — Guided sheet variant. Gated on
+          filterStyle === 'guided' ONLY (no && isFiltersExpanded) because the sheet
+          consumes isFiltersExpanded internally as its Modal `open` prop. Identical
+          state-prop expressions to the CascadingFilter mount above (SC4). */}
+      {filterStyle === 'guided' && (
+        <GuidedFilterSheet open={isFiltersExpanded}
+          onClose={() => setIsFiltersExpanded(false)}
+          transactionType={transactionType}
           setTransactionType={setTransactionType}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}

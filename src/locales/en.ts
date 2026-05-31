@@ -934,6 +934,15 @@ export const en = {
   'filters.cascading.categoryHeader': 'CATEGORY',
   'filters.cascading.typeHeader': 'TYPE',
   'filters.cascading.typeHint': 'pick any',
+
+  // Phase 14 Plan 14-03 — Guided sheet wizard (FILT-01) — D-07 namespace subset
+  'filters.deal.rentBlurb': 'Lease a place month-to-month',
+  'filters.deal.buyBlurb': 'Purchase a property to own',
+  'filters.category.prompt': 'What kind of property?',
+  'filters.category.residentialBlurb': 'Homes to live in',
+  'filters.category.commercialBlurb': 'Offices & retail',
+  'filters.category.hospitalityBlurb': 'Stays & lodging',
+  'filters.type.prompt': 'Pick a type',
 } as const;
 
 export type TranslationKeys = keyof typeof en;
