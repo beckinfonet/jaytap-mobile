@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Filter Variants + Profile Reskin
 status: executing
-last_updated: "2026-05-31T17:15:15.271Z"
-last_activity: 2026-05-31 -- Phase 12 planning complete
+last_updated: "2026-05-31T17:22:04.342Z"
+last_activity: 2026-05-31 -- Phase 12 execution started
 progress:
   total_phases: 5
   completed_phases: 4
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md` (updated 2026-05-31 — M6 added as current mileston
 
 **Core value:** Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek (and KG/KZ/UZ expansion markets) properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
-**Current focus:** M6 Phase 12 — Whole-App Palette Migration (foundation phase; every later M6 phase builds on the new tokens)
+**Current focus:** Phase 12 — whole-app-palette-migration-dark-light-visual-regression-swe
 
 ## Current Position
 
-Phase: Not started (M6 roadmap landed — ready for `/gsd-plan-phase 12`)
-Plan: —
-Status: Ready to execute
-Last activity: 2026-05-31 -- Phase 12 planning complete
+Phase: 12 (whole-app-palette-migration-dark-light-visual-regression-swe) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 12
+Last activity: 2026-05-31 -- Phase 12 execution started
 
 ## M6 Phase Map (Phases 12–16) — CURRENT MILESTONE
 

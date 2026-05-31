@@ -1,14 +1,32 @@
+// MODE_INDEPENDENT_PALETTE — 5 tokens whose value is identical in light + dark.
+// Extracted to a const + spread into both blocks (Phase 12 D-04) so mode-independence
+// is FALSIFIABLE at the source level: breaking the invariant requires deleting the
+// spread itself, which is visible in any diff. SPEC §Constraints requires
+// colors.light.accent === colors.dark.accent (etc.) — that holds by construction here.
+const MODE_INDEPENDENT_PALETTE = {
+  accent: '#ff5a6f', // MoveIn handoff 2026-05-31 — used by Phase 14+ accent CTAs / Show N homes button (replaces the prior light #FF385C / dark #FF5C7C split — now brand-locked)
+  accentSoft: 'rgba(255,90,111,0.16)', // MoveIn handoff 2026-05-31 — used by Phase 14+ accent fill background (e.g. Show N homes button hover)
+  accentLine: 'rgba(255,90,111,0.45)', // MoveIn handoff 2026-05-31 — used by Phase 14+ accent border / underline (e.g. Cascading Reveal Category tab strip)
+  landlordGreen: '#35c98f', // MoveIn handoff 2026-05-31 — used by Phase 16 'You're a Landlord' green-tinted banner background
+  destructiveRed: '#ff4d4d', // MoveIn handoff 2026-05-31 — used by Phase 15 DANGER ZONE Delete-account row tint / Phase 16 Log out outlined pill stroke
+} as const;
+
 export const colors = {
   light: {
-    background: '#F0F2F5', // Slightly darker, cooler gray/beige mix for better contrast with white cards
-    surface: '#FFFFFF',
-    text: '#2D2D2D',
-    textSecondary: '#666666',
-    textTertiary: '#999999',
+    ...MODE_INDEPENDENT_PALETTE,
+    background: '#f3f3f6',
+    bgDim: '#e7e7ec', // MoveIn handoff 2026-05-31 — used by Phase 14 Cascading Reveal panel backdrop / Phase 15 ACCOUNT section card dimming
+    surface: '#ffffff',
+    surface2: '#f0f0f4', // MoveIn handoff 2026-05-31 — used by Phase 14 Guided Steps bottom-sheet wizard nested surface
+    surface3: '#e4e4ea', // MoveIn handoff 2026-05-31 — used by Phase 14 Guided Steps Type-cards selected state
+    border: 'rgba(0,0,0,0.08)',
+    hair2: 'rgba(0,0,0,0.13)', // MoveIn handoff 2026-05-31 — used by Phase 14+ strong-weight hairline / Phase 16 ADMIN TOOLS section divider
+    text: '#16161a',
+    textSecondary: 'rgba(22,22,28,0.62)',
+    textTertiary: 'rgba(22,22,28,0.42)',
+    iconChipFg: 'rgba(22,22,28,0.80)', // MoveIn handoff 2026-05-31 — used by Phase 16 38px icon chip foreground (grouped-row anatomy)
     primary: '#2D2D2D',
     primaryLight: '#F2EFE9',
-    accent: '#FF385C',
-    border: '#E0E0E0',
     inputBackground: '#FFFFFF', // White input on gray background looks cleaner
     chipBackground: '#FFFFFF',
     chipBorder: '#E0E0E0',
@@ -33,15 +51,20 @@ export const colors = {
     buttonText: '#5D5045',
   },
   dark: {
-    background: '#191A1D', // Softer dark gray (Gunmetal) - Less "Black"
-    surface: '#25282F', // Lighter surface for contrast
-    text: '#F5F5F5',
-    textSecondary: '#A0A3A8',
-    textTertiary: '#6B6F76',
+    ...MODE_INDEPENDENT_PALETTE,
+    background: '#121214',
+    bgDim: '#0c0c0e', // MoveIn handoff 2026-05-31 — used by Phase 14 Cascading Reveal panel backdrop / Phase 15 ACCOUNT section card dimming
+    surface: '#1c1c20',
+    surface2: '#26262c', // MoveIn handoff 2026-05-31 — used by Phase 14 Guided Steps bottom-sheet wizard nested surface
+    surface3: '#303038', // MoveIn handoff 2026-05-31 — used by Phase 14 Guided Steps Type-cards selected state
+    border: 'rgba(255,255,255,0.08)',
+    hair2: 'rgba(255,255,255,0.14)', // MoveIn handoff 2026-05-31 — used by Phase 14+ strong-weight hairline / Phase 16 ADMIN TOOLS section divider
+    text: '#f4f4f6',
+    textSecondary: 'rgba(244,244,246,0.60)',
+    textTertiary: 'rgba(244,244,246,0.40)',
+    iconChipFg: 'rgba(244,244,246,0.85)', // MoveIn handoff 2026-05-31 — used by Phase 16 38px icon chip foreground (grouped-row anatomy)
     primary: '#FFFFFF',
     primaryLight: '#353941',
-    accent: '#FF5C7C',
-    border: '#2E3238',
     inputBackground: '#2E3238',
     chipBackground: '#2E3238',
     chipBorder: '#3E4349',
