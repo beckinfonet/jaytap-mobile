@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Filter Variants + Profile Reskin
 status: executing
-last_updated: "2026-05-31T17:22:04.342Z"
-last_activity: 2026-05-31 -- Phase 12 execution started
+last_updated: "2026-05-31T18:18:32.908Z"
+last_activity: 2026-05-31 -- Phase 12 closed (PAL-01..03 shipped; verifier PASS-WITH-CAVEATS)
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 20
-  completed_plans: 18
-  percent: 90
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 2
+  percent: 20
 ---
 
 # STATE: JayTap
@@ -21,21 +21,21 @@ See: `.planning/PROJECT.md` (updated 2026-05-31 — M6 added as current mileston
 
 **Core value:** Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek (and KG/KZ/UZ expansion markets) properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
-**Current focus:** Phase 12 — whole-app-palette-migration-dark-light-visual-regression-swe
+**Current focus:** Phase 12 closed 2026-05-31 — next is Phase 13 (Shared Filter Data Model + AsyncStorage Persistence), gated only on `/gsd-plan-phase 13`. The 9 new tokens (`bgDim`, `surface2`, `surface3`, `hair2`, `iconChipFg`, `accentSoft`, `accentLine`, `landlordGreen`, `destructiveRed`) are shipped but unconsumed — first consumer is Phase 14.
 
 ## Current Position
 
-Phase: 12 (whole-app-palette-migration-dark-light-visual-regression-swe) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 12
-Last activity: 2026-05-31 -- Phase 12 execution started
+Phase: 12 — Complete (2026-05-31; PAL-01..03 all shipped)
+Plan: 2 of 2 (both summarized + committed)
+Status: Phase 12 closed; ready for `/gsd-plan-phase 13`
+Last activity: 2026-05-31 -- Phase 12 closed (verifier PASS-WITH-CAVEATS, code review NOT YET RUN — paired-gates pattern reminder per memory `gsd-verifier-misses-regressions.md`)
 
 ## M6 Phase Map (Phases 12–16) — CURRENT MILESTONE
 
 | # | Phase | Requirements | Status |
 |---|-------|--------------|--------|
-| 12 | Whole-App Palette Migration (Dark + Light) + Visual-Regression Sweep | PAL-01..03 (3) | Not started — foundation phase |
-| 13 | Shared Filter Data Model + AsyncStorage Persistence | DATA-01..03 (3) | Not started — depends on Phase 12 |
+| 12 | Whole-App Palette Migration (Dark + Light) + Visual-Regression Sweep | PAL-01..03 (3) | ✅ Complete 2026-05-31 — foundation phase shipped |
+| 13 | Shared Filter Data Model + AsyncStorage Persistence | DATA-01..03 (3) | Not started — ready to plan (depends on Phase 12 ✅) |
 | 14 | Filter UI Variants (Guided Steps + Cascading Reveal) + HomeScreen Variant Dispatch | FILT-01..03 (3) | Not started — depends on Phase 12 + Phase 13 |
 | 15 | Account Settings Restructure + Filter-Style Picker | SET-01..03 (3) | Not started — depends on Phase 12 + Phase 13; cross-cuts Phase 14 |
 | 16 | Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | PROF-01..03 (3) | Not started — depends on Phase 12 only |
