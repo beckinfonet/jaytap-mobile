@@ -76,4 +76,4 @@ should be tracked as M4/M5 backlog):
 
 ## Commit
 
-(to be filled by STATE.md follow-up commit)
+`ac2c44b` — `feat(home): replace Bishkek microdistrict dropdown with country/city picker`
