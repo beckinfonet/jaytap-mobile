@@ -101,8 +101,7 @@ export const ru: Record<TranslationKeys, string> = {
   'home.commercial': 'Коммерческая',
   'home.homes': 'объявлений',
   'home.onMap': 'На карте',
-  'home.bishkekAll': 'Бишкек (все)',
-  'home.district': 'Район',
+  'home.allCities': 'Все города',
   // Phase 2 (D-14, MOD-09) — HomeRejectionBanner singular/plural copy (auto-dismisses on count→0)
   'home.rejection.banner.singular': 'У вас 1 объявление требует исправления.',
   'home.rejection.banner.plural': 'У вас {N} объявлений требуют исправления.',

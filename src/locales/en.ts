@@ -99,8 +99,7 @@ export const en = {
   'home.commercial': 'Commercial',
   'home.homes': 'homes',
   'home.onMap': 'On map',
-  'home.bishkekAll': 'Bishkek (All)',
-  'home.district': 'District',
+  'home.allCities': 'All cities',
   // Phase 2 (D-14, MOD-09) — HomeRejectionBanner singular/plural copy (auto-dismisses on count→0)
   'home.rejection.banner.singular': 'You have 1 listing that needs edits.',
   'home.rejection.banner.plural': 'You have {N} listings that need edits.',

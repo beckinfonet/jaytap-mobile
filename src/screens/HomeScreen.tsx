@@ -44,6 +44,8 @@ import {
 import { HospitalityCard } from '../components/HospitalityCard';
 import { HospitalitySection } from '../components/HospitalitySection';
 import { HomeRejectionBanner } from '../components/HomeRejectionBanner';
+import { fetchCities, type City } from '../services/locationService';
+import type { TranslationKeys } from '../locales';
 
 interface HomeScreenProps {
   onSelectProperty: (property: Property) => void;
@@ -61,29 +63,24 @@ interface HomeScreenProps {
   onOpenMyListingsRejectedTab?: () => void;
 }
 
-const BISHKEK_DISTRICTS = [
-  'Bishkek (All)',
-  'Asanbay',
-  'Jal',
-  'Tunguch',
-  'Alamedin-1',
-  'Microdistrict 3',
-  'Microdistrict 4',
-  'Microdistrict 5',
-  'Microdistrict 6',
-  'Microdistrict 7',
-  'Microdistrict 8',
-  'Microdistrict 9',
-  'Microdistrict 10',
-  'Microdistrict 11',
-  'Microdistrict 12',
-  'Kok-Jar',
-];
+// Quick-task 260530-sud — country/city picker.
+// The previous BISHKEK_DISTRICTS hardcoded array was deleted because (a) the
+// listing form no longer captures district (quick-task 260527-0cg removed it
+// in Phase 12), so the microdistrict chips returned zero results on most new
+// listings, and (b) JayTap's geographic scope is KG/KZ/UZ, not Bishkek-only.
+// City list now comes from GET /locations/cities (locationService.fetchCities).
+const COUNTRY_ORDER: ReadonlyArray<'KG' | 'KZ' | 'UZ'> = ['KG', 'KZ', 'UZ'];
+
+type LocationDropdownItem =
+  | { kind: 'all' }
+  | { kind: 'header'; country: 'KG' | 'KZ' | 'UZ' }
+  | { kind: 'city'; city: City }
+  | { kind: 'loading' };
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpenTours, onOpenProfile, onOpenFavorites, viewMode: propViewMode, onViewModeChange, onFavorite, favoriteStatuses = {}, favoriteLoading = {}, refreshKey, onOpenMyListingsRejectedTab }) => {
   const { colors, theme, isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
 
   // New Filter State (D-04: tri-state replaces the prior binary commercial toggle)
@@ -94,8 +91,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   // Filter section visibility (closed by default; tap filter icon to expand)
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
 
-  // Location State
-  const [selectedDistrict, setSelectedDistrict] = useState('Bishkek (All)');
+  // Location State (quick-task 260530-sud) — null = "All cities", default on launch.
+  // selectedCity holds the full City object so the header can render country + label
+  // without an extra lookup.
+  const [selectedCity, setSelectedCity] = useState<City | null>(null);
+  const [cities, setCities] = useState<City[]>([]);
+  const [loadingCities, setLoadingCities] = useState(true);
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
 
   // View Mode: List or Map - use prop if provided, otherwise internal state
@@ -113,6 +114,27 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   useEffect(() => {
     loadProperties();
   }, [refreshKey]);
+
+  // Quick-task 260530-sud — fetch approved cities once on mount. Mirrors the
+  // Step2Location pattern (file: src/components/ContextualListingFlow/Step2Location.tsx).
+  // On failure: silent — user falls back to "All cities" (the default) and still sees
+  // every listing. The picker just shows an empty modal body until they retry.
+  useEffect(() => {
+    let cancelled = false;
+    fetchCities()
+      .then((c) => {
+        if (cancelled) return;
+        setCities(c);
+        setLoadingCities(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setLoadingCities(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const loadProperties = async () => {
     try {
@@ -179,18 +201,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         if (pPropertyType !== selectedType.toLowerCase()) return false;
       }
 
-      // 4. District Filter (D-10: chips stay HARDCODED — only the listing-render reads
-      // switch to nested. Match against location.district + location.city + content.description.
-      // Quick-task 260527-0cg: ALSO match against location.address — the chip-text-vs-address
-      // bridge for NEW (post-Phase-12) listings that no longer have a curated district slug.
-      // Legacy listings keep matching via the existing districtMatch branch.)
-      if (selectedDistrict !== 'Bishkek (All)') {
-        const searchDistrict = selectedDistrict.toLowerCase();
-        const districtMatch = p.location?.district?.toLowerCase().includes(searchDistrict);
-        const cityMatch = p.location?.city?.toLowerCase().includes(searchDistrict);
-        const descMatch = p.content?.description?.toLowerCase().includes(searchDistrict);
-        const addressMatch = p.location?.address?.toLowerCase().includes(searchDistrict);
-        if (!districtMatch && !cityMatch && !descMatch && !addressMatch) return false;
+      // 4. City Filter (quick-task 260530-sud) — exact case-insensitive slug equality
+      // on listing.location.city. Microdistrict substring fallbacks (district / address /
+      // description) are gone with the picker rework — the chips themselves are gone,
+      // so there's no chip-text to substring-match. Freetext search below still hits
+      // district + address + description for users typing free queries.
+      if (selectedCity) {
+        const targetSlug = selectedCity.slug.toLowerCase();
+        if ((p.location?.city ?? '').toLowerCase() !== targetSlug) return false;
       }
 
       // 5. Search Query (listingId, title, city, district, address, description)
@@ -226,7 +244,39 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
       }
       return true;
     });
-  }, [properties, transactionType, selectedCategory, selectedType, selectedDistrict, searchQuery]);
+  }, [properties, transactionType, selectedCategory, selectedType, selectedCity, searchQuery]);
+
+  // Quick-task 260530-sud — flatten cities into a country-grouped list for the modal.
+  // Synthetic "all" + "header" + "loading" items keep a single FlatList renderer.
+  const locationDropdownData: LocationDropdownItem[] = useMemo(() => {
+    const items: LocationDropdownItem[] = [{ kind: 'all' }];
+    if (loadingCities && cities.length === 0) {
+      items.push({ kind: 'loading' });
+      return items;
+    }
+    const byCountry = new Map<'KG' | 'KZ' | 'UZ', City[]>();
+    COUNTRY_ORDER.forEach((c) => byCountry.set(c, []));
+    cities.forEach((c) => {
+      // Only show approved cities in the home picker — pending submissions belong
+      // in the listing flow, not in renter discovery. (fetchCities also returns the
+      // caller's own pending submissions per locationService.ts:37; filter them out
+      // here for the read-side view.)
+      if (c.status !== 'approved') return;
+      const bucket = byCountry.get(c.country);
+      if (bucket) bucket.push(c);
+    });
+    const lang = (language === 'ru' ? 'ru' : 'en') as 'en' | 'ru';
+    byCountry.forEach((arr) =>
+      arr.sort((a, b) => a.label[lang].localeCompare(b.label[lang])),
+    );
+    COUNTRY_ORDER.forEach((country) => {
+      const list = byCountry.get(country) ?? [];
+      if (list.length === 0) return;
+      items.push({ kind: 'header', country });
+      list.forEach((city) => items.push({ kind: 'city', city }));
+    });
+    return items;
+  }, [cities, loadingCities, language]);
 
   // Tradeoff §K caller-side hospitality derivation — `dealType !== 'sale'` replaces
   // M2 `transactionType === 'rent'` semantics. Strip count tracks the Rent/Sell toggle.
@@ -303,7 +353,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
             activeOpacity={0.7}
           >
             <Text style={[styles.locationTitle, { color: colors.text }]}>
-              {selectedDistrict === 'Bishkek (All)' ? 'Bishkek • All' : `Bishkek • ${selectedDistrict}`} ⌄
+              {selectedCity
+                ? `${t(`country.${selectedCity.country}` as TranslationKeys)} • ${selectedCity.label[(language === 'ru' ? 'ru' : 'en') as 'en' | 'ru']}`
+                : t('home.allCities')} ⌄
             </Text>
           </TouchableOpacity>
 
@@ -325,34 +377,85 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
                     }
                   ]}>
                     <FlatList
-                      data={BISHKEK_DISTRICTS}
-                      keyExtractor={(item) => item}
-                      style={{ maxHeight: 300 }}
-                      renderItem={({ item }) => (
-                        <TouchableOpacity
-                          style={[
-                            styles.dropdownItem,
-                            { borderBottomColor: isDark ? '#333' : '#F0F0F0' }
-                          ]}
-                          onPress={() => {
-                            setSelectedDistrict(item);
-                            setIsLocationDropdownOpen(false);
-                          }}
-                        >
-                          <Text style={[
-                            styles.dropdownItemText,
-                            {
-                              color: item === selectedDistrict ? colors.accent : colors.text,
-                              fontWeight: item === selectedDistrict ? '700' : '400'
-                            }
-                          ]}>
-                            {item}
-                          </Text>
-                          {item === selectedDistrict && (
-                            <Text style={{ color: colors.accent }}>✓</Text>
-                          )}
-                        </TouchableOpacity>
-                      )}
+                      data={locationDropdownData}
+                      keyExtractor={(item) =>
+                        item.kind === 'all'
+                          ? 'all'
+                          : item.kind === 'loading'
+                          ? 'loading'
+                          : item.kind === 'header'
+                          ? `header-${item.country}`
+                          : `city-${item.city.slug}`
+                      }
+                      style={{ maxHeight: 360 }}
+                      renderItem={({ item }) => {
+                        if (item.kind === 'loading') {
+                          return (
+                            <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+                              <ActivityIndicator color={colors.primary} />
+                            </View>
+                          );
+                        }
+                        if (item.kind === 'header') {
+                          return (
+                            <View
+                              style={[
+                                styles.dropdownSectionHeader,
+                                { backgroundColor: isDark ? '#262626' : '#F7F7F8' },
+                              ]}
+                            >
+                              <Text
+                                style={[
+                                  styles.dropdownSectionHeaderText,
+                                  { color: colors.textSecondary },
+                                ]}
+                              >
+                                {t(`country.${item.country}` as TranslationKeys)}
+                              </Text>
+                            </View>
+                          );
+                        }
+                        const isAll = item.kind === 'all';
+                        const isActive = isAll
+                          ? selectedCity === null
+                          : selectedCity?.slug === item.city.slug;
+                        const lang = (language === 'ru' ? 'ru' : 'en') as 'en' | 'ru';
+                        const label = isAll
+                          ? t('home.allCities')
+                          : item.city.label[lang];
+                        return (
+                          <TouchableOpacity
+                            style={[
+                              styles.dropdownItem,
+                              { borderBottomColor: isDark ? '#333' : '#F0F0F0' },
+                            ]}
+                            onPress={() => {
+                              if (isAll) {
+                                setSelectedCity(null);
+                              } else {
+                                setSelectedCity(item.city);
+                              }
+                              setIsLocationDropdownOpen(false);
+                            }}
+                          >
+                            <Text
+                              style={[
+                                styles.dropdownItemText,
+                                {
+                                  color: isActive ? colors.accent : colors.text,
+                                  fontWeight: isActive ? '700' : '400',
+                                  paddingLeft: isAll ? 0 : 12,
+                                },
+                              ]}
+                            >
+                              {label}
+                            </Text>
+                            {isActive && (
+                              <Text style={{ color: colors.accent }}>✓</Text>
+                            )}
+                          </TouchableOpacity>
+                        );
+                      }}
                     />
                   </View>
                 </View>
@@ -707,6 +810,17 @@ const styles = StyleSheet.create({
   },
   dropdownItemText: {
     fontSize: 16,
+  },
+  // Quick-task 260530-sud — country group header inside the city dropdown.
+  dropdownSectionHeader: {
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+  },
+  dropdownSectionHeaderText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   rightIcons: {
     flexDirection: 'row',

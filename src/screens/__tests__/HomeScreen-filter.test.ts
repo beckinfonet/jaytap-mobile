@@ -1,14 +1,23 @@
 /**
- * Quick-task 260527-0cg — Phase 12 address-flow redesign.
+ * Quick-task 260530-sud — country/city picker.
  *
- * Pure-function test of the HomeScreen filter predicate, extracted byte-for-byte
- * against the post-change HomeScreen.tsx logic (lines ~184-217). Avoids mounting
- * HomeScreen + the entire context tree just to verify a substring-match.
+ * Pure-function test of the HomeScreen city-filter + freetext-search predicate,
+ * extracted byte-for-byte against the post-change HomeScreen.tsx logic.
+ *
+ * The microdistrict-substring branches (and the old Bishkek-default special-case)
+ * are gone — the chips themselves no longer exist. The filter now does exact
+ * case-insensitive slug equality on `location.city`. Freetext search keeps the
+ * same multi-field substring match so users can still find listings by typing
+ * a street name, microdistrict word, or listing ID.
  *
  * Coverage:
- *   (a) NEW listing with address only (no district slug) → matches Microdistrict chip.
- *   (b) LEGACY listing with district slug only (empty address) → still matches (regression guard).
- *   (c) Freetext search matches `location.address` text.
+ *   (a) selectedCitySlug = null → predicate returns true (All cities).
+ *   (b) selectedCitySlug = 'bishkek' → matches listing with city='bishkek'.
+ *   (c) selectedCitySlug = 'bishkek' → mixed-case listing city='Bishkek' still matches.
+ *   (d) selectedCitySlug = 'almaty' → listing with city='bishkek' is rejected.
+ *   (e) freetext search still matches `location.address`.
+ *   (f) freetext search still matches `location.district` (legacy data).
+ *   (g) sanity: no fields contain the freetext → false.
  */
 
 // Minimal Property fixture shape — only the fields the predicate reads.
@@ -26,24 +35,21 @@ interface MinimalProperty {
 }
 
 // Re-implementation of the HomeScreen `filteredProperties` per-item predicate
-// for the district-chip + freetext branches ONLY. Other branches (deal-type +
+// for the city-filter + freetext branches ONLY. Other branches (deal-type +
 // category + property-type) are out-of-scope for this quick task and omitted.
 //
-// MUST stay byte-identical to HomeScreen.tsx:184-217 — if HomeScreen drifts,
-// update this fixture to match (it's a smoke test, not the source of truth).
-function matchesDistrictAndSearch(
+// MUST stay byte-identical to HomeScreen.tsx city-filter + search branches —
+// if HomeScreen drifts, update this fixture to match (it's a smoke test, not
+// the source of truth).
+function matchesCityAndSearch(
   p: MinimalProperty,
-  selectedDistrict: string,
+  selectedCitySlug: string | null,
   searchQuery: string,
 ): boolean {
-  // 4. District filter (D-10 + quick-task 260527-0cg).
-  if (selectedDistrict !== 'Bishkek (All)') {
-    const searchDistrict = selectedDistrict.toLowerCase();
-    const districtMatch = p.location?.district?.toLowerCase().includes(searchDistrict);
-    const cityMatch = p.location?.city?.toLowerCase().includes(searchDistrict);
-    const descMatch = p.content?.description?.toLowerCase().includes(searchDistrict);
-    const addressMatch = p.location?.address?.toLowerCase().includes(searchDistrict);
-    if (!districtMatch && !cityMatch && !descMatch && !addressMatch) return false;
+  // 4. City filter (quick-task 260530-sud) — exact case-insensitive slug equality.
+  if (selectedCitySlug) {
+    const targetSlug = selectedCitySlug.toLowerCase();
+    if ((p.location?.city ?? '').toLowerCase() !== targetSlug) return false;
   }
 
   // 5. Search Query (listingId, title, city, district, address, description).
@@ -62,67 +68,77 @@ function matchesDistrictAndSearch(
       districtLc.includes(query) ||
       descLc.includes(query) ||
       addressLc.includes(query) ||
-      (p.listingId !== undefined && (
-        p.listingId.toLowerCase().includes(query) ||
-        p.listingId.replace(/[-\s]/g, '').includes(queryWithoutDashes)
-      ))
+      (p.listingId !== undefined &&
+        (p.listingId.toLowerCase().includes(query) ||
+          p.listingId.replace(/[-\s]/g, '').includes(queryWithoutDashes)))
     );
   }
 
   return true;
 }
 
-describe('Quick-task 260527-0cg — HomeScreen filter predicate (Phase 12)', () => {
-  // Case (a): NEW listing with ONLY canonical address → matches Microdistrict chip via address.
-  // The geocode service is called with `lang: language` (typically 'en' in this project) so
-  // Nominatim returns the English-localized displayName when available. Plain `.includes()`
-  // substring match: chip text "Microdistrict 5" lowercased = "microdistrict 5"; address
-  // "Microdistrict 5, Bishkek" lowercased contains "microdistrict 5" → MATCH.
-  test('(a) new listing with English-localized address "Microdistrict 5, Bishkek" matches chip "Microdistrict 5"', () => {
-    const newListing: MinimalProperty = {
-      location: {
-        district: '',
-        city: 'bishkek',
-        address: 'Microdistrict 5, Bishkek, Kyrgyzstan',
-      },
+describe('Quick-task 260530-sud — HomeScreen city filter + freetext search', () => {
+  // (a) Null selection = "All cities" — every listing passes the city gate.
+  test('(a) selectedCitySlug=null passes any listing regardless of city', () => {
+    const anywhere: MinimalProperty = {
+      location: { city: 'almaty', district: '', address: '' },
       content: { description: '' },
     };
-    expect(matchesDistrictAndSearch(newListing, 'Microdistrict 5', '')).toBe(true);
+    expect(matchesCityAndSearch(anywhere, null, '')).toBe(true);
   });
 
-  // Case (b): LEGACY listing with district slug only → STILL matches (regression guard).
-  test('(b) legacy listing with location.district="mkr-5" + empty address still matches "Microdistrict 5"', () => {
-    const legacyListing: MinimalProperty = {
-      location: {
-        district: 'mkr-5',
-        city: 'bishkek',
-        address: '',
-      },
-      content: { description: '' },
-    };
-    // selectedDistrict 'mkr-5' contains substring of 'mkr-5' (district slug); search uses lowercase
-    expect(matchesDistrictAndSearch(legacyListing, 'mkr-5', '')).toBe(true);
-  });
-
-  // Case (c): Freetext search matches `location.address` text.
-  test('(c) searchQuery="manas" matches listing with address="100 Manas St" and other fields empty', () => {
+  // (b) Exact slug match.
+  test('(b) selectedCitySlug="bishkek" matches listing with location.city="bishkek"', () => {
     const listing: MinimalProperty = {
-      location: {
-        district: '',
-        city: '',
-        address: '100 Manas St, Bishkek',
-      },
+      location: { city: 'bishkek', district: '', address: '' },
+      content: { description: '' },
+    };
+    expect(matchesCityAndSearch(listing, 'bishkek', '')).toBe(true);
+  });
+
+  // (c) Case insensitivity — legacy listings may have mixed-case city values.
+  test('(c) selectedCitySlug="bishkek" matches listing with location.city="Bishkek"', () => {
+    const listing: MinimalProperty = {
+      location: { city: 'Bishkek', district: '', address: '' },
+      content: { description: '' },
+    };
+    expect(matchesCityAndSearch(listing, 'bishkek', '')).toBe(true);
+  });
+
+  // (d) Negative — picking Almaty hides Bishkek listings.
+  test('(d) selectedCitySlug="almaty" rejects listing with location.city="bishkek"', () => {
+    const listing: MinimalProperty = {
+      location: { city: 'bishkek', district: '', address: '' },
+      content: { description: '' },
+    };
+    expect(matchesCityAndSearch(listing, 'almaty', '')).toBe(false);
+  });
+
+  // (e) Freetext search still hits `location.address` (Nominatim displayName).
+  test('(e) searchQuery="manas" matches listing with address="100 Manas St"', () => {
+    const listing: MinimalProperty = {
+      location: { district: '', city: '', address: '100 Manas St, Bishkek' },
       content: { title: '', description: '' },
     };
-    expect(matchesDistrictAndSearch(listing, 'Bishkek (All)', 'manas')).toBe(true);
+    expect(matchesCityAndSearch(listing, null, 'manas')).toBe(true);
   });
 
-  // Sanity check: listing with NO matches anywhere returns false.
-  test('sanity: no field contains "xyz" → false', () => {
+  // (f) Freetext search still hits legacy `location.district` (so users can
+  // still find old listings by typing a microdistrict name).
+  test('(f) searchQuery="mkr-5" matches legacy listing with district="mkr-5"', () => {
+    const listing: MinimalProperty = {
+      location: { district: 'mkr-5', city: 'bishkek', address: '' },
+      content: { description: '' },
+    };
+    expect(matchesCityAndSearch(listing, null, 'mkr-5')).toBe(true);
+  });
+
+  // (g) Sanity — nothing matches the freetext.
+  test('(g) sanity: no field contains "xyz" → false', () => {
     const listing: MinimalProperty = {
       location: { district: 'mkr-3', city: 'bishkek', address: '100 Manas St' },
       content: { title: 'Cozy apartment', description: 'Nice' },
     };
-    expect(matchesDistrictAndSearch(listing, 'Bishkek (All)', 'xyz')).toBe(false);
+    expect(matchesCityAndSearch(listing, null, 'xyz')).toBe(false);
   });
 });
