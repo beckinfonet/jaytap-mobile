@@ -924,4 +924,13 @@ export const ru: Record<TranslationKeys, string> = {
   'filters.cascading.categoryHeader': 'КАТЕГОРИЯ',
   'filters.cascading.typeHeader': 'ТИП',
   'filters.cascading.typeHint': 'выберите любой',
+
+  // Phase 14 Plan 14-03 — Guided sheet wizard (FILT-01) — D-07 namespace subset
+  'filters.deal.rentBlurb': 'Снять помесячно',
+  'filters.deal.buyBlurb': 'Купить в собственность',
+  'filters.category.prompt': 'Что за недвижимость?',
+  'filters.category.residentialBlurb': 'Жильё',
+  'filters.category.commercialBlurb': 'Офисы и торговля',
+  'filters.category.hospitalityBlurb': 'Размещение и проживание',
+  'filters.type.prompt': 'Выберите тип',
 };
