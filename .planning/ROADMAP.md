@@ -188,7 +188,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
   5. Existing `useTheme()` consumers compile and render unchanged — no per-screen hex literals introduced; the palette swap is single-source-of-truth via `src/theme/colors.ts` only.
 **Plans**: 2 plans
   - [x] 12-01-PLAN.md — Rewrite `src/theme/colors.ts` to ship the MoveIn handoff palette (MODE_INDEPENDENT_PALETTE const extraction per D-04; 7 rewritten + 9 new keys per D-08; 15 orphan keys retained verbatim per D-01; `ThemeColors = typeof colors.light` unchanged per D-07) (PAL-01, PAL-02)
-  - [ ] 12-02-PLAN.md — Operator-driven visual-regression sweep across the 15-screen risk-target list × iPhone 15 Pro Max + Moto G XT2513V × EN/RU × light/dark + write `12-VERIFICATION.md` in mass-disposition format per D-05 (PAL-03)
+  - [x] 12-02-PLAN.md — Operator-driven visual-regression sweep across the 15-screen risk-target list × iPhone 15 Pro Max + Moto G XT2513V × EN/RU × light/dark + write `12-VERIFICATION.md` in mass-disposition format per D-05 (PAL-03)
 **UI hint**: yes
 
 ### Phase 13: Shared Filter Data Model + AsyncStorage Persistence
@@ -261,7 +261,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
 | 9. i18n Audit + Sentinel | 0/TBD | Not started | — |
 | 10. Hardening + QA + Release v4.0.0 | 0/TBD | Not started | — |
 | 11. Listing Address Geocode (M5 GSD-tracked #1) | 6/6 | ✅ Complete    | 2026-05-27 |
-| 12. Whole-App Palette Migration (Dark + Light) + VR Sweep | 1/2 | In Progress|  |
+| 12. Whole-App Palette Migration (Dark + Light) + VR Sweep | 2/2 | Complete   | 2026-05-31 |
 | 13. Shared Filter Data Model + AsyncStorage Persistence | 0/TBD | Not started | — |
 | 14. Filter UI Variants (Guided + Cascading) + HomeScreen Dispatch | 0/TBD | Not started | — |
 | 15. Account Settings Restructure + Filter-Style Picker | 0/TBD | Not started | — |
