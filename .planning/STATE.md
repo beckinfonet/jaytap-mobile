@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v4.0
-milestone_name: Counts & Labels
-status: milestone_complete
-last_updated: "2026-05-27T01:47:15.508Z"
-last_activity: 2026-05-27 -- Phase 11 execution started
+milestone: v6.0
+milestone_name: Filter Variants + Profile Reskin
+status: planning
+last_updated: "2026-05-31T15:31:36.197Z"
+last_activity: 2026-05-31
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 18
-  completed_plans: 12
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # STATE: JayTap
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-11 after v3.0 milestone)
 
 ## Current Position
 
-Phase: 11
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-05-27
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-31 — Milestone v6.0 started
 
 ## M4 Phase Map (Phases 6–10)
 

@@ -8,7 +8,45 @@ JayTap is a mobile real-estate app for Central Asia (current launch market: Bish
 
 Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
-## Current Milestone: v4.0 M4 "Counts & Labels"
+## Current Milestone: v6.0 M6 "Filter Variants + Profile Reskin"
+
+**Goal:** Adopt the MoveIn design handoff — migrate the whole-app palette to the handoff tokens (dark + light parity), refactor filters to a multi-select shared data model with two interchangeable UI variants the user picks in Settings, and reskin Profile + Account Settings.
+
+**Target features (Phase A — v1 of this milestone):**
+
+1. **Whole-app palette migration** — rewrite `src/theme/colors.ts` light + dark sets to handoff tokens (dark `bg#121214`/`surface#1c1c20`; light `bg#f3f3f6`/`surface#ffffff`); preserve mode-independent accent `#ff5a6f` + landlord green `#35c98f` + destructive red `#ff4d4d`. Visual-regression sweep across every existing screen that reads `colors.*` (PropertyCard, PropertyDetailsScreen, HospitalityCard, all M2 admin screens, M3 contextual forms, Chat, Appointments, etc.).
+2. **Shared filter data model** — `{deal: 'rent'|'buy', category: 'residential'|'commercial'|'hospitality', types: string[]}` + single query builder. Type level becomes multi-select (current `selectedType: string | null` → `types: string[]`). All variants read/write the same state.
+3. **Guided Steps filter variant** — bottom-sheet wizard with 1-2-3 stepper (Deal → Category → Type); picking auto-advances; live "Show N homes" button at base.
+4. **Cascading Reveal filter variant** — inline panel under the search bar; segmented Rent/Buy → underlined Category tabs → Type chips with multi-select, joined by a left nesting rail.
+5. **Filter-style picker in Account Settings → Preferences** — expandable row listing all 4 styles; Guided + Cascading selectable in v1 (Master-detail + Sentence shown as "Coming soon" for Phase B).
+6. **AsyncStorage `filterStyle` hook** — `'guided'|'cascading'|'master'|'sentence'` (default `'guided'`); read by HomeScreen to choose variant component; per-device, no backend.
+7. **Account Settings restructure** — Account / Preferences / Danger zone sections; Language toggle stays in HomeScreen header (out of scope to move).
+8. **Profile reskin** — grouped rows for regular users; tile dashboard for admin/mod with role-gated Admin Tools (Landlord Applications + Moderation Queue for both; Role Management admin-only).
+
+**Phase B (deferred):** Master-detail + Sentence filter variants wired into the existing picker.
+
+**Key constraints:**
+
+- **Light + dark parity** required — designer delivered light-mode tokens on 2026-05-31 (`MoveIn_ Real Estate_LD_Mode.zip`); no derivation needed.
+- **Language pill stays in HomeScreen header** — handoff's "after" SearchHeader proposal is explicitly out of scope (memory `m6-language-pill-stays-in-header.md`).
+- **No Newsreader font** — reuse existing `Platform.select({ ios: 'Georgia', android: 'serif' })` for serif display moments; Georgia is the handoff's listed fallback.
+- **Variants are the value** — at least 2 variants (Guided + Cascading) in v1; collapsing to one is rejected by user (memory `m6-filter-variants-are-the-point.md`).
+- **No backend changes** — filter preference is device-local; data model refactor is client-only; palette migration is client-only.
+- **Project numbering continues** — M6 phases continue numbering from the latest GSD-tracked phase (last assigned: M4 Phase 10 / M5 Phase 11). Phase numbering for M6 to be decided by the roadmapper.
+
+**State note — concurrent in-flight predecessors:**
+
+- M4 v4.0 "Counts & Labels" — Phases 6–8 shipped; Phases 9–10 remain open (i18n audit + sentinel; release). See `## Concurrent In-Flight: v4.0 M4` below.
+- M5 v5.0 "Details & Geocoding" — Phase 1 (Property Details Redesign) merged outside GSD on 2026-05-26; Phase 11 (Listing Address Geocode) not started. See ROADMAP.md.
+- M6 starts as a parallel third in-flight milestone per user decision 2026-05-31.
+
+**Source artifacts:**
+
+- `MoveIn_ Real Estate_LD_Mode.zip` (design handoff with light-mode tokens, 2026-05-31) — extracted reference at `/tmp/moveinzip_ld/design_handoff_profile_filters/`. Includes `README.md` (full token spec), `filters-variants.jsx` (VariantA…D source), `filters-shared.jsx`, `profile-screens.jsx`, `profile-shared.jsx`.
+
+## Concurrent In-Flight Milestone: v4.0 M4 "Counts & Labels"
+
+**Started:** 2026-05-25. **Status:** Phases 6–8 of 10 complete (14/27 v1 reqs validated); Phases 9–10 remain open.
 
 **Goal:** Fix the M3 data-model gap (rooms ≠ bedrooms; bathroom enum ≠ bathroom count) and the i18n gap for property-type display strings, so every listing card and details screen renders the counts and labels Central Asian renters/buyers actually search by.
 
@@ -272,4 +310,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-26 — v4.0 M4 "Counts & Labels" Phases 6–8 of 10 complete (14/27 v1 reqs validated). Backend Mongoose schema extension shipped 2026-05-25 (SCHEMA-01..04); RN stepper component + ContextualListingFlow integration shipped 2026-05-25 (FORM-01..05); display surfaces (PropertyCard / HospitalityCard / PropertyDetailsScreen / ListingMetaTable) aligned to M4 schema fields shipped 2026-05-26 (DISP-01..05). Read-side / write-side loop closed. Phase 9 (i18n audit + sentinel for property-type / category / deal-type display strings) next. M3 v3.0 "Contextual Forms" shipped 2026-05-11 to ASC TestFlight Internal (iOS 3.0.0 build 29) + Play Console Internal Testing (Android 3.0.1 versionCode 32).*
+*Last updated: 2026-05-31 — v6.0 M6 "Filter Variants + Profile Reskin" planning started (MoveIn design handoff adoption — whole-app palette migration + multi-select filter data model + 2 of 4 filter UI variants for v1 + Account Settings restructure + Profile reskin). M6 starts as a parallel third in-flight milestone alongside M4 (Phases 9–10 open: i18n audit + release) and M5 (Phase 11 open: listing-address geocode; Phase 1 Property Details Redesign merged outside GSD 2026-05-26). Requirements + roadmap to be generated next via /gsd-new-milestone Step 9–10.*
