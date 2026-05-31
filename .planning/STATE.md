@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Filter Variants + Profile Reskin
 status: planning
-last_updated: "2026-05-31T16:00:00.000Z"
-last_activity: 2026-05-31
+last_updated: "2026-05-31T16:41:33.664Z"
+last_activity: 2026-05-31 — M6 v6.0 roadmap landed via `/gsd-roadmap` (5 phases 12–16, 15 v1 reqs, 100% coverage)
 progress:
   total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 4
+  total_plans: 18
+  completed_plans: 18
+  percent: 100
 ---
 
 # STATE: JayTap
@@ -43,6 +43,7 @@ Last activity: 2026-05-31 — M6 v6.0 roadmap landed via `/gsd-roadmap` (5 phase
 Full per-phase goals + success criteria in `.planning/ROADMAP.md § Phase Details`. Per-requirement mapping in `.planning/REQUIREMENTS.md § Traceability (M6)`.
 
 **M6 deferred (Phase B — out of M6 v1 scope):**
+
 - FILT-04 Master–Detail variant
 - FILT-05 Sentence Builder variant
 - SET-04 Un-gate Master-Detail + Sentence options in the picker
