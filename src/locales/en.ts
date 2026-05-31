@@ -915,6 +915,18 @@ export const en = {
   'applicantProfile.intent': 'Plans to list',
   'applicantProfile.submittedAt': 'Submitted {{date}}',
   'applicantProfile.viewProfile': 'View profile',
+
+  // Phase 14 Plan 14-01 — filter UI primitives (FILT-01, FILT-02) — D-07 namespace subset
+  'filters.title': 'Filters',
+  'filters.step.deal': 'Deal',
+  'filters.step.category': 'Category',
+  'filters.step.type': 'Type',
+  'filters.close': 'Close filters',
+  'filters.showHomes.one': 'Show 1 home',
+  'filters.showHomes.many': 'Show {count} homes',
+  'filters.type.multiHint': 'Choose one or more',
+  'filters.deal.rent': 'Rent',
+  'filters.deal.buy': 'Buy',
 } as const;
 
 export type TranslationKeys = keyof typeof en;

@@ -905,4 +905,16 @@ export const ru: Record<TranslationKeys, string> = {
   'applicantProfile.intent': 'Планирует размещать',
   'applicantProfile.submittedAt': 'Отправлено: {{date}}',
   'applicantProfile.viewProfile': 'Открыть профиль',
+
+  // Phase 14 Plan 14-01 — filter UI primitives (FILT-01, FILT-02) — D-07 namespace subset
+  'filters.title': 'Фильтры',
+  'filters.step.deal': 'Тип сделки',
+  'filters.step.category': 'Категория',
+  'filters.step.type': 'Тип',
+  'filters.close': 'Закрыть фильтры',
+  'filters.showHomes.one': 'Показать 1 объект',
+  'filters.showHomes.many': 'Показать {count} объектов',
+  'filters.type.multiHint': 'Выберите один или несколько',
+  'filters.deal.rent': 'Аренда',
+  'filters.deal.buy': 'Купить',
 };
