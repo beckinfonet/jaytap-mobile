@@ -186,7 +186,9 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
   3. The accent (pink `#ff5a6f` + soft `rgba(255,90,111,0.16)` + line `rgba(255,90,111,0.45)`), landlord green (`#35c98f`), and destructive red (`#ff4d4d`) render identically in dark and light modes — no mode-dependent drift on Submit / Approve / Reject / Archive / Delete affordances.
   4. The Moto G XT2513V walks every screen listed in PAL-03 in both modes + both locales without a single contrast-failure call-out (WCAG AA), illegible-text instance, or visible theme-drift artifact (e.g. an M5-era surface bleeding through a Phase 12 token).
   5. Existing `useTheme()` consumers compile and render unchanged — no per-screen hex literals introduced; the palette swap is single-source-of-truth via `src/theme/colors.ts` only.
-**Plans**: TBD
+**Plans**: 2 plans
+  - [ ] 12-01-PLAN.md — Rewrite `src/theme/colors.ts` to ship the MoveIn handoff palette (MODE_INDEPENDENT_PALETTE const extraction per D-04; 7 rewritten + 9 new keys per D-08; 15 orphan keys retained verbatim per D-01; `ThemeColors = typeof colors.light` unchanged per D-07) (PAL-01, PAL-02)
+  - [ ] 12-02-PLAN.md — Operator-driven visual-regression sweep across the 15-screen risk-target list × iPhone 15 Pro Max + Moto G XT2513V × EN/RU × light/dark + write `12-VERIFICATION.md` in mass-disposition format per D-05 (PAL-03)
 **UI hint**: yes
 
 ### Phase 13: Shared Filter Data Model + AsyncStorage Persistence
