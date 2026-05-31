@@ -40,15 +40,27 @@ const Probe = () => {
   return null;
 };
 
+// Track the last renderer so each test can unmount and avoid leaking trees
+// across tests (React 18 / RTR 19 keeps failed renders around otherwise, which
+// can break sibling specs that rely on `ctx` being reassigned).
+let lastRenderer: ReturnType<typeof TestRenderer.create> | null = null;
+
 const renderProvider = async () => {
   await act(async () => {
-    TestRenderer.create(
+    lastRenderer = TestRenderer.create(
       <FilterStyleProvider>
         <Probe />
       </FilterStyleProvider>,
     );
   });
 };
+
+afterEach(() => {
+  if (lastRenderer) {
+    lastRenderer.unmount();
+    lastRenderer = null;
+  }
+});
 
 describe('FilterStyleContext — default on fresh install (DATA-03, SC3, D-10)', () => {
   beforeEach(() => {
@@ -140,18 +152,50 @@ describe('FilterStyleContext — write-then-read invariant (DATA-03, SC4, FILT-0
 
 describe('FilterStyleContext — outside-provider guard (D-13)', () => {
   test('useFilterStyle() outside FilterStyleProvider throws a descriptive error', () => {
-    // Silence the React 18 error-boundary console noise during the intentional throw.
+    // Silence React's error-boundary console noise during the intentional throw.
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    // React 18 / react-test-renderer 19 routes render-phase throws through
+    // the error-boundary protocol rather than re-throwing synchronously
+    // from TestRenderer.create. Use a class ErrorBoundary that captures
+    // the error into a module-scoped `captured` variable from inside
+    // componentDidCatch — this avoids ref-timing issues when the boundary's
+    // child throws during the first render.
+    let captured: Error | null = null;
+
+    class Boundary extends React.Component<{ children: React.ReactNode }> {
+      state = { hasError: false };
+      static getDerivedStateFromError(): { hasError: true } {
+        return { hasError: true };
+      }
+      componentDidCatch(error: Error): void {
+        captured = error;
+      }
+      render() {
+        return this.state.hasError ? null : this.props.children;
+      }
+    }
 
     const Bare = () => {
       useFilterStyle();
       return null;
     };
 
-    expect(() => {
-      TestRenderer.create(<Bare />);
-    }).toThrow('useFilterStyle must be used within FilterStyleProvider');
+    let renderer: TestRenderer.ReactTestRenderer | undefined;
+    act(() => {
+      renderer = TestRenderer.create(
+        <Boundary>
+          <Bare />
+        </Boundary>,
+      );
+    });
 
+    expect(captured).toBeInstanceOf(Error);
+    expect((captured as unknown as Error).message).toBe(
+      'useFilterStyle must be used within FilterStyleProvider',
+    );
+
+    if (renderer) renderer.unmount();
     errorSpy.mockRestore();
   });
 });
