@@ -41,6 +41,7 @@ import {
   propertyTypeToCategory,
   type PropertyCategory,
 } from '../utils/propertyCategory';
+import { buildFilterQuery } from '../utils/buildFilterQuery';
 import { HospitalityCard } from '../components/HospitalityCard';
 import { HospitalitySection } from '../components/HospitalitySection';
 import { HomeRejectionBanner } from '../components/HomeRejectionBanner';
@@ -86,7 +87,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   // New Filter State (D-04: tri-state replaces the prior binary commercial toggle)
   const [transactionType, setTransactionType] = useState<'rent' | 'sale'>('rent');
   const [selectedCategory, setSelectedCategory] = useState<PropertyCategory>('Residential');
-  const [selectedType, setSelectedType] = useState<string | null>(null);
+  // Phase 13 Plan 13-01 / DATA-01 — multi-select-capable filter state. Visible single-chip
+  // UI in Phase 13 keeps writing `[singleType]` under the hood; Phase 14 variants will
+  // exercise the OR-union shape at the UI layer. Empty array = "no type filter".
+  const [types, setTypes] = useState<string[]>([]);
 
   // Filter section visibility (closed by default; tap filter icon to expand)
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
@@ -184,22 +188,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   }, [user?.localId, refreshKey]);
 
   const filteredProperties = useMemo(() => {
+    // Phase 13 Plan 13-01 / DATA-02 — clauses 1-3 (deal × category × types) delegate
+    // to the canonical buildFilterQuery predicate. City + search-query stay inline
+    // per D-06 boundary (those dimensions are NOT part of the M6 shared model —
+    // REQUIREMENTS DATA-01 names only deal | category | types). Phase 14 variants
+    // will read the same buildFilterQuery shape; city + search remain HomeScreen-local.
+    const matchesShared = buildFilterQuery({
+      deal: transactionType,
+      category: selectedCategory,
+      types,
+    });
     return properties.filter((p) => {
-      // Phase 2 D-20 read-path swap: M2 flat `p.type` → M3 nested `p.dealType`.
-      // Tradeoff §K rule: rent strip = `dealType !== 'sale'`; sale strip = `dealType === 'sale'`.
-      // 1. Transaction Type Filter (Rent vs Sale)
-      const isSale = p.dealType === 'sale';
-      if (transactionType === 'sale' && !isSale) return false;
-      if (transactionType === 'rent' && isSale) return false;
-
-      // 2. Category Filter (D-04 / D-24: tri-state via propertyTypeToCategory)
-      if (propertyTypeToCategory(p.propertyType) !== selectedCategory) return false;
-
-      // 3. Specific Property Type Filter
-      if (selectedType) {
-        const pPropertyType = p.propertyType?.toLowerCase() || 'apartment';
-        if (pPropertyType !== selectedType.toLowerCase()) return false;
-      }
+      // 1-3. Shared canonical predicate (deal × category × types OR-union).
+      if (!matchesShared(p)) return false;
 
       // 4. City Filter (quick-task 260530-sud) — exact case-insensitive slug equality
       // on listing.location.city. Microdistrict substring fallbacks (district / address /
@@ -244,7 +245,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
       }
       return true;
     });
-  }, [properties, transactionType, selectedCategory, selectedType, selectedCity, searchQuery]);
+  }, [properties, transactionType, selectedCategory, types, selectedCity, searchQuery]);
 
   // Quick-task 260530-sud — flatten cities into a country-grouped list for the modal.
   // Synthetic "all" + "header" + "loading" items keep a single FlatList renderer.
@@ -317,11 +318,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   };
 
   const togglePropertyType = (type: string) => {
-    if (selectedType === type) {
-      setSelectedType(null); // Deselect
-    } else {
-      setSelectedType(type);
-    }
+    // Phase 13 Plan 13-01 / DATA-01 — multi-select toggle. Add to types[] if absent,
+    // remove if present. Under Phase 13's single-chip render the user-visible behavior
+    // is still effectively single-select (the chip row only shows one active chip at a
+    // time per existing render); Phase 14 variants exercise the multi-select OR-union.
+    setTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
+    );
   };
 
   const toggleFiltersExpanded = () => {
@@ -568,7 +571,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
                     ]}
                     onPress={() => {
                       setSelectedCategory(cat);
-                      setSelectedType(null);
+                      // Phase 13 Plan 13-01 / DATA-01 — clear the multi-select
+                      // type filter when switching category (mirrors the old
+                      // single-select null-reset).
+                      setTypes([]);
                     }}
                     accessibilityRole="button"
                     accessibilityState={{ selected }}
@@ -605,7 +611,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
                     data={chipTypes.map((tname) => ({ id: tname, label: tname }))}
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => {
-                      const isActive = selectedType === item.label;
+                      const isActive = types.includes(item.label);
                       return (
                         <TouchableOpacity
                           style={[
