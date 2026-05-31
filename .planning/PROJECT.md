@@ -155,6 +155,11 @@ iOS shipped at `3.0.0 build 29` (TestFlight Internal Testing); Android shipped a
 
 ### Active
 
+**M6 v6.0 "Filter Variants + Profile Reskin" — in flight (Phases 12–13 of 16 validated, 6/15 v1 reqs):**
+
+- ✓ PAL-01..03 Whole-app palette migration (dark + light parity to MoveIn handoff tokens) + visual-regression sweep — v6.0 (Phase 12, complete 2026-05-31)
+- ✓ DATA-01..03 Shared filter data model — `buildFilterQuery({ deal, category, types })` canonical predicate factory at `src/utils/buildFilterQuery.ts` + HomeScreen multi-select refactor (`selectedType: string | null` → `types: string[]`; OR-union via `types.includes`); `FilterStyleContext` + `useFilterStyle()` hook persisting `'guided' | 'cascading' | 'master' | 'sentence'` to AsyncStorage `@jaytap_filter_style` (default `'guided'`, corrupt values silently default); provider mounted in App.tsx between `LanguageProvider` and `AuthProvider`; 38/38 new jest tests pass (18 buildFilterQuery + 20 FilterStyleContext); KBD-02 grep gate preserved (0); pre-existing test-suite failures (PropertyService / useRole / PropertyCard, 8 tests) confirmed at baseline `d88e246` — not introduced. Code review surfaced 2 advisory warnings (WR-01 cold-start race in FilterStyleContext where pre-load `setFilterStyle()` can be silently overwritten; WR-02 `dealType !== 'sale'` predicate leaks corrupt/undefined deals into `rent` bucket) + 5 INFO items — v6.0 (Phase 13, complete 2026-05-31)
+
 **M4 v4.0 "Counts & Labels" — in flight (Phases 6–8 of 10 validated, 14/27 v1 reqs):**
 
 - ✓ SCHEMA-01..04 Mongoose Property schema extended with optional `basics.bedrooms` (integer 0–10) + `basics.bathroomCount` (number 0–10, 0.5 steps); residential-only `basics.bedrooms` stripped silently on hospitality/commercial submissions via `stripResidentialOnlyFields.js`; RN client `Property.ts` type stub mirrors; backend 311/311 tests green — v4.0 (Phase 6, complete 2026-05-25)
@@ -310,4 +315,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-31 — v6.0 M6 "Filter Variants + Profile Reskin" planning started (MoveIn design handoff adoption — whole-app palette migration + multi-select filter data model + 2 of 4 filter UI variants for v1 + Account Settings restructure + Profile reskin). M6 starts as a parallel third in-flight milestone alongside M4 (Phases 9–10 open: i18n audit + release) and M5 (Phase 11 open: listing-address geocode; Phase 1 Property Details Redesign merged outside GSD 2026-05-26). Requirements + roadmap to be generated next via /gsd-new-milestone Step 9–10.*
+*Last updated: 2026-05-31 — M6 Phase 13 (Shared Filter Data Model + AsyncStorage Persistence) complete. `buildFilterQuery` + `FilterStyleContext` foundation shipped on `main` (6 commits, 38/38 new tests). 6/15 M6 v1 reqs validated (PAL-01..03 + DATA-01..03). Phases 14 (Filter UI Variants), 15 (Account Settings Restructure), 16 (Profile Reskin) remain. Parallel in-flight milestones: M4 (Phases 9–10 open) + M5 (Phase 11 open).*
