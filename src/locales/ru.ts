@@ -917,4 +917,11 @@ export const ru: Record<TranslationKeys, string> = {
   'filters.type.multiHint': 'Выберите один или несколько',
   'filters.deal.rent': 'Аренда',
   'filters.deal.buy': 'Купить',
+
+  // Phase 14 Plan 14-02 — Cascading panel (FILT-02) — D-07 namespace subset.
+  // Reuses existing 'category.residential|commercial|hospitality' (lines 295-297)
+  // for the three tab labels; no new 'filters.category.*' keys added.
+  'filters.cascading.categoryHeader': 'КАТЕГОРИЯ',
+  'filters.cascading.typeHeader': 'ТИП',
+  'filters.cascading.typeHint': 'выберите любой',
 };

@@ -927,6 +927,13 @@ export const en = {
   'filters.type.multiHint': 'Choose one or more',
   'filters.deal.rent': 'Rent',
   'filters.deal.buy': 'Buy',
+
+  // Phase 14 Plan 14-02 — Cascading panel (FILT-02) — D-07 namespace subset.
+  // Reuses existing 'category.residential|commercial|hospitality' (lines 293-295)
+  // for the three tab labels; no new 'filters.category.*' keys added.
+  'filters.cascading.categoryHeader': 'CATEGORY',
+  'filters.cascading.typeHeader': 'TYPE',
+  'filters.cascading.typeHint': 'pick any',
 } as const;
 
 export type TranslationKeys = keyof typeof en;
