@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Filter Variants + Profile Reskin
 status: executing
-last_updated: "2026-05-31T20:30:43.686Z"
-last_activity: 2026-05-31 -- Phase 14 planning complete
+last_updated: "2026-05-31T20:32:04.321Z"
+last_activity: 2026-05-31 -- Phase 14 execution started
 progress:
   total_phases: 7
   completed_phases: 6
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md` (updated 2026-05-31 — M6 added as current mileston
 
 **Core value:** Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek (and KG/KZ/UZ expansion markets) properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
-**Current focus:** Phase 13 — shared-filter-data-model-asyncstorage-persistence
+**Current focus:** Phase 14 — filter-ui-variants-guided-steps-cascading-reveal-homescreen-
 
 ## Current Position
 
-Phase: 13
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-31 -- Phase 14 planning complete
+Phase: 14 (filter-ui-variants-guided-steps-cascading-reveal-homescreen-) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 14
+Last activity: 2026-05-31 -- Phase 14 execution started
 
 ## M6 Phase Map (Phases 12–16) — CURRENT MILESTONE
 

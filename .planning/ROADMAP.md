@@ -214,7 +214,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
   4. Both variants read from and write to the same `{ deal, category, types }` shared state — applying a filter in Guided and then opening Cascading shows the same selections pre-populated (and vice versa).
   5. EN+RU parity is held for every new UI string in both variants (`scripts/check-i18n-parity.sh` exits 0); KBD-02 grep gate (`keyboardVerticalOffset` count in `src/`) remains 0.
 **Plans**: 3 plans
-  - [ ] 14-01-PLAN.md — Shared filter primitives (DealToggle, CheckSquare, Stepper, MultiHint, ShowButton, Breadcrumb, TypeIcon, joinTypes) + Wave-0 Modal-render probe + filters.* i18n subset (FILT-01, FILT-02)
+  - [x] 14-01-PLAN.md — Shared filter primitives (DealToggle, CheckSquare, Stepper, MultiHint, ShowButton, Breadcrumb, TypeIcon, joinTypes) + Wave-0 Modal-render probe + filters.* i18n subset (FILT-01, FILT-02)
   - [ ] 14-02-PLAN.md — <CascadingFilter> inline panel + HomeScreen surgical extract (delete ~169 LOC of inline JSX + 10 orphan StyleSheet keys; mount behind filterStyle === "cascading" gate; useFilterStyle hook wired) (FILT-02)
   - [ ] 14-03-PLAN.md — <GuidedFilterSheet> Modal+Animated bottom-sheet with load-bearing localOpen shadow + HomeScreen variant dispatch (mount alongside Cascading; both variants share state) (FILT-01, FILT-03)
 **UI hint**: yes
@@ -266,7 +266,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
 | 11. Listing Address Geocode (M5 GSD-tracked #1) | 6/6 | ✅ Complete    | 2026-05-27 |
 | 12. Whole-App Palette Migration (Dark + Light) + VR Sweep | 2/2 | Complete   | 2026-05-31 |
 | 13. Shared Filter Data Model + AsyncStorage Persistence | 2/2 | Complete    | 2026-05-31 |
-| 14. Filter UI Variants (Guided + Cascading) + HomeScreen Dispatch | 0/TBD | Not started | — |
+| 14. Filter UI Variants (Guided + Cascading) + HomeScreen Dispatch | 1/3 | In Progress|  |
 | 15. Account Settings Restructure + Filter-Style Picker | 0/TBD | Not started | — |
 | 16. Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | 0/TBD | Not started | — |
 
