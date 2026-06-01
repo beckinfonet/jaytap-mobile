@@ -45,6 +45,8 @@ jest.mock('../primitives/Stepper', () => {
 jest.mock('../primitives/ShowButton', () => {
   const ReactLocal = require('react');
   const RN = require('react-native');
+  // Quick 260601-dqh — surface `variant` prop via testID suffix so footer
+  // contract (primary on step 2 / secondary on steps 0/1) is assertable.
   return {
     __esModule: true,
     default: (props: any) =>
@@ -52,6 +54,10 @@ jest.mock('../primitives/ShowButton', () => {
         testID: 'ShowButtonStub',
         onPress: props.onPress,
         accessibilityLabel: `show-${props.count}`,
+        // `variant` is forwarded via a prop on the stub so tests can read it.
+        // When omitted on the real ShowButton, `props.variant` is undefined,
+        // which the parent's "primary by default" contract guarantees.
+        variant: props.variant,
       }),
   };
 });
@@ -178,6 +184,27 @@ const render = (
 };
 
 /**
+ * Quick 260601-dqh — collect ShowButton stub instances WITHOUT duplicates.
+ * `findAllByProps({ testID: 'ShowButtonStub' })` inflates the count because
+ * the Pressable forwards `testID` to its inner Views (host fibers). The mock
+ * returns RN.Pressable as the root, so we filter to elements whose `type`
+ * stringifies to 'Pressable' (the stub's root element).
+ */
+const findShowButtons = (
+  tree: TestRenderer.ReactTestRenderer,
+): TestRenderer.ReactTestInstance[] => {
+  const all = tree.root.findAllByProps({ testID: 'ShowButtonStub' });
+  return all.filter((n) => {
+    const t = n.type;
+    const name =
+      typeof t === 'string'
+        ? t
+        : (t as any)?.displayName || (t as any)?.name || String(t);
+    return name === 'Pressable';
+  });
+};
+
+/**
  * Find a Pressable whose subtree contains a Text child rendering the exact label.
  * Skip stubs that have their own testID.
  */
@@ -221,17 +248,18 @@ describe('GuidedFilterSheet', () => {
     expect(modal.props.visible).toBe(true);
   });
 
-  it('stepper auto-advance: tapping Rent Deal-card calls setTransactionType("rent") + step→1 (CategoryCards visible)', () => {
+  // Quick 260601-dqh — auto-advance REMOVED. Tapping a Deal card now only sets
+  // transactionType; step does NOT change. Continue (footer) drives setStep.
+  it('Deal card: tap calls setTransactionType but does NOT advance step (auto-advance removed)', () => {
     const { tree, setters } = render({ open: true, transactionType: 'sale' });
-    // At step 0, DealCards are rendered. Find the Rent card by its label key.
     const rentCard = findPressableByText(tree, 'filters.deal.rent');
     expect(rentCard).toBeDefined();
     act(() => {
       rentCard!.props.onPress();
     });
     expect(setters.setTransactionType).toHaveBeenCalledWith('rent');
-    // After step→1, CategoryCards render — find the Residential category card
-    // via its prompt key existence (only rendered at step 1).
+    // Category prompt key is ONLY rendered at step 1. After tapping the Deal
+    // card without an auto-advance, the prompt must still be absent.
     const categoryPrompt = tree.root
       .findAllByType(Text)
       .map((n) => {
@@ -239,16 +267,20 @@ describe('GuidedFilterSheet', () => {
         return Array.isArray(c) ? c.join('') : String(c ?? '');
       })
       .filter((s) => s === 'filters.category.prompt');
-    expect(categoryPrompt.length).toBeGreaterThanOrEqual(1);
+    expect(categoryPrompt.length).toBe(0);
   });
 
-  it('re-picking Category at step 1 calls setSelectedCategory + setTypes([]) (RESEARCH.md Pitfall 4)', () => {
+  // Quick 260601-dqh — re-picking Category still preserves Pitfall 4 ordering
+  // (setSelectedCategory before setTypes([])). The route into step 1 is now via
+  // the Continue button (no Deal-card auto-advance), so drive it that way.
+  it('re-picking Category at step 1 calls setSelectedCategory + setTypes([]) and does NOT advance step (Pitfall 4 order preserved)', () => {
     const setters = mkSetters();
     const { tree } = render({ open: true, transactionType: 'rent', types: ['Apartment'], setters });
-    // Walk: step 0 → tap Rent → step 1. Then tap Commercial.
-    const rentCard = findPressableByText(tree, 'filters.deal.rent');
+    // Walk step 0 → step 1 via Continue (no card auto-advance).
+    const continueStep0 = findPressableByText(tree, 'filters.continue.addCategory');
+    expect(continueStep0).toBeDefined();
     act(() => {
-      rentCard!.props.onPress();
+      continueStep0!.props.onPress();
     });
     // Now at step 1. Find the Commercial card by its 'category.commercial' label.
     const commercialCard = findPressableByText(tree, 'category.commercial');
@@ -258,10 +290,19 @@ describe('GuidedFilterSheet', () => {
     });
     expect(setters.setSelectedCategory).toHaveBeenCalledWith('Commercial');
     expect(setters.setTypes).toHaveBeenCalledWith([]);
-    // Order: setSelectedCategory MUST fire before setTypes (Pitfall 4 contract).
+    // Order: setSelectedCategory MUST fire before setTypes (Pitfall 4).
     const catOrder = setters.setSelectedCategory.mock.invocationCallOrder[0];
     const typesOrder = setters.setTypes.mock.invocationCallOrder[0];
     expect(catOrder).toBeLessThan(typesOrder);
+    // Step did NOT auto-advance to 2 — Type prompt still absent.
+    const typePrompt = tree.root
+      .findAllByType(Text)
+      .map((n) => {
+        const c = n.props.children;
+        return Array.isArray(c) ? c.join('') : String(c ?? '');
+      })
+      .filter((s) => s === 'filters.type.prompt');
+    expect(typePrompt.length).toBe(0);
   });
 
   it('tap-scrim fires onClose', () => {
@@ -284,6 +325,122 @@ describe('GuidedFilterSheet', () => {
     expect(showButton.props.accessibilityLabel).toBe('show-5');
     act(() => {
       showButton.props.onPress();
+    });
+    expect(setters.onClose).toHaveBeenCalledTimes(1);
+  });
+
+  // ---------- Quick 260601-dqh — dual-action footer (Guide-first) ----------
+
+  it('step 0 footer: renders Continue · Add a category + secondary ShowButton (no primary Show)', () => {
+    const { tree } = render({ open: true });
+    // Continue button uses the addCategory key at step 0.
+    const continueBtn = findPressableByText(tree, 'filters.continue.addCategory');
+    expect(continueBtn).toBeDefined();
+    // ShowButton stubs at step 0 — exactly one, with variant === 'secondary'.
+    const showButtons = findShowButtons(tree);
+    expect(showButtons.length).toBe(1);
+    expect(showButtons[0].props.variant).toBe('secondary');
+  });
+
+  it('step 1 footer: renders Continue · Add a type + secondary ShowButton (no primary Show)', () => {
+    const { tree } = render({ open: true });
+    // Advance to step 1 via Continue (no Deal-card auto-advance).
+    const continueStep0 = findPressableByText(tree, 'filters.continue.addCategory');
+    act(() => {
+      continueStep0!.props.onPress();
+    });
+    // Continue button at step 1 uses the addType key.
+    const continueStep1 = findPressableByText(tree, 'filters.continue.addType');
+    expect(continueStep1).toBeDefined();
+    // ShowButton stubs at step 1 — exactly one, secondary.
+    const showButtons = findShowButtons(tree);
+    expect(showButtons.length).toBe(1);
+    expect(showButtons[0].props.variant).toBe('secondary');
+  });
+
+  it('step 2 footer: renders single ShowButton with variant === undefined (primary default), no Continue', () => {
+    const { tree } = render({ open: true });
+    // Advance step 0 → 1 → 2 via two Continue presses.
+    act(() => {
+      findPressableByText(tree, 'filters.continue.addCategory')!.props.onPress();
+    });
+    act(() => {
+      findPressableByText(tree, 'filters.continue.addType')!.props.onPress();
+    });
+    // Now at step 2. No Continue rendered.
+    expect(findPressableByText(tree, 'filters.continue.addCategory')).toBeUndefined();
+    expect(findPressableByText(tree, 'filters.continue.addType')).toBeUndefined();
+    // Exactly one ShowButton with default (undefined) variant = primary.
+    const showButtons = findShowButtons(tree);
+    expect(showButtons.length).toBe(1);
+    expect(showButtons[0].props.variant).toBeUndefined();
+  });
+
+  it('Continue at step 0 advances to step 1 (Category prompt becomes visible)', () => {
+    const { tree } = render({ open: true });
+    // Step 0: Category prompt not yet rendered.
+    const before = tree.root
+      .findAllByType(Text)
+      .map((n) => {
+        const c = n.props.children;
+        return Array.isArray(c) ? c.join('') : String(c ?? '');
+      })
+      .filter((s) => s === 'filters.category.prompt');
+    expect(before.length).toBe(0);
+    // Tap Continue.
+    act(() => {
+      findPressableByText(tree, 'filters.continue.addCategory')!.props.onPress();
+    });
+    // Step 1: Category prompt is now rendered.
+    const after = tree.root
+      .findAllByType(Text)
+      .map((n) => {
+        const c = n.props.children;
+        return Array.isArray(c) ? c.join('') : String(c ?? '');
+      })
+      .filter((s) => s === 'filters.category.prompt');
+    expect(after.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('Continue at step 1 advances to step 2 (Type prompt becomes visible)', () => {
+    const { tree } = render({ open: true });
+    // Advance to step 1.
+    act(() => {
+      findPressableByText(tree, 'filters.continue.addCategory')!.props.onPress();
+    });
+    // Step 1: Type prompt not yet rendered.
+    const before = tree.root
+      .findAllByType(Text)
+      .map((n) => {
+        const c = n.props.children;
+        return Array.isArray(c) ? c.join('') : String(c ?? '');
+      })
+      .filter((s) => s === 'filters.type.prompt');
+    expect(before.length).toBe(0);
+    // Tap Continue (addType variant).
+    act(() => {
+      findPressableByText(tree, 'filters.continue.addType')!.props.onPress();
+    });
+    // Step 2: Type prompt rendered.
+    const after = tree.root
+      .findAllByType(Text)
+      .map((n) => {
+        const c = n.props.children;
+        return Array.isArray(c) ? c.join('') : String(c ?? '');
+      })
+      .filter((s) => s === 'filters.type.prompt');
+    expect(after.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('secondary ShowButton at step 0 still fires onClose (D-04 / D-14 contracts hold)', () => {
+    const setters = mkSetters();
+    const { tree } = render({ open: true, liveCount: 7, setters });
+    const showButtons = findShowButtons(tree);
+    expect(showButtons.length).toBe(1);
+    expect(showButtons[0].props.variant).toBe('secondary');
+    expect(showButtons[0].props.accessibilityLabel).toBe('show-7');
+    act(() => {
+      showButtons[0].props.onPress();
     });
     expect(setters.onClose).toHaveBeenCalledTimes(1);
   });

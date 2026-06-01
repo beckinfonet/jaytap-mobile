@@ -943,6 +943,10 @@ export const ru: Record<TranslationKeys, string> = {
   'filters.close': 'Закрыть фильтры',
   'filters.showHomes.one': 'Показать 1 объект',
   'filters.showHomes.many': 'Показать {count} объектов',
+  // Quick 260601-dqh — Guided footer Continue button (primary CTA on steps 0/1).
+  // Middle-dot U+00B7 is intentional. Show string is reused (filters.showHomes.*).
+  'filters.continue.addCategory': 'Далее · Категория',
+  'filters.continue.addType': 'Далее · Тип',
   'filters.type.multiHint': 'Выберите один или несколько',
   'filters.deal.rent': 'Аренда',
   'filters.deal.buy': 'Купить',
