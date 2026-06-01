@@ -60,7 +60,7 @@ const DealToggle: React.FC<DealToggleProps> = ({ value, onChange }) => {
         style={[
           styles.thumb,
           {
-            backgroundColor: colors.accent,
+            backgroundColor: colors.filterAccent,
             transform: [
               {
                 translateX: thumbPos.interpolate({
