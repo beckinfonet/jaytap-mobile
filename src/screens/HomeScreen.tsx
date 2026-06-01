@@ -46,6 +46,9 @@ import { useFilterStyle } from '../context/FilterStyleContext';
 import CascadingFilter from '../components/filters/CascadingFilter';
 // Phase 14 Plan 14-03 (FILT-01, FILT-03) — Guided sheet variant sibling mount.
 import GuidedFilterSheet from '../components/filters/GuidedFilterSheet';
+// Quick-task 260601-1b8 — summary-row breadcrumb collapse helper (matches the
+// Cascading panel's own wording).
+import { joinTypes } from '../components/filters/primitives/joinTypes';
 import { HospitalityCard } from '../components/HospitalityCard';
 import { HospitalitySection } from '../components/HospitalitySection';
 import { HomeRejectionBanner } from '../components/HomeRejectionBanner';
@@ -608,9 +611,52 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         />
       )}
 
-      <Text style={[styles.resultCount, { color: colors.textSecondary }]}>
-        {filteredProperties.length} {t('home.homes')}
-      </Text>
+      {/* Quick-task 260601-1b8 — pinned summary row. Replaces the static count
+          line with a tappable breadcrumb that always shows the active filters
+          (deal · category · types) and re-opens the filter when tapped (which
+          also scrolls the results to the top via toggleFiltersExpanded). Stays
+          in the static header so it's always visible — the Cascading panel
+          itself now scrolls away with the list. Reuses existing i18n keys
+          ('filters.deal.rent|buy', 'category.*', 'home.homes') + joinTypes; no
+          new strings. */}
+      {(() => {
+        const dealLabel = t(
+          transactionType === 'rent' ? 'filters.deal.rent' : 'filters.deal.buy',
+        );
+        const categoryKey = (
+          selectedCategory === 'Residential'
+            ? 'category.residential'
+            : selectedCategory === 'Commercial'
+            ? 'category.commercial'
+            : 'category.hospitality'
+        ) as TranslationKeys;
+        const categoryLabel = t(categoryKey);
+        const typesLabel = joinTypes(selectedCategory, types, true);
+        const breadcrumb = [dealLabel, categoryLabel, typesLabel]
+          .filter((s) => s && s.length > 0)
+          .join(' · ');
+        return (
+          <TouchableOpacity
+            onPress={toggleFiltersExpanded}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`${filteredProperties.length} ${t('home.homes')} — ${breadcrumb}`}
+          >
+            <Text
+              style={[styles.resultCount, { color: colors.text }]}
+              numberOfLines={1}
+            >
+              {filteredProperties.length} {t('home.homes')}
+            </Text>
+            <Text
+              style={[styles.summaryBreadcrumb, { color: colors.textSecondary }]}
+              numberOfLines={1}
+            >
+              {breadcrumb}
+            </Text>
+          </TouchableOpacity>
+        );
+      })()}
     </View>
   );
 
@@ -827,6 +873,14 @@ const styles = StyleSheet.create({
   // CascadingFilter.tsx. Total delete: ~169 LOC.
   resultCount: {
     fontSize: 14,
+    marginLeft: 4,
+  },
+  // Quick-task 260601-1b8 — secondary breadcrumb line under the result count.
+  // Slightly smaller font; uses colors.textSecondary inline so it tracks the
+  // theme. marginBottom inherits the prior spacing rhythm that the count line
+  // used to own (the parent TouchableOpacity is the spacer now).
+  summaryBreadcrumb: {
+    fontSize: 12,
     marginBottom: 10,
     marginLeft: 4,
   },
