@@ -335,7 +335,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
 
   const toggleFiltersExpanded = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsFiltersExpanded((prev) => !prev);
+    setIsFiltersExpanded((prev) => {
+      const next = !prev;
+      // Quick-task 260601-1b8 — when (re)opening the Cascading panel, scroll the
+      // results list back to the top so the panel (which now lives in the list's
+      // ListHeaderComponent) is in view. Without this, tapping the filter icon
+      // while scrolled down appears to do nothing because the header is above
+      // the viewport. Collapse path intentionally does NOT scroll.
+      if (next) {
+        listRef.current?.scrollToOffset({ offset: 0, animated: true });
+      }
+      return next;
+    });
   };
 
   // Quick-task 260601-1b8 — stable ListHeaderComponent renderer. The Cascading
