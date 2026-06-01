@@ -147,7 +147,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
   3. EN-locale user sees the corresponding English labels routed through the same `t()` mechanism (not raw constants) — proven by EN+RU parity (`scripts/check-i18n-parity.sh` exit 0).
   4. New sentinel `scripts/check-no-raw-property-type-strings.sh` exits 0 against the post-fix codebase AND exits non-zero against a deliberately-introduced raw `<Text>Apartment</Text>` regression (proven via the sentinel's own test or audit hook); sentinel chained into RN-client jest pre-test step.
   5. `PROPERTY_TYPES` exported constant either keeps Pascal-cased IDs translated at render-site via `t('propertyType.' + id.toLowerCase())` OR is replaced with `{ id, labelKey }` object arrays — the chosen path passes both I18N-05 and I18N-06 with zero raw-string surface remaining.
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
 
 ### Phase 10: Hardening + Manual Physical-Device QA + Release v4.0.0
@@ -160,7 +160,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
   3. Bilingual EN+RU release notes drafted under the 500-char Play Console binding limit, region-neutral phrasing per memory `geographic-scope.md`, pasted on both ASC + Play Console.
   4. Backend live + healthy on Railway at release SHA; sentinel chain green end-to-end (`actoruid → landlord-uid → media-stripped → i18n-parity → create-listing-screen-removed → jest` on backend; `check-no-raw-property-type-strings → jest` on RN client); `firebase-admin` confirmed absent for the 4th consecutive milestone.
   5. v4.0.0 visible in ASC TestFlight Internal Testing track + Play Console Internal Testing track (per M1 D-12: TestFlight Internal + Play Console Internal Testing visibility = phase-exit); M1 D-13 inheritance descope honored (privacy manifest, App Privacy responses, Data Safety questionnaire, entitlements re-touched only if a new data-collecting SDK landed during M4).
-**Plans**: TBD
+**Plans**: 2 plans
 
 ### Phase 11: Listing Address Geocode (Forward + Reverse)
 **Goal**: On Step 2 ("Where is the listing?") of `<ContextualListingFlow>`, a user can type a street address ("100 Manas Street") and the pin auto-places at the geocoded lat/lon; and dropping a pin best-effort fills the address field — both directions persist `location.address` end-to-end (FormBag → Property type → backend Mongoose) and the underlying Nominatim helper has the AbortController/viewbox/language fixes baked in.
@@ -201,7 +201,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
   3. Killing the app and reopening it preserves the user's last-picked `filterStyle` value (default `'guided'` on first launch) — proving `useFilterStyle()` reads from `@jaytap_filter_style` on mount with no flash of the wrong default.
   4. Writing a new `filterStyle` value (via the hook's `setFilterStyle` setter, exercised by a debug fixture or a deferred SET-02 prelinking task) persists immediately to AsyncStorage and survives an app cold-start.
   5. No backend round-trip is introduced — the filter-style preference is device-local; no Mongoose schema change; no new API call.
-**Plans**: TBD
+**Plans**: 2 plans
 
 ### Phase 14: Filter UI Variants (Guided Steps + Cascading Reveal) + HomeScreen Variant Dispatch
 **Goal**: Two interchangeable filter UIs render on top of Phase 13's shared data model, and the HomeScreen filter button launches the variant matching the user's `filterStyle` preference — switching the preference in AccountSettings live-swaps the variant on the next filter-button press with no app restart required. Delivers the v1 visible value of M6 (variants are the point — memory `m6-filter-variants-are-the-point.md`).
@@ -229,7 +229,9 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
   3. Picking Guided or Cascading writes the value via `useFilterStyle().setFilterStyle()` (DATA-03) and reflects immediately in the subtitle ("Currently: Guided Steps"); the next HomeScreen filter-button press (Phase 14) opens the new variant.
   4. Existing AccountSettings flows work verbatim in their new section homes: Account info edit-mode toggle still saves First Name / Last Name / Phone / WhatsApp / Telegram; Language toggle still persists via `LanguageContext.setLanguage()`; Delete account still routes through `DeleteAccountModal`.
   5. EN+RU parity is held for every new section label, picker description, and "Coming soon" string (`scripts/check-i18n-parity.sh` exits 0); no Account Settings test regression.
-**Plans**: TBD
+**Plans**: 2 plans
+  - [ ] 15-01-PLAN.md — Screen restructure + token migration + SectionLabel primitive + APPLICATION section (SET-01, SET-03)
+  - [ ] 15-02-PLAN.md — FilterStyleRow picker behavior + 4-style listing + i18n (SET-02)
 **UI hint**: yes
 
 ### Phase 16: Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard)
@@ -242,7 +244,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
   3. Live count badges (accent) on tiles with pending counts: Moderation Queue tile shows the `pendingCount` from `PropertyService.getModerationQueueCount` (with the existing `moderationCountRefreshKey` invalidation); favorite count, appointment count, and My Listings count source from the existing fetchers — no count regression.
   4. Every existing navigation handler routes verbatim (`onCreateListing`, `onViewListings`, `onViewFavorites`, `onViewAppointments`, `onViewAccountSettings`, `onApplyLandlord`, `onReviewLandlordApplications`, `onReviewModerationQueue`, `onOpenRoleManagement`); landlord-application status banner still renders when applicable; no App.tsx call-site change required.
   5. EN+RU parity is held for every new section label, tile string, and role-badge text (`scripts/check-i18n-parity.sh` exits 0); both layouts walked APPROVED on iPhone 15 Pro Max + Moto G XT2513V × EN/RU × light/dark for at least one regular-user account and one admin account.
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
 
 ## Progress
@@ -267,7 +269,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
 | 12. Whole-App Palette Migration (Dark + Light) + VR Sweep | 2/2 | Complete   | 2026-05-31 |
 | 13. Shared Filter Data Model + AsyncStorage Persistence | 2/2 | Complete    | 2026-05-31 |
 | 14. Filter UI Variants (Guided + Cascading) + HomeScreen Dispatch | 3/3 | Complete   | 2026-05-31 |
-| 15. Account Settings Restructure + Filter-Style Picker | 0/TBD | Not started | — |
+| 15. Account Settings Restructure + Filter-Style Picker | 0/2 | Planned 2026-05-31 | — |
 | 16. Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | 0/TBD | Not started | — |
 
 ## Backlog
