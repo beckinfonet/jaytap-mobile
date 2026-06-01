@@ -251,6 +251,11 @@ export const en = {
   'accountSettings.profileUpdateFailed': 'Failed to update profile',
   'accountSettings.invalidName': "Names can only contain letters, spaces, hyphens, and apostrophes (e.g., O'Brian, Marie-Jane).",
   'accountSettings.invalidPhone': 'Phone numbers can only contain digits, spaces, +, -, and parentheses.',
+  // Phase 15 (SET-01 / D-14) — uppercase section labels for restructured Account Settings.
+  'accountSettings.section.account': 'ACCOUNT',
+  'accountSettings.section.preferences': 'PREFERENCES',
+  'accountSettings.section.application': 'APPLICATION',
+  'accountSettings.section.dangerZone': 'DANGER ZONE',
 
   // Platform verification (MoveIn / admin only)
   'verification.sectionTitle': 'Verified by MoveIn',

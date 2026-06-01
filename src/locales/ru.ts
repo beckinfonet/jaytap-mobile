@@ -253,6 +253,11 @@ export const ru: Record<TranslationKeys, string> = {
   'accountSettings.profileUpdateFailed': 'Не удалось обновить профиль',
   'accountSettings.invalidName': 'Имя может содержать только буквы, пробелы, дефисы и апострофы (например, О’Брайен, Мари-Жан).',
   'accountSettings.invalidPhone': 'Номер телефона может содержать только цифры, пробелы, +, − и скобки.',
+  // Phase 15 (SET-01 / D-14) — uppercase section labels for restructured Account Settings.
+  'accountSettings.section.account': 'АККАУНТ',
+  'accountSettings.section.preferences': 'НАСТРОЙКИ',
+  'accountSettings.section.application': 'ЗАЯВКА',
+  'accountSettings.section.dangerZone': 'ОПАСНАЯ ЗОНА',
 
   // Platform verification (MoveIn / admin only)
   'verification.sectionTitle': 'Проверено MoveIn',
