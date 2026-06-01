@@ -312,7 +312,7 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                                     >
                                         {t('accountSettings.english')}
                                     </Text>
-                                    {language === 'en' ? <Text style={styles.languageCheck}>✓</Text> : <View style={styles.languageCheckSpacer} />}
+                                    {language === 'en' ? <Text style={[styles.languageCheck, { color: colors.onAccent }]}>✓</Text> : <View style={styles.languageCheckSpacer} />}
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={styles.languageTouch}
@@ -334,7 +334,7 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                                     >
                                         {t('accountSettings.russian')}
                                     </Text>
-                                    {language === 'ru' ? <Text style={styles.languageCheck}>✓</Text> : <View style={styles.languageCheckSpacer} />}
+                                    {language === 'ru' ? <Text style={[styles.languageCheck, { color: colors.onAccent }]}>✓</Text> : <View style={styles.languageCheckSpacer} />}
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -538,7 +538,11 @@ const styles = StyleSheet.create({
     languageCheck: {
         fontSize: 14,
         fontWeight: '700',
-        color: 'rgba(255,255,255,0.95)',
+        // color is supplied inline at the call site via colors.onAccent
+        // (Phase 15 review-fix WR-02) — the check overlays the colors.accent
+        // sliding pill, so onAccent is the semantically-correct token. Kept
+        // out of StyleSheet.create because useTheme() values aren't available
+        // at module scope.
         marginLeft: 2,
         width: 16,
         textAlign: 'center',
