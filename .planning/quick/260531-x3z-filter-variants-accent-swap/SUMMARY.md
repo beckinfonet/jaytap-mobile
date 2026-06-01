@@ -3,7 +3,7 @@ quick_id: 260531-x3z
 slug: filter-variants-accent-swap
 status: complete
 completed: 2026-06-01
-commits: [8ff1808, c444526, c806c35, 561f4ab, 4356ce4, a0e6987, 8793338]
+commits: [8ff1808, c444526, c806c35, 561f4ab, 4356ce4, a0e6987, 8793338, 75c562f, 848ae06]
 ---
 
 # Quick Summary: Filter-variant accent swap
@@ -25,6 +25,8 @@ Added a parallel `filterAccent / filterAccentSoft / filterAccentLine` triple to 
 5. `4356ce4` — `refactor(quick-260531-x3z): swap CheckSquare tick to filterAccent` (Round-3: the small ✓ squares inside selected Type cards were still pink because `CheckSquare.tsx` is its own primitive)
 6. `a0e6987` — `refactor(quick-260531-x3z): swap ShowButton CTA to filterAccent` (Round-3: the "Show N homes" footer CTA in the Guided sheet)
 7. `8793338` — `refactor(quick-260531-x3z): swap HomeScreen filter-trigger button to filterAccent` (Round-3: the filter funnel-icon button next to the search bar — only the `isFiltersExpanded` active-state background, every other accent usage on HomeScreen stays brand pink)
+8. `75c562f` — `refactor(quick-260531-x3z): swap CascadingFilter DealToggle thumb to filterAccent` (Round-4: the sliding-pill Rent/Buy thumb at the top of the cascading panel)
+9. `848ae06` — `fix(quick-260531-x3z): flip DealToggle to useNativeDriver:false` (Round-4 bug discovered during the same on-device QA pass: DealToggle's thumb interpolation uses percentage outputRange strings, which the native driver cannot evaluate. `useNativeDriver:true` was silently no-op'ing the timing call on device, freezing the thumb at its initial position. Pressables were firing and `setTransactionType` was updating state correctly the whole time — only the visual slide was broken, making the toggle feel unresponsive. Flipping to JS-driven animation restores the slide. The sibling LanguageToggle in AccountSettings keeps `useNativeDriver:true` because it measures container width via onLayout and interpolates pixel numbers — a richer pattern not needed here for a fixed-50/50 split.)
 
 ## Gates
 
