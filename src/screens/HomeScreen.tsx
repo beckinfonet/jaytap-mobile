@@ -494,7 +494,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
           style={[
             styles.filterButton,
             {
-              backgroundColor: isFiltersExpanded ? colors.accent : colors.inputBackground,
+              backgroundColor: isFiltersExpanded ? colors.filterAccent : colors.inputBackground,
             },
           ]}
           onPress={toggleFiltersExpanded}
