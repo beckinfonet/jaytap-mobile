@@ -1,34 +1,45 @@
 ---
 phase: 15-account-settings-restructure-filter-style-picker
-verified: 2026-05-31T00:00:00Z
-status: human_needed
-score: 5/5 truths verified at code level; 3 on-device walks owed for human
+verified: 2026-05-31T19:23:00Z
+status: passed
+score: 8/8 — 5/5 code-level + 3/3 on-device walks confirmed (UAT 7/7 pass)
 overrides_applied: 0
 re_verification:
-  previous_status: null
-  previous_score: null
-  gaps_closed: []
+  previous_status: human_needed
+  previous_score: "5/5 truths verified at code level; 3 on-device walks owed for human"
+  gaps_closed:
+    - "SC1 on-device — typography and section ordering render correctly (UAT test 1: pass)"
+    - "SC2 picker disabled-row affordance (UAT test 2: pass — observed in 4-style list)"
+    - "SC3 live-swap end-to-end Cascading (UAT test 3: pass)"
+    - "SC3 live-swap end-to-end Guided round-trip (UAT test 4: pass)"
+    - "SC4 Edit/Save round-trip + backend persistence (UAT test 5: pass)"
+    - "SC4 Language toggle + AsyncStorage persistence (UAT test 6: pass)"
+    - "SC4 Delete account modal open + Cancel (UAT test 7: pass)"
   gaps_remaining: []
   regressions: []
-human_verification:
-  - test: "SC1 on-device — typography and section ordering render correctly"
-    expected: "Opening Account Settings on iPhone + Android shows ACCOUNT → PREFERENCES → APPLICATION (when applicable) → DANGER ZONE labels in the handoff's small-uppercase letter-spaced typography. Light + dark mode both look correct."
-    why_human: "Visual fidelity (font rendering, letter-spacing, ordering, light/dark parity) cannot be verified without rendering on a device. Phase 12 light tokens shipped recently (memory 2026-05-31) so light-mode AccountSettings is freshly enabled and unvalidated."
-  - test: "SC3 live-swap end-to-end walk — picker writes immediately reflect on HomeScreen filter button"
-    expected: "1) Open AccountSettings; tap Search filter style row; pick Cascading. 2) Tap back to HomeScreen. 3) Tap the filter button — Cascading panel opens (not Guided). 4) Return to AccountSettings; pick Guided; tap back to HomeScreen; tap filter button — Guided sheet opens. No app restart. SC3 only proven in code via unit tests + context wiring; full E2E walk owed per SUMMARY's own 'on-device walk still owed' admission."
-    why_human: "Live-swap traverses Context rerender + HomeScreen dispatcher + filter sheet/cascading mount. Unit tests prove each link in isolation; only a manual walk confirms the chain holds at runtime."
-  - test: "SC4 on-device preserved-flows walk — Edit/Save, Language toggle, Delete account"
-    expected: "1) Tap Edit; modify First Name + Phone; tap Save — Alert.confirm fires, backend persists, isEditing flips off, fields show new values on next open. 2) Tap RU in the Language sliding-pill — UI flips to Russian; close + reopen the app, language still Russian. 3) Tap Delete account in DANGER ZONE — DeleteAccountModal opens; cancel works; (in a test account) confirm fires deleteAccount() and routes via onAccountDeleted. All flows verbatim-preserved in code; runtime behavior owed per SUMMARY's 'on-device QA still owed'."
-    why_human: "These flows involve backend persistence (AuthService.createBackendUser), AsyncStorage writes (LanguageContext), and a destructive action (deleteAccount). Static code preservation is confirmed but only a human can prove the flows still function end-to-end after the ~232-insertion / ~202-deletion brownfield rewrite."
+human_verification: []
+human_verification_resolved:
+  - test: "SC1 on-device — typography and section ordering"
+    result: pass
+    confirmed: 2026-05-31T19:05:00Z
+    reference: "15-UAT.md test 1"
+  - test: "SC3 live-swap end-to-end (Cascading + Guided round-trip)"
+    result: pass
+    confirmed: 2026-05-31T19:14:00Z
+    reference: "15-UAT.md tests 3 + 4"
+  - test: "SC4 preserved-flows walk (Edit/Save + Language + Delete-cancel)"
+    result: pass
+    confirmed: 2026-05-31T19:23:00Z
+    reference: "15-UAT.md tests 5 + 6 + 7"
 ---
 
 # Phase 15: Account Settings Restructure + Filter-Style Picker Verification Report
 
 **Phase Goal:** AccountSettingsScreen restructures into three labelled sections per the handoff (ACCOUNT / PREFERENCES / DANGER ZONE) and gains a filter-style picker in Preferences where the user can choose between Guided Steps + Cascading Reveal (selectable in v1) and see Master-Detail + Sentence as "Coming soon" forward-fit affordances — without regressing any existing AccountSettings surface (Account info fields, Language toggle, Delete account flow).
 
-**Verified:** 2026-05-31
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Verified:** 2026-05-31 (initial code-level), 2026-05-31T19:23Z (re-verified after UAT)
+**Status:** passed
+**Re-verification:** Yes — `human_needed` → `passed` after UAT 7/7 pass (see `15-UAT.md`)
 
 ## Goal Achievement
 
