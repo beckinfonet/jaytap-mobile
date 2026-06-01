@@ -40,7 +40,7 @@ const ShowButton: React.FC<ShowButtonProps> = ({ count, onPress }) => {
       style={({ pressed }) => [
         styles.button,
         {
-          backgroundColor: colors.accent,
+          backgroundColor: colors.filterAccent,
           opacity: pressed ? 0.85 : 1,
         },
       ]}
