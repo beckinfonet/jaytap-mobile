@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Filter Variants + Profile Reskin
 status: executing
-last_updated: "2026-06-01T01:23:00Z"
-last_activity: 2026-06-01 -- Phase 15 CLOSED — UAT 7/7 pass; verifier flipped human_needed → passed
+last_updated: "2026-06-01T02:06:11.378Z"
+last_activity: 2026-06-01 -- Phase 16 planning complete
 progress:
-  total_phases: 8
-  completed_phases: 7
-  total_plans: 27
+  total_phases: 9
+  completed_phases: 8
+  total_plans: 29
   completed_plans: 27
-  percent: 100
+  percent: 93
 ---
 
 # STATE: JayTap
@@ -27,9 +27,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-31 — M6 added as current mileston
 
 Phase: 15 (account-settings-restructure-filter-style-picker) — ✅ CLOSED 2026-06-01 (UAT 7/7 pass, verifier passed)
 Plan: 2 of 2 complete (Plan 01: c404111 + 20f6dd8 + 998790a; Plan 02: 2a2f4cb + bf27e16 + 6584c2d)
-Status: Phase 15 fully shipped — SET-01, SET-02, SET-03 all addressed; UAT items 1-7 confirmed on device (sections + typography + 4-style picker + bi-directional live-swap + Edit/Save persistence + Language toggle + Delete-account modal)
+Status: Ready to execute
 Next: Phase 16 (Profile Reskin) — depends only on Phase 12 (complete since 2026-05-31), unblocked. Run `/gsd-plan-phase 16` to begin.
-Last activity: 2026-06-01 -- Phase 15 closed via UAT (7/7); verifier human_needed → passed
+Last activity: 2026-06-01 -- Phase 16 planning complete
 
 ## M6 Phase Map (Phases 12–16) — CURRENT MILESTONE
 

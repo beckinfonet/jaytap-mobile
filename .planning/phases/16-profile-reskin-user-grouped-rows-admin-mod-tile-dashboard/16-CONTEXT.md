@@ -36,9 +36,8 @@ Use `useRole().isAdmin` and `useRole().isModerator` to pick which layout to rend
 ### D-05: Role Management tile renders full-width when odd
 ADMIN TOOLS section uses a 2-up tile grid. When `isAdmin` (showing 3 tools: Landlord Applications, Moderation Queue, Role Management), the third tile (Role Management) renders full-width. When `isModerator` (showing 2 tools), normal 2-up grid. Implement via `wide={TOOLS.length % 2 === 1 && i === TOOLS.length - 1}` on the tool tile primitive.
 
-### D-06: Landlord banner placement
-User layout: between identity card and ACTIVITY card (current placement).
-Admin/Mod layout: NOT shown (the existing `LandlordApplicationStatusBanner` self-suppresses for admin/moderator — mount unconditionally in user layout only, do not mount in admin layout).
+### D-06: Landlord banner placement (mount-outside-branch)
+Mount `<LandlordApplicationStatusBanner>` **once, unconditionally, above the role branch** — the component's existing line 88 self-suppression returns null for admin/moderator, so the banner only renders for regular users. This is the canonical anti-pattern guard per RESEARCH §Anti-Patterns; do NOT wrap the mount in an `if (!isStaff)` guard (the component owns its own gating). Visual outcome: banner appears between identity card and ACTIVITY card on user layout, invisible on admin/mod layout.
 
 ### D-07: Theme consumption pattern follows Phase 15 inline-styles
 Theme-dependent colors are inlined per-render via `style={[styles.row, { backgroundColor: colors.surface2 }]}` pattern. Static geometry stays in `StyleSheet.create()`. Mirrors Phase 15's `AccountSettingsScreen.tsx` pattern. Rip the existing `themeStyles{}` useMemo block (lines 99-111) per the Phase 15 D-08 surgical pattern.

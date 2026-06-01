@@ -245,6 +245,8 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
   4. Every existing navigation handler routes verbatim (`onCreateListing`, `onViewListings`, `onViewFavorites`, `onViewAppointments`, `onViewAccountSettings`, `onApplyLandlord`, `onReviewLandlordApplications`, `onReviewModerationQueue`, `onOpenRoleManagement`); landlord-application status banner still renders when applicable; no App.tsx call-site change required.
   5. EN+RU parity is held for every new section label, tile string, and role-badge text (`scripts/check-i18n-parity.sh` exits 0); both layouts walked APPROVED on iPhone 15 Pro Max + Moto G XT2513V × EN/RU × light/dark for at least one regular-user account and one admin account.
 **Plans**: 2 plans
+  - [ ] 16-01-PLAN.md — Profile primitives (ProfileRow / ProfileTile / ProfileToolTile / IdentityCard / RoleBadge / OutlinedLogoutPill) + EN/RU i18n keys + LandlordApplicationStatusBanner token swap (PROF-01, PROF-02, PROF-03 — additive layer, zero-risk to running app)
+  - [ ] 16-02-PLAN.md — ProfileScreen.tsx rewrite with two role-discriminated layouts (user grouped rows / admin tile dashboard); rip themeStyles{} useMemo; preserve CR-02 cooldown block verbatim; 3 co-located screen tests + on-device QA checkpoint (PROF-01, PROF-02, PROF-03)
 **UI hint**: yes
 
 ## Progress
