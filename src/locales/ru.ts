@@ -947,6 +947,8 @@ export const ru: Record<TranslationKeys, string> = {
   // Middle-dot U+00B7 is intentional. Show string is reused (filters.showHomes.*).
   'filters.continue.addCategory': 'Далее · Категория',
   'filters.continue.addType': 'Далее · Тип',
+  // Quick 260601-elb — Guided header Reset button (Task 6 of GSD-HANDOFF-filter-reset.md).
+  'filters.reset': 'Сбросить',
   'filters.type.multiHint': 'Выберите один или несколько',
   'filters.deal.rent': 'Аренда',
   'filters.deal.buy': 'Купить',

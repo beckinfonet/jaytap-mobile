@@ -275,6 +275,21 @@ const GuidedFilterSheet: React.FC<GuidedFilterSheetProps> = ({
     );
   };
 
+  // Quick 260601-elb — Header Reset (Task 6 of GSD-HANDOFF-filter-reset.md).
+  // `isFilterDefault` gates the disabled+dimmed state; tapping `handleReset`
+  // returns the sheet to its broadest default (Rent · Residential · [], step 0).
+  // Reset is NOT an apply (D-04 live selections) — it does NOT call onClose;
+  // the sheet stays open. The X (or scrim) is still the close path.
+  const isFilterDefault =
+    transactionType === 'rent' && selectedCategory === 'Residential' && types.length === 0;
+
+  const handleReset = () => {
+    setTransactionType('rent');
+    setSelectedCategory('Residential'); // set BEFORE clearing types (Pitfall 4)
+    setTypes([]);
+    setStep(0);
+  };
+
   // Inline TypeCard renderer (step 2 grid).
   const renderTypeCard = (typeName: PropertyType) => {
     const active = types.includes(typeName);
@@ -353,7 +368,11 @@ const GuidedFilterSheet: React.FC<GuidedFilterSheetProps> = ({
           style={[styles.dragHandle, { backgroundColor: colors.surface2 }]}
         />
 
-        {/* Header row: title + X close. */}
+        {/* Header row: title + actions ([Reset] [X]).
+            Quick 260601-elb — Reset Pressable sits LEFT of the X inside a
+            right-aligned actions wrapper; styles.headerRow.justifyContent
+            'space-between' still pushes the title to the left and the actions
+            to the right. Reset is dimmed+disabled at the broadest default. */}
         <View
           style={[
             styles.headerRow,
@@ -374,15 +393,36 @@ const GuidedFilterSheet: React.FC<GuidedFilterSheetProps> = ({
           >
             {t('filters.title')}
           </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('filters.close')}
-            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-            onPress={onClose}
-            style={styles.closeButton}
-          >
-            <X size={22} color={colors.text} strokeWidth={1.75} />
-          </Pressable>
+          <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('filters.reset')}
+              accessibilityState={{ disabled: isFilterDefault }}
+              disabled={isFilterDefault}
+              hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+              onPress={handleReset}
+            >
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: isFilterDefault ? colors.textTertiary : colors.filterAccent,
+                  opacity: isFilterDefault ? 0.5 : 1,
+                }}
+              >
+                {t('filters.reset')}
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('filters.close')}
+              hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+              onPress={onClose}
+              style={styles.closeButton}
+            >
+              <X size={22} color={colors.text} strokeWidth={1.75} />
+            </Pressable>
+          </View>
         </View>
 
         {/* Stepper (1-2-3 pills). */}

@@ -957,6 +957,9 @@ export const en = {
   // Middle-dot U+00B7 is intentional. Show string is reused (filters.showHomes.*).
   'filters.continue.addCategory': 'Continue · Add a category',
   'filters.continue.addType': 'Continue · Add a type',
+  // Quick 260601-elb — Guided header Reset button (Task 6 of GSD-HANDOFF-filter-reset.md).
+  // Returns the sheet to its broadest default (Rent · Residential · []) at step 0.
+  'filters.reset': 'Reset',
   'filters.type.multiHint': 'Choose one or more',
   'filters.deal.rent': 'Rent',
   'filters.deal.buy': 'Buy',
