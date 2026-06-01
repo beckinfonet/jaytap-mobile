@@ -230,7 +230,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
   4. Existing AccountSettings flows work verbatim in their new section homes: Account info edit-mode toggle still saves First Name / Last Name / Phone / WhatsApp / Telegram; Language toggle still persists via `LanguageContext.setLanguage()`; Delete account still routes through `DeleteAccountModal`.
   5. EN+RU parity is held for every new section label, picker description, and "Coming soon" string (`scripts/check-i18n-parity.sh` exits 0); no Account Settings test regression.
 **Plans**: 2 plans
-  - [ ] 15-01-PLAN.md — Screen restructure + token migration + SectionLabel primitive + APPLICATION section (SET-01, SET-03)
+  - [x] 15-01-PLAN.md — Screen restructure + token migration + SectionLabel primitive + APPLICATION section (SET-01, SET-03) — shipped 2026-06-01 (commits c404111 + 20f6dd8)
   - [ ] 15-02-PLAN.md — FilterStyleRow picker behavior + 4-style listing + i18n (SET-02)
 **UI hint**: yes
 
@@ -269,7 +269,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
 | 12. Whole-App Palette Migration (Dark + Light) + VR Sweep | 2/2 | Complete   | 2026-05-31 |
 | 13. Shared Filter Data Model + AsyncStorage Persistence | 2/2 | Complete    | 2026-05-31 |
 | 14. Filter UI Variants (Guided + Cascading) + HomeScreen Dispatch | 3/3 | Complete   | 2026-05-31 |
-| 15. Account Settings Restructure + Filter-Style Picker | 0/2 | Planned 2026-05-31 | — |
+| 15. Account Settings Restructure + Filter-Style Picker | 1/2 | In Progress — Plan 01 shipped 2026-06-01 | — |
 | 16. Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | 0/TBD | Not started | — |
 
 ## Backlog

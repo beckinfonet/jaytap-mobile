@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Filter Variants + Profile Reskin
 status: executing
-last_updated: "2026-06-01T00:31:12.480Z"
-last_activity: 2026-06-01 -- Phase 15 planning complete
+last_updated: "2026-06-01T00:44:30Z"
+last_activity: 2026-06-01 -- Phase 15 Plan 01 complete (SectionLabel + AccountSettings restructure + token migration)
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 27
-  completed_plans: 25
-  percent: 93
+  completed_plans: 26
+  percent: 96
 ---
 
 # STATE: JayTap
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md` (updated 2026-05-31 — M6 added as current mileston
 
 **Core value:** Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek (and KG/KZ/UZ expansion markets) properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
-**Current focus:** Phase 14 — filter-ui-variants-guided-steps-cascading-reveal-homescreen-
+**Current focus:** Phase 15 — account-settings-restructure-filter-style-picker
 
 ## Current Position
 
-Phase: 14 (filter-ui-variants-guided-steps-cascading-reveal-homescreen-) — EXECUTING
-Plan: 1 of 3
-Status: Ready to execute
-Last activity: 2026-06-01 -- Phase 15 planning complete
+Phase: 15 (account-settings-restructure-filter-style-picker) — EXECUTING
+Plan: 2 of 2 (Plan 01 complete — commits c404111 + 20f6dd8)
+Status: Executing Phase 15 — Plan 01 done (SET-01 + SET-03); Plan 02 (<FilterStyleRow/> + SET-02) next
+Last activity: 2026-06-01 -- Phase 15 Plan 01 complete (SectionLabel + AccountSettings restructure + token migration)
 
 ## M6 Phase Map (Phases 12–16) — CURRENT MILESTONE
 
