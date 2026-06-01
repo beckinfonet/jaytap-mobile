@@ -20,6 +20,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { AuthService } from '../services/AuthService';
 import { DeleteAccountModal } from '../components/DeleteAccountModal';
 import SectionLabel from '../components/SectionLabel';
+import FilterStyleRow from '../components/FilterStyleRow';
 
 interface AccountSettingsScreenProps {
     onBack: () => void;
@@ -337,7 +338,10 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                                 </TouchableOpacity>
                             </View>
                         </View>
-                        {/* Plan 15-02 mounts <FilterStyleRow /> here, beneath the Language toggle. */}
+                        {/* Plan 15-02 (SET-02) — filter-style picker (D-03 self-contained;
+                            reads useFilterStyle() directly; Phase 14 HomeScreen dispatcher
+                            live-swaps on next filter-button press per D-07 / SC3). */}
+                        <FilterStyleRow />
                     </View>
                 </View>
 
