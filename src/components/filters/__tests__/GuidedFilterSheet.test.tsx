@@ -130,6 +130,12 @@ beforeEach(() => {
       accent: '#ff5a6f',
       accentSoft: 'rgba(255,90,111,0.16)',
       accentLine: 'rgba(255,90,111,0.45)',
+      // Quick 260601-elb — Header Reset reads colors.filterAccent for the
+      // enabled (active) text color; mock the trio so the new code path
+      // doesn't flow `undefined` into styles under future RN versions.
+      filterAccent: '#6f7bff',
+      filterAccentSoft: 'rgba(111,123,255,0.16)',
+      filterAccentLine: 'rgba(111,123,255,0.45)',
       background: '#121214',
       scrim: 'rgba(0,0,0,0.55)',
       iconChipFg: 'rgba(244,244,246,0.85)',
@@ -327,6 +333,54 @@ describe('GuidedFilterSheet', () => {
       showButton.props.onPress();
     });
     expect(setters.onClose).toHaveBeenCalledTimes(1);
+  });
+
+  // Quick 260601-elb — Header Reset (Task 6 of GSD-HANDOFF-filter-reset.md).
+  // At the default state (Rent · Residential · []) Reset is disabled. After
+  // mutating any of those three slots, Reset becomes enabled. Pressing Reset
+  // invokes the four setters in Pitfall-4-preserving order: setSelectedCategory
+  // BEFORE setTypes.
+  it('Header Reset: disabled at default, enabled after change, press order honors Pitfall 4', () => {
+    // (a) Default state — Reset is disabled.
+    const settersA = mkSetters();
+    const { tree: treeDefault } = render({
+      open: true,
+      transactionType: 'rent',
+      selectedCategory: 'Residential',
+      types: [],
+      setters: settersA,
+    });
+    const resetDefault = findPressableByText(treeDefault, 'filters.reset');
+    expect(resetDefault).toBeDefined();
+    expect(resetDefault!.props.disabled).toBe(true);
+    expect(resetDefault!.props.accessibilityState).toEqual({ disabled: true });
+
+    // (b) Non-default state — Reset is enabled (types non-empty trips isFilterDefault).
+    const settersB = mkSetters();
+    const { tree: treeActive } = render({
+      open: true,
+      transactionType: 'rent',
+      selectedCategory: 'Residential',
+      types: ['Apartment'],
+      setters: settersB,
+    });
+    const resetActive = findPressableByText(treeActive, 'filters.reset');
+    expect(resetActive).toBeDefined();
+    expect(resetActive!.props.disabled).toBe(false);
+    expect(resetActive!.props.accessibilityState).toEqual({ disabled: false });
+
+    // (c) Pressing Reset invokes the four setters; setSelectedCategory BEFORE setTypes (Pitfall 4).
+    act(() => {
+      resetActive!.props.onPress();
+    });
+    expect(settersB.setTransactionType).toHaveBeenCalledWith('rent');
+    expect(settersB.setSelectedCategory).toHaveBeenCalledWith('Residential');
+    expect(settersB.setTypes).toHaveBeenCalledWith([]);
+    // Pitfall 4 order — setSelectedCategory before setTypes (invocationCallOrder
+    // pattern, same as the existing 're-picking Category' test in this file).
+    const catOrder = settersB.setSelectedCategory.mock.invocationCallOrder[0];
+    const typesOrder = settersB.setTypes.mock.invocationCallOrder[0];
+    expect(catOrder).toBeLessThan(typesOrder);
   });
 
   // ---------- Quick 260601-dqh — dual-action footer (Guide-first) ----------
