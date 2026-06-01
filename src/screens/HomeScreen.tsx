@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -46,6 +46,9 @@ import { useFilterStyle } from '../context/FilterStyleContext';
 import CascadingFilter from '../components/filters/CascadingFilter';
 // Phase 14 Plan 14-03 (FILT-01, FILT-03) — Guided sheet variant sibling mount.
 import GuidedFilterSheet from '../components/filters/GuidedFilterSheet';
+// Quick-task 260601-1b8 — summary-row breadcrumb collapse helper (matches the
+// Cascading panel's own wording).
+import { joinTypes } from '../components/filters/primitives/joinTypes';
 import { HospitalityCard } from '../components/HospitalityCard';
 import { HospitalitySection } from '../components/HospitalitySection';
 import { HomeRejectionBanner } from '../components/HomeRejectionBanner';
@@ -88,6 +91,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   const { t, language } = useLanguage();
   // Phase 14 Plan 14-02 — variant dispatch read; Plan 14-03 will add the 'guided' branch.
   const { filterStyle } = useFilterStyle();
+  // Quick-task 260601-1b8 — ref on the results FlatList so toggleFiltersExpanded
+  // can scroll back to the top when the Cascading panel is (re)opened. Loose `any`
+  // generic matches the existing untyped FlatList usage at L585 (tightening is out
+  // of scope for this quick).
+  const listRef = useRef<FlatList<any>>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   // New Filter State (D-04: tri-state replaces the prior binary commercial toggle)
@@ -330,8 +338,69 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
 
   const toggleFiltersExpanded = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsFiltersExpanded((prev) => !prev);
+    setIsFiltersExpanded((prev) => {
+      const next = !prev;
+      // Quick-task 260601-1b8 — when (re)opening the Cascading panel, scroll the
+      // results list back to the top so the panel (which now lives in the list's
+      // ListHeaderComponent) is in view. Without this, tapping the filter icon
+      // while scrolled down appears to do nothing because the header is above
+      // the viewport. Collapse path intentionally does NOT scroll.
+      if (next) {
+        listRef.current?.scrollToOffset({ offset: 0, animated: true });
+      }
+      return next;
+    });
   };
+
+  // Quick-task 260601-1b8 — stable ListHeaderComponent renderer. The Cascading
+  // panel now lives inside the results FlatList's header (above the
+  // HospitalitySection branch) so it scrolls away with the results instead of
+  // permanently claiming static-header real estate. useCallback is load-bearing:
+  // an inline arrow would remount the header subtree on every render, dropping
+  // scroll position and potentially blurring taps inside the panel. Props on
+  // <CascadingFilter> are VERBATIM the expressions from the previous mount
+  // (Phase 14 SC4 parity).
+  const renderListHeader = useCallback(() => (
+    <>
+      {filterStyle === 'cascading' && isFiltersExpanded && (
+        <CascadingFilter
+          transactionType={transactionType}
+          setTransactionType={setTransactionType}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          types={types}
+          setTypes={setTypes}
+          liveCount={filteredProperties.length}
+        />
+      )}
+      {selectedCategory !== 'Hospitality' ? (
+        <HospitalitySection
+          properties={hospitalityProperties}
+          onPress={handlePressProperty}
+          onViewTour={handleViewTour}
+          onFavorite={onFavorite}
+          favoriteStatuses={favoriteStatuses}
+          favoriteLoading={favoriteLoading}
+        />
+      ) : null}
+    </>
+  ), [
+    filterStyle,
+    isFiltersExpanded,
+    transactionType,
+    setTransactionType,
+    selectedCategory,
+    setSelectedCategory,
+    types,
+    setTypes,
+    filteredProperties,
+    hospitalityProperties,
+    handlePressProperty,
+    handleViewTour,
+    onFavorite,
+    favoriteStatuses,
+    favoriteLoading,
+  ]);
 
   const renderHeaderContent = () => (
     <View style={styles.headerContainer}>
@@ -518,24 +587,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         />
       )}
 
-      {/* Filter Section — Phase 14 Plan 14-02 (FILT-02). Inline JSX block deleted;
-          CascadingFilter is the first variant mount. Plan 14-03 added the
-          'guided' branch as a sibling below. */}
-      {filterStyle === 'cascading' && isFiltersExpanded && (
-        <CascadingFilter transactionType={transactionType}
-          setTransactionType={setTransactionType}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          types={types}
-          setTypes={setTypes}
-          liveCount={filteredProperties.length}
-        />
-      )}
+      {/* Filter Section — Phase 14 Plan 14-02 (FILT-02). Quick-task 260601-1b8
+          relocated the Cascading panel into the results FlatList's
+          ListHeaderComponent (renderListHeader, below) so it scrolls away with
+          the results instead of permanently claiming static-header space.
+          Guided remains here because its own Modal owns visibility. */}
 
       {/* Phase 14 Plan 14-03 (FILT-01, FILT-03) — Guided sheet variant. Gated on
           filterStyle === 'guided' ONLY (no && isFiltersExpanded) because the sheet
           consumes isFiltersExpanded internally as its Modal `open` prop. Identical
-          state-prop expressions to the CascadingFilter mount above (SC4). */}
+          state-prop expressions to the CascadingFilter mount (now in
+          renderListHeader, quick-task 260601-1b8) — SC4 parity preserved. */}
       {filterStyle === 'guided' && (
         <GuidedFilterSheet open={isFiltersExpanded}
           onClose={() => setIsFiltersExpanded(false)}
@@ -549,9 +611,52 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         />
       )}
 
-      <Text style={[styles.resultCount, { color: colors.textSecondary }]}>
-        {filteredProperties.length} {t('home.homes')}
-      </Text>
+      {/* Quick-task 260601-1b8 — pinned summary row. Replaces the static count
+          line with a tappable breadcrumb that always shows the active filters
+          (deal · category · types) and re-opens the filter when tapped (which
+          also scrolls the results to the top via toggleFiltersExpanded). Stays
+          in the static header so it's always visible — the Cascading panel
+          itself now scrolls away with the list. Reuses existing i18n keys
+          ('filters.deal.rent|buy', 'category.*', 'home.homes') + joinTypes; no
+          new strings. */}
+      {(() => {
+        const dealLabel = t(
+          transactionType === 'rent' ? 'filters.deal.rent' : 'filters.deal.buy',
+        );
+        const categoryKey = (
+          selectedCategory === 'Residential'
+            ? 'category.residential'
+            : selectedCategory === 'Commercial'
+            ? 'category.commercial'
+            : 'category.hospitality'
+        ) as TranslationKeys;
+        const categoryLabel = t(categoryKey);
+        const typesLabel = joinTypes(selectedCategory, types, true);
+        const breadcrumb = [dealLabel, categoryLabel, typesLabel]
+          .filter((s) => s && s.length > 0)
+          .join(' · ');
+        return (
+          <TouchableOpacity
+            onPress={toggleFiltersExpanded}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`${filteredProperties.length} ${t('home.homes')} — ${breadcrumb}`}
+          >
+            <Text
+              style={[styles.resultCount, { color: colors.text }]}
+              numberOfLines={1}
+            >
+              {filteredProperties.length} {t('home.homes')}
+            </Text>
+            <Text
+              style={[styles.summaryBreadcrumb, { color: colors.textSecondary }]}
+              numberOfLines={1}
+            >
+              {breadcrumb}
+            </Text>
+          </TouchableOpacity>
+        );
+      })()}
     </View>
   );
 
@@ -583,20 +688,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         <View style={styles.contentContainer}>
           {renderHeaderContent()}
           <FlatList
+            ref={listRef}
             data={filteredProperties}
             keyExtractor={(item, index) => item.id || item.listingId || `property-${index}`}
-            ListHeaderComponent={
-              selectedCategory !== 'Hospitality' ? (
-                <HospitalitySection
-                  properties={hospitalityProperties}
-                  onPress={handlePressProperty}
-                  onViewTour={handleViewTour}
-                  onFavorite={onFavorite}
-                  favoriteStatuses={favoriteStatuses}
-                  favoriteLoading={favoriteLoading}
-                />
-              ) : null
-            }
+            ListHeaderComponent={renderListHeader}
             renderItem={({ item }) => (
               selectedCategory === 'Hospitality' ? (
                 <HospitalityCard
@@ -778,6 +873,14 @@ const styles = StyleSheet.create({
   // CascadingFilter.tsx. Total delete: ~169 LOC.
   resultCount: {
     fontSize: 14,
+    marginLeft: 4,
+  },
+  // Quick-task 260601-1b8 — secondary breadcrumb line under the result count.
+  // Slightly smaller font; uses colors.textSecondary inline so it tracks the
+  // theme. marginBottom inherits the prior spacing rhythm that the count line
+  // used to own (the parent TouchableOpacity is the spacer now).
+  summaryBreadcrumb: {
+    fontSize: 12,
     marginBottom: 10,
     marginLeft: 4,
   },
