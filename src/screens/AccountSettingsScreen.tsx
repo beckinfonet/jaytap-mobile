@@ -6,19 +6,21 @@ import {
     TouchableOpacity,
     Alert,
     TextInput,
-    Switch,
     ActivityIndicator,
     Animated,
     LayoutChangeEvent,
+    Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { ChevronRight } from 'lucide-react-native';
+import { ChevronRight, Pencil, Trash2, Briefcase } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
 import { AuthService } from '../services/AuthService';
 import { DeleteAccountModal } from '../components/DeleteAccountModal';
+import SectionLabel from '../components/SectionLabel';
+import FilterStyleRow from '../components/FilterStyleRow';
 
 interface AccountSettingsScreenProps {
     onBack: () => void;
@@ -40,10 +42,36 @@ const isValidName = (v: string): boolean => /^[\p{L}'’\- ]*$/u.test(v.trim());
 // Fails: letters, "@", "#", "$".
 const isValidPhone = (v: string): boolean => /^[0-9+\-() ]*$/.test(v.trim());
 
+/**
+ * EditLink — inline subcomponent rendered inside the ACCOUNT SectionLabel's
+ * action slot per D-10. Pink-accent pencil + "Edit" text link. Returns null
+ * when isEditing so the Save/Cancel buttons inside the ACCOUNT card take over.
+ * Reuses 'common.edit' (en.ts:7) per PATTERNS Correction §2.
+ */
+const EditLink: React.FC<{ onPress: () => void; isEditing: boolean }> = ({ onPress, isEditing }) => {
+    const { colors } = useTheme();
+    const { t } = useLanguage();
+    if (isEditing) return null;
+    return (
+        <Pressable
+            onPress={onPress}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.edit')}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}
+        >
+            <Pencil size={15} color={colors.accent} strokeWidth={2} />
+            <Text style={{ color: colors.accent, fontSize: 13, fontWeight: '600' }}>
+                {t('common.edit')}
+            </Text>
+        </Pressable>
+    );
+};
+
 export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ onBack, onAccountDeleted, onApplyLandlord }) => {
     const { user, deleteAccount } = useAuth();
     const { language, setLanguage, t } = useLanguage();
-    const { colors, isDark } = useTheme();
+    const { colors } = useTheme();
 
     const langSlide = useRef(new Animated.Value(language === 'en' ? 0 : 1)).current;
     const [langTrackWidth, setLangTrackWidth] = useState(0);
@@ -67,16 +95,6 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-    const themeStyles = {
-        background: isDark ? '#000000' : '#F2F2F7',
-        surface: isDark ? '#1E1E1E' : '#FFFFFF',
-        text: isDark ? '#FFFFFF' : '#000000',
-        textSecondary: isDark ? '#8E8E93' : '#3C3C4399',
-        border: isDark ? '#2C2C2E' : '#E5E5EA',
-        accent: '#3B82F6',
-        danger: '#FF453A',
-    };
 
     useEffect(() => {
         loadProfile();
@@ -138,42 +156,42 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
     const renderInfoRow = (label: string, value: string, setValue: (v: string) => void, isEditing: boolean, keyboardType: any = 'default', placeholder = '', errorText?: string) => (
         <View>
             <View style={styles.infoRow}>
-                <Text style={[styles.infoLabel, { color: isDark ? '#FFF' : '#000' }]}>{label}</Text>
+                <Text style={[styles.infoLabel, { color: colors.text }]}>{label}</Text>
                 {isEditing ? (
                     <TextInput
-                        style={[styles.infoInput, { color: themeStyles.text }]}
+                        style={[styles.infoInput, { color: colors.text }]}
                         value={value}
                         onChangeText={setValue}
                         placeholder={placeholder}
-                        placeholderTextColor={themeStyles.textSecondary}
+                        placeholderTextColor={colors.textSecondary}
                         textAlign="right"
                         keyboardType={keyboardType}
                     />
                 ) : (
-                    <Text style={[styles.infoValue, { color: themeStyles.textSecondary }]}>{value || '-'}</Text>
+                    <Text style={[styles.infoValue, { color: colors.textSecondary }]}>{value || '-'}</Text>
                 )}
             </View>
             {isEditing && errorText ? (
-                <Text style={[styles.infoError, { color: themeStyles.danger }]}>{errorText}</Text>
+                <Text style={[styles.infoError, { color: colors.destructiveRed }]}>{errorText}</Text>
             ) : null}
         </View>
     );
 
     if (loading) {
         return (
-            <View style={[styles.container, { backgroundColor: themeStyles.background, justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator color={themeStyles.accent} />
+            <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator color={colors.accent} />
             </View>
         );
     }
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: themeStyles.background }]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={onBack} style={styles.iconButton}>
-                    <Text style={{ fontSize: 24, color: themeStyles.accent }}>←</Text>
+                    <Text style={{ fontSize: 24, color: colors.accent }}>←</Text>
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: themeStyles.text }]}>{t('accountSettings.title')}</Text>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>{t('accountSettings.title')}</Text>
                 <View style={{ width: 40 }} />
             </View>
 
@@ -183,162 +201,195 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                 bottomOffset={20}
                 showsVerticalScrollIndicator={false}
             >
+                {/* ─────────────────────── ACCOUNT section ─────────────────────── */}
                 <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={[styles.sectionTitle, { color: themeStyles.accent }]}>{t('accountSettings.mainInformation')}</Text>
-                        <TouchableOpacity onPress={() => setIsEditing(!isEditing)} disabled={saving}>
-                            <Text style={{ fontSize: 18, color: themeStyles.accent }}>{isEditing ? '' : '✎'}</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <View style={[styles.infoContainer, { backgroundColor: themeStyles.surface }]}>
+                    <SectionLabel action={<EditLink onPress={() => setIsEditing(true)} isEditing={isEditing} />}>
+                        {t('accountSettings.section.account')}
+                    </SectionLabel>
+                    <View style={[styles.card, { backgroundColor: colors.surface }]}>
                         {renderInfoRow(t('accountSettings.firstName'), firstName, setFirstName, isEditing, 'default', '', !isValidName(firstName) ? t('accountSettings.invalidName') : undefined)}
-                        <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
+                        <View style={[styles.separator, { backgroundColor: colors.hair2 }]} />
                         {renderInfoRow(t('accountSettings.lastName'), lastName, setLastName, isEditing, 'default', '', !isValidName(lastName) ? t('accountSettings.invalidName') : undefined)}
-                        <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
-                        {renderInfoRow(t('accountSettings.phoneNumber'), phone, setPhone, isEditing, "phone-pad", t('accountSettings.placeholderPhone'), !isValidPhone(phone) ? t('accountSettings.invalidPhone') : undefined)}
-                        <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
-                        {renderInfoRow(t('accountSettings.whatsapp'), whatsapp, setWhatsapp, isEditing, "phone-pad", t('accountSettings.placeholderWhatsapp'), !isValidPhone(whatsapp) ? t('accountSettings.invalidPhone') : undefined)}
-                        <View style={[styles.separator, { backgroundColor: themeStyles.border }]} />
-                        {renderInfoRow(t('accountSettings.telegram'), telegram, setTelegram, isEditing, "default", t('accountSettings.placeholderTelegram'))}
-                    </View>
-                </View>
+                        <View style={[styles.separator, { backgroundColor: colors.hair2 }]} />
+                        {renderInfoRow(t('accountSettings.phoneNumber'), phone, setPhone, isEditing, 'phone-pad', t('accountSettings.placeholderPhone'), !isValidPhone(phone) ? t('accountSettings.invalidPhone') : undefined)}
+                        <View style={[styles.separator, { backgroundColor: colors.hair2 }]} />
+                        {renderInfoRow(t('accountSettings.whatsapp'), whatsapp, setWhatsapp, isEditing, 'phone-pad', t('accountSettings.placeholderWhatsapp'), !isValidPhone(whatsapp) ? t('accountSettings.invalidPhone') : undefined)}
+                        <View style={[styles.separator, { backgroundColor: colors.hair2 }]} />
+                        {renderInfoRow(t('accountSettings.telegram'), telegram, setTelegram, isEditing, 'default', t('accountSettings.placeholderTelegram'))}
 
-                <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={[styles.sectionTitle, { color: themeStyles.accent }]}>{t('accountSettings.language')}</Text>
-                    </View>
-                    <View
-                        style={[
-                            styles.languageTrack,
-                            {
-                                backgroundColor: isDark ? '#2C2C2E' : '#E8E8ED',
-                                shadowColor: '#000',
-                            },
-                        ]}
-                        onLayout={(e: LayoutChangeEvent) => setLangTrackWidth(e.nativeEvent.layout.width)}
-                    >
-                        {langTrackWidth > 0 && (
-                            <Animated.View
-                                pointerEvents="none"
-                                style={[
-                                    styles.languageSlidingPill,
-                                    {
-                                        width:
-                                            (langTrackWidth - LANG_TRACK_PADDING * 2 - LANG_INNER_GAP) / 2,
-                                        backgroundColor: themeStyles.accent,
-                                        transform: [
-                                            {
-                                                translateX: langSlide.interpolate({
-                                                    inputRange: [0, 1],
-                                                    outputRange: [
-                                                        LANG_TRACK_PADDING,
-                                                        LANG_TRACK_PADDING +
-                                                            (langTrackWidth - LANG_TRACK_PADDING * 2 - LANG_INNER_GAP) / 2 +
-                                                            LANG_INNER_GAP,
-                                                    ],
-                                                }),
-                                            },
-                                        ],
-                                    },
-                                ]}
-                            />
+                        {/* D-11: Save/Cancel buttons live INSIDE the ACCOUNT card. */}
+                        {isEditing && (
+                            <View style={styles.cardActionRow}>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.cardActionButton,
+                                        {
+                                            backgroundColor: colors.surface2,
+                                            borderWidth: 1,
+                                            borderColor: colors.hair2,
+                                        },
+                                    ]}
+                                    onPress={() => setIsEditing(false)}
+                                    disabled={saving}
+                                >
+                                    <Text style={{ color: colors.text, fontWeight: '600', fontSize: 16 }}>{t('common.cancel')}</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.cardActionButton, { backgroundColor: colors.accent }]}
+                                    onPress={handleSave}
+                                    disabled={saving}
+                                >
+                                    <Text style={{ color: colors.onAccent, fontWeight: '600', fontSize: 16 }}>
+                                        {saving ? t('accountSettings.saving') : t('common.save')}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
                         )}
-                        <View style={styles.languageOptionsRow}>
-                            <TouchableOpacity
-                                style={styles.languageTouch}
-                                onPress={() => setLanguage('en')}
-                                activeOpacity={0.85}
-                                accessibilityRole="button"
-                                accessibilityState={{ selected: language === 'en' }}
-                            >
-                                <Text style={styles.languageFlag}>🇺🇸</Text>
-                                <Text
-                                    style={[
-                                        styles.languageLabel,
-                                        {
-                                            color: language === 'en' ? '#FFFFFF' : themeStyles.text,
-                                            opacity: language === 'en' ? 1 : 0.55,
-                                        },
-                                    ]}
-                                    numberOfLines={1}
-                                >
-                                    {t('accountSettings.english')}
-                                </Text>
-                                {language === 'en' ? <Text style={styles.languageCheck}>✓</Text> : <View style={styles.languageCheckSpacer} />}
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={styles.languageTouch}
-                                onPress={() => setLanguage('ru')}
-                                activeOpacity={0.85}
-                                accessibilityRole="button"
-                                accessibilityState={{ selected: language === 'ru' }}
-                            >
-                                <Text style={styles.languageFlag}>🇷🇺</Text>
-                                <Text
-                                    style={[
-                                        styles.languageLabel,
-                                        {
-                                            color: language === 'ru' ? '#FFFFFF' : themeStyles.text,
-                                            opacity: language === 'ru' ? 1 : 0.55,
-                                        },
-                                    ]}
-                                    numberOfLines={1}
-                                >
-                                    {t('accountSettings.russian')}
-                                </Text>
-                                {language === 'ru' ? <Text style={styles.languageCheck}>✓</Text> : <View style={styles.languageCheckSpacer} />}
-                            </TouchableOpacity>
-                        </View>
                     </View>
                 </View>
 
-                {/* Phase 4.5 — Landlord application entry-point (replaces cosmetic isRenterApplicant Switch).
+                {/* ─────────────────────── PREFERENCES section ─────────────────────── */}
+                <View style={styles.section}>
+                    <SectionLabel>{t('accountSettings.section.preferences')}</SectionLabel>
+                    <View style={[styles.card, { backgroundColor: colors.surface, padding: 16 }]}>
+                        {/* Language sliding-pill toggle — animation machinery preserved verbatim from
+                            lines 48-58 + 222-292 of the pre-Phase-15 file; only colors swap per D-08.
+                            Plan 15-02 will mount <FilterStyleRow /> below the Language toggle. */}
+                        <View
+                            style={[
+                                styles.languageTrack,
+                                {
+                                    backgroundColor: colors.surface2,
+                                    shadowColor: '#000',
+                                },
+                            ]}
+                            onLayout={(e: LayoutChangeEvent) => setLangTrackWidth(e.nativeEvent.layout.width)}
+                        >
+                            {langTrackWidth > 0 && (
+                                <Animated.View
+                                    pointerEvents="none"
+                                    style={[
+                                        styles.languageSlidingPill,
+                                        {
+                                            width:
+                                                (langTrackWidth - LANG_TRACK_PADDING * 2 - LANG_INNER_GAP) / 2,
+                                            backgroundColor: colors.accent,
+                                            transform: [
+                                                {
+                                                    translateX: langSlide.interpolate({
+                                                        inputRange: [0, 1],
+                                                        outputRange: [
+                                                            LANG_TRACK_PADDING,
+                                                            LANG_TRACK_PADDING +
+                                                                (langTrackWidth - LANG_TRACK_PADDING * 2 - LANG_INNER_GAP) / 2 +
+                                                                LANG_INNER_GAP,
+                                                        ],
+                                                    }),
+                                                },
+                                            ],
+                                        },
+                                    ]}
+                                />
+                            )}
+                            <View style={styles.languageOptionsRow}>
+                                <TouchableOpacity
+                                    style={styles.languageTouch}
+                                    onPress={() => setLanguage('en')}
+                                    activeOpacity={0.85}
+                                    accessibilityRole="button"
+                                    accessibilityState={{ selected: language === 'en' }}
+                                >
+                                    <Text style={styles.languageFlag}>🇺🇸</Text>
+                                    <Text
+                                        style={[
+                                            styles.languageLabel,
+                                            {
+                                                color: language === 'en' ? colors.onAccent : colors.text,
+                                                opacity: language === 'en' ? 1 : 0.55,
+                                            },
+                                        ]}
+                                        numberOfLines={1}
+                                    >
+                                        {t('accountSettings.english')}
+                                    </Text>
+                                    {language === 'en' ? <Text style={[styles.languageCheck, { color: colors.onAccent }]}>✓</Text> : <View style={styles.languageCheckSpacer} />}
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.languageTouch}
+                                    onPress={() => setLanguage('ru')}
+                                    activeOpacity={0.85}
+                                    accessibilityRole="button"
+                                    accessibilityState={{ selected: language === 'ru' }}
+                                >
+                                    <Text style={styles.languageFlag}>🇷🇺</Text>
+                                    <Text
+                                        style={[
+                                            styles.languageLabel,
+                                            {
+                                                color: language === 'ru' ? colors.onAccent : colors.text,
+                                                opacity: language === 'ru' ? 1 : 0.55,
+                                            },
+                                        ]}
+                                        numberOfLines={1}
+                                    >
+                                        {t('accountSettings.russian')}
+                                    </Text>
+                                    {language === 'ru' ? <Text style={[styles.languageCheck, { color: colors.onAccent }]}>✓</Text> : <View style={styles.languageCheckSpacer} />}
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                        {/* Plan 15-02 (SET-02) — filter-style picker (D-03 self-contained;
+                            reads useFilterStyle() directly; Phase 14 HomeScreen dispatcher
+                            live-swaps on next filter-button press per D-07 / SC3). */}
+                        <FilterStyleRow />
+                    </View>
+                </View>
+
+                {/* ─────────────────────── APPLICATION section (conditional) ─────────────────────── */}
+                {/* Phase 4.5 — Landlord application entry-point.
                     Hidden when user already has the capability (admin/moderator/approved landlord). */}
                 {!canListProperties && onApplyLandlord && (
                     <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Text style={[styles.sectionTitle, { color: themeStyles.accent }]}>{t('accountSettings.applicationStatus')}</Text>
+                        <SectionLabel>{t('accountSettings.section.application')}</SectionLabel>
+                        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+                            <TouchableOpacity
+                                onPress={onApplyLandlord}
+                                activeOpacity={0.75}
+                                style={styles.linkRow}
+                            >
+                                <View style={[styles.iconChip, { backgroundColor: colors.surface2 }]}>
+                                    <Briefcase size={18} color={colors.iconChipFg} />
+                                </View>
+                                <Text style={[styles.linkRowLabel, { color: colors.text }]}>
+                                    {t('landlordApp.becomeLandlord')}
+                                </Text>
+                                <ChevronRight size={20} color={colors.textSecondary} />
+                            </TouchableOpacity>
                         </View>
+                    </View>
+                )}
+
+                {/* ─────────────────────── DANGER ZONE section ─────────────────────── */}
+                <View style={styles.section}>
+                    <SectionLabel>{t('accountSettings.section.dangerZone')}</SectionLabel>
+                    <View style={[styles.card, { backgroundColor: colors.surface }]}>
                         <TouchableOpacity
-                            style={[styles.infoContainer, { backgroundColor: themeStyles.surface }]}
-                            onPress={onApplyLandlord}
+                            onPress={() => setShowDeleteModal(true)}
                             activeOpacity={0.75}
+                            style={styles.linkRow}
                         >
-                            <View style={styles.infoRow}>
-                                <Text style={[styles.infoLabel, { color: isDark ? '#FFF' : '#000' }]}>{t('landlordApp.becomeLandlord')}</Text>
-                                <ChevronRight size={20} color={themeStyles.textSecondary} />
+                            <View style={[styles.iconChip, { backgroundColor: colors.destructiveSoft }]}>
+                                <Trash2 size={18} color={colors.destructiveRed} />
                             </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={{ color: colors.destructiveRed, fontSize: 16, fontWeight: '600' }}>
+                                    {t('accountSettings.deleteAccount')}
+                                </Text>
+                            </View>
+                            <ChevronRight size={20} color={colors.textSecondary} />
                         </TouchableOpacity>
                     </View>
-                )}
-
-                {isEditing && (
-                    <View style={styles.actionButtonsContainer}>
-                        <TouchableOpacity
-                            style={[styles.cancelButton, { backgroundColor: themeStyles.surface, borderColor: themeStyles.border }]}
-                            onPress={() => setIsEditing(false)}
-                            disabled={saving}
-                        >
-                            <Text style={[styles.cancelButtonText, { color: themeStyles.text }]}>{t('common.cancel')}</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[styles.saveButton, { backgroundColor: themeStyles.accent }]}
-                            onPress={handleSave}
-                            disabled={saving}
-                        >
-                            <Text style={styles.saveButtonText}>{saving ? t('accountSettings.saving') : t('common.save')}</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
-
-                <TouchableOpacity
-                    style={styles.deleteLink}
-                    onPress={() => setShowDeleteModal(true)}
-                >
-                    <Text style={[styles.deleteLinkText, { color: themeStyles.danger }]}>{t('accountSettings.deleteAccount')}</Text>
-                </TouchableOpacity>
+                </View>
             </KeyboardAwareScrollView>
 
             <DeleteAccountModal
@@ -361,7 +412,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         padding: 20,
-        paddingBottom: 40,
+        paddingBottom: 110,
     },
     header: {
         flexDirection: 'row',
@@ -382,19 +433,9 @@ const styles = StyleSheet.create({
     section: {
         marginBottom: 24,
     },
-    sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-        paddingHorizontal: 4,
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: '700',
-    },
-    infoContainer: {
-        borderRadius: 16,
+    card: {
+        borderRadius: 20,
+        overflow: 'hidden',
         paddingHorizontal: 16,
         paddingVertical: 4,
     },
@@ -426,6 +467,37 @@ const styles = StyleSheet.create({
     },
     separator: {
         height: 1,
+    },
+    cardActionRow: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 16,
+        marginBottom: 12,
+    },
+    cardActionButton: {
+        flex: 1,
+        height: 50,
+        borderRadius: 14,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    linkRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        paddingVertical: 12,
+    },
+    linkRowLabel: {
+        flex: 1,
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    iconChip: {
+        width: 38,
+        height: 38,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     languageTrack: {
         borderRadius: 22,
@@ -466,7 +538,11 @@ const styles = StyleSheet.create({
     languageCheck: {
         fontSize: 14,
         fontWeight: '700',
-        color: 'rgba(255,255,255,0.95)',
+        // color is supplied inline at the call site via colors.onAccent
+        // (Phase 15 review-fix WR-02) — the check overlays the colors.accent
+        // sliding pill, so onAccent is the semantically-correct token. Kept
+        // out of StyleSheet.create because useTheme() values aren't available
+        // at module scope.
         marginLeft: 2,
         width: 16,
         textAlign: 'center',
@@ -474,43 +550,5 @@ const styles = StyleSheet.create({
     languageCheckSpacer: {
         width: 16,
         marginLeft: 2,
-    },
-    actionButtonsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: 12,
-        marginBottom: 24,
-    },
-    cancelButton: {
-        flex: 1,
-        height: 50,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-    },
-    cancelButtonText: {
-        fontWeight: '600',
-        fontSize: 16,
-    },
-    saveButton: {
-        flex: 1,
-        height: 50,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    saveButtonText: {
-        color: '#FFF',
-        fontWeight: '600',
-        fontSize: 16,
-    },
-    deleteLink: {
-        marginTop: 24,
-        alignItems: 'center',
-    },
-    deleteLinkText: {
-        textDecorationLine: 'underline',
-        fontSize: 16,
     },
 });

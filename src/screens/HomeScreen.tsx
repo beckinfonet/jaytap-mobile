@@ -35,12 +35,17 @@ import { useLanguage } from '../context/LanguageContext';
 import { PropertyService } from '../services/PropertyService';
 import { canFromUser } from '../hooks/useRole';
 import {
-  RESIDENTIAL_TYPES,
-  COMMERCIAL_TYPES,
-  HOSPITALITY_TYPES,
+  // Phase 14 Plan 14-02 — RESIDENTIAL_TYPES / COMMERCIAL_TYPES / HOSPITALITY_TYPES
+  // moved to CascadingFilter. HomeScreen no longer reads these directly.
   propertyTypeToCategory,
   type PropertyCategory,
 } from '../utils/propertyCategory';
+import { buildFilterQuery } from '../utils/buildFilterQuery';
+// Phase 14 Plan 14-02 (FILT-02) — variant dispatch precursor.
+import { useFilterStyle } from '../context/FilterStyleContext';
+import CascadingFilter from '../components/filters/CascadingFilter';
+// Phase 14 Plan 14-03 (FILT-01, FILT-03) — Guided sheet variant sibling mount.
+import GuidedFilterSheet from '../components/filters/GuidedFilterSheet';
 import { HospitalityCard } from '../components/HospitalityCard';
 import { HospitalitySection } from '../components/HospitalitySection';
 import { HomeRejectionBanner } from '../components/HomeRejectionBanner';
@@ -81,12 +86,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   const { colors, theme, isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
   const { t, language } = useLanguage();
+  // Phase 14 Plan 14-02 — variant dispatch read; Plan 14-03 will add the 'guided' branch.
+  const { filterStyle } = useFilterStyle();
   const [searchQuery, setSearchQuery] = useState('');
 
   // New Filter State (D-04: tri-state replaces the prior binary commercial toggle)
   const [transactionType, setTransactionType] = useState<'rent' | 'sale'>('rent');
   const [selectedCategory, setSelectedCategory] = useState<PropertyCategory>('Residential');
-  const [selectedType, setSelectedType] = useState<string | null>(null);
+  // Phase 13 Plan 13-01 / DATA-01 — multi-select-capable filter state. Visible single-chip
+  // UI in Phase 13 keeps writing `[singleType]` under the hood; Phase 14 variants will
+  // exercise the OR-union shape at the UI layer. Empty array = "no type filter".
+  const [types, setTypes] = useState<string[]>([]);
 
   // Filter section visibility (closed by default; tap filter icon to expand)
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
@@ -184,22 +194,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   }, [user?.localId, refreshKey]);
 
   const filteredProperties = useMemo(() => {
+    // Phase 13 Plan 13-01 / DATA-02 — clauses 1-3 (deal × category × types) delegate
+    // to the canonical buildFilterQuery predicate. City + search-query stay inline
+    // per D-06 boundary (those dimensions are NOT part of the M6 shared model —
+    // REQUIREMENTS DATA-01 names only deal | category | types). Phase 14 variants
+    // will read the same buildFilterQuery shape; city + search remain HomeScreen-local.
+    const matchesShared = buildFilterQuery({
+      deal: transactionType,
+      category: selectedCategory,
+      types,
+    });
     return properties.filter((p) => {
-      // Phase 2 D-20 read-path swap: M2 flat `p.type` → M3 nested `p.dealType`.
-      // Tradeoff §K rule: rent strip = `dealType !== 'sale'`; sale strip = `dealType === 'sale'`.
-      // 1. Transaction Type Filter (Rent vs Sale)
-      const isSale = p.dealType === 'sale';
-      if (transactionType === 'sale' && !isSale) return false;
-      if (transactionType === 'rent' && isSale) return false;
-
-      // 2. Category Filter (D-04 / D-24: tri-state via propertyTypeToCategory)
-      if (propertyTypeToCategory(p.propertyType) !== selectedCategory) return false;
-
-      // 3. Specific Property Type Filter
-      if (selectedType) {
-        const pPropertyType = p.propertyType?.toLowerCase() || 'apartment';
-        if (pPropertyType !== selectedType.toLowerCase()) return false;
-      }
+      // 1-3. Shared canonical predicate (deal × category × types OR-union).
+      if (!matchesShared(p)) return false;
 
       // 4. City Filter (quick-task 260530-sud) — exact case-insensitive slug equality
       // on listing.location.city. Microdistrict substring fallbacks (district / address /
@@ -244,7 +251,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
       }
       return true;
     });
-  }, [properties, transactionType, selectedCategory, selectedType, selectedCity, searchQuery]);
+  }, [properties, transactionType, selectedCategory, types, selectedCity, searchQuery]);
 
   // Quick-task 260530-sud — flatten cities into a country-grouped list for the modal.
   // Synthetic "all" + "header" + "loading" items keep a single FlatList renderer.
@@ -316,13 +323,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
     }
   };
 
-  const togglePropertyType = (type: string) => {
-    if (selectedType === type) {
-      setSelectedType(null); // Deselect
-    } else {
-      setSelectedType(type);
-    }
-  };
+  // Phase 14 Plan 14-02 — togglePropertyType moved into CascadingFilter. The
+  // old declaration had only one call site (HomeScreen.tsx:629) inside the deleted
+  // inline filter JSX; the new component owns the same OR-union setTypes(prev)
+  // callback semantics. setTypes itself is still passed down as a prop.
 
   const toggleFiltersExpanded = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -514,125 +518,35 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         />
       )}
 
-      {/* Filter Section - Collapsible (toggled via filter icon in top right) */}
-      {isFiltersExpanded && (
-        <View style={styles.filterSection}>
-          {/* Rent / Buy Segmented Control */}
-            <View style={[styles.segmentedControl, { backgroundColor: isDark ? '#2C2C2E' : '#E5E5EA' }]}>
-              <TouchableOpacity
-                style={[
-                  styles.segmentButton,
-                  transactionType === 'rent' && { backgroundColor: isDark ? '#000000' : '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }
-                ]}
-                onPress={() => setTransactionType('rent')}
-                activeOpacity={0.8}
-              >
-                <Text style={[
-                  styles.segmentText,
-                  { color: transactionType === 'rent' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }
-                ]}>🏠 {t('home.rent')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.segmentButton,
-                  transactionType === 'sale' && { backgroundColor: isDark ? '#000000' : '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }
-                ]}
-                onPress={() => setTransactionType('sale')}
-                activeOpacity={0.8}
-              >
-                <Text style={[
-                  styles.segmentText,
-                  { color: transactionType === 'sale' ? (isDark ? '#FFF' : '#000') : (isDark ? '#8E8E93' : '#666') }
-                ]}>🏠 {t('home.buy')}</Text>
-              </TouchableOpacity>
-            </View>
+      {/* Filter Section — Phase 14 Plan 14-02 (FILT-02). Inline JSX block deleted;
+          CascadingFilter is the first variant mount. Plan 14-03 added the
+          'guided' branch as a sibling below. */}
+      {filterStyle === 'cascading' && isFiltersExpanded && (
+        <CascadingFilter transactionType={transactionType}
+          setTransactionType={setTransactionType}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          types={types}
+          setTypes={setTypes}
+          liveCount={filteredProperties.length}
+        />
+      )}
 
-            {/* Category-toggle Row (D-04 tri-state: Residential / Commercial / Hospitality) */}
-            <View style={styles.categoryToggleRow}>
-              {(['Residential', 'Commercial', 'Hospitality'] as PropertyCategory[]).map((cat) => {
-                const selected = selectedCategory === cat;
-                const keyMap: Record<PropertyCategory, 'category.residential' | 'category.commercial' | 'category.hospitality'> = {
-                  Residential: 'category.residential',
-                  Commercial: 'category.commercial',
-                  Hospitality: 'category.hospitality',
-                };
-                return (
-                  <TouchableOpacity
-                    key={cat}
-                    style={[
-                      styles.categoryChip,
-                      {
-                        backgroundColor: selected ? colors.accent : (isDark ? '#2C2C2E' : '#F2F2F7'),
-                        borderColor: selected ? colors.accent : (isDark ? '#3A3A3C' : '#E5E5EA'),
-                      },
-                    ]}
-                    onPress={() => {
-                      setSelectedCategory(cat);
-                      setSelectedType(null);
-                    }}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected }}
-                    accessibilityLabel={t(keyMap[cat])}
-                    hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                  >
-                    <Text
-                      style={[
-                        styles.filterText,
-                        { color: selected ? '#FFFFFF' : colors.text },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {t(keyMap[cat])}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {/* Dynamic Filter Row — property-type chips, source switches on selectedCategory (D-04) */}
-            <View style={styles.filterRow}>
-              {(() => {
-                const chipTypes = selectedCategory === 'Hospitality'
-                  ? HOSPITALITY_TYPES
-                  : selectedCategory === 'Commercial'
-                    ? COMMERCIAL_TYPES
-                    : RESIDENTIAL_TYPES;
-                return (
-                  <FlatList
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.filterList}
-                    data={chipTypes.map((tname) => ({ id: tname, label: tname }))}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => {
-                      const isActive = selectedType === item.label;
-                      return (
-                        <TouchableOpacity
-                          style={[
-                            styles.filterChip,
-                            {
-                              backgroundColor: isActive ? colors.activeChipBackground : (isDark ? '#2C2C2E' : '#F2F2F7'),
-                              borderColor: isDark ? '#3A3A3C' : '#E5E5EA',
-                            },
-                          ]}
-                          onPress={() => togglePropertyType(item.label)}
-                        >
-                          <Text
-                            style={[
-                              styles.filterText,
-                              { color: isActive ? colors.activeChipText : colors.text },
-                            ]}
-                          >
-                            {item.label}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    }}
-                  />
-                );
-              })()}
-            </View>
-        </View>
+      {/* Phase 14 Plan 14-03 (FILT-01, FILT-03) — Guided sheet variant. Gated on
+          filterStyle === 'guided' ONLY (no && isFiltersExpanded) because the sheet
+          consumes isFiltersExpanded internally as its Modal `open` prop. Identical
+          state-prop expressions to the CascadingFilter mount above (SC4). */}
+      {filterStyle === 'guided' && (
+        <GuidedFilterSheet open={isFiltersExpanded}
+          onClose={() => setIsFiltersExpanded(false)}
+          transactionType={transactionType}
+          setTransactionType={setTransactionType}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          types={types}
+          setTypes={setTypes}
+          liveCount={filteredProperties.length}
+        />
       )}
 
       <Text style={[styles.resultCount, { color: colors.textSecondary }]}>
@@ -857,55 +771,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     height: '100%',
   },
-  filterSection: {
-    marginBottom: 16,
-  },
-  segmentedControl: {
-    flexDirection: 'row',
-    borderRadius: 30,
-    padding: 4,
-    marginBottom: 16,
-    height: 44,
-  },
-  segmentButton: {
-    flex: 1,
-    borderRadius: 26,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  segmentText: {
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  filterRow: {
-    marginBottom: 16,
-  },
-  filterList: {
-    paddingRight: 0,
-  },
-  filterChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 10,
-    borderWidth: 1,
-  },
-  // D-04 tri-state category toggle row (Residential / Commercial / Hospitality)
-  categoryToggleRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 12,
-  },
-  categoryChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  filterText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
+  // Phase 14 Plan 14-02 — the 10 orphan StyleSheet keys (filterSection, segmentedControl,
+  // segmentButton, segmentText, categoryToggleRow, categoryChip, filterRow, filterList,
+  // filterChip, filterText) lived here. They were referenced only by the inline filter
+  // JSX block at HomeScreen.tsx:521-642 which now lives in src/components/filters/
+  // CascadingFilter.tsx. Total delete: ~169 LOC.
   resultCount: {
     fontSize: 14,
     marginBottom: 10,

@@ -175,3 +175,142 @@ Every M4 v1 requirement maps to exactly one phase. Phase numbering continues fro
 ---
 
 *Generated 2026-05-25 via `/gsd-new-milestone to scope M4`. Active milestone: v4.0 "Counts & Labels". Traceability filled by `/gsd-roadmap` 2026-05-25 — 27 v1 requirements mapped to 5 phases (Phases 6–10).*
+
+---
+
+# JayTap — M6 v6.0 "Filter Variants + Profile Reskin" Requirements
+
+**Milestone:** M6 v6.0 "Filter Variants + Profile Reskin"
+**Started:** 2026-05-31
+**Builds on:** M3 v3.0 "Contextual Forms" (shipped 2026-05-11); concurrent with M4 v4.0 "Counts & Labels" (Phases 9–10 open) and M5 v5.0 "Details & Geocoding" (Phase 11 open; Phase 1 merged outside GSD 2026-05-26)
+
+**Goal:** Adopt the MoveIn design handoff — migrate the whole-app palette to the handoff tokens (dark + light parity), refactor filters to a multi-select shared data model with two interchangeable UI variants the user picks in Settings, and reskin Profile + Account Settings.
+
+**Origin:** Design handoff zips `MoveIn_ Real Estate.zip` (dark-only, 2026-05-31 morning) + `MoveIn_ Real Estate_LD_Mode.zip` (light-mode extension, 2026-05-31 afternoon). User explicitly chose: (a) all-app palette migration over scoping new tokens to refreshed screens only; (b) at least 2 of 4 filter variants in v1 (Guided Steps + Cascading Reveal); (c) device-local AsyncStorage for `filterStyle` preference; (d) reuse existing Georgia/serif font stack — no Newsreader load; (e) language pill stays in HomeScreen header (handoff's removal proposal explicitly rejected).
+
+**Hard rules carried forward (do NOT introduce):**
+- No Firebase SDK in either repo — REPO RULE per memory `no-firebase-sdk.md`.
+- No `react-navigation` migration — custom `App.tsx` state machine stays.
+- No backend changes — M6 is client-only.
+- M1's 3-category 9-type taxonomy preserved.
+- M2's status enum preserved (`pending | live | rejected | archived`).
+- M3's nested Mongoose Property schema preserved.
+- M4's `basics.bedrooms` + `basics.bathroomCount` extension preserved (M4 Phase 6 shipped 2026-05-25).
+- EN+RU bilingual parity for every new UI string (CI gate `scripts/check-i18n-parity.sh`).
+- Manual physical-device QA on iPhone 15 Pro Max + Moto G XT2513V × EN/RU × light/dark.
+- M1 KBD-02 invariant: `keyboardVerticalOffset` count in `src/` must remain 0.
+- Language pill (`<LanguageToggleSwitch>`) stays in HomeScreen top row (memory `m6-language-pill-stays-in-header.md`).
+- Variants are the value — at least 2 filter UI variants in v1; collapsing to one is rejected (memory `m6-filter-variants-are-the-point.md`).
+
+**Source artifacts:**
+- `MoveIn_ Real Estate_LD_Mode.zip` (latest handoff with light-mode tokens) — extracted at `/tmp/moveinzip_ld/design_handoff_profile_filters/`. Includes `README.md` (full token spec), `filters-variants.jsx` (VariantA…D source), `filters-shared.jsx`, `profile-screens.jsx`, `profile-shared.jsx`.
+
+**Locked decisions captured in memory:**
+- `m6-filter-variants-are-the-point.md` — variants are intentionally interchangeable; ship ≥2 in v1
+- `m6-language-pill-stays-in-header.md` — handoff's "after" SearchHeader proposal rejected
+- `m6-scope-decisions-2026-05-31.md` — AsyncStorage device-local, v1 = Guided+Cascading, font reuse, light-mode tokens delivered
+
+---
+
+## v1 (M6) Requirements
+
+### PAL — Whole-app palette migration
+
+Rewrite `src/theme/colors.ts` to handoff tokens; preserve accent/landlord-green/destructive-red mode-independent; sweep every screen for visual regressions. Palette migration is single-token-source per existing `useTheme()` contract — no per-screen hex literals to chase.
+
+- [ ] **PAL-01** `src/theme/colors.ts` dark set rewritten: `background #121214`, `bgDim #0c0c0e`, `surface #1c1c20`, `surface-2 #26262c`, `surface-3 #303038`, `hair rgba(255,255,255,0.08)`, `hair-strong rgba(255,255,255,0.14)`, `text #f4f4f6`, `dim rgba(244,244,246,0.60)`, `mute rgba(244,244,246,0.40)`, icon-chip-fg `rgba(244,244,246,0.85)`. Accent `#ff5a6f` (+ soft `rgba(255,90,111,0.16)` + line `rgba(255,90,111,0.45)`) preserved mode-independent. Landlord green `#35c98f` and destructive red `#ff4d4d` preserved mode-independent.
+- [ ] **PAL-02** `src/theme/colors.ts` light set rewritten: `background #f3f3f6`, `bgDim #e7e7ec`, `surface #ffffff`, `surface-2 #f0f0f4`, `surface-3 #e4e4ea`, `hair rgba(0,0,0,0.08)`, `hair-strong rgba(0,0,0,0.13)`, `text #16161a`, `dim rgba(22,22,28,0.62)`, `mute rgba(22,22,28,0.42)`, icon-chip-fg `rgba(22,22,28,0.80)`. Accent + landlord-green + destructive-red identical to PAL-01.
+- [ ] **PAL-03** Visual-regression sweep across every screen reading `colors.*` — minimum coverage: HomeScreen, PropertyCard, HospitalityCard, PropertyDetailsScreen, all M5 details/* sub-components, ProfileScreen, AccountSettingsScreen, ChatScreen + ChatThreadScreen + ChatComposeScreen, AppointmentsScreen, FavoritesScreen, RenterListingsScreen, OwnerListingsScreen, ContextualListingFlow (all 6 steps), MediaCurationScreen, ModerationQueueScreen, LandlordApplicationQueueScreen, RoleManagementScreen, LoginScreen, SignupScreen, ForgotPasswordScreen, ResetPasswordScreen, Tour3DScreen, TourSelectionScreen, ScheduleViewingScreen, ApplicantProfileScreen, AdminVerificationScreen, ListingAdminScreen. Walked on iPhone 15 Pro Max + Moto G XT2513V × EN/RU × light/dark. No broken contrast (WCAG AA), no illegible text, no theme drift artifacts.
+
+### DATA — Shared filter data model + persistence
+
+Refactor HomeScreen's filter state to multi-select; build a single query builder; persist filter-style preference to device storage.
+
+- [ ] **DATA-01** HomeScreen filter state refactored from `selectedType: string | null` to `types: string[]` (multi-select). `filteredProperties` memo treats `types` as an OR-set (union semantics): a property matches if its propertyType is in `types` (or if `types` is empty, all types in the selected category match). Existing `transactionType: 'rent'|'sale'` and `selectedCategory: PropertyCategory` are unchanged in shape but become canonical `deal`/`category` fields in the shared model.
+- [ ] **DATA-02** Single query builder function `buildFilterQuery({ deal, category, types })` returns the canonical filter shape consumed by every variant + by `filteredProperties`. All four variants (including the two not implemented in v1) read and write the identical state — no per-variant branches in the data layer.
+- [ ] **DATA-03** New `useFilterStyle()` hook persists `'guided'|'cascading'|'master'|'sentence'` to AsyncStorage under key `@jaytap_filter_style`. Default `'guided'` on first load. Reads on app mount (no flash of wrong variant); writes immediately on user pick. Hook exposes `{ filterStyle, setFilterStyle }`.
+
+### FILT — Filter UI variants for v1
+
+Two interchangeable filter UIs built on the shared DATA model. The handoff treats them as pure skins — switching is presentational only.
+
+- [ ] **FILT-01** Guided Steps variant — bottom-sheet wizard with 1-2-3 stepper (Deal → Category → Type). Picking Deal auto-advances to Category; picking Category auto-advances to Type. Type step shows multi-select cards with square-checkbox affordance + "Choose one or more" hint. Breadcrumb at footer shows current selection. Live "Show N homes" CTA button updates on every selection change.
+- [ ] **FILT-02** Cascading Reveal variant — inline panel under the search bar. Segmented Rent/Buy toggle at top → underlined Category tab strip (Residential / Commercial / Hospitality) → multi-select Type chip row. Left nesting rail visually joins Category to Type. Live result line ("N homes · Rent · Residential · 3 types") below.
+- [ ] **FILT-03** HomeScreen filter-button press launches the variant matching the user's `filterStyle` preference from DATA-03. Switching preference in AccountSettings live-swaps the variant — next filter-button press opens the new variant; no app restart required.
+
+### SET — Account Settings restructure + filter-style picker
+
+Restructure AccountSettingsScreen into three labelled sections per handoff spec; add the filter-style picker in Preferences.
+
+- [x] **SET-01** AccountSettingsScreen restructured into three labelled sections per handoff spec: **ACCOUNT** (existing read rows + Edit affordance), **PREFERENCES** (Language EN/Русский segmented toggle + Filter-style picker), **DANGER ZONE** (Delete account row). Section labels use the handoff's typographic treatment (small uppercase letter-spacing). _Shipped Phase 15 Plan 01 — 2026-06-01 (commits c404111 + 20f6dd8); FilterStyleRow mount inside PREFERENCES tracked under SET-02 (Plan 15-02)._
+- [x] **SET-02** Filter-style picker in Preferences — expandable row with sliders icon, "Search filter style" title, current-value subtitle, chevron that rotates on expand. Expanded view lists all 4 styles (Guided Steps, Cascading Reveal, Master–Detail, Sentence) with icon + name + one-line description + radio affordance. Guided + Cascading are selectable. Master-Detail + Sentence are shown with a "Coming soon" badge and disabled radio (visible in v1 so users see what's coming; functional in Phase B). _Shipped Phase 15 Plan 02 — 2026-06-01 (commits 2a2f4cb + bf27e16 + 6584c2d); FilterStyleRow.tsx + 10-case co-located test; SC3 live-swap wired through Phase 13 context + Phase 14 dispatcher (no app restart); on-device walk still owed per CONTEXT.md D-15 acceptance._
+- [x] **SET-03** Existing AccountSettingsScreen surfaces (Account info fields incl. First Name / Last Name / Phone / WhatsApp / Telegram; Language toggle EN/Русский; Delete account → DeleteAccountModal) preserved verbatim in their new section homes — no regression to those flows. Edit-mode toggle still works for Account fields. Language toggle still persists via existing `setLanguage()` from `LanguageContext`. Delete account still routes through `DeleteAccountModal`. _Shipped Phase 15 Plan 01 — 2026-06-01 (commit 20f6dd8); on-device QA still owed per CONTEXT.md D-15 acceptance._
+
+### PROF — Profile reskin
+
+Two layout variants by role: grouped rows for regular users, tile dashboard for admin/moderator. All existing entry points and gating preserved.
+
+- [ ] **PROF-01** ProfileScreen (regular user) — grouped-row layout per handoff spec: identity card (avatar + name + email + "Account settings ›" pill) → "You're a Landlord" green-tinted banner (when applicable, gated as today) → ACTIVITY card (Favorites + Appointments rows) → HOSTING card (My Listings row) → Create Listing accent-filled row → Log out outlined pill. Row anatomy: 38px neutral icon chip + label (16/600) + sub (12.5 dim) + chevron.
+- [ ] **PROF-02** ProfileScreen (admin/moderator) — tile-dashboard layout per handoff spec: identity card with role badge ("ADMIN" or "MODERATOR" accent pill with shield icon) → MY ACTIVITY 2×2 tiles (Favorites, Appointments, My Listings, Create Listing accent-filled) → ADMIN TOOLS section with STAFF pill label, role-gated tiles: Landlord Applications + Moderation Queue (both roles), Role Management (admin only, renders full-width when it's the odd tile). Live count badges (accent) on tiles with pending counts.
+- [ ] **PROF-03** Existing badges/counts preserved across both layouts: `pendingCount` badge on Moderation Queue tile (fetched via existing `PropertyService.getModerationQueueCount` + `moderationCountRefreshKey` invalidation); landlord-application status banner (when applicable); favorite count from existing source; appointment count from existing source; My Listings count from existing source. No count-fetching regression. Navigation handlers (`onCreateListing`, `onViewListings`, `onViewFavorites`, `onViewAppointments`, `onViewAccountSettings`, `onApplyLandlord`, `onReviewLandlordApplications`, `onReviewModerationQueue`, `onOpenRoleManagement`) preserved verbatim — same call sites in App.tsx.
+
+---
+
+## Future (M6 Phase B + later)
+
+- **FILT-04** Master–Detail variant — bottom-sheet with categories on left rail + types on right pane as multi-select checkbox list with "Any [category]" row.
+- **FILT-05** Sentence Builder variant — editorial plain-language filter ("I want to **rent** a **residential** **apartment, house or townhome**.") with token-based picker.
+- **SET-04** Filter-style picker un-gates Master-Detail + Sentence options (drop "Coming soon" affordance once FILT-04 + FILT-05 ship).
+
+## Out of Scope (M6)
+
+- **Moving the language pill** out of HomeScreen header into Account Settings — explicitly rejected by user 2026-05-31 (memory `m6-language-pill-stays-in-header.md`). Handoff's "after" SearchHeader variant is informational only.
+- **Loading Newsreader serif font** — reuse existing `Platform.select({ ios: 'Georgia', android: 'serif' })` stack (already used in PropertyCard, HomeScreen, PropertyDetailsScreen). Georgia is the handoff's listed fallback in the `'Newsreader', Georgia, 'Times New Roman', serif` chain.
+- **Master-Detail + Sentence filter variants** — deferred to M6 Phase B; the picker shows them as "Coming soon" in v1.
+- **Server-side `filterStyle` sync** — preference is per-device via AsyncStorage. Cross-device sync only if it becomes a user complaint.
+- **Backend changes** — M6 is client-only. No Mongoose schema changes, no new endpoints, no route changes.
+- **Tweaks panel from handoff** — the prototype's tweaks panel (Appearance / Accent switcher) is scaffolding, not product. Not ported.
+- **Green accent option** — handoff's green `#36c98f` accent is exposed in the prototype as a tweak. Not ported; pink stays as the brand default in v1.
+- **3D Tour pill / 360° Photos / Photo tile visual changes** — out of M6 scope. M5 Phase 1 already redesigned details; M6 only swaps tokens.
+- **M6 release / store submission phase** — out of scope for this roadmap. M6 will ride M4 Phase 10's hardening cycle OR get a separate release phase added later. Phase 16 is the last M6 phase; no Phase 17 release block.
+
+---
+
+## Traceability (M6)
+
+Every M6 v1 requirement maps to exactly one phase. Phase numbering continues from M4 Phase 10 + M5 Phase 11 (M6 starts at Phase 12; no `--reset-phase-numbers`).
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| PAL-01 | Phase 12 — Whole-App Palette Migration (Dark + Light) + Visual-Regression Sweep | Pending |
+| PAL-02 | Phase 12 — Whole-App Palette Migration (Dark + Light) + Visual-Regression Sweep | Pending |
+| PAL-03 | Phase 12 — Whole-App Palette Migration (Dark + Light) + Visual-Regression Sweep | Pending |
+| DATA-01 | Phase 13 — Shared Filter Data Model + AsyncStorage Persistence | Pending |
+| DATA-02 | Phase 13 — Shared Filter Data Model + AsyncStorage Persistence | Pending |
+| DATA-03 | Phase 13 — Shared Filter Data Model + AsyncStorage Persistence | Pending |
+| FILT-01 | Phase 14 — Filter UI Variants (Guided Steps + Cascading Reveal) + HomeScreen Variant Dispatch | Pending |
+| FILT-02 | Phase 14 — Filter UI Variants (Guided Steps + Cascading Reveal) + HomeScreen Variant Dispatch | Pending |
+| FILT-03 | Phase 14 — Filter UI Variants (Guided Steps + Cascading Reveal) + HomeScreen Variant Dispatch | Pending |
+| SET-01 | Phase 15 — Account Settings Restructure + Filter-Style Picker | Complete (Plan 15-01, 2026-06-01) |
+| SET-02 | Phase 15 — Account Settings Restructure + Filter-Style Picker | Complete (Plan 15-02, 2026-06-01) |
+| SET-03 | Phase 15 — Account Settings Restructure + Filter-Style Picker | Complete (Plan 15-01, 2026-06-01) |
+| PROF-01 | Phase 16 — Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | Pending |
+| PROF-02 | Phase 16 — Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | Pending |
+| PROF-03 | Phase 16 — Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | Pending |
+
+**Coverage:** 15/15 v1 requirements mapped to exactly one phase. No orphans. No duplicates.
+
+**Phase-to-Requirements rollup:**
+
+| Phase | Requirements | Count |
+|-------|-------------|-------|
+| Phase 12 — Whole-App Palette Migration (Dark + Light) + VR Sweep | PAL-01, PAL-02, PAL-03 | 3 |
+| Phase 13 — Shared Filter Data Model + AsyncStorage Persistence | DATA-01, DATA-02, DATA-03 | 3 |
+| Phase 14 — Filter UI Variants (Guided + Cascading) + HomeScreen Dispatch | FILT-01, FILT-02, FILT-03 | 3 |
+| Phase 15 — Account Settings Restructure + Filter-Style Picker | SET-01, SET-02, SET-03 | 3 |
+| Phase 16 — Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | PROF-01, PROF-02, PROF-03 | 3 |
+| **Total** | — | **15** |
+
+---
+
+*M6 section appended 2026-05-31 via `/gsd-new-milestone`. Traceability filled by `/gsd-roadmap` 2026-05-31 — 15 v1 requirements mapped to 5 phases (Phases 12–16). M6 starts as a parallel third in-flight milestone alongside M4 (Phases 9–10 open) and M5 (Phase 11 closed 2026-05-27). 5 categories: PAL × 3, DATA × 3, FILT × 3, SET × 3, PROF × 3. M6 release is out of scope for this roadmap — will ride M4 Phase 10's hardening cycle OR get a separate release phase added later.*

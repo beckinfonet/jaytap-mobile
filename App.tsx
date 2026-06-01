@@ -36,6 +36,7 @@ import { BottomNavigator, TabId } from './src/components/BottomNavigator';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { LanguageProvider, useLanguage } from './src/context/LanguageContext';
+import { FilterStyleProvider } from './src/context/FilterStyleContext';
 import { Property } from './src/types/Property';
 import { PropertyService } from './src/services/PropertyService';
 import { FavoritesService } from './src/services/FavoritesService';
@@ -1528,9 +1529,11 @@ function App() {
         <KeyboardProvider>
           <ThemeProvider>
             <LanguageProvider>
-              <AuthProvider>
-                <AppContent />
-              </AuthProvider>
+              <FilterStyleProvider>
+                <AuthProvider>
+                  <AppContent />
+                </AuthProvider>
+              </FilterStyleProvider>
             </LanguageProvider>
           </ThemeProvider>
         </KeyboardProvider>

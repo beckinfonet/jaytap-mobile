@@ -226,6 +226,27 @@ export const en = {
   'profile.logOut': 'Log Out',
   'profile.logOutConfirm': 'Are you sure you want to log out?',
   'profile.logOutFailed': 'Failed to log out. Please try again.',
+  // Phase 16 (PROF-01/02) — section labels for grouped-row + tile-dashboard layouts
+  'profile.section.activity': 'ACTIVITY',
+  'profile.section.hosting': 'HOSTING',
+  'profile.section.myActivity': 'MY ACTIVITY',
+  'profile.section.adminTools': 'ADMIN TOOLS',
+  'profile.section.staff': 'STAFF',
+  // Phase 16 — staff role badges (uppercase pill text)
+  'profile.staffBadge.admin': 'ADMIN',
+  'profile.staffBadge.moderator': 'MODERATOR',
+  // Phase 16 (D-01) — generic static tile sub-labels (no live counts)
+  'profile.tile.favoritesSub': 'Saved properties',
+  'profile.tile.appointmentsSub': 'Upcoming',
+  'profile.tile.myListingsSub': 'Your listings',
+  'profile.tile.createListingSub': 'New property',
+  // Phase 16 — admin-tool tile titles + sub-labels
+  'profile.tool.applications': 'Landlord Applications',
+  'profile.tool.applicationsSub': 'Pending review',
+  'profile.tool.moderation': 'Moderation Queue',
+  'profile.tool.moderationSub': 'Listings to review',
+  'profile.tool.roles': 'Role Management',
+  'profile.tool.rolesSub': 'Staff & permissions',
 
   // Account Settings
   'accountSettings.title': 'Account Settings',
@@ -251,6 +272,14 @@ export const en = {
   'accountSettings.profileUpdateFailed': 'Failed to update profile',
   'accountSettings.invalidName': "Names can only contain letters, spaces, hyphens, and apostrophes (e.g., O'Brian, Marie-Jane).",
   'accountSettings.invalidPhone': 'Phone numbers can only contain digits, spaces, +, -, and parentheses.',
+  // Phase 15 (SET-01 / D-14) — uppercase section labels for restructured Account Settings.
+  'accountSettings.section.account': 'ACCOUNT',
+  'accountSettings.section.preferences': 'PREFERENCES',
+  'accountSettings.section.application': 'APPLICATION',
+  'accountSettings.section.dangerZone': 'DANGER ZONE',
+  // Phase 15 Plan 15-02 (SET-02 / D-14) — FilterStyleRow picker chrome.
+  'accountSettings.filterPicker.title': 'Search filter style',
+  'accountSettings.filterPicker.subtitle': 'How property filters appear',
 
   // Platform verification (MoveIn / admin only)
   'verification.sectionTitle': 'Verified by MoveIn',
@@ -915,6 +944,46 @@ export const en = {
   'applicantProfile.intent': 'Plans to list',
   'applicantProfile.submittedAt': 'Submitted {{date}}',
   'applicantProfile.viewProfile': 'View profile',
+
+  // Phase 14 Plan 14-01 — filter UI primitives (FILT-01, FILT-02) — D-07 namespace subset
+  'filters.title': 'Filters',
+  'filters.step.deal': 'Deal',
+  'filters.step.category': 'Category',
+  'filters.step.type': 'Type',
+  'filters.close': 'Close filters',
+  'filters.showHomes.one': 'Show 1 home',
+  'filters.showHomes.many': 'Show {count} homes',
+  'filters.type.multiHint': 'Choose one or more',
+  'filters.deal.rent': 'Rent',
+  'filters.deal.buy': 'Buy',
+
+  // Phase 14 Plan 14-02 — Cascading panel (FILT-02) — D-07 namespace subset.
+  // Reuses existing 'category.residential|commercial|hospitality' (lines 293-295)
+  // for the three tab labels; no new 'filters.category.*' keys added.
+  'filters.cascading.categoryHeader': 'CATEGORY',
+  'filters.cascading.typeHeader': 'TYPE',
+  'filters.cascading.typeHint': 'pick any',
+
+  // Phase 14 Plan 14-03 — Guided sheet wizard (FILT-01) — D-07 namespace subset
+  'filters.deal.rentBlurb': 'Lease a place month-to-month',
+  'filters.deal.buyBlurb': 'Purchase a property to own',
+  'filters.category.prompt': 'What kind of property?',
+  'filters.category.residentialBlurb': 'Homes to live in',
+  'filters.category.commercialBlurb': 'Offices & retail',
+  'filters.category.hospitalityBlurb': 'Stays & lodging',
+  'filters.type.prompt': 'Pick a type',
+
+  // Phase 15 Plan 15-02 (SET-02 / D-14 + D-21) — filter-style picker
+  // names + descriptions + "Coming soon" badge for Master/Sentence (D-06).
+  'filters.style.guided': 'Guided steps',
+  'filters.style.cascading': 'Cascading',
+  'filters.style.master': 'Master–detail',
+  'filters.style.sentence': 'Sentence',
+  'filters.style.guidedDesc': 'One choice at a time',
+  'filters.style.cascadingDesc': 'All levels inline',
+  'filters.style.masterDesc': 'Categories + types',
+  'filters.style.sentenceDesc': 'Plain-language builder',
+  'filters.style.comingSoon': 'Coming soon',
 } as const;
 
 export type TranslationKeys = keyof typeof en;

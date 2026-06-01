@@ -228,6 +228,27 @@ export const ru: Record<TranslationKeys, string> = {
   'profile.logOut': 'Выйти',
   'profile.logOutConfirm': 'Вы уверены, что хотите выйти?',
   'profile.logOutFailed': 'Не удалось выйти. Попробуйте снова.',
+  // Phase 16 (PROF-01/02) — section labels for grouped-row + tile-dashboard layouts
+  'profile.section.activity': 'АКТИВНОСТЬ',
+  'profile.section.hosting': 'ОБЪЯВЛЕНИЯ',
+  'profile.section.myActivity': 'МОЯ АКТИВНОСТЬ',
+  'profile.section.adminTools': 'ИНСТРУМЕНТЫ АДМИНА',
+  'profile.section.staff': 'ПЕРСОНАЛ',
+  // Phase 16 — staff role badges (uppercase pill text)
+  'profile.staffBadge.admin': 'АДМИН',
+  'profile.staffBadge.moderator': 'МОДЕРАТОР',
+  // Phase 16 (D-01) — generic static tile sub-labels (no live counts)
+  'profile.tile.favoritesSub': 'Сохранённые объекты',
+  'profile.tile.appointmentsSub': 'Предстоящие',
+  'profile.tile.myListingsSub': 'Ваши объявления',
+  'profile.tile.createListingSub': 'Новый объект',
+  // Phase 16 — admin-tool tile titles + sub-labels
+  'profile.tool.applications': 'Заявки арендодателей',
+  'profile.tool.applicationsSub': 'Ожидают проверки',
+  'profile.tool.moderation': 'Очередь модерации',
+  'profile.tool.moderationSub': 'Объявления на проверку',
+  'profile.tool.roles': 'Управление ролями',
+  'profile.tool.rolesSub': 'Персонал и права',
 
   // Account Settings
   'accountSettings.title': 'Настройки аккаунта',
@@ -253,6 +274,14 @@ export const ru: Record<TranslationKeys, string> = {
   'accountSettings.profileUpdateFailed': 'Не удалось обновить профиль',
   'accountSettings.invalidName': 'Имя может содержать только буквы, пробелы, дефисы и апострофы (например, О’Брайен, Мари-Жан).',
   'accountSettings.invalidPhone': 'Номер телефона может содержать только цифры, пробелы, +, − и скобки.',
+  // Phase 15 (SET-01 / D-14) — uppercase section labels for restructured Account Settings.
+  'accountSettings.section.account': 'АККАУНТ',
+  'accountSettings.section.preferences': 'НАСТРОЙКИ',
+  'accountSettings.section.application': 'ЗАЯВКА',
+  'accountSettings.section.dangerZone': 'ОПАСНАЯ ЗОНА',
+  // Phase 15 Plan 15-02 (SET-02 / D-14) — FilterStyleRow picker chrome.
+  'accountSettings.filterPicker.title': 'Стиль поиска',
+  'accountSettings.filterPicker.subtitle': 'Как выглядят фильтры',
 
   // Platform verification (MoveIn / admin only)
   'verification.sectionTitle': 'Проверено MoveIn',
@@ -905,4 +934,44 @@ export const ru: Record<TranslationKeys, string> = {
   'applicantProfile.intent': 'Планирует размещать',
   'applicantProfile.submittedAt': 'Отправлено: {{date}}',
   'applicantProfile.viewProfile': 'Открыть профиль',
+
+  // Phase 14 Plan 14-01 — filter UI primitives (FILT-01, FILT-02) — D-07 namespace subset
+  'filters.title': 'Фильтры',
+  'filters.step.deal': 'Тип сделки',
+  'filters.step.category': 'Категория',
+  'filters.step.type': 'Тип',
+  'filters.close': 'Закрыть фильтры',
+  'filters.showHomes.one': 'Показать 1 объект',
+  'filters.showHomes.many': 'Показать {count} объектов',
+  'filters.type.multiHint': 'Выберите один или несколько',
+  'filters.deal.rent': 'Аренда',
+  'filters.deal.buy': 'Купить',
+
+  // Phase 14 Plan 14-02 — Cascading panel (FILT-02) — D-07 namespace subset.
+  // Reuses existing 'category.residential|commercial|hospitality' (lines 295-297)
+  // for the three tab labels; no new 'filters.category.*' keys added.
+  'filters.cascading.categoryHeader': 'КАТЕГОРИЯ',
+  'filters.cascading.typeHeader': 'ТИП',
+  'filters.cascading.typeHint': 'выберите любой',
+
+  // Phase 14 Plan 14-03 — Guided sheet wizard (FILT-01) — D-07 namespace subset
+  'filters.deal.rentBlurb': 'Снять помесячно',
+  'filters.deal.buyBlurb': 'Купить в собственность',
+  'filters.category.prompt': 'Что за недвижимость?',
+  'filters.category.residentialBlurb': 'Жильё',
+  'filters.category.commercialBlurb': 'Офисы и торговля',
+  'filters.category.hospitalityBlurb': 'Размещение и проживание',
+  'filters.type.prompt': 'Выберите тип',
+
+  // Phase 15 Plan 15-02 (SET-02 / D-14 + D-21) — filter-style picker
+  // names + descriptions + "Coming soon" badge for Master/Sentence (D-06).
+  'filters.style.guided': 'Пошаговый',
+  'filters.style.cascading': 'Каскадный',
+  'filters.style.master': 'Категории и типы',
+  'filters.style.sentence': 'Предложение',
+  'filters.style.guidedDesc': 'По одному шагу',
+  'filters.style.cascadingDesc': 'Все уровни сразу',
+  'filters.style.masterDesc': 'Категории и типы',
+  'filters.style.sentenceDesc': 'Конструктор-фраза',
+  'filters.style.comingSoon': 'Скоро',
 };

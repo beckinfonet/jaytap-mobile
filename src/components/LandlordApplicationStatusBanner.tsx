@@ -105,19 +105,22 @@ export const LandlordApplicationStatusBanner: React.FC<Props> = ({ onPress }) =>
     case 'approved':
       title = t('landlordApp.banner.approvedTitle');
       body = t('landlordApp.banner.approvedBody');
-      accent = '#059669';
+      // Phase 16 Plan 16-01 (D-08) — swap M3-era hardcoded hex for Phase 12 palette token.
+      accent = colors.landlordGreen;
       break;
     case 'submitted':
       title = t('landlordApp.banner.submittedTitle');
       body = t('landlordApp.banner.submittedBody');
-      accent = '#D97706';
+      // Phase 16 Plan 16-01 (D-08) — amber-500 token (same hue M3 used at #D97706 → now mapped to the warning token).
+      accent = colors.warning;
       break;
     case 'rejected':
       title = t('landlordApp.banner.rejectedTitle');
       body = state.reasonNote
         ? `${t(`landlordApp.rejectReason.${state.reasonCode || 'other'}` as any)} — ${state.reasonNote}`
         : t(`landlordApp.rejectReason.${state.reasonCode || 'other'}` as any);
-      accent = '#DC2626';
+      // Phase 16 Plan 16-01 (D-08) — destructive token (replaces #DC2626).
+      accent = colors.destructiveRed;
       break;
     case 'withdrawn':
       title = t('landlordApp.banner.withdrawnTitle');
