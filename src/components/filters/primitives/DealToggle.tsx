@@ -6,7 +6,16 @@
  * HomeScreen.tsx:524-551.
  *
  * Sliding thumb: Animated.Value 0|1 interpolated to translateX 0% / 100% of
- * the container; 200ms Easing.inOut(Easing.cubic), useNativeDriver: true.
+ * the container; 200ms Easing.inOut(Easing.cubic), useNativeDriver: false.
+ *
+ * Driver note: useNativeDriver MUST be false because outputRange uses percentage
+ * strings ('0%' / '100%') and the native driver only interpolates numbers. With
+ * useNativeDriver: true the timing call silently no-ops on device — thumb stays
+ * frozen at its initial position even though `value` changes, making the press
+ * feel unresponsive. (Fixed in quick 260531-x3z Round-4 after on-device QA.
+ * The sibling LanguageToggle in AccountSettings keeps useNativeDriver: true
+ * because it measures container width via onLayout and interpolates pixel
+ * numbers — a richer pattern not needed here for a fixed-50/50 split.)
  *
  * Hex-literal note: `'#fff'` for active text is the project's text-on-accent
  * contract (matches ShowButton + RejectionBanner CTA).
@@ -43,7 +52,9 @@ const DealToggle: React.FC<DealToggleProps> = ({ value, onChange }) => {
       toValue: value === 'Rent' ? 0 : 1,
       duration: 200,
       easing: Easing.inOut(Easing.cubic),
-      useNativeDriver: true,
+      // See file-level "Driver note" — false is load-bearing because outputRange
+      // uses percentage strings, which the native driver cannot interpolate.
+      useNativeDriver: false,
     }).start();
   }, [value, thumbPos]);
 
