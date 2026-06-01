@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -88,6 +88,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   const { t, language } = useLanguage();
   // Phase 14 Plan 14-02 — variant dispatch read; Plan 14-03 will add the 'guided' branch.
   const { filterStyle } = useFilterStyle();
+  // Quick-task 260601-1b8 — ref on the results FlatList so toggleFiltersExpanded
+  // can scroll back to the top when the Cascading panel is (re)opened. Loose `any`
+  // generic matches the existing untyped FlatList usage at L585 (tightening is out
+  // of scope for this quick).
+  const listRef = useRef<FlatList<any>>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   // New Filter State (D-04: tri-state replaces the prior binary commercial toggle)
@@ -583,6 +588,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         <View style={styles.contentContainer}>
           {renderHeaderContent()}
           <FlatList
+            ref={listRef}
             data={filteredProperties}
             keyExtractor={(item, index) => item.id || item.listingId || `property-${index}`}
             ListHeaderComponent={
