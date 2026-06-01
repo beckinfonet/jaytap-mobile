@@ -3,7 +3,7 @@ quick_id: 260531-x3z
 slug: filter-variants-accent-swap
 status: complete
 completed: 2026-06-01
-commits: [8ff1808, c444526, c806c35, 561f4ab]
+commits: [8ff1808, c444526, c806c35, 561f4ab, 4356ce4, a0e6987, 8793338]
 ---
 
 # Quick Summary: Filter-variant accent swap
@@ -22,6 +22,9 @@ Added a parallel `filterAccent / filterAccentSoft / filterAccentLine` triple to 
 2. `c444526` — `refactor(quick-260531-x3z): swap accent → filterAccent in GuidedFilterSheet`
 3. `c806c35` — `refactor(quick-260531-x3z): swap accent → filterAccent in CascadingFilter`
 4. `561f4ab` — `refactor(quick-260531-x3z): swap active-step Stepper pill to filterAccent` (Round-2 follow-up — first pass missed the active-step pill in the 1-2-3 stepper bar because Stepper.tsx lives under `filters/primitives/` and read `colors.accent` directly. Completed-step pills + connector bars stay `landlordGreen` per user feedback)
+5. `4356ce4` — `refactor(quick-260531-x3z): swap CheckSquare tick to filterAccent` (Round-3: the small ✓ squares inside selected Type cards were still pink because `CheckSquare.tsx` is its own primitive)
+6. `a0e6987` — `refactor(quick-260531-x3z): swap ShowButton CTA to filterAccent` (Round-3: the "Show N homes" footer CTA in the Guided sheet)
+7. `8793338` — `refactor(quick-260531-x3z): swap HomeScreen filter-trigger button to filterAccent` (Round-3: the filter funnel-icon button next to the search bar — only the `isFiltersExpanded` active-state background, every other accent usage on HomeScreen stays brand pink)
 
 ## Gates
 
