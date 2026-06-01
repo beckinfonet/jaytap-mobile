@@ -7,27 +7,41 @@
  *   - Mock useRole as admin so all 9 surfaces mount in the admin-layout (8 of them
  *     directly mounted; onApplyLandlord goes through the LandlordApplicationStatusBanner
  *     which self-suppresses for staff — so we run THAT one sub-case with a user-role
- *     mock instead, via jest.isolateModulesAsync).
- *   - For each handler, locate the Pressable inside the corresponding primitive
- *     (ProfileTile / ProfileToolTile / IdentityCard / OutlinedLogoutPill) by walking
- *     primitive instances and reading their `onPress` prop directly. We invoke the
- *     primitive's own onPress (which is bound to the handler we passed into ProfileScreen)
+ *     mock instead, via per-test useRole.mockReturnValue swap).
+ *   - For each handler, locate the primitive instance (ProfileTile / ProfileToolTile /
+ *     IdentityCard / LandlordApplicationStatusBanner) and invoke its `onPress` prop
  *     via act(), then assert the handler mock was called once.
- *
- * 9 sub-cases (handler name → primitive carrying it):
- *   1. onViewFavorites               — ProfileTile #0 (admin) / ProfileRow #0 (user)
- *   2. onViewAppointments            — ProfileTile #1
- *   3. onViewListings                — ProfileTile #2 (admin) / ProfileRow #2 (user)
- *   4. onCreateListing               — ProfileTile #3 (admin accent) / ProfileRow #3 (user accent)
- *   5. onReviewLandlordApplications  — ProfileToolTile #0 (admin)
- *   6. onReviewModerationQueue       — ProfileToolTile #1 (admin)
- *   7. onOpenRoleManagement          — ProfileToolTile #2 (admin)
- *   8. onViewAccountSettings         — IdentityCard onPress
- *   9. onApplyLandlord               — LandlordApplicationStatusBanner press (user role)
  */
 
 import React from 'react';
 import TestRenderer, { act } from 'react-test-renderer';
+
+// ---- useRole mock factory (swappable per-test) ----------------------------
+
+jest.mock('../../hooks/useRole', () => {
+  const actual = jest.requireActual('../../hooks/useRole');
+  return {
+    ...actual,
+    useRole: jest.fn(),
+  };
+});
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { useRole } = require('../../hooks/useRole');
+
+const setRoleMock = (role: 'admin' | 'user') => {
+  (useRole as jest.Mock).mockReturnValue({
+    role,
+    isAdmin: role === 'admin',
+    isModerator: false,
+    isAuthenticated: true,
+    can: (action: string) => {
+      if (role === 'admin') return true;
+      // role === 'user' — only manageListings is permitted.
+      return action === 'manageListings';
+    },
+  });
+};
 
 // ---- Shared mocks ---------------------------------------------------------
 
@@ -125,120 +139,69 @@ jest.mock('lucide-react-native', () => {
   );
 });
 
-// ---- Render helper with role override -------------------------------------
+// ---- Imports (after mocks) ------------------------------------------------
 
-interface RenderResult {
-  tree: TestRenderer.ReactTestRenderer;
-  handlers: {
-    onBack: jest.Mock;
-    onCreateListing: jest.Mock;
-    onViewListings: jest.Mock;
-    onViewFavorites: jest.Mock;
-    onViewAppointments: jest.Mock;
-    onViewAccountSettings: jest.Mock;
-    onApplyLandlord: jest.Mock;
-    onReviewLandlordApplications: jest.Mock;
-    onReviewModerationQueue: jest.Mock;
-    onOpenRoleManagement: jest.Mock;
-  };
-  Primitives: {
-    ProfileTile: any;
-    ProfileToolTile: any;
-    ProfileRow: any;
-    IdentityCard: any;
-    OutlinedLogoutPill: any;
-    LandlordApplicationStatusBanner: any;
-  };
+import { ProfileScreen } from '../ProfileScreen';
+import ProfileTile from '../../components/profile/ProfileTile';
+import ProfileToolTile from '../../components/profile/ProfileToolTile';
+import IdentityCard from '../../components/profile/IdentityCard';
+import { LandlordApplicationStatusBanner } from '../../components/LandlordApplicationStatusBanner';
+
+// ---- Render helper --------------------------------------------------------
+
+interface Handlers {
+  onBack: jest.Mock;
+  onCreateListing: jest.Mock;
+  onViewListings: jest.Mock;
+  onViewFavorites: jest.Mock;
+  onViewAppointments: jest.Mock;
+  onViewAccountSettings: jest.Mock;
+  onApplyLandlord: jest.Mock;
+  onReviewLandlordApplications: jest.Mock;
+  onReviewModerationQueue: jest.Mock;
+  onOpenRoleManagement: jest.Mock;
 }
 
-const renderWithRole = async (
-  role: 'admin' | 'user',
-): Promise<RenderResult> => {
-  let result: RenderResult | null = null;
-  await jest.isolateModulesAsync(async () => {
-    jest.doMock('../../hooks/useRole', () => {
-      const actual = jest.requireActual('../../hooks/useRole');
-      return {
-        ...actual,
-        useRole: () => ({
-          role,
-          isAdmin: role === 'admin',
-          isModerator: false,
-          isAuthenticated: true,
-          can: (action: string) => {
-            if (role === 'admin') return true;
-            // role === 'user' — only manageListings is permitted.
-            return action === 'manageListings';
-          },
-        }),
-      };
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { ProfileScreen } = require('../ProfileScreen');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const ProfileTileMod = require('../../components/profile/ProfileTile').default;
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const ProfileToolTileMod = require('../../components/profile/ProfileToolTile').default;
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const ProfileRowMod = require('../../components/profile/ProfileRow').default;
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const IdentityCardMod = require('../../components/profile/IdentityCard').default;
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const OutlinedLogoutPillMod = require('../../components/profile/OutlinedLogoutPill').default;
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { LandlordApplicationStatusBanner: LandlordBannerMod } =
-      require('../../components/LandlordApplicationStatusBanner');
-
-    const handlers = {
-      onBack: jest.fn(),
-      onCreateListing: jest.fn(),
-      onViewListings: jest.fn(),
-      onViewFavorites: jest.fn(),
-      onViewAppointments: jest.fn(),
-      onViewAccountSettings: jest.fn(),
-      onApplyLandlord: jest.fn(),
-      onReviewLandlordApplications: jest.fn(),
-      onReviewModerationQueue: jest.fn(),
-      onOpenRoleManagement: jest.fn(),
-    };
-
-    let tree!: TestRenderer.ReactTestRenderer;
-    await act(async () => {
-      tree = TestRenderer.create(
-        <ProfileScreen
-          {...handlers}
-          moderationCountRefreshKey={0}
-        />,
-      );
-    });
-    await act(async () => {
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-
-    result = {
-      tree,
-      handlers,
-      Primitives: {
-        ProfileTile: ProfileTileMod,
-        ProfileToolTile: ProfileToolTileMod,
-        ProfileRow: ProfileRowMod,
-        IdentityCard: IdentityCardMod,
-        OutlinedLogoutPill: OutlinedLogoutPillMod,
-        LandlordApplicationStatusBanner: LandlordBannerMod,
-      },
-    };
+const renderScreen = async (): Promise<{
+  tree: TestRenderer.ReactTestRenderer;
+  handlers: Handlers;
+}> => {
+  const handlers: Handlers = {
+    onBack: jest.fn(),
+    onCreateListing: jest.fn(),
+    onViewListings: jest.fn(),
+    onViewFavorites: jest.fn(),
+    onViewAppointments: jest.fn(),
+    onViewAccountSettings: jest.fn(),
+    onApplyLandlord: jest.fn(),
+    onReviewLandlordApplications: jest.fn(),
+    onReviewModerationQueue: jest.fn(),
+    onOpenRoleManagement: jest.fn(),
+  };
+  let tree!: TestRenderer.ReactTestRenderer;
+  await act(async () => {
+    tree = TestRenderer.create(
+      <ProfileScreen {...handlers} moderationCountRefreshKey={0} />,
+    );
   });
-  return result!;
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+  return { tree, handlers };
 };
 
 // ---- Tests ----------------------------------------------------------------
 
 describe('ProfileScreen — 9 nav handlers wire correctly (PROF-03)', () => {
+  beforeEach(() => {
+    (useRole as jest.Mock).mockReset();
+  });
+
   test('onViewFavorites fires when admin MY ACTIVITY Favorites tile is tapped', async () => {
-    const { tree, handlers, Primitives } = await renderWithRole('admin');
-    const tiles = tree.root.findAllByType(Primitives.ProfileTile);
+    setRoleMock('admin');
+    const { tree, handlers } = await renderScreen();
+    const tiles = tree.root.findAllByType(ProfileTile);
     expect(tiles.length).toBe(4);
     act(() => {
       tiles[0].props.onPress();
@@ -247,8 +210,9 @@ describe('ProfileScreen — 9 nav handlers wire correctly (PROF-03)', () => {
   });
 
   test('onViewAppointments fires when admin MY ACTIVITY Appointments tile is tapped', async () => {
-    const { tree, handlers, Primitives } = await renderWithRole('admin');
-    const tiles = tree.root.findAllByType(Primitives.ProfileTile);
+    setRoleMock('admin');
+    const { tree, handlers } = await renderScreen();
+    const tiles = tree.root.findAllByType(ProfileTile);
     act(() => {
       tiles[1].props.onPress();
     });
@@ -256,8 +220,9 @@ describe('ProfileScreen — 9 nav handlers wire correctly (PROF-03)', () => {
   });
 
   test('onViewListings fires when admin MY ACTIVITY My Listings tile is tapped', async () => {
-    const { tree, handlers, Primitives } = await renderWithRole('admin');
-    const tiles = tree.root.findAllByType(Primitives.ProfileTile);
+    setRoleMock('admin');
+    const { tree, handlers } = await renderScreen();
+    const tiles = tree.root.findAllByType(ProfileTile);
     act(() => {
       tiles[2].props.onPress();
     });
@@ -265,9 +230,9 @@ describe('ProfileScreen — 9 nav handlers wire correctly (PROF-03)', () => {
   });
 
   test('onCreateListing fires when admin MY ACTIVITY Create Listing accent tile is tapped', async () => {
-    const { tree, handlers, Primitives } = await renderWithRole('admin');
-    const tiles = tree.root.findAllByType(Primitives.ProfileTile);
-    // 4th tile is the accent Create Listing variant.
+    setRoleMock('admin');
+    const { tree, handlers } = await renderScreen();
+    const tiles = tree.root.findAllByType(ProfileTile);
     expect(tiles[3].props.accent).toBe(true);
     act(() => {
       tiles[3].props.onPress();
@@ -276,8 +241,9 @@ describe('ProfileScreen — 9 nav handlers wire correctly (PROF-03)', () => {
   });
 
   test('onReviewLandlordApplications fires when ADMIN TOOLS Landlord Apps tile is tapped', async () => {
-    const { tree, handlers, Primitives } = await renderWithRole('admin');
-    const toolTiles = tree.root.findAllByType(Primitives.ProfileToolTile);
+    setRoleMock('admin');
+    const { tree, handlers } = await renderScreen();
+    const toolTiles = tree.root.findAllByType(ProfileToolTile);
     expect(toolTiles.length).toBe(3);
     act(() => {
       toolTiles[0].props.onPress();
@@ -286,8 +252,9 @@ describe('ProfileScreen — 9 nav handlers wire correctly (PROF-03)', () => {
   });
 
   test('onReviewModerationQueue fires when ADMIN TOOLS Moderation Queue tile is tapped', async () => {
-    const { tree, handlers, Primitives } = await renderWithRole('admin');
-    const toolTiles = tree.root.findAllByType(Primitives.ProfileToolTile);
+    setRoleMock('admin');
+    const { tree, handlers } = await renderScreen();
+    const toolTiles = tree.root.findAllByType(ProfileToolTile);
     act(() => {
       toolTiles[1].props.onPress();
     });
@@ -295,8 +262,9 @@ describe('ProfileScreen — 9 nav handlers wire correctly (PROF-03)', () => {
   });
 
   test('onOpenRoleManagement fires when ADMIN TOOLS Role Management tile is tapped', async () => {
-    const { tree, handlers, Primitives } = await renderWithRole('admin');
-    const toolTiles = tree.root.findAllByType(Primitives.ProfileToolTile);
+    setRoleMock('admin');
+    const { tree, handlers } = await renderScreen();
+    const toolTiles = tree.root.findAllByType(ProfileToolTile);
     expect(toolTiles[2].props.wide).toBe(true);
     act(() => {
       toolTiles[2].props.onPress();
@@ -305,8 +273,9 @@ describe('ProfileScreen — 9 nav handlers wire correctly (PROF-03)', () => {
   });
 
   test('onViewAccountSettings fires when the IdentityCard is tapped', async () => {
-    const { tree, handlers, Primitives } = await renderWithRole('admin');
-    const cards = tree.root.findAllByType(Primitives.IdentityCard);
+    setRoleMock('admin');
+    const { tree, handlers } = await renderScreen();
+    const cards = tree.root.findAllByType(IdentityCard);
     expect(cards.length).toBe(1);
     act(() => {
       cards[0].props.onPress();
@@ -315,9 +284,10 @@ describe('ProfileScreen — 9 nav handlers wire correctly (PROF-03)', () => {
   });
 
   test('onApplyLandlord fires when the LandlordApplicationStatusBanner is tapped (user role)', async () => {
-    // Switch to a user role so the banner mounts (self-suppresses for staff).
-    const { tree, handlers, Primitives } = await renderWithRole('user');
-    const banners = tree.root.findAllByType(Primitives.LandlordApplicationStatusBanner);
+    // Switch to a user role so the banner doesn't self-suppress.
+    setRoleMock('user');
+    const { tree, handlers } = await renderScreen();
+    const banners = tree.root.findAllByType(LandlordApplicationStatusBanner);
     expect(banners.length).toBe(1);
     act(() => {
       banners[0].props.onPress();
