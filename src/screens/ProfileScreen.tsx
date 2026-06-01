@@ -1,15 +1,61 @@
+/**
+ * ProfileScreen — Phase 16 reskin (Plan 16-02).
+ *
+ * Role-discriminated layouts gated by useRole():
+ *   - role === 'user'  -> grouped-rows (ACTIVITY card + HOSTING card + Create Listing accent row).
+ *   - isAdmin || isModerator -> tile dashboard (MY ACTIVITY 2x2 + ADMIN TOOLS role-gated tiles,
+ *     Role Management renders wide={true} when admin (odd 3rd tile) per D-05).
+ *
+ * Preserved verbatim through the rewrite (load-bearing per CR-02 memo + Pitfall 3):
+ *   - pendingCount state + the two useEffects + the 60s cooldown ref (the
+ *     mount/moderationCountRefreshKey self-fetch + the AppState 'active' refresh listener).
+ *   - The 9 nav-handler props + moderationCountRefreshKey shape; App.tsx is untouched.
+ *   - LandlordApplicationStatusBanner mount (unconditional in both layouts -- the component
+ *     self-suppresses for staff at its own line 88 per D-06).
+ *
+ * Removed:
+ *   - The M3-era inline theme-memo block (D-07 / Phase 12 anti-pattern). All colors
+ *     now route through useTheme().colors at the render-site.
+ *   - blockSize state + AppointmentService.getOwnerSettings() leg of the profile fetch
+ *     (dead code per A3 -- no JSX consumer in the new layouts).
+ *   - The destructive-red full-width log-out button -> calm centered OutlinedLogoutPill (D-02).
+ */
 import React, { useState, useEffect, useMemo, useRef, memo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator, AppState, AppStateStatus } from 'react-native';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Alert,
+    ScrollView,
+    ActivityIndicator,
+    AppState,
+    AppStateStatus,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Heart, Calendar, ClipboardList, Plus, ChevronRight, LogOut, Inbox, UserCog } from 'lucide-react-native';
+import {
+    Heart,
+    Calendar,
+    ClipboardList,
+    Plus,
+    Inbox,
+    UserCog,
+    Briefcase,
+    type LucideIcon,
+} from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useRole } from '../hooks/useRole';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
 import { AuthService } from '../services/AuthService';
-import { AppointmentService } from '../services/AppointmentService';
 import { PropertyService } from '../services/PropertyService';
 import { LandlordApplicationStatusBanner } from '../components/LandlordApplicationStatusBanner';
+import SectionLabel from '../components/SectionLabel';
+import IdentityCard from '../components/profile/IdentityCard';
+import ProfileRow from '../components/profile/ProfileRow';
+import ProfileTile from '../components/profile/ProfileTile';
+import ProfileToolTile from '../components/profile/ProfileToolTile';
+import OutlinedLogoutPill from '../components/profile/OutlinedLogoutPill';
 
 interface ProfileScreenProps {
     onBack: () => void;
@@ -32,16 +78,36 @@ interface ProfileScreenProps {
     moderationCountRefreshKey?: number;
 }
 
-function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onViewFavorites, onViewAppointments, onViewAccountSettings, onApplyLandlord, onReviewLandlordApplications, onReviewModerationQueue, onOpenRoleManagement, moderationCountRefreshKey }: ProfileScreenProps) {
+interface ToolDef {
+    id: 'apps' | 'mod' | 'roles';
+    Icon: LucideIcon;
+    title: string;
+    sub: string;
+    onPress: () => void;
+    badge?: number;
+}
+
+function ProfileScreenComponent({
+    onBack,
+    onCreateListing,
+    onViewListings,
+    onViewFavorites,
+    onViewAppointments,
+    onViewAccountSettings,
+    onApplyLandlord,
+    onReviewLandlordApplications,
+    onReviewModerationQueue,
+    onOpenRoleManagement,
+    moderationCountRefreshKey,
+}: ProfileScreenProps) {
     const { user, logout } = useAuth();
     const { t } = useLanguage();
-    const { isDark } = useTheme();
-    const { can, role } = useRole();
+    const { colors } = useTheme();
+    const { can, isAdmin, isModerator } = useRole();
+    const isStaff = isAdmin || isModerator;
 
-    const [canListProperties, setCanListProperties] = useState(false);
     const [loading, setLoading] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
-    const [blockSize, setBlockSize] = useState<'30min' | '60min'>('30min');
     const profileDataLoadedRef = useRef(false);
 
     /** Same listing tools as renters; admins keep access. Encapsulated in can('manageListings') per D-12. */
@@ -57,7 +123,6 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
     // changes (App.tsx bumps it on queue overlay close + edit-on-behalf launch so
     // the badge stays fresh after the moderator's own actions).
     const [pendingCount, setPendingCount] = useState<number>(0);
-    const displayCount = pendingCount;
 
     // Self-fetch on mount AND whenever moderationCountRefreshKey changes (App.tsx
     // bumps it on queue close so the badge updates immediately after a mod action).
@@ -96,20 +161,12 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
         return () => sub.remove();
     }, [canViewModerationQueue]);
 
-    const themeStyles = useMemo(
-        () => ({
-            background: isDark ? '#000000' : '#F2F2F7',
-            surface: isDark ? '#1E1E1E' : '#FFFFFF',
-            text: isDark ? '#FFFFFF' : '#000000',
-            textSecondary: isDark ? '#8E8E93' : '#3C3C4399',
-            border: isDark ? '#2C2C2E' : '#E5E5EA',
-            accent: '#3B82F6',
-            avatarBg: isDark ? '#2C2C2E' : '#E5E5EA',
-            danger: '#FF453A',
-        }),
-        [isDark],
-    );
-
+    // Backend-profile fetch — kept for parity with the prior screen's loading/skeleton
+    // behavior on first mount. canManageListings is now derived from useRole().can('manageListings')
+    // (which reads user.backendProfile.canListProperties directly), so we no longer need a
+    // local canListProperties state here. Phase 16 Plan 16-02 also dropped the
+    // AppointmentService.getOwnerSettings() leg + blockSize setter per A3 (dead code —
+    // no JSX consumer in the new layouts).
     useEffect(() => {
         if (!user?.localId) {
             profileDataLoadedRef.current = false;
@@ -123,15 +180,8 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
                 setLoading(true);
             }
             try {
-                const [profile, settings] = await Promise.all([
-                    AuthService.getBackendUser(user.localId),
-                    AppointmentService.getOwnerSettings().catch(() => null),
-                ]);
+                await AuthService.getBackendUser(user.localId);
                 if (cancelled) return;
-                if (settings) setBlockSize(settings.blockSize || '30min');
-                if (profile) {
-                    setCanListProperties(profile.canListProperties === true);
-                }
                 profileDataLoadedRef.current = true;
             } catch (error) {
                 console.error('Failed to load profile', error);
@@ -170,186 +220,262 @@ function ProfileScreenComponent({ onBack, onCreateListing, onViewListings, onVie
                         } finally {
                             setLoggingOut(false);
                         }
-                    }
+                    },
                 },
-            ]
+            ],
         );
     };
 
+    // ADMIN TOOLS list — gates each tool by its capability + parent-provided handler.
+    // D-05 odd-tile-wide rule is applied at render time via wide={...} in the .map call.
+    const TOOLS = useMemo<ToolDef[]>(() => {
+        const list: (ToolDef | null)[] = [
+            canReviewLandlordApplications && onReviewLandlordApplications
+                ? {
+                      id: 'apps',
+                      Icon: Briefcase,
+                      title: t('profile.tool.applications'),
+                      sub: t('profile.tool.applicationsSub'),
+                      onPress: onReviewLandlordApplications,
+                  }
+                : null,
+            canViewModerationQueue && onReviewModerationQueue
+                ? {
+                      id: 'mod',
+                      Icon: Inbox,
+                      title: t('profile.tool.moderation'),
+                      sub: t('profile.tool.moderationSub'),
+                      onPress: onReviewModerationQueue,
+                      badge: pendingCount,
+                  }
+                : null,
+            canManageRoles && onOpenRoleManagement
+                ? {
+                      id: 'roles',
+                      Icon: UserCog,
+                      title: t('profile.tool.roles'),
+                      sub: t('profile.tool.rolesSub'),
+                      onPress: onOpenRoleManagement,
+                  }
+                : null,
+        ];
+        return list.filter(Boolean) as ToolDef[];
+    }, [
+        canReviewLandlordApplications,
+        canViewModerationQueue,
+        canManageRoles,
+        onReviewLandlordApplications,
+        onReviewModerationQueue,
+        onOpenRoleManagement,
+        pendingCount,
+        t,
+    ]);
+
     if (loading) {
         return (
-            <View style={[styles.container, { backgroundColor: themeStyles.background, justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator color={themeStyles.accent} />
+            <View
+                style={[
+                    styles.container,
+                    {
+                        backgroundColor: colors.background,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    },
+                ]}
+            >
+                <ActivityIndicator color={colors.accent} />
             </View>
         );
     }
 
+    const roleForCard: 'admin' | 'moderator' | 'user' = isAdmin
+        ? 'admin'
+        : isModerator
+            ? 'moderator'
+            : 'user';
+    const roleBadgeLabel = isAdmin
+        ? t('profile.staffBadge.admin')
+        : isModerator
+            ? t('profile.staffBadge.moderator')
+            : undefined;
+
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: themeStyles.background }]}>
-            <View style={[styles.header, { borderBottomColor: themeStyles.border }]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+            <View style={[styles.header, { borderBottomColor: colors.border }]}>
                 <TouchableOpacity onPress={onBack} style={styles.iconButton}>
-                    <Text style={{ fontSize: 24, color: themeStyles.accent }}>←</Text>
+                    <Text style={{ fontSize: 24, color: colors.accent }}>←</Text>
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: themeStyles.text }]}>{t('profile.myProfile')}</Text>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>{t('profile.myProfile')}</Text>
                 <View style={{ width: 40 }} />
             </View>
 
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} style={styles.scrollView}>
-                {/* User Info Card */}
-                <TouchableOpacity
-                    style={[styles.profileCard, { backgroundColor: themeStyles.surface }]}
-                    onPress={onViewAccountSettings}
-                    activeOpacity={0.8}
-                >
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <View style={[styles.avatar, { backgroundColor: themeStyles.avatarBg }]}>
-                            <Text style={[styles.avatarText, { color: themeStyles.text }]}>
-                                {user?.email?.charAt(0).toUpperCase() || 'U'}
-                            </Text>
-                        </View>
-                        <View style={{ marginLeft: 16, flex: 1 }}>
-                            <Text style={[styles.email, { color: themeStyles.text }]}>{user?.email}</Text>
-                            <Text style={[styles.role, { color: themeStyles.accent }]}>
-                                {role === 'admin'
-                                    ? t('profile.role.admin')
-                                    : role === 'moderator'
-                                        ? t('profile.role.moderator')
-                                        : canListProperties
-                                            ? t('profile.role.host')
-                                            : t('profile.role.member')}
-                            </Text>
-                            <Text style={[styles.accountSettings, { color: themeStyles.textSecondary }]}>{t('profile.accountSettings')}</Text>
-                        </View>
-                        <ChevronRight size={20} color={themeStyles.textSecondary} />
-                    </View>
-                </TouchableOpacity>
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                style={styles.scrollView}
+            >
+                {/* Identity card — whole-card tappable per D-03 */}
+                <IdentityCard
+                    email={user?.email ?? ''}
+                    role={roleForCard}
+                    roleBadgeLabel={roleBadgeLabel}
+                    onPress={onViewAccountSettings ?? (() => {})}
+                    accountSettingsLabel={`${t('profile.accountSettings')} ›`}
+                />
 
-                {/* Phase 4.5 — Landlord application status (own state). Admin/moderator banner self-suppresses. */}
+                {/* Spacer between identity card and the body card / banner */}
+                <View style={{ height: 12 }} />
+
+                {/* Phase 4.5 — Landlord application status (own state). Component
+                    self-suppresses for admin/moderator at its own line 88 per D-06. */}
                 {onApplyLandlord && (
                     <LandlordApplicationStatusBanner onPress={onApplyLandlord} />
                 )}
 
-                {/* Menu Card - grouped items with internal dividers */}
-                <View style={[styles.menuCard, { backgroundColor: themeStyles.surface, borderColor: themeStyles.border }]}>
-                    <TouchableOpacity style={styles.menuRow} onPress={onViewFavorites} activeOpacity={0.7}>
-                        <Heart size={22} color={themeStyles.accent} strokeWidth={1.5} />
-                        <Text style={[styles.menuText, { color: themeStyles.text, flex: 1 }]}>{t('profile.favorites')}</Text>
-                        <ChevronRight size={20} color={themeStyles.textSecondary} />
-                    </TouchableOpacity>
-
-                    <View style={[styles.menuDivider, { backgroundColor: themeStyles.border }]} />
-                    <TouchableOpacity style={styles.menuRow} onPress={onViewAppointments} activeOpacity={0.7}>
-                        <Calendar size={22} color={themeStyles.accent} strokeWidth={1.5} />
-                        <Text style={[styles.menuText, { color: themeStyles.text, flex: 1 }]}>{t('profile.appointments')}</Text>
-                        <ChevronRight size={20} color={themeStyles.textSecondary} />
-                    </TouchableOpacity>
-
-                    {canManageListings && (
-                        <>
-                            <View style={[styles.menuDivider, { backgroundColor: themeStyles.border }]} />
-                            <TouchableOpacity style={styles.menuRow} onPress={onViewListings} activeOpacity={0.7}>
-                                <ClipboardList size={22} color={themeStyles.accent} strokeWidth={1.5} />
-                                <Text style={[styles.menuText, { color: themeStyles.text, flex: 1 }]}>{t('profile.myListings')}</Text>
-                                <ChevronRight size={20} color={themeStyles.textSecondary} />
-                            </TouchableOpacity>
-                            <View style={[styles.menuDivider, { backgroundColor: themeStyles.border }]} />
-                            <TouchableOpacity
-                                style={[styles.menuRow, styles.createListingRow, { backgroundColor: themeStyles.accent }]}
-                                onPress={onCreateListing}
-                                activeOpacity={0.7}
-                            >
-                                <Plus size={22} color="#FFF" strokeWidth={2} />
-                                <Text style={[styles.menuText, { color: '#FFF', flex: 1 }]}>{t('profile.createListing')}</Text>
-                                <ChevronRight size={20} color="#FFF" />
-                            </TouchableOpacity>
-                        </>
-                    )}
-                    {canReviewLandlordApplications && onReviewLandlordApplications && (
-                        <>
-                            <View style={[styles.menuDivider, { backgroundColor: themeStyles.border }]} />
-                            <TouchableOpacity style={styles.menuRow} onPress={onReviewLandlordApplications} activeOpacity={0.7}>
-                                <Inbox size={22} color={themeStyles.accent} strokeWidth={1.5} />
-                                <Text style={[styles.menuText, { color: themeStyles.text, flex: 1 }]}>{t('landlordApp.adminQueueTitle')}</Text>
-                                <ChevronRight size={20} color={themeStyles.textSecondary} />
-                            </TouchableOpacity>
-                        </>
-                    )}
-                    {/* Phase 3 (Plan 03-04 / D-03) — Moderation Queue entry-point row gated
-                        by canViewModerationQueue. Pending-count badge follows mainstream-mobile
-                        inbox precedent (Mail / Slack); badge hidden when count === 0 so the
-                        moderator can still verify the queue is empty. */}
-                    {canViewModerationQueue && onReviewModerationQueue && (
-                        <>
-                            <View style={[styles.menuDivider, { backgroundColor: themeStyles.border }]} />
-                            <TouchableOpacity
-                                style={styles.menuRow}
-                                onPress={onReviewModerationQueue}
-                                activeOpacity={0.7}
-                                // WR-02 fix — was hardcoded English "X pending" suffix; now fully translated.
-                                accessibilityLabel={`${t('moderation.queue.entryPoint')}: ${t('moderation.queue.entryPoint.a11yPending').replace('{count}', String(displayCount))}`}
-                            >
-                                <Inbox size={22} color={themeStyles.accent} strokeWidth={1.5} />
-                                <Text style={[styles.menuText, { color: themeStyles.text, flex: 1 }]}>
-                                    {t('moderation.queue.entryPoint')}
-                                </Text>
-                                {displayCount > 0 && (
-                                    <View style={[styles.pendingBadge, { backgroundColor: themeStyles.accent }]}>
-                                        <Text style={styles.pendingBadgeText}>{displayCount}</Text>
-                                    </View>
-                                )}
-                                <ChevronRight size={20} color={themeStyles.textSecondary} />
-                            </TouchableOpacity>
-                        </>
-                    )}
-                    {/* Phase 5 — Admin role management entry-point (sibling to Moderation Queue row;
-                        no pending-count badge per UI-SPEC). Double-gated: canManageRoles + parent
-                        passes onOpenRoleManagement only when canManageRoles is also true in App.tsx. */}
-                    {canManageRoles && onOpenRoleManagement && (
-                        <>
-                            <View style={[styles.menuDivider, { backgroundColor: themeStyles.border }]} />
-                            <TouchableOpacity
-                                style={styles.menuRow}
-                                onPress={onOpenRoleManagement}
-                                activeOpacity={0.7}
-                                accessibilityLabel={t('admin.roles.entryPoint')}
-                            >
-                                <UserCog size={22} color={themeStyles.accent} strokeWidth={1.5} />
-                                <Text style={[styles.menuText, { color: themeStyles.text, flex: 1 }]}>
-                                    {t('admin.roles.entryPoint')}
-                                </Text>
-                                <ChevronRight size={20} color={themeStyles.textSecondary} />
-                            </TouchableOpacity>
-                        </>
-                    )}
-                </View>
-            </ScrollView>
-
-            {/* Log Out - pinned to bottom */}
-            <View style={[styles.logoutFooter, { backgroundColor: themeStyles.background, borderTopColor: themeStyles.border }]}>
-                <TouchableOpacity
-                    style={[
-                        styles.logoutButton,
-                        {
-                            backgroundColor: isDark ? themeStyles.surface : 'transparent',
-                            borderColor: themeStyles.danger,
-                        },
-                    ]}
-                    onPress={handleLogout}
-                    disabled={loggingOut}
-                >
-                    {loggingOut ? (
-                        <ActivityIndicator color={themeStyles.danger} />
-                    ) : (
-                        <View style={styles.logoutContent}>
-                            <LogOut size={20} color={themeStyles.danger} strokeWidth={2} />
-                            <Text style={[styles.logoutText, { color: themeStyles.danger }]}>{t('profile.logOut')}</Text>
+                {/* Role-discriminated body branch */}
+                {isStaff ? (
+                    /* ---------- Admin / Moderator tile dashboard (PROF-02) ---------- */
+                    <>
+                        <SectionLabel>{t('profile.section.myActivity')}</SectionLabel>
+                        <View style={styles.tileGrid}>
+                            <ProfileTile
+                                Icon={Heart}
+                                title={t('profile.favorites')}
+                                sub={t('profile.tile.favoritesSub')}
+                                onPress={onViewFavorites ?? (() => {})}
+                            />
+                            <ProfileTile
+                                Icon={Calendar}
+                                title={t('profile.appointments')}
+                                sub={t('profile.tile.appointmentsSub')}
+                                onPress={onViewAppointments ?? (() => {})}
+                            />
+                            <ProfileTile
+                                Icon={ClipboardList}
+                                title={t('profile.myListings')}
+                                sub={t('profile.tile.myListingsSub')}
+                                onPress={onViewListings ?? (() => {})}
+                            />
+                            <ProfileTile
+                                accent
+                                Icon={Plus}
+                                title={t('profile.createListing')}
+                                sub={t('profile.tile.createListingSub')}
+                                onPress={onCreateListing ?? (() => {})}
+                            />
                         </View>
-                    )}
-                </TouchableOpacity>
-            </View>
+
+                        <View style={{ height: 20 }} />
+
+                        <SectionLabel action={<StaffPill colors={colors} label={t('profile.section.staff')} />}>
+                            {t('profile.section.adminTools')}
+                        </SectionLabel>
+                        <View style={styles.tileGrid}>
+                            {TOOLS.map((tool, i) => {
+                                const wide = TOOLS.length % 2 === 1 && i === TOOLS.length - 1;
+                                return (
+                                    <ProfileToolTile
+                                        key={tool.id}
+                                        Icon={tool.Icon}
+                                        title={tool.title}
+                                        sub={tool.sub}
+                                        onPress={tool.onPress}
+                                        badge={tool.badge}
+                                        wide={wide}
+                                    />
+                                );
+                            })}
+                        </View>
+                    </>
+                ) : (
+                    /* ---------- Regular user grouped rows (PROF-01) ---------- */
+                    <>
+                        <SectionLabel>{t('profile.section.activity')}</SectionLabel>
+                        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+                            <ProfileRow
+                                Icon={Heart}
+                                title={t('profile.favorites')}
+                                sub={t('profile.tile.favoritesSub')}
+                                onPress={onViewFavorites ?? (() => {})}
+                            />
+                            <View style={[styles.separator, { backgroundColor: colors.hair2 }]} />
+                            <ProfileRow
+                                Icon={Calendar}
+                                title={t('profile.appointments')}
+                                sub={t('profile.tile.appointmentsSub')}
+                                onPress={onViewAppointments ?? (() => {})}
+                            />
+                        </View>
+
+                        {canManageListings && (
+                            <>
+                                <View style={{ height: 16 }} />
+                                <SectionLabel>{t('profile.section.hosting')}</SectionLabel>
+                                <View style={[styles.card, { backgroundColor: colors.surface }]}>
+                                    <ProfileRow
+                                        Icon={ClipboardList}
+                                        title={t('profile.myListings')}
+                                        sub={t('profile.tile.myListingsSub')}
+                                        onPress={onViewListings ?? (() => {})}
+                                    />
+                                </View>
+
+                                <View style={{ height: 12 }} />
+                                <ProfileRow
+                                    accent
+                                    Icon={Plus}
+                                    title={t('profile.createListing')}
+                                    sub={t('profile.tile.createListingSub')}
+                                    onPress={onCreateListing ?? (() => {})}
+                                />
+                            </>
+                        )}
+                    </>
+                )}
+
+                {/* Calm centered outlined log-out pill (D-02) — both layouts. */}
+                <View style={{ height: 28 }} />
+                <OutlinedLogoutPill
+                    label={t('profile.logOut')}
+                    loading={loggingOut}
+                    onPress={handleLogout}
+                />
+                <View style={{ height: 20 }} />
+            </ScrollView>
         </SafeAreaView>
     );
 }
+
+/**
+ * StaffPill — inline accent-soft pill rendered in the ADMIN TOOLS SectionLabel
+ * action-slot. Pure visual affordance, non-interactive. Kept inline to avoid
+ * over-extracting a single-use 10-LOC primitive.
+ */
+const StaffPill: React.FC<{ colors: ReturnType<typeof useTheme>['colors']; label: string }> = ({
+    colors,
+    label,
+}) => (
+    <View
+        style={{
+            paddingVertical: 3,
+            paddingHorizontal: 9,
+            borderRadius: 999,
+            backgroundColor: colors.accentSoft,
+        }}
+    >
+        <Text
+            style={{
+                color: colors.accent,
+                fontSize: 11,
+                fontWeight: '700',
+                letterSpacing: 0.4,
+                textTransform: 'uppercase',
+            }}
+        >
+            {label}
+        </Text>
+    </View>
+);
 
 export const ProfileScreen = memo(ProfileScreenComponent);
 
@@ -381,107 +507,21 @@ const styles = StyleSheet.create({
         padding: 8,
         marginLeft: 15,
     },
-    profileCard: {
-        padding: 20,
-        borderRadius: 16,
-        marginBottom: 12,
-    },
-    avatar: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    avatarText: {
-        fontSize: 24,
-        fontWeight: 'bold',
-    },
-    email: {
-        fontSize: 16,
-        fontWeight: '700',
-        marginBottom: 2,
-    },
-    role: {
-        fontSize: 14,
-        marginBottom: 2,
-    },
-    accountSettings: {
-        fontSize: 12
-    },
-    availabilitySection: {
-        padding: 16,
-        borderRadius: 16,
-        marginBottom: 24,
-        borderWidth: 1,
-    },
-    availabilityLabel: { fontSize: 16, fontWeight: '600' },
-    blockSizeButton: {
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 10,
-        backgroundColor: 'transparent',
-        borderWidth: 1,
-        borderColor: '#3B82F6',
-    },
-    blockSizeText: { fontSize: 14, fontWeight: '600' },
-    availabilityHint: { fontSize: 12, marginTop: 8 },
-    menuCard: {
-        borderRadius: 16,
-        borderWidth: 1,
+    // Phase 15 sibling pattern (AccountSettingsScreen.tsx card style).
+    card: {
+        borderRadius: 20,
         overflow: 'hidden',
-        marginBottom: 24,
+        paddingHorizontal: 4,
+        paddingVertical: 4,
     },
-    menuRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 16,
-        paddingHorizontal: 16,
-        gap: 12,
-    },
-    menuDivider: {
+    separator: {
         height: 1,
-        marginLeft: 50,
+        marginLeft: 16 + 38 + 14, // align under the title column (skip the 38px icon chip + padding/gap)
     },
-    createListingRow: {},
-    menuText: {
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    // Phase 3 (Plan 03-04 / D-03) — pending-count badge geometry per UI-SPEC
-    // §"Profile entry-point geometry": borderRadius 10 / paddingHorizontal 6 /
-    // paddingVertical 2 / minWidth 20. Typography 11/600/14 — IDENTICAL to Phase 2
-    // <StatusPill> per UI-SPEC §Typography (reuse, not redeclare).
-    pendingBadge: {
-        borderRadius: 10,
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        minWidth: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 8,
-    },
-    pendingBadgeText: { color: '#FFFFFF', fontSize: 11, fontWeight: '600', lineHeight: 14 },
-    logoutFooter: {
-        paddingHorizontal: 20,
-        paddingTop: 12,
-        borderTopWidth: 1,
-    },
-    logoutButton: {
-        height: 56,
-        borderRadius: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
+    // 2×2 grid wrap shared by MY ACTIVITY + ADMIN TOOLS sections.
+    tileGrid: {
         flexDirection: 'row',
-    },
-    logoutContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    logoutText: {
-        fontSize: 16,
-        fontWeight: '600',
+        flexWrap: 'wrap',
+        gap: 12,
     },
 });
