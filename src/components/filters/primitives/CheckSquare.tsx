@@ -7,9 +7,12 @@
  * Pattern source: src/components/details/AttributeList.tsx:166-175 (boolean
  * badge with '✓' glyph). Style shape lifted from AttributeList.tsx:216-228.
  *
- * Theme tokens: colors.accent (checked bg + border), colors.hair2 (unchecked
- * border). The '#FFFFFF' glyph color is the only permitted hex literal —
- * white-on-accent is the project's text-on-accent contract.
+ * Theme tokens: colors.filterAccent (checked bg + border), colors.hair2 (unchecked
+ * border). Originally colors.filterAccent; rescoped to filterAccent in quick 260531-x3z
+ * Round-3 so the multi-select tick inside selected Type cards matches the indigo
+ * card chrome instead of staying on the brand pink. The '#FFFFFF' glyph color is
+ * the only permitted hex literal — white-on-accent is the project's
+ * text-on-accent contract.
  */
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -26,8 +29,8 @@ const CheckSquare: React.FC<CheckSquareProps> = ({ checked }) => {
       style={[
         styles.checkSquare,
         {
-          backgroundColor: checked ? colors.accent : 'transparent',
-          borderColor: checked ? colors.accent : colors.hair2,
+          backgroundColor: checked ? colors.filterAccent : 'transparent',
+          borderColor: checked ? colors.filterAccent : colors.hair2,
           borderWidth: 1.5,
         },
       ]}
