@@ -6,7 +6,9 @@
  *
  * Visual states (per handoff filters-variants.jsx:99-110 + CONTEXT.md §Specifics):
  *   - done  (step > i) → colors.landlordGreen bg + white Check glyph + dim label
- *   - active (step === i) → colors.accent bg + '#fff' "1/2/3" + full-text label
+ *   - active (step === i) → colors.filterAccent bg + '#fff' "1/2/3" + full-text label
+ *     (was colors.accent; rescoped to filterAccent in quick 260531-x3z follow-up so
+ *      the active-step pill matches the indigo selected-card chrome)
  *   - reachable (step < i && reached(i)) → colors.surface2 bg + mute number + mute label
  *   - future (step < i && !reached(i)) → same visuals as reachable but disabled (no press)
  *
@@ -47,7 +49,7 @@ const Stepper: React.FC<StepperProps> = ({ step, onStepPress, reached }) => {
         const pillBg = isDone
           ? colors.landlordGreen
           : isActive
-            ? colors.accent
+            ? colors.filterAccent
             : colors.surface2;
         const numberColor = isDone || isActive ? '#fff' : colors.textTertiary;
         const labelColor = isActive
