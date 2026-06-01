@@ -158,7 +158,7 @@ const CascadingFilter: React.FC<CascadingFilterProps> = ({
                     pointerEvents="none"
                     style={[
                       styles.categoryTabUnderline,
-                      { backgroundColor: colors.accent },
+                      { backgroundColor: colors.filterAccent },
                     ]}
                   />
                 )}
@@ -200,7 +200,7 @@ const CascadingFilter: React.FC<CascadingFilterProps> = ({
                 style={[
                   styles.chip,
                   {
-                    backgroundColor: isActive ? colors.accent : 'transparent',
+                    backgroundColor: isActive ? colors.filterAccent : 'transparent',
                     borderColor: isActive ? 'transparent' : colors.hair2,
                   },
                 ]}
