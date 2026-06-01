@@ -189,9 +189,9 @@ const GuidedFilterSheet: React.FC<GuidedFilterSheetProps> = ({
         style={[
           styles.bigCard,
           {
-            backgroundColor: active ? colors.accentSoft : colors.surface,
+            backgroundColor: active ? colors.filterAccentSoft : colors.surface,
             borderWidth: active ? 1.5 : 0,
-            borderColor: active ? colors.accentLine : 'transparent',
+            borderColor: active ? colors.filterAccentLine : 'transparent',
           },
         ]}
       >
@@ -199,7 +199,7 @@ const GuidedFilterSheet: React.FC<GuidedFilterSheetProps> = ({
           style={[
             styles.iconChip,
             {
-              backgroundColor: active ? colors.accent : colors.surface2,
+              backgroundColor: active ? colors.filterAccent : colors.surface2,
             },
           ]}
         >
@@ -242,9 +242,9 @@ const GuidedFilterSheet: React.FC<GuidedFilterSheetProps> = ({
         style={[
           styles.bigCard,
           {
-            backgroundColor: active ? colors.accentSoft : colors.surface,
+            backgroundColor: active ? colors.filterAccentSoft : colors.surface,
             borderWidth: active ? 1.5 : 0,
-            borderColor: active ? colors.accentLine : 'transparent',
+            borderColor: active ? colors.filterAccentLine : 'transparent',
           },
         ]}
       >
@@ -252,7 +252,7 @@ const GuidedFilterSheet: React.FC<GuidedFilterSheetProps> = ({
           style={[
             styles.iconChip,
             {
-              backgroundColor: active ? colors.accent : colors.surface2,
+              backgroundColor: active ? colors.filterAccent : colors.surface2,
             },
           ]}
         >
@@ -293,9 +293,9 @@ const GuidedFilterSheet: React.FC<GuidedFilterSheetProps> = ({
         style={[
           styles.typeCard,
           {
-            backgroundColor: active ? colors.accentSoft : colors.surface,
+            backgroundColor: active ? colors.filterAccentSoft : colors.surface,
             borderWidth: active ? 1.5 : 0,
-            borderColor: active ? colors.accentLine : 'transparent',
+            borderColor: active ? colors.filterAccentLine : 'transparent',
           },
         ]}
       >
@@ -304,7 +304,7 @@ const GuidedFilterSheet: React.FC<GuidedFilterSheetProps> = ({
           <TypeIcon
             type={typeName}
             size={19}
-            color={active ? colors.accent : colors.iconChipFg}
+            color={active ? colors.filterAccent : colors.iconChipFg}
           />
         </View>
         <Text style={[styles.typeCardLabel, { color: colors.text }]}>
