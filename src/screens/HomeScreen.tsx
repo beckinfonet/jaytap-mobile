@@ -338,6 +338,56 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
     setIsFiltersExpanded((prev) => !prev);
   };
 
+  // Quick-task 260601-1b8 — stable ListHeaderComponent renderer. The Cascading
+  // panel now lives inside the results FlatList's header (above the
+  // HospitalitySection branch) so it scrolls away with the results instead of
+  // permanently claiming static-header real estate. useCallback is load-bearing:
+  // an inline arrow would remount the header subtree on every render, dropping
+  // scroll position and potentially blurring taps inside the panel. Props on
+  // <CascadingFilter> are VERBATIM the expressions from the previous mount
+  // (Phase 14 SC4 parity).
+  const renderListHeader = useCallback(() => (
+    <>
+      {filterStyle === 'cascading' && isFiltersExpanded && (
+        <CascadingFilter
+          transactionType={transactionType}
+          setTransactionType={setTransactionType}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          types={types}
+          setTypes={setTypes}
+          liveCount={filteredProperties.length}
+        />
+      )}
+      {selectedCategory !== 'Hospitality' ? (
+        <HospitalitySection
+          properties={hospitalityProperties}
+          onPress={handlePressProperty}
+          onViewTour={handleViewTour}
+          onFavorite={onFavorite}
+          favoriteStatuses={favoriteStatuses}
+          favoriteLoading={favoriteLoading}
+        />
+      ) : null}
+    </>
+  ), [
+    filterStyle,
+    isFiltersExpanded,
+    transactionType,
+    setTransactionType,
+    selectedCategory,
+    setSelectedCategory,
+    types,
+    setTypes,
+    filteredProperties,
+    hospitalityProperties,
+    handlePressProperty,
+    handleViewTour,
+    onFavorite,
+    favoriteStatuses,
+    favoriteLoading,
+  ]);
+
   const renderHeaderContent = () => (
     <View style={styles.headerContainer}>
       {/* Top Bar: Menu, Location, Icons */}
@@ -523,24 +573,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         />
       )}
 
-      {/* Filter Section — Phase 14 Plan 14-02 (FILT-02). Inline JSX block deleted;
-          CascadingFilter is the first variant mount. Plan 14-03 added the
-          'guided' branch as a sibling below. */}
-      {filterStyle === 'cascading' && isFiltersExpanded && (
-        <CascadingFilter transactionType={transactionType}
-          setTransactionType={setTransactionType}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          types={types}
-          setTypes={setTypes}
-          liveCount={filteredProperties.length}
-        />
-      )}
+      {/* Filter Section — Phase 14 Plan 14-02 (FILT-02). Quick-task 260601-1b8
+          relocated the Cascading panel into the results FlatList's
+          ListHeaderComponent (renderListHeader, below) so it scrolls away with
+          the results instead of permanently claiming static-header space.
+          Guided remains here because its own Modal owns visibility. */}
 
       {/* Phase 14 Plan 14-03 (FILT-01, FILT-03) — Guided sheet variant. Gated on
           filterStyle === 'guided' ONLY (no && isFiltersExpanded) because the sheet
           consumes isFiltersExpanded internally as its Modal `open` prop. Identical
-          state-prop expressions to the CascadingFilter mount above (SC4). */}
+          state-prop expressions to the CascadingFilter mount (now in
+          renderListHeader, quick-task 260601-1b8) — SC4 parity preserved. */}
       {filterStyle === 'guided' && (
         <GuidedFilterSheet open={isFiltersExpanded}
           onClose={() => setIsFiltersExpanded(false)}
@@ -591,18 +634,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
             ref={listRef}
             data={filteredProperties}
             keyExtractor={(item, index) => item.id || item.listingId || `property-${index}`}
-            ListHeaderComponent={
-              selectedCategory !== 'Hospitality' ? (
-                <HospitalitySection
-                  properties={hospitalityProperties}
-                  onPress={handlePressProperty}
-                  onViewTour={handleViewTour}
-                  onFavorite={onFavorite}
-                  favoriteStatuses={favoriteStatuses}
-                  favoriteLoading={favoriteLoading}
-                />
-              ) : null
-            }
+            ListHeaderComponent={renderListHeader}
             renderItem={({ item }) => (
               selectedCategory === 'Hospitality' ? (
                 <HospitalityCard
