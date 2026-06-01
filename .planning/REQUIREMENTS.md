@@ -243,7 +243,7 @@ Two interchangeable filter UIs built on the shared DATA model. The handoff treat
 Restructure AccountSettingsScreen into three labelled sections per handoff spec; add the filter-style picker in Preferences.
 
 - [x] **SET-01** AccountSettingsScreen restructured into three labelled sections per handoff spec: **ACCOUNT** (existing read rows + Edit affordance), **PREFERENCES** (Language EN/Русский segmented toggle + Filter-style picker), **DANGER ZONE** (Delete account row). Section labels use the handoff's typographic treatment (small uppercase letter-spacing). _Shipped Phase 15 Plan 01 — 2026-06-01 (commits c404111 + 20f6dd8); FilterStyleRow mount inside PREFERENCES tracked under SET-02 (Plan 15-02)._
-- [ ] **SET-02** Filter-style picker in Preferences — expandable row with sliders icon, "Search filter style" title, current-value subtitle, chevron that rotates on expand. Expanded view lists all 4 styles (Guided Steps, Cascading Reveal, Master–Detail, Sentence) with icon + name + one-line description + radio affordance. Guided + Cascading are selectable. Master-Detail + Sentence are shown with a "Coming soon" badge and disabled radio (visible in v1 so users see what's coming; functional in Phase B).
+- [x] **SET-02** Filter-style picker in Preferences — expandable row with sliders icon, "Search filter style" title, current-value subtitle, chevron that rotates on expand. Expanded view lists all 4 styles (Guided Steps, Cascading Reveal, Master–Detail, Sentence) with icon + name + one-line description + radio affordance. Guided + Cascading are selectable. Master-Detail + Sentence are shown with a "Coming soon" badge and disabled radio (visible in v1 so users see what's coming; functional in Phase B). _Shipped Phase 15 Plan 02 — 2026-06-01 (commits 2a2f4cb + bf27e16 + 6584c2d); FilterStyleRow.tsx + 10-case co-located test; SC3 live-swap wired through Phase 13 context + Phase 14 dispatcher (no app restart); on-device walk still owed per CONTEXT.md D-15 acceptance._
 - [x] **SET-03** Existing AccountSettingsScreen surfaces (Account info fields incl. First Name / Last Name / Phone / WhatsApp / Telegram; Language toggle EN/Русский; Delete account → DeleteAccountModal) preserved verbatim in their new section homes — no regression to those flows. Edit-mode toggle still works for Account fields. Language toggle still persists via existing `setLanguage()` from `LanguageContext`. Delete account still routes through `DeleteAccountModal`. _Shipped Phase 15 Plan 01 — 2026-06-01 (commit 20f6dd8); on-device QA still owed per CONTEXT.md D-15 acceptance._
 
 ### PROF — Profile reskin
@@ -292,7 +292,7 @@ Every M6 v1 requirement maps to exactly one phase. Phase numbering continues fro
 | FILT-02 | Phase 14 — Filter UI Variants (Guided Steps + Cascading Reveal) + HomeScreen Variant Dispatch | Pending |
 | FILT-03 | Phase 14 — Filter UI Variants (Guided Steps + Cascading Reveal) + HomeScreen Variant Dispatch | Pending |
 | SET-01 | Phase 15 — Account Settings Restructure + Filter-Style Picker | Complete (Plan 15-01, 2026-06-01) |
-| SET-02 | Phase 15 — Account Settings Restructure + Filter-Style Picker | Pending |
+| SET-02 | Phase 15 — Account Settings Restructure + Filter-Style Picker | Complete (Plan 15-02, 2026-06-01) |
 | SET-03 | Phase 15 — Account Settings Restructure + Filter-Style Picker | Complete (Plan 15-01, 2026-06-01) |
 | PROF-01 | Phase 16 — Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | Pending |
 | PROF-02 | Phase 16 — Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | Pending |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Filter Variants + Profile Reskin
 status: executing
-last_updated: "2026-06-01T00:44:30Z"
-last_activity: 2026-06-01 -- Phase 15 Plan 01 complete (SectionLabel + AccountSettings restructure + token migration)
+last_updated: "2026-06-01T00:54:30Z"
+last_activity: 2026-06-01 -- Phase 15 Plan 02 complete (FilterStyleRow picker + SET-02 shipped; Phase 15 all-plans-shipped)
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 27
-  completed_plans: 26
-  percent: 96
+  completed_plans: 27
+  percent: 100
 ---
 
 # STATE: JayTap
@@ -25,10 +25,11 @@ See: `.planning/PROJECT.md` (updated 2026-05-31 — M6 added as current mileston
 
 ## Current Position
 
-Phase: 15 (account-settings-restructure-filter-style-picker) — EXECUTING
-Plan: 2 of 2 (Plan 01 complete — commits c404111 + 20f6dd8)
-Status: Executing Phase 15 — Plan 01 done (SET-01 + SET-03); Plan 02 (<FilterStyleRow/> + SET-02) next
-Last activity: 2026-06-01 -- Phase 15 Plan 01 complete (SectionLabel + AccountSettings restructure + token migration)
+Phase: 15 (account-settings-restructure-filter-style-picker) — ALL PLANS SHIPPED (pending on-device QA close)
+Plan: 2 of 2 complete (Plan 01: c404111 + 20f6dd8 + 998790a; Plan 02: 2a2f4cb + bf27e16 + 6584c2d)
+Status: Phase 15 implementation complete — SET-01, SET-02, SET-03 all addressed; FilterStyleRow shipped + mounted in AccountSettings PREFERENCES card with live-swap wired through Phase 13 context + Phase 14 dispatcher
+Next: Phase 16 (Profile Reskin) — depends only on Phase 12 (complete since 2026-05-31), so it's unblocked
+Last activity: 2026-06-01 -- Phase 15 Plan 02 complete (FilterStyleRow picker behavior + i18n + AccountSettingsScreen mount)
 
 ## M6 Phase Map (Phases 12–16) — CURRENT MILESTONE
 
@@ -36,9 +37,9 @@ Last activity: 2026-06-01 -- Phase 15 Plan 01 complete (SectionLabel + AccountSe
 |---|-------|--------------|--------|
 | 12 | Whole-App Palette Migration (Dark + Light) + Visual-Regression Sweep | PAL-01..03 (3) | ✅ Complete 2026-05-31 — foundation phase shipped |
 | 13 | Shared Filter Data Model + AsyncStorage Persistence | DATA-01..03 (3) | Planned 2026-05-31 — 2 plans wave-1 parallel; ready for `/gsd-execute-phase 13` |
-| 14 | Filter UI Variants (Guided Steps + Cascading Reveal) + HomeScreen Variant Dispatch | FILT-01..03 (3) | Not started — depends on Phase 12 + Phase 13 |
-| 15 | Account Settings Restructure + Filter-Style Picker | SET-01..03 (3) | Not started — depends on Phase 12 + Phase 13; cross-cuts Phase 14 |
-| 16 | Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | PROF-01..03 (3) | Not started — depends on Phase 12 only |
+| 14 | Filter UI Variants (Guided Steps + Cascading Reveal) + HomeScreen Variant Dispatch | FILT-01..03 (3) | ✅ Complete 2026-05-31 |
+| 15 | Account Settings Restructure + Filter-Style Picker | SET-01..03 (3) | ✅ Implementation complete 2026-06-01 — Plan 01 (commits c404111+20f6dd8+998790a) + Plan 02 (commits 2a2f4cb+bf27e16+6584c2d); on-device QA owed to flip fully closed |
+| 16 | Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | PROF-01..03 (3) | Not started — depends on Phase 12 only; unblocked since 2026-05-31 |
 
 Full per-phase goals + success criteria in `.planning/ROADMAP.md § Phase Details`. Per-requirement mapping in `.planning/REQUIREMENTS.md § Traceability (M6)`.
 
