@@ -32,6 +32,7 @@ import {
   Building,
   Briefcase,
   Hotel as HotelIcon,
+  ChevronRight,
   type LucideIcon,
 } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeContext';
@@ -183,8 +184,8 @@ const GuidedFilterSheet: React.FC<GuidedFilterSheetProps> = ({
         accessibilityState={{ selected: active }}
         hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
         onPress={() => {
+          // Quick 260601-dqh — no auto-advance. Continue button (footer) drives setStep.
           setTransactionType(value);
-          setStep(1);
         }}
         style={[
           styles.bigCard,
@@ -235,9 +236,9 @@ const GuidedFilterSheet: React.FC<GuidedFilterSheetProps> = ({
           // LOAD-BEARING (RESEARCH.md Pitfall 4): setSelectedCategory MUST fire
           // before setTypes([]). Re-picking category clears multi-select;
           // otherwise Apartment leaks into Commercial.
+          // Quick 260601-dqh — no auto-advance. Continue button drives setStep.
           setSelectedCategory(cat);
           setTypes([]);
-          setStep(2);
         }}
         style={[
           styles.bigCard,
@@ -439,7 +440,10 @@ const GuidedFilterSheet: React.FC<GuidedFilterSheetProps> = ({
           )}
         </ScrollView>
 
-        {/* Footer (fixed): Breadcrumb + ShowButton. */}
+        {/* Footer (fixed): Breadcrumb + dual-action (Continue + secondary Show)
+           on steps 0/1, single primary Show on step 2.
+           Quick 260601-dqh — "Guide-first": Continue advances; Show stays a
+           close call (D-04 live selections, never an apply). */}
         <View
           style={[
             styles.footer,
@@ -453,7 +457,33 @@ const GuidedFilterSheet: React.FC<GuidedFilterSheetProps> = ({
               types={types}
             />
           </View>
-          <ShowButton count={liveCount} onPress={onClose} />
+
+          {step === 2 ? (
+            <ShowButton count={liveCount} onPress={onClose} />
+          ) : (
+            <View style={{ gap: 12 }}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setStep((s) => (s + 1) as 0 | 1 | 2)}
+                hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                style={({ pressed }) => [
+                  styles.continueBtn,
+                  {
+                    backgroundColor: colors.filterAccent,
+                    shadowColor: colors.filterAccent,
+                    opacity: pressed ? 0.85 : 1,
+                  },
+                ]}
+              >
+                <Text style={styles.continueLabel}>
+                  {t(step === 0 ? 'filters.continue.addCategory' : 'filters.continue.addType')}
+                </Text>
+                <ChevronRight size={19} color="#fff" strokeWidth={2} />
+              </Pressable>
+
+              <ShowButton count={liveCount} onPress={onClose} variant="secondary" />
+            </View>
+          )}
         </View>
       </Animated.View>
     </Modal>
@@ -570,6 +600,27 @@ const styles = StyleSheet.create({
   },
   breadcrumbWrap: {
     marginBottom: 12,
+  },
+  // Quick 260601-dqh — Continue button on steps 0/1. Accent-tied low-spread
+  // shadow matches ShowButton primary. `colors` is not in scope inside
+  // StyleSheet.create, so `shadowColor` + `backgroundColor` are applied inline
+  // in the JSX above.
+  continueBtn: {
+    height: 56,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 9,
+    shadowOpacity: 0.28,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 14,
+    elevation: 4,
+  },
+  continueLabel: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 17,
   },
 });
 

@@ -953,6 +953,10 @@ export const en = {
   'filters.close': 'Close filters',
   'filters.showHomes.one': 'Show 1 home',
   'filters.showHomes.many': 'Show {count} homes',
+  // Quick 260601-dqh — Guided footer Continue button (primary CTA on steps 0/1).
+  // Middle-dot U+00B7 is intentional. Show string is reused (filters.showHomes.*).
+  'filters.continue.addCategory': 'Continue · Add a category',
+  'filters.continue.addType': 'Continue · Add a type',
   'filters.type.multiHint': 'Choose one or more',
   'filters.deal.rent': 'Rent',
   'filters.deal.buy': 'Buy',
