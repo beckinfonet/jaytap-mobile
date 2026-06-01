@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { ChevronRight, Pencil, Trash2, Briefcase } from 'lucide-react-native';
+import { ChevronRight, Pencil, Trash2, Briefcase, Globe } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../theme/ThemeContext';
@@ -251,10 +251,17 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                 {/* ─────────────────────── PREFERENCES section ─────────────────────── */}
                 <View style={styles.section}>
                     <SectionLabel>{t('accountSettings.section.preferences')}</SectionLabel>
-                    <View style={[styles.card, { backgroundColor: colors.surface, padding: 16 }]}>
-                        {/* Language sliding-pill toggle — animation machinery preserved verbatim from
-                            lines 48-58 + 222-292 of the pre-Phase-15 file; only colors swap per D-08.
-                            Plan 15-02 will mount <FilterStyleRow /> below the Language toggle. */}
+                    {/* Language card — header row + sliding-pill toggle. Split from the
+                        Phase-15 single-card layout per user feedback 2026-06-01: each
+                        preference now sits in its own card so the section reads as a
+                        list rather than one stacked block. */}
+                    <View style={[styles.card, styles.preferencesCard, { backgroundColor: colors.surface }]}>
+                        <View style={styles.languageHeaderRow}>
+                            <Globe size={18} color={colors.text} strokeWidth={2} />
+                            <Text style={[styles.languageHeaderLabel, { color: colors.text }]}>
+                                {t('accountSettings.language')}
+                            </Text>
+                        </View>
                         <View
                             style={[
                                 styles.languageTrack,
@@ -338,9 +345,12 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                                 </TouchableOpacity>
                             </View>
                         </View>
-                        {/* Plan 15-02 (SET-02) — filter-style picker (D-03 self-contained;
-                            reads useFilterStyle() directly; Phase 14 HomeScreen dispatcher
-                            live-swaps on next filter-button press per D-07 / SC3). */}
+                    </View>
+                    {/* Filter-style card — separated from the Language card so each preference
+                        stands alone (2026-06-01 user feedback). FilterStyleRow is self-contained
+                        per D-03 and reads useFilterStyle() directly; the Phase-14 HomeScreen
+                        dispatcher live-swaps on next filter-button press (D-07 / SC3). */}
+                    <View style={[styles.card, styles.preferencesCard, { backgroundColor: colors.surface }]}>
                         <FilterStyleRow />
                     </View>
                 </View>
@@ -438,6 +448,21 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         paddingHorizontal: 16,
         paddingVertical: 4,
+    },
+    preferencesCard: {
+        paddingHorizontal: 16,
+        paddingVertical: 16,
+        marginBottom: 12,
+    },
+    languageHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 12,
+    },
+    languageHeaderLabel: {
+        fontSize: 16,
+        fontWeight: '600',
     },
     infoRow: {
         flexDirection: 'row',
