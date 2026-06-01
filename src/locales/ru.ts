@@ -228,6 +228,27 @@ export const ru: Record<TranslationKeys, string> = {
   'profile.logOut': 'Выйти',
   'profile.logOutConfirm': 'Вы уверены, что хотите выйти?',
   'profile.logOutFailed': 'Не удалось выйти. Попробуйте снова.',
+  // Phase 16 (PROF-01/02) — section labels for grouped-row + tile-dashboard layouts
+  'profile.section.activity': 'АКТИВНОСТЬ',
+  'profile.section.hosting': 'ОБЪЯВЛЕНИЯ',
+  'profile.section.myActivity': 'МОЯ АКТИВНОСТЬ',
+  'profile.section.adminTools': 'ИНСТРУМЕНТЫ АДМИНА',
+  'profile.section.staff': 'ПЕРСОНАЛ',
+  // Phase 16 — staff role badges (uppercase pill text)
+  'profile.staffBadge.admin': 'АДМИН',
+  'profile.staffBadge.moderator': 'МОДЕРАТОР',
+  // Phase 16 (D-01) — generic static tile sub-labels (no live counts)
+  'profile.tile.favoritesSub': 'Сохранённые объекты',
+  'profile.tile.appointmentsSub': 'Предстоящие',
+  'profile.tile.myListingsSub': 'Ваши объявления',
+  'profile.tile.createListingSub': 'Новый объект',
+  // Phase 16 — admin-tool tile titles + sub-labels
+  'profile.tool.applications': 'Заявки арендодателей',
+  'profile.tool.applicationsSub': 'Ожидают проверки',
+  'profile.tool.moderation': 'Очередь модерации',
+  'profile.tool.moderationSub': 'Объявления на проверку',
+  'profile.tool.roles': 'Управление ролями',
+  'profile.tool.rolesSub': 'Персонал и права',
 
   // Account Settings
   'accountSettings.title': 'Настройки аккаунта',

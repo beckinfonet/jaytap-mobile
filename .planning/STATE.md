@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Filter Variants + Profile Reskin
 status: executing
-last_updated: "2026-06-01T02:06:11.378Z"
-last_activity: 2026-06-01 -- Phase 16 planning complete
+last_updated: "2026-06-01T02:11:59.363Z"
+last_activity: 2026-06-01 -- Phase 16 execution started
 progress:
   total_phases: 9
   completed_phases: 8
@@ -21,15 +21,15 @@ See: `.planning/PROJECT.md` (updated 2026-05-31 — M6 added as current mileston
 
 **Core value:** Prospective renters and buyers can reliably browse, filter, and inquire about Bishkek (and KG/KZ/UZ expansion markets) properties on a phone without UI blockers (keyboard covering inputs, navigation getting stuck, forms requesting wrong fields for the property type).
 
-**Current focus:** Phase 16 — Profile Reskin (next to plan)
+**Current focus:** Phase 16 — profile-reskin-user-grouped-rows-admin-mod-tile-dashboard
 
 ## Current Position
 
-Phase: 15 (account-settings-restructure-filter-style-picker) — ✅ CLOSED 2026-06-01 (UAT 7/7 pass, verifier passed)
-Plan: 2 of 2 complete (Plan 01: c404111 + 20f6dd8 + 998790a; Plan 02: 2a2f4cb + bf27e16 + 6584c2d)
-Status: Ready to execute
+Phase: 16 (profile-reskin-user-grouped-rows-admin-mod-tile-dashboard) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 16
 Next: Phase 16 (Profile Reskin) — depends only on Phase 12 (complete since 2026-05-31), unblocked. Run `/gsd-plan-phase 16` to begin.
-Last activity: 2026-06-01 -- Phase 16 planning complete
+Last activity: 2026-06-01 -- Phase 16 execution started
 
 ## M6 Phase Map (Phases 12–16) — CURRENT MILESTONE
 

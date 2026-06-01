@@ -226,6 +226,27 @@ export const en = {
   'profile.logOut': 'Log Out',
   'profile.logOutConfirm': 'Are you sure you want to log out?',
   'profile.logOutFailed': 'Failed to log out. Please try again.',
+  // Phase 16 (PROF-01/02) — section labels for grouped-row + tile-dashboard layouts
+  'profile.section.activity': 'ACTIVITY',
+  'profile.section.hosting': 'HOSTING',
+  'profile.section.myActivity': 'MY ACTIVITY',
+  'profile.section.adminTools': 'ADMIN TOOLS',
+  'profile.section.staff': 'STAFF',
+  // Phase 16 — staff role badges (uppercase pill text)
+  'profile.staffBadge.admin': 'ADMIN',
+  'profile.staffBadge.moderator': 'MODERATOR',
+  // Phase 16 (D-01) — generic static tile sub-labels (no live counts)
+  'profile.tile.favoritesSub': 'Saved properties',
+  'profile.tile.appointmentsSub': 'Upcoming',
+  'profile.tile.myListingsSub': 'Your listings',
+  'profile.tile.createListingSub': 'New property',
+  // Phase 16 — admin-tool tile titles + sub-labels
+  'profile.tool.applications': 'Landlord Applications',
+  'profile.tool.applicationsSub': 'Pending review',
+  'profile.tool.moderation': 'Moderation Queue',
+  'profile.tool.moderationSub': 'Listings to review',
+  'profile.tool.roles': 'Role Management',
+  'profile.tool.rolesSub': 'Staff & permissions',
 
   // Account Settings
   'accountSettings.title': 'Account Settings',
