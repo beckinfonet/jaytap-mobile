@@ -378,7 +378,7 @@ export const AccountSettingsScreen: React.FC<AccountSettingsScreenProps> = ({ on
                             activeOpacity={0.75}
                             style={styles.linkRow}
                         >
-                            <View style={[styles.iconChip, { backgroundColor: 'rgba(255,77,77,0.13)' }]}>
+                            <View style={[styles.iconChip, { backgroundColor: colors.destructiveSoft }]}>
                                 <Trash2 size={18} color={colors.destructiveRed} />
                             </View>
                             <View style={{ flex: 1 }}>

@@ -41,6 +41,13 @@ export const colors = {
     // button label, NeedsMediaBanner CTA). White reads correctly on success / accent
     // hues in light mode.
     onAccent: '#FFFFFF',
+    // destructiveSoft: tinted background for destructive-foreground icon chips
+    // (mirrors the accent → accentSoft pair). Light mode uses a slightly lighter
+    // opacity (0.10) so the red-on-white chip doesn't overwhelm the surface;
+    // dark mode keeps 0.13 to preserve sufficient contrast against the dark
+    // surface. Introduced Phase 15 review-fix WR-01 to complete the
+    // hardcoded-rgba → token migration for DANGER ZONE.
+    destructiveSoft: 'rgba(255,77,77,0.10)',
     // scrim: semi-opaque overlay above tile photos for delete-X affordance + the
     // upload loading-overlay backdrop. 0.55 opacity matches UI-SPEC §"Photo / video
     // tile (rendered)" verbatim — same hue in light + dark since it's a black
@@ -78,6 +85,12 @@ export const colors = {
     // dark mode (matches RejectionBanner precedent — accent is a bright pink hue
     // and white text passes AA on it in both light + dark modes).
     onAccent: '#FFFFFF',
+    // destructiveSoft: tinted background for destructive-foreground icon chips
+    // (mirrors the accent → accentSoft pair). Dark mode uses 0.13 (matches the
+    // pre-token literal at AccountSettingsScreen line 381) so the red chip
+    // reads correctly against the dark surface. Introduced Phase 15 review-fix
+    // WR-01.
+    destructiveSoft: 'rgba(255,77,77,0.13)',
     // scrim: identical hue (semi-opaque black) — its contrast is with the
     // underlying photo, not the theme surface, so the same value works in dark.
     scrim: 'rgba(0,0,0,0.55)',
