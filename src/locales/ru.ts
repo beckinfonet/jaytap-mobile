@@ -258,6 +258,9 @@ export const ru: Record<TranslationKeys, string> = {
   'accountSettings.section.preferences': 'НАСТРОЙКИ',
   'accountSettings.section.application': 'ЗАЯВКА',
   'accountSettings.section.dangerZone': 'ОПАСНАЯ ЗОНА',
+  // Phase 15 Plan 15-02 (SET-02 / D-14) — FilterStyleRow picker chrome.
+  'accountSettings.filterPicker.title': 'Стиль поиска',
+  'accountSettings.filterPicker.subtitle': 'Как выглядят фильтры',
 
   // Platform verification (MoveIn / admin only)
   'verification.sectionTitle': 'Проверено MoveIn',
@@ -938,4 +941,16 @@ export const ru: Record<TranslationKeys, string> = {
   'filters.category.commercialBlurb': 'Офисы и торговля',
   'filters.category.hospitalityBlurb': 'Размещение и проживание',
   'filters.type.prompt': 'Выберите тип',
+
+  // Phase 15 Plan 15-02 (SET-02 / D-14 + D-21) — filter-style picker
+  // names + descriptions + "Coming soon" badge for Master/Sentence (D-06).
+  'filters.style.guided': 'Пошаговый',
+  'filters.style.cascading': 'Каскадный',
+  'filters.style.master': 'Категории и типы',
+  'filters.style.sentence': 'Предложение',
+  'filters.style.guidedDesc': 'По одному шагу',
+  'filters.style.cascadingDesc': 'Все уровни сразу',
+  'filters.style.masterDesc': 'Категории и типы',
+  'filters.style.sentenceDesc': 'Конструктор-фраза',
+  'filters.style.comingSoon': 'Скоро',
 };

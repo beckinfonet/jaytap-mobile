@@ -256,6 +256,9 @@ export const en = {
   'accountSettings.section.preferences': 'PREFERENCES',
   'accountSettings.section.application': 'APPLICATION',
   'accountSettings.section.dangerZone': 'DANGER ZONE',
+  // Phase 15 Plan 15-02 (SET-02 / D-14) — FilterStyleRow picker chrome.
+  'accountSettings.filterPicker.title': 'Search filter style',
+  'accountSettings.filterPicker.subtitle': 'How property filters appear',
 
   // Platform verification (MoveIn / admin only)
   'verification.sectionTitle': 'Verified by MoveIn',
@@ -948,6 +951,18 @@ export const en = {
   'filters.category.commercialBlurb': 'Offices & retail',
   'filters.category.hospitalityBlurb': 'Stays & lodging',
   'filters.type.prompt': 'Pick a type',
+
+  // Phase 15 Plan 15-02 (SET-02 / D-14 + D-21) — filter-style picker
+  // names + descriptions + "Coming soon" badge for Master/Sentence (D-06).
+  'filters.style.guided': 'Guided steps',
+  'filters.style.cascading': 'Cascading',
+  'filters.style.master': 'Master–detail',
+  'filters.style.sentence': 'Sentence',
+  'filters.style.guidedDesc': 'One choice at a time',
+  'filters.style.cascadingDesc': 'All levels inline',
+  'filters.style.masterDesc': 'Categories + types',
+  'filters.style.sentenceDesc': 'Plain-language builder',
+  'filters.style.comingSoon': 'Coming soon',
 } as const;
 
 export type TranslationKeys = keyof typeof en;
