@@ -3,7 +3,7 @@ quick_id: 260531-x3z
 slug: filter-variants-accent-swap
 status: complete
 completed: 2026-06-01
-commits: [8ff1808, c444526, c806c35]
+commits: [8ff1808, c444526, c806c35, 561f4ab]
 ---
 
 # Quick Summary: Filter-variant accent swap
@@ -21,6 +21,7 @@ Added a parallel `filterAccent / filterAccentSoft / filterAccentLine` triple to 
 1. `8ff1808` — `feat(quick-260531-x3z): add filterAccent triple to theme palette`
 2. `c444526` — `refactor(quick-260531-x3z): swap accent → filterAccent in GuidedFilterSheet`
 3. `c806c35` — `refactor(quick-260531-x3z): swap accent → filterAccent in CascadingFilter`
+4. `561f4ab` — `refactor(quick-260531-x3z): swap active-step Stepper pill to filterAccent` (Round-2 follow-up — first pass missed the active-step pill in the 1-2-3 stepper bar because Stepper.tsx lives under `filters/primitives/` and read `colors.accent` directly. Completed-step pills + connector bars stay `landlordGreen` per user feedback)
 
 ## Gates
 
