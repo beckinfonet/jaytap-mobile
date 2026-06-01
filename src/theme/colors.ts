@@ -7,6 +7,12 @@ const MODE_INDEPENDENT_PALETTE = {
   accent: '#ff5a6f', // MoveIn handoff 2026-05-31 — used by Phase 14+ accent CTAs / Show N homes button (replaces the prior light #FF385C / dark #FF5C7C split — now brand-locked)
   accentSoft: 'rgba(255,90,111,0.16)', // MoveIn handoff 2026-05-31 — used by Phase 14+ accent fill background (e.g. Show N homes button hover)
   accentLine: 'rgba(255,90,111,0.45)', // MoveIn handoff 2026-05-31 — used by Phase 14+ accent border / underline (e.g. Cascading Reveal Category tab strip)
+  // Filter-variant accent triple (quick 260531-x3z) — scoped to Guided Steps +
+  // Cascading Reveal filter components only. Lets the filter UIs render a
+  // distinct hue from the brand pink without rebranding the whole app accent.
+  filterAccent: '#6f7bff',
+  filterAccentSoft: 'rgba(111,123,255,0.16)',
+  filterAccentLine: 'rgba(111,123,255,0.45)',
   landlordGreen: '#35c98f', // MoveIn handoff 2026-05-31 — used by Phase 16 'You're a Landlord' green-tinted banner background
   destructiveRed: '#ff4d4d', // MoveIn handoff 2026-05-31 — used by Phase 15 DANGER ZONE Delete-account row tint / Phase 16 Log out outlined pill stroke
 } as const;
