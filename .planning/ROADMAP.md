@@ -272,7 +272,7 @@ Full M3 details: `.planning/milestones/v3.0-ROADMAP.md`
 | 13. Shared Filter Data Model + AsyncStorage Persistence | 2/2 | Complete    | 2026-05-31 |
 | 14. Filter UI Variants (Guided + Cascading) + HomeScreen Dispatch | 3/3 | Complete   | 2026-05-31 |
 | 15. Account Settings Restructure + Filter-Style Picker | 2/2 | Implementation Complete — Plans 01+02 shipped 2026-06-01 (on-device QA owed) | 2026-06-01 |
-| 16. Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | 0/TBD | Not started | — |
+| 16. Profile Reskin (User Grouped-Rows + Admin/Mod Tile Dashboard) | 1/2 | In Progress|  |
 
 ## Backlog
 
