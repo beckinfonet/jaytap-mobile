@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Filter Variants + Profile Reskin
 status: milestone_complete
-last_updated: "2026-06-01T17:35:00.000Z"
-last_activity: 2026-06-01 -- Quick task 260601-elb shipped: Guided sheet header Reset button
+last_updated: "2026-06-01T17:40:00.000Z"
+last_activity: 2026-06-01 -- Quick tasks 260601-dqh + 260601-elb QA passed (Guided dual-action footer + header Reset)
 progress:
   total_phases: 9
   completed_phases: 9
@@ -29,7 +29,7 @@ Phase: 16
 Plan: Not started
 Status: Milestone complete
 Next: Phase 16 (Profile Reskin) — depends only on Phase 12 (complete since 2026-05-31), unblocked. Run `/gsd-plan-phase 16` to begin.
-Last activity: 2026-06-01 — Quick task 260601-elb complete (Guided sheet header Reset button)
+Last activity: 2026-06-01 — Quick tasks 260601-dqh + 260601-elb QA passed (Guided dual-action footer + header Reset)
 
 ## M6 Phase Map (Phases 12–16) — CURRENT MILESTONE
 

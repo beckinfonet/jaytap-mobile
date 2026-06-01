@@ -4,6 +4,8 @@ plan: 01
 type: execute
 wave: 1
 status: complete
+qa_status: passed
+qa_passed: 2026-06-01
 requirements: [QUICK-260601-ELB]
 files_modified:
   - src/components/filters/GuidedFilterSheet.tsx
