@@ -3,7 +3,7 @@ quick_id: 260603-emq
 slug: translate-property-type-and-breadcrumb-l
 date: 2026-06-03
 status: complete
-commit: PENDING
+commit: ae334e5
 ---
 
 # Summary: Translate property-type + breadcrumb labels in filter UI
