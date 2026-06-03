@@ -3,7 +3,7 @@ quick_id: 260603-ecf
 slug: stack-country-and-city-on-separate-rows-
 date: 2026-06-03
 status: complete
-commit: PENDING
+commit: 0c6edc6
 ---
 
 # Summary: Stacked country/city title (HomeScreen header)
