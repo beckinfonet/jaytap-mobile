@@ -425,7 +425,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
             onPress={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
             activeOpacity={0.7}
           >
-            <Text style={[styles.locationTitle, { color: colors.text }]}>
+            <Text
+              style={[styles.locationTitle, { color: colors.text }]}
+              numberOfLines={1}
+            >
               {selectedCity
                 ? `${t(`country.${selectedCity.country}` as TranslationKeys)} • ${selectedCity.label[(language === 'ru' ? 'ru' : 'en') as 'en' | 'ru']}`
                 : t('home.allCities')} ⌄
@@ -833,7 +836,7 @@ const styles = StyleSheet.create({
   },
   rightIcons: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 10,
     alignItems: 'center',
   },
   searchRow: {

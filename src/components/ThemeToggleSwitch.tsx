@@ -18,7 +18,7 @@ export const ThemeToggleSwitch: React.FC = () => {
 
   const translateX = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [3, 58], // Slide from left (dark) to right (light) - closer to edge
+    outputRange: [3, 43], // Slide left (dark) → right (light): width 78 − knob 32 − 3 left pad
   });
 
   return (
@@ -90,9 +90,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 3,
     paddingVertical: 3,
-    borderRadius: 24,
-    width: 100,
-    height: 44,
+    borderRadius: 20,
+    width: 78,
+    height: 40,
     position: 'relative',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
@@ -111,14 +111,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'flex-start',
     justifyContent: 'center',
-    paddingLeft: 10,
+    paddingLeft: 7,
     zIndex: 1,
   },
   textContainerRight: {
     flex: 1,
     alignItems: 'flex-end',
     justifyContent: 'center',
-    paddingRight: 10,
+    paddingRight: 7,
     zIndex: 1,
   },
   toggleText: {
@@ -130,9 +130,9 @@ const styles = StyleSheet.create({
   },
   knob: {
     position: 'absolute',
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',

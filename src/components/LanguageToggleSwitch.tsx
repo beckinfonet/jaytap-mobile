@@ -19,7 +19,7 @@ export const LanguageToggleSwitch: React.FC = () => {
 
   const translateX = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [3, 49],
+    outputRange: [3, 33], // width 68 − knob 32 − 3 left pad
   });
 
   const toggle = () => setLanguage(language === 'en' ? 'ru' : 'en');
@@ -70,9 +70,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 3,
     paddingVertical: 3,
-    borderRadius: 24,
-    width: 90,
-    height: 44,
+    borderRadius: 20,
+    width: 68,
+    height: 40,
     position: 'relative',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
@@ -87,14 +87,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'flex-start',
     justifyContent: 'center',
-    paddingLeft: 12,
+    paddingLeft: 8,
     zIndex: 1,
   },
   textContainerRight: {
     flex: 1,
     alignItems: 'flex-end',
     justifyContent: 'center',
-    paddingRight: 12,
+    paddingRight: 8,
     zIndex: 1,
   },
   labelText: {
@@ -104,9 +104,9 @@ const styles = StyleSheet.create({
   },
   knob: {
     position: 'absolute',
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
@@ -120,6 +120,6 @@ const styles = StyleSheet.create({
     }),
   },
   knobText: {
-    fontSize: 20,
+    fontSize: 18,
   },
 });
