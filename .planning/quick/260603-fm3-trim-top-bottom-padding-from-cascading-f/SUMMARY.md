@@ -3,7 +3,7 @@ quick_id: 260603-fm3
 slug: trim-top-bottom-padding-from-cascading-f
 date: 2026-06-03
 status: complete
-commit: PENDING
+commit: a4ff033
 ---
 
 # Summary: Trim top/bottom whitespace on the Cascading FILTERS·Reset row
