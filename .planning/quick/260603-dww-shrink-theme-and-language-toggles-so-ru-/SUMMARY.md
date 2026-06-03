@@ -3,7 +3,7 @@ quick_id: 260603-dww
 slug: shrink-theme-and-language-toggles-so-ru-
 date: 2026-06-03
 status: complete
-commit: PENDING
+commit: 93434df
 ---
 
 # Summary: HomeScreen header — shrink toggles so RU country title fits
