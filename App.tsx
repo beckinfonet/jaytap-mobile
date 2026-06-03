@@ -827,6 +827,9 @@ function AppContent() {
                 favoriteStatuses={favoriteStatuses}
                 onFavorite={handleFavorite}
                 favoriteLoading={favoriteLoading}
+                // Refetch favorites whenever this kept-alive screen becomes the
+                // active tab, so a just-favorited listing shows immediately (260603-d9y).
+                isVisible={showFavorites}
               />
             </View>
           )}

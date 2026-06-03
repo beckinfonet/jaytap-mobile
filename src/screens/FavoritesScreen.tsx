@@ -27,6 +27,11 @@ interface FavoritesScreenProps {
   favoriteStatuses: Record<string, boolean>;
   onFavorite: (property: Property) => void;
   favoriteLoading: Record<string, boolean>;
+  // True while the Favorites tab is the active main-stack screen. The screen is
+  // kept-alive (display:none) by App.tsx rather than unmounted, so we refetch
+  // whenever it becomes visible — otherwise a listing favorited elsewhere never
+  // appears until app reload (quick task 260603-d9y).
+  isVisible?: boolean;
 }
 
 export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
@@ -36,6 +41,7 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
   favoriteStatuses,
   onFavorite,
   favoriteLoading,
+  isVisible,
 }) => {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -46,6 +52,17 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
   useEffect(() => {
     loadFavorites();
   }, [user]); // Reload when user changes
+
+  // Refetch each time the tab becomes visible. App.tsx keeps this screen mounted
+  // (display:none) once opened, so the [user] effect alone would never re-run and
+  // a listing favorited from another screen would stay missing until app reload.
+  // loadFavorites() does not flip `loading` true, so revisits update in place with
+  // no spinner flash. (quick task 260603-d9y)
+  useEffect(() => {
+    if (isVisible) {
+      loadFavorites();
+    }
+  }, [isVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadFavorites = async () => {
     if (!user?.localId) {
