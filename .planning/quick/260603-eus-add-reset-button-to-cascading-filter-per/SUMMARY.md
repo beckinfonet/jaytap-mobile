@@ -3,7 +3,7 @@ quick_id: 260603-eus
 slug: add-reset-button-to-cascading-filter-per
 date: 2026-06-03
 status: complete
-commit: PENDING
+commit: 2f28b52
 ---
 
 # Summary: Reset button for the Cascading filter
