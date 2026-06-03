@@ -83,6 +83,10 @@ cd ios && xcodebuild -workspace JayTap.xcworkspace -scheme JayTap -configuration
 
 The archive will be created in Xcode's Organizer. You can then use it to upload to App Store Connect or export an IPA.
 
+**If upload fails with "train version X is closed" or CFBundleShortVersionString must be higher:** App Store already has that marketing version approved — bump `MARKETING_VERSION` in `ios/JayTap.xcodeproj/project.pbxproj` (Debug + Release) and `package.json` to a new version (e.g. `3.0.11`), then re-archive. `./scripts/archive-ios.sh` only auto-increments the build number (`CURRENT_PROJECT_VERSION`), not the marketing version.
+
+**"Upload Symbols Failed" for `React.framework` / Hermes:** Common Xcode 16+ warning for React Native; it usually does not block submission once version errors are fixed. You can proceed after fixing version numbers.
+
 Android:
 ```sh
 ./build-android-release.sh
