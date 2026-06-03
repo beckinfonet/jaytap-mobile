@@ -336,7 +336,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
   // inline filter JSX; the new component owns the same OR-union setTypes(prev)
   // callback semantics. setTypes itself is still passed down as a prop.
 
-  const toggleFiltersExpanded = () => {
+  // 260603-fbc — memoized so it can be a stable dep of renderListHeader (the
+  // summary moved into the list header and calls this). Body only touches the
+  // stable setIsFiltersExpanded + listRef, so [] deps are correct.
+  const toggleFiltersExpanded = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsFiltersExpanded((prev) => {
       const next = !prev;
@@ -350,7 +353,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
       }
       return next;
     });
-  };
+  }, []);
 
   // Quick-task 260601-1b8 — stable ListHeaderComponent renderer. The Cascading
   // panel now lives inside the results FlatList's header (above the
@@ -373,6 +376,55 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
           liveCount={filteredProperties.length}
         />
       )}
+
+      {/* 260603-fbc — filter results summary relocated here: directly under the
+          filter panel and above the listing results (was pinned in the static
+          header above the filter per 260601-1b8). Same tappable breadcrumb +
+          translation logic (260603-emq). */}
+      <View style={styles.summaryWrap}>
+        {(() => {
+          const dealLabel = t(
+            transactionType === 'rent' ? 'filters.deal.rent' : 'filters.deal.buy',
+          );
+          const categoryKey = (
+            selectedCategory === 'Residential'
+              ? 'category.residential'
+              : selectedCategory === 'Commercial'
+              ? 'category.commercial'
+              : 'category.hospitality'
+          ) as TranslationKeys;
+          const categoryLabel = t(categoryKey);
+          const typesLabel = joinTypes(selectedCategory, types, true, {
+            translate: (ty) => t(`propertyType.${ty.toLowerCase()}` as TranslationKeys),
+            connective: t('filters.or'),
+          });
+          const breadcrumb = [dealLabel, categoryLabel, typesLabel]
+            .filter((s) => s && s.length > 0)
+            .join(' · ');
+          return (
+            <TouchableOpacity
+              onPress={toggleFiltersExpanded}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`${filteredProperties.length} ${t('home.homes')} — ${breadcrumb}`}
+            >
+              <Text
+                style={[styles.resultCount, { color: colors.text }]}
+                numberOfLines={1}
+              >
+                {filteredProperties.length} {t('home.homes')}
+              </Text>
+              <Text
+                style={[styles.summaryBreadcrumb, { color: colors.textSecondary }]}
+                numberOfLines={1}
+              >
+                {breadcrumb}
+              </Text>
+            </TouchableOpacity>
+          );
+        })()}
+      </View>
+
       {selectedCategory !== 'Hospitality' ? (
         <HospitalitySection
           properties={hospitalityProperties}
@@ -400,6 +452,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
     onFavorite,
     favoriteStatuses,
     favoriteLoading,
+    t,
+    colors,
+    toggleFiltersExpanded,
   ]);
 
   const renderHeaderContent = () => (
@@ -631,57 +686,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
         />
       )}
 
-      {/* Quick-task 260601-1b8 — pinned summary row. Replaces the static count
-          line with a tappable breadcrumb that always shows the active filters
-          (deal · category · types) and re-opens the filter when tapped (which
-          also scrolls the results to the top via toggleFiltersExpanded). Stays
-          in the static header so it's always visible — the Cascading panel
-          itself now scrolls away with the list. Reuses existing i18n keys
-          ('filters.deal.rent|buy', 'category.*', 'home.homes') + joinTypes; no
-          new strings. */}
-      {(() => {
-        const dealLabel = t(
-          transactionType === 'rent' ? 'filters.deal.rent' : 'filters.deal.buy',
-        );
-        const categoryKey = (
-          selectedCategory === 'Residential'
-            ? 'category.residential'
-            : selectedCategory === 'Commercial'
-            ? 'category.commercial'
-            : 'category.hospitality'
-        ) as TranslationKeys;
-        const categoryLabel = t(categoryKey);
-        // 260603-emq: translate each type + localize the connective so the RU
-        // summary reads "квартира или дом" rather than raw English.
-        const typesLabel = joinTypes(selectedCategory, types, true, {
-          translate: (ty) => t(`propertyType.${ty.toLowerCase()}` as TranslationKeys),
-          connective: t('filters.or'),
-        });
-        const breadcrumb = [dealLabel, categoryLabel, typesLabel]
-          .filter((s) => s && s.length > 0)
-          .join(' · ');
-        return (
-          <TouchableOpacity
-            onPress={toggleFiltersExpanded}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel={`${filteredProperties.length} ${t('home.homes')} — ${breadcrumb}`}
-          >
-            <Text
-              style={[styles.resultCount, { color: colors.text }]}
-              numberOfLines={1}
-            >
-              {filteredProperties.length} {t('home.homes')}
-            </Text>
-            <Text
-              style={[styles.summaryBreadcrumb, { color: colors.textSecondary }]}
-              numberOfLines={1}
-            >
-              {breadcrumb}
-            </Text>
-          </TouchableOpacity>
-        );
-      })()}
+      {/* 260603-fbc — the filter results summary that used to live here (pinned
+          above the filter, 260601-1b8) was relocated into renderListHeader so it
+          sits directly under the filter panel and above the listing results. */}
     </View>
   );
 
@@ -912,6 +919,12 @@ const styles = StyleSheet.create({
   // filterChip, filterText) lived here. They were referenced only by the inline filter
   // JSX block at HomeScreen.tsx:521-642 which now lives in src/components/filters/
   // CascadingFilter.tsx. Total delete: ~169 LOC.
+  // 260603-fbc — wraps the relocated summary in the list header; restores the
+  // horizontal alignment it had inside headerContainer (paddingHorizontal 20).
+  summaryWrap: {
+    paddingHorizontal: 20,
+    paddingTop: 4,
+  },
   resultCount: {
     fontSize: 14,
     marginLeft: 4,
