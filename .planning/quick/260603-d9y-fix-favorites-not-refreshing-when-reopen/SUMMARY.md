@@ -3,7 +3,7 @@ quick_id: 260603-d9y
 slug: fix-favorites-not-refreshing-when-reopen
 date: 2026-06-03
 status: complete
-commit: PENDING
+commit: 6a13661
 ---
 
 # Summary: Favorites tab not refreshing on reopen
