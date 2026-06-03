@@ -283,16 +283,19 @@ const CascadingFilter: React.FC<CascadingFilterProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 18,
-    paddingTop: 6,
+    paddingTop: 2,
     paddingBottom: 18,
     flexDirection: 'column',
     gap: 18,
   },
   // 260603-eus — FILTERS label + Reset header row.
+  // 260603-fm3 — trim vertical whitespace: negative marginBottom pulls the Deal
+  // toggle up (net ~10 gap instead of the container's 18); paddingTop trimmed to 2.
   filtersHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: -8,
   },
   filtersHeaderLabel: {
     fontSize: 11.5,
