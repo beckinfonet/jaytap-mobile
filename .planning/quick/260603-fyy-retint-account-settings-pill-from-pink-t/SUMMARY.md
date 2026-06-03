@@ -3,7 +3,7 @@ quick_id: 260603-fyy
 slug: retint-account-settings-pill-from-pink-t
 date: 2026-06-03
 status: complete
-commit: PENDING
+commit: b13cc84
 ---
 
 # Summary: Retint the "Account Settings" pill from pink to landlord-green
