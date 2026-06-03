@@ -27,6 +27,9 @@ const defaultColors = {
   textTertiary: 'rgba(244,244,246,0.40)',
   accent: '#ff5a6f',
   accentSoft: 'rgba(255,90,111,0.16)',
+  // 260603-fyy — Account Settings pill re-tinted to the landlord-green pair.
+  landlordGreen: '#35c98f',
+  landlordGreenSoft: 'rgba(53,201,143,0.16)',
 };
 
 beforeEach(() => {

@@ -89,19 +89,21 @@ const IdentityCard: React.FC<IdentityCardProps> = ({
             {email}
           </Text>
 
-          {/* Visual "Account settings ›" pill — non-interactive (D-03) */}
+          {/* Visual "Account settings ›" pill — non-interactive (D-03).
+              260603-fyy — re-tinted from brand pink (accent) to the landlord-green
+              hue to match the 'You're a Landlord' banner accent. */}
           <View
             style={{
               alignSelf: 'flex-start',
               paddingVertical: 4,
               paddingHorizontal: 10,
               borderRadius: 999,
-              backgroundColor: colors.accentSoft,
+              backgroundColor: colors.landlordGreenSoft,
             }}
           >
             <Text
               style={{
-                color: colors.accent,
+                color: colors.landlordGreen,
                 fontSize: 12,
                 fontWeight: '600',
               }}

@@ -14,6 +14,7 @@ const MODE_INDEPENDENT_PALETTE = {
   filterAccentSoft: 'rgba(111,123,255,0.16)',
   filterAccentLine: 'rgba(111,123,255,0.45)',
   landlordGreen: '#35c98f', // MoveIn handoff 2026-05-31 — used by Phase 16 'You're a Landlord' green-tinted banner background
+  landlordGreenSoft: 'rgba(53,201,143,0.16)', // 260603-fyy — soft fill mirroring the accent→accentSoft pair; backs the IdentityCard 'Account Settings' pill (re-tinted from brand pink to the landlord-green hue)
   destructiveRed: '#ff4d4d', // MoveIn handoff 2026-05-31 — used by Phase 15 DANGER ZONE Delete-account row tint / Phase 16 Log out outlined pill stroke
 } as const;
 
