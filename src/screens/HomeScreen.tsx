@@ -425,14 +425,31 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
             onPress={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
             activeOpacity={0.7}
           >
-            <Text
-              style={[styles.locationTitle, { color: colors.text }]}
-              numberOfLines={1}
-            >
-              {selectedCity
-                ? `${t(`country.${selectedCity.country}` as TranslationKeys)} • ${selectedCity.label[(language === 'ru' ? 'ru' : 'en') as 'en' | 'ru']}`
-                : t('home.allCities')} ⌄
-            </Text>
+            {selectedCity ? (
+              // Country + city on separate rows (260603-ecf): a single line ellipsized
+              // long RU names awkwardly, so stack a small country label over the city.
+              <View style={styles.locationTextBlock}>
+                <Text
+                  style={[styles.locationCountry, { color: colors.textSecondary }]}
+                  numberOfLines={1}
+                >
+                  {t(`country.${selectedCity.country}` as TranslationKeys)}
+                </Text>
+                <Text
+                  style={[styles.locationCity, { color: colors.text }]}
+                  numberOfLines={1}
+                >
+                  {selectedCity.label[(language === 'ru' ? 'ru' : 'en') as 'en' | 'ru']} ⌄
+                </Text>
+              </View>
+            ) : (
+              <Text
+                style={[styles.locationTitle, { color: colors.text }]}
+                numberOfLines={1}
+              >
+                {t('home.allCities')} ⌄
+              </Text>
+            )}
           </TouchableOpacity>
 
           {/* Dropdown Modal/Overlay */}
@@ -793,6 +810,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }),
     fontWeight: '500',
+  },
+  // 260603-ecf — stacked country/city title (replaces the single-line ellipsis).
+  locationTextBlock: {
+    alignItems: 'center',
+  },
+  locationCountry: {
+    fontSize: 13,
+    fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }),
+    fontWeight: '400',
+    lineHeight: 16,
+  },
+  locationCity: {
+    fontSize: 16,
+    fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }),
+    fontWeight: '600',
+    lineHeight: 20,
   },
   // Dropdown Styles
   modalOverlay: {
