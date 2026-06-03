@@ -3,7 +3,7 @@ quick_id: 260603-fbc
 slug: move-filter-results-summary-below-cascad
 date: 2026-06-03
 status: complete
-commit: PENDING
+commit: bc15f4b
 ---
 
 # Summary: Move filter results summary below the filter, above listings
