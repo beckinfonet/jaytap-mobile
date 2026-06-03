@@ -269,4 +269,57 @@ describe('CascadingFilter', () => {
     expect(activeTab!.props.accessibilityState).toEqual({ selected: true });
     expect(inactiveTab!.props.accessibilityState).toEqual({ selected: false });
   });
+
+  // 260603-eus — Reset button (handoff reset_button_for_cascading_filter).
+  // The reset Pressable is found by its accessibilityLabel (identity t() → 'filters.reset').
+  const findReset = (
+    tree: TestRenderer.ReactTestRenderer,
+  ): TestRenderer.ReactTestInstance | undefined =>
+    tree.root
+      .findAll((n) => !!n.props && n.props.accessibilityLabel === 'filters.reset')
+      .find((n) => n.props.accessibilityRole === 'button');
+
+  it('Reset is disabled at the broadest default (rent / Residential / no types)', () => {
+    const { tree } = render({
+      transactionType: 'rent',
+      selectedCategory: 'Residential',
+      types: [],
+    });
+    const reset = findReset(tree);
+    expect(reset).toBeDefined();
+    expect(reset!.props.disabled).toBe(true);
+    expect(reset!.props.accessibilityState).toEqual({ disabled: true });
+  });
+
+  it('Reset is enabled once any selection differs from default', () => {
+    const { tree } = render({
+      selectedCategory: 'Residential',
+      types: ['Apartment'],
+    });
+    const reset = findReset(tree);
+    expect(reset!.props.disabled).toBe(false);
+    expect(reset!.props.accessibilityState).toEqual({ disabled: false });
+  });
+
+  it('tapping Reset clears to rent / Residential / [] with Pitfall-4 order (category before types)', () => {
+    const setters = mkSetters();
+    const { tree } = render({
+      transactionType: 'sale',
+      selectedCategory: 'Commercial',
+      types: ['Office'],
+      setters,
+    });
+    const reset = findReset(tree);
+    act(() => {
+      reset!.props.onPress();
+    });
+    expect(setters.setTransactionType).toHaveBeenCalledWith('rent');
+    expect(setters.setSelectedCategory).toHaveBeenCalledWith('Residential');
+    expect(setters.setTypes).toHaveBeenCalledWith([]);
+
+    // Pitfall 4: setSelectedCategory must fire BEFORE setTypes([]).
+    const catOrder = setters.setSelectedCategory.mock.invocationCallOrder[0];
+    const typesOrder = setters.setTypes.mock.invocationCallOrder[0];
+    expect(catOrder).toBeLessThan(typesOrder);
+  });
 });

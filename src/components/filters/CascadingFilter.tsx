@@ -32,7 +32,7 @@ import {
   StyleSheet,
   Pressable,
 } from 'react-native';
-import { Check } from 'lucide-react-native';
+import { Check, RotateCcw } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import {
@@ -92,8 +92,55 @@ const CascadingFilter: React.FC<CascadingFilterProps> = ({
     return RESIDENTIAL_TYPES;
   }, [selectedCategory]);
 
+  // Quick 260603-eus — Reset affordance (handoff reset_button_for_cascading_filter).
+  // Mirrors the Guided-steps header Reset (260601-elb): clears to the broadest
+  // default. No stepper in the cascading surface, so no setStep. Pitfall 4 holds —
+  // setSelectedCategory MUST fire before setTypes([]).
+  const isFilterDefault =
+    transactionType === 'rent' && selectedCategory === 'Residential' && types.length === 0;
+
+  const handleReset = () => {
+    setTransactionType('rent');
+    setSelectedCategory('Residential'); // BEFORE clearing types (Pitfall 4)
+    setTypes([]);
+  };
+
   return (
     <View style={styles.container}>
+      {/* Section 0 — FILTERS label + Reset (clears to neutral default).
+          Mirrors the Guided header Reset; per handoff reset_button_for_cascading_filter. */}
+      <View style={styles.filtersHeaderRow}>
+        <Text
+          style={[styles.filtersHeaderLabel, { color: colors.textTertiary }]}
+          accessibilityRole="header"
+        >
+          {t('filters.cascading.filtersHeader' as TranslationKeys)}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('filters.reset')}
+          accessibilityState={{ disabled: isFilterDefault }}
+          disabled={isFilterDefault}
+          hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+          onPress={handleReset}
+          style={[styles.resetButton, { opacity: isFilterDefault ? 0.5 : 1 }]}
+        >
+          <RotateCcw
+            size={15}
+            strokeWidth={1.75}
+            color={isFilterDefault ? colors.textTertiary : colors.filterAccent}
+          />
+          <Text
+            style={[
+              styles.resetButtonLabel,
+              { color: isFilterDefault ? colors.textTertiary : colors.filterAccent },
+            ]}
+          >
+            {t('filters.reset')}
+          </Text>
+        </Pressable>
+      </View>
+
       {/* Section 1 — Rent/Buy DealToggle */}
       <DealToggle
         value={transactionType === 'rent' ? 'Rent' : 'Buy'}
@@ -240,6 +287,30 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
     flexDirection: 'column',
     gap: 18,
+  },
+  // 260603-eus — FILTERS label + Reset header row.
+  filtersHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  filtersHeaderLabel: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  resetButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 32,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+  },
+  resetButtonLabel: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   nestedWrapper: {
     position: 'relative',

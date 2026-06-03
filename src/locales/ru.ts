@@ -961,6 +961,8 @@ export const ru: Record<TranslationKeys, string> = {
   'filters.cascading.categoryHeader': 'КАТЕГОРИЯ',
   'filters.cascading.typeHeader': 'ТИП',
   'filters.cascading.typeHint': 'выберите любой',
+  // 260603-eus — FILTERS section label for the cascading panel's Reset row.
+  'filters.cascading.filtersHeader': 'ФИЛЬТРЫ',
 
   // Phase 14 Plan 14-03 — Guided sheet wizard (FILT-01) — D-07 namespace subset
   'filters.deal.rentBlurb': 'Снять помесячно',

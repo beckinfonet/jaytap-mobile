@@ -973,6 +973,8 @@ export const en = {
   'filters.cascading.categoryHeader': 'CATEGORY',
   'filters.cascading.typeHeader': 'TYPE',
   'filters.cascading.typeHint': 'pick any',
+  // 260603-eus — FILTERS section label for the cascading panel's Reset row.
+  'filters.cascading.filtersHeader': 'FILTERS',
 
   // Phase 14 Plan 14-03 — Guided sheet wizard (FILT-01) — D-07 namespace subset
   'filters.deal.rentBlurb': 'Lease a place month-to-month',
