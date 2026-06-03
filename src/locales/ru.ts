@@ -952,6 +952,8 @@ export const ru: Record<TranslationKeys, string> = {
   'filters.type.multiHint': 'Выберите один или несколько',
   'filters.deal.rent': 'Аренда',
   'filters.deal.buy': 'Купить',
+  // 260603-emq — connective for the joined type list (e.g. "квартира или дом").
+  'filters.or': 'или',
 
   // Phase 14 Plan 14-02 — Cascading panel (FILT-02) — D-07 namespace subset.
   // Reuses existing 'category.residential|commercial|hospitality' (lines 295-297)

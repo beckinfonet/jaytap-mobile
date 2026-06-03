@@ -10,10 +10,27 @@ import { Text } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
 
 jest.mock('../../../../theme/ThemeContext', () => ({ useTheme: jest.fn() }));
+jest.mock('../../../../context/LanguageContext', () => ({ useLanguage: jest.fn() }));
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { useTheme } = require('../../../../theme/ThemeContext');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { useLanguage } = require('../../../../context/LanguageContext');
 import Breadcrumb from '../Breadcrumb';
+
+// 260603-emq — Breadcrumb now translates deal/category/types. Map the i18n keys
+// back to the English words the existing assertions expect; a wrong key would
+// fall through to the raw key and fail the matching assertion (proves wiring).
+const T_DICT: Record<string, string> = {
+  'filters.deal.rent': 'Rent',
+  'filters.deal.buy': 'Buy',
+  'category.residential': 'Residential',
+  'category.commercial': 'Commercial',
+  'category.hospitality': 'Hospitality',
+  'propertyType.apartment': 'Apartment',
+  'propertyType.house': 'House',
+  'propertyType.townhome': 'Townhome',
+};
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -24,6 +41,7 @@ beforeEach(() => {
       textTertiary: 'rgba(244,244,246,0.40)',
     },
   });
+  useLanguage.mockReturnValue({ t: (k: string) => T_DICT[k] ?? k });
 });
 
 const renderBC = (props: {

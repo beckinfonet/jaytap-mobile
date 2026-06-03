@@ -78,7 +78,16 @@ beforeEach(() => {
       background: '#121214',
     },
   });
-  useLanguage.mockReturnValue({ t: (k: string) => k, language: 'en' });
+  // 260603-emq — type chips now render t('propertyType.<lower>'); map that
+  // namespace back to the capitalized word so findChipByLabel('Apartment')
+  // still matches. Category tabs keep matching the raw 'category.<lower>' key.
+  useLanguage.mockReturnValue({
+    t: (k: string) => {
+      const m = /^propertyType\.(.+)$/.exec(k);
+      return m ? m[1].charAt(0).toUpperCase() + m[1].slice(1) : k;
+    },
+    language: 'en',
+  });
 });
 
 type Setters = {

@@ -324,7 +324,8 @@ const GuidedFilterSheet: React.FC<GuidedFilterSheetProps> = ({
           />
         </View>
         <Text style={[styles.typeCardLabel, { color: colors.text }]}>
-          {typeName}
+          {/* 260603-emq: translate the property-type label (was raw English in RU). */}
+          {t(`propertyType.${typeName.toLowerCase()}` as TranslationKeys)}
         </Text>
       </Pressable>
     );

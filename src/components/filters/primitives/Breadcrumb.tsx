@@ -17,6 +17,8 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
 import { useTheme } from '../../../theme/ThemeContext';
+import { useLanguage } from '../../../context/LanguageContext';
+import type { TranslationKeys } from '../../../locales';
 import type { PropertyCategory } from '../../../utils/propertyCategory';
 // joinTypes is intentionally imported (forward-fit anchor per files_modified
 // contract); not consumed in v1 because the +N collapse rule is inlined below.
@@ -29,17 +31,35 @@ export interface BreadcrumbProps {
   types: string[];
 }
 
+// 260603-emq — the breadcrumb previously rendered deal/category/types as raw
+// English even in RU mode (this is where users saw "Residential"/"Commercial"
+// untranslated). Map each domain enum to its existing i18n key and translate
+// at render time. Keys already exist in both locales with EN/RU parity.
+const CATEGORY_KEY: Record<PropertyCategory, TranslationKeys> = {
+  Residential: 'category.residential',
+  Commercial: 'category.commercial',
+  Hospitality: 'category.hospitality',
+};
+
 const Breadcrumb: React.FC<BreadcrumbProps> = ({ deal, category, types }) => {
   const { colors } = useTheme();
+  const { t } = useLanguage();
 
+  const trType = (ty: string): string =>
+    t(`propertyType.${ty.toLowerCase()}` as TranslationKeys);
+
+  const dealLabel: string | null = deal
+    ? t(deal === 'Rent' ? 'filters.deal.rent' : 'filters.deal.buy')
+    : null;
+  const categoryLabel: string | null = category ? t(CATEGORY_KEY[category]) : null;
   const typeSegment: string | null =
     types.length === 0
       ? null
       : types.length === 1
-        ? types[0]
-        : `${types[0]} +${types.length - 1}`;
+        ? trType(types[0])
+        : `${trType(types[0])} +${types.length - 1}`;
 
-  const labels: string[] = [deal, category, typeSegment].filter(
+  const labels: string[] = [dealLabel, categoryLabel, typeSegment].filter(
     (l): l is string => typeof l === 'string' && l.length > 0,
   );
 

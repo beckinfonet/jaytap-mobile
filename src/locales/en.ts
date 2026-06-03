@@ -963,6 +963,9 @@ export const en = {
   'filters.type.multiHint': 'Choose one or more',
   'filters.deal.rent': 'Rent',
   'filters.deal.buy': 'Buy',
+  // 260603-emq — connective for the joined type list in the results summary
+  // breadcrumb (e.g. "apartment or house").
+  'filters.or': 'or',
 
   // Phase 14 Plan 14-02 — Cascading panel (FILT-02) — D-07 namespace subset.
   // Reuses existing 'category.residential|commercial|hospitality' (lines 293-295)

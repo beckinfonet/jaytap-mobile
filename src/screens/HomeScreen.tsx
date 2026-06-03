@@ -651,7 +651,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
             : 'category.hospitality'
         ) as TranslationKeys;
         const categoryLabel = t(categoryKey);
-        const typesLabel = joinTypes(selectedCategory, types, true);
+        // 260603-emq: translate each type + localize the connective so the RU
+        // summary reads "квартира или дом" rather than raw English.
+        const typesLabel = joinTypes(selectedCategory, types, true, {
+          translate: (ty) => t(`propertyType.${ty.toLowerCase()}` as TranslationKeys),
+          connective: t('filters.or'),
+        });
         const breadcrumb = [dealLabel, categoryLabel, typesLabel]
           .filter((s) => s && s.length > 0)
           .join(' · ');

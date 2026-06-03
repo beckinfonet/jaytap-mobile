@@ -221,7 +221,8 @@ const CascadingFilter: React.FC<CascadingFilterProps> = ({
                   ]}
                   numberOfLines={1}
                 >
-                  {typeName}
+                  {/* 260603-emq: translate the property-type chip label (was raw English in RU). */}
+                  {t(`propertyType.${typeName.toLowerCase()}` as TranslationKeys)}
                 </Text>
               </Pressable>
             );
