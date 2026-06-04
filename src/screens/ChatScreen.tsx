@@ -155,7 +155,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                 const isOwner = selectedConversation.listingOwnerUid === user?.localId;
                 const propertyForSchedule: Property = {
                   id: prop.id,
-                  title: prop.title || 'Listing',
+                  title: prop.title || t('chat.listing'),
                   address: prop.address || '',
                   price: 0,
                   currency: '$',
@@ -188,8 +188,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   const renderConversationItem = ({ item }: { item: Conversation }) => {
     const otherName = item.otherUser
-      ? [item.otherUser.firstName, item.otherUser.lastName].filter(Boolean).join(' ') || item.otherUser.email || 'User'
-      : 'User';
+      ? [item.otherUser.firstName, item.otherUser.lastName].filter(Boolean).join(' ') || item.otherUser.email || t('chat.user')
+      : t('chat.user');
     const imageUrl = item.property?.imageUrl;
 
     return (
@@ -210,7 +210,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         <View style={styles.conversationContent}>
           <View style={styles.conversationRow}>
             <Text style={[styles.conversationTitle, { color: colors.text }]} numberOfLines={1}>
-              {item.property?.title || 'Listing'}
+              {item.property?.title || t('chat.listing')}
             </Text>
             <Text style={[styles.conversationTime, { color: colors.textSecondary }]}>
               {formatTime(item.lastMessageAt)}

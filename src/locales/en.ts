@@ -1031,10 +1031,6 @@ export const en = {
   'deleteAccount.invalidMessage': 'Please type "DELETE" exactly to confirm.',
   'deleteAccount.failed': 'Failed to delete account. Please try again or contact support.',
   'deleteAccount.confirmButton': 'Delete Account',
-
-  // Theme toggle (two-line stylized labels; \n preserved for layout)
-  'theme.lightMode': 'LIGHT\nMODE',
-  'theme.darkMode': 'DARK\nMODE',
 } as const;
 
 export type TranslationKeys = keyof typeof en;

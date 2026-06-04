@@ -1019,8 +1019,4 @@ export const ru: Record<TranslationKeys, string> = {
   'deleteAccount.invalidMessage': 'Введите «DELETE» в точности, чтобы подтвердить.',
   'deleteAccount.failed': 'Не удалось удалить аккаунт. Попробуйте ещё раз или обратитесь в поддержку.',
   'deleteAccount.confirmButton': 'Удалить аккаунт',
-
-  // Theme toggle (двухстрочные стилизованные подписи; \n сохранён для вёрстки)
-  'theme.lightMode': 'СВЕТЛАЯ\nТЕМА',
-  'theme.darkMode': 'ТЁМНАЯ\nТЕМА',
 };

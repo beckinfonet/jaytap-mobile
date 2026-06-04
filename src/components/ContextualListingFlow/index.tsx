@@ -388,10 +388,16 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
           testID="contextual-listing-back"
           onPress={handleBack}
           disabled={isSubmitting}
-          style={[commonStyles.footerButton, { backgroundColor: colors.surface }]}
+          // Width-aware: Back sizes to its (short) content instead of taking
+          // half the row, so the long submit label (RU "Отправить на проверку")
+          // gets the remaining width on small screens.
+          style={[commonStyles.footerButton, { flex: 0, paddingHorizontal: 18, backgroundColor: colors.surface }]}
         >
           <ChevronLeft color={colors.text} size={18} />
-          <Text style={[commonStyles.footerButtonText, { color: colors.text }]}>
+          <Text
+            style={[commonStyles.footerButtonText, { color: colors.text }]}
+            numberOfLines={1}
+          >
             {t('common.back')}
           </Text>
         </TouchableOpacity>
@@ -407,7 +413,12 @@ export function ContextualListingFlow(props: ContextualListingFlowProps) {
             isFinalSubmitBlocked ? { opacity: 0.5 } : null,
           ]}
         >
-          <Text style={[commonStyles.footerButtonText, { color: colors.activeChipText }]}>
+          <Text
+            style={[commonStyles.footerButtonText, { color: colors.activeChipText }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+          >
             {submitLabel}
           </Text>
         </TouchableOpacity>

@@ -236,7 +236,7 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
                       { backgroundColor: colors.chipBackground },
                     ]}
                   >
-                    <Icon size={12} color={colors.textSecondary} />
+                    <Icon size={13} color={colors.text} />
                     <Text
                       style={[styles.amenityPreviewText, { color: colors.text }]}
                       numberOfLines={1}
@@ -287,7 +287,7 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
                     onPress={() => onEdit(property)}
                     activeOpacity={0.75}
                   >
-                    <Pencil size={19} color={isDark ? '#111827' : colors.text} strokeWidth={2} />
+                    <Pencil size={19} color={colors.text} strokeWidth={2} />
                   </TouchableOpacity>
                 )}
                 {canArchive && onArchive && (
