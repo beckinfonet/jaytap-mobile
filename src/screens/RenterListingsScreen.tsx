@@ -78,7 +78,7 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
       setProperties(data);
     } catch (error) {
       console.error('Error loading properties:', error);
-      Alert.alert('Error', 'Failed to load your listings');
+      Alert.alert(t('common.error'), t('listings.loadYoursFailed'));
     } finally {
       setLoading(false);
     }
@@ -93,7 +93,7 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
     if (property.media?.tourUrl) {
       onOpenTours(property);
     } else {
-      Alert.alert('Info', 'No 3D Tour available for this property.');
+      Alert.alert(t('common.info'), t('tour.notAvailable'));
     }
   };
 
@@ -104,10 +104,10 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
       if (supported) {
         await Linking.openURL(videoUrl);
       } else {
-        Alert.alert('Error', 'Cannot open Video URL');
+        Alert.alert(t('common.error'), t('tour.cannotOpenVideo'));
       }
     } else {
-      Alert.alert('Info', 'No video available for this property.');
+      Alert.alert(t('common.info'), t('tour.videoNotAvailable'));
     }
   };
 
@@ -212,9 +212,9 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
   const renderHeader = () => (
     <View style={styles.header}>
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <Text style={[styles.backButtonText, { color: colors.text }]}>← Back</Text>
+        <Text style={[styles.backButtonText, { color: colors.text }]}>← {t('common.back')}</Text>
       </TouchableOpacity>
-      <Text style={[styles.headerTitle, { color: colors.text }]}>My Listings</Text>
+      <Text style={[styles.headerTitle, { color: colors.text }]}>{t('listings.myListings')}</Text>
       <View style={{ width: 60 }} />
     </View>
   );

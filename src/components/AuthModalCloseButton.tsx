@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, Text, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 /** Minimum tap target (Apple HIG / Material). */
 const TAP = 44;
@@ -14,12 +15,13 @@ const ICON_CIRCLE = 34;
 export function AuthModalCloseButton({ onPress }: { onPress: () => void }) {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel="Close"
+      accessibilityLabel={t('common.close')}
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       style={({ pressed }) => [
         styles.hitArea,

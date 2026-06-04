@@ -17,6 +17,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, Check, X, Clock } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { AppointmentService } from '../services/AppointmentService';
 import { Appointment, TimeSlot } from '../types/Appointment';
@@ -49,6 +50,7 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
   participantUid,
 }) => {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +70,7 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
       const data = await AppointmentService.getAppointments();
       setAppointments(data);
     } catch (error: any) {
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to load appointments');
+      Alert.alert(t('common.error'), error?.response?.data?.message || t('appointments.loadFailed'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -115,17 +117,17 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
       await AppointmentService.confirmAppointment(a.id, !!a.suggestedSlot);
       loadAppointments();
     } catch (error: any) {
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to confirm');
+      Alert.alert(t('common.error'), error?.response?.data?.message || t('appointments.confirmFailed'));
     } finally {
       setRespondingId(null);
     }
   };
 
   const handleDecline = async (a: Appointment) => {
-    Alert.alert('Decline appointment', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('appointments.declineTitle'), t('appointments.declineConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Decline',
+        text: t('appointments.decline'),
         style: 'destructive',
         onPress: async () => {
           setRespondingId(a.id);
@@ -133,7 +135,7 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
             await AppointmentService.declineAppointment(a.id);
             loadAppointments();
           } catch (error: any) {
-            Alert.alert('Error', error?.response?.data?.message || 'Failed to decline');
+            Alert.alert(t('common.error'), error?.response?.data?.message || t('appointments.declineFailed'));
           } finally {
             setRespondingId(null);
           }
@@ -170,9 +172,9 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
   const renderHeader = () => (
     <View style={[styles.header, { borderBottomColor: colors.border }]}>
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <Text style={[styles.backButtonText, { color: colors.text }]}>← Back</Text>
+        <Text style={[styles.backButtonText, { color: colors.text }]}>← {t('common.back')}</Text>
       </TouchableOpacity>
-      <Text style={[styles.headerTitle, { color: colors.text }]}>Appointments</Text>
+      <Text style={[styles.headerTitle, { color: colors.text }]}>{t('appointments.title')}</Text>
       <View style={{ width: 60 }} />
     </View>
   );
@@ -184,16 +186,18 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
     const otherName = item.otherUser
       ? [item.otherUser.firstName, item.otherUser.lastName].filter(Boolean).join(' ') ||
         item.otherUser.email ||
-        'Unknown'
-      : 'Unknown';
+        t('common.unknown')
+      : t('common.unknown');
     const imageUrl = item.property?.images?.[0] || (item.property as any)?.imageUrl;
 
-    const requesterText = item.isInitiator ? 'Requested by you' : `Requested by ${otherName}`;
+    const requesterText = item.isInitiator
+      ? t('appointments.requestedByYou')
+      : t('appointments.requestedBy', { name: otherName });
     const approverText =
       item.status === 'confirmed'
         ? item.isInitiator
-          ? `, approved by ${otherName}`
-          : ', approved by you'
+          ? `, ${t('appointments.approvedBy', { name: otherName })}`
+          : `, ${t('appointments.approvedByYou')}`
         : '';
 
     return (
@@ -210,14 +214,14 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
           </View>
           <View style={styles.cardContent}>
             <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>
-              {item.property?.title || 'Listing'}
+              {item.property?.title || t('chat.listing')}
             </Text>
             <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
               {requesterText}{approverText}
             </Text>
             <View style={[styles.statusBadge, { backgroundColor: item.status === 'confirmed' ? '#10B981' + '30' : item.status === 'declined' ? '#EF4444' + '30' : colors.accent + '30' }]}>
               <Text style={[styles.statusText, { color: colors.text }]}>
-                {item.status === 'pending' ? 'Pending' : item.status === 'confirmed' ? 'Confirmed' : 'Declined'}
+                {item.status === 'pending' ? t('appointments.pending') : item.status === 'confirmed' ? t('appointments.confirmed') : t('appointments.declined')}
               </Text>
             </View>
             <Text style={[styles.slotText, { color: colors.textSecondary }]}>
@@ -225,7 +229,7 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
             </Text>
             {item.suggestedSlot && item.status === 'pending' && (
               <Text style={[styles.suggestedText, { color: colors.accent }]}>
-                {item.isInitiator ? 'They suggested: ' : 'You suggested: '}{formatSlot(item.suggestedSlot)}
+                {item.isInitiator ? t('appointments.theySuggested') : t('appointments.youSuggested')} {formatSlot(item.suggestedSlot)}
               </Text>
             )}
           </View>
@@ -242,7 +246,7 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
               ) : (
                 <>
                   <Check size={18} color="#FFF" />
-                  <Text style={styles.actionButtonText}>Confirm</Text>
+                  <Text style={styles.actionButtonText}>{t('appointments.confirm')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -253,7 +257,7 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
                 disabled={!!respondingId}
               >
                 <Clock size={18} color={colors.text} />
-                <Text style={[styles.actionButtonTextOutline, { color: colors.text }]}>Suggest</Text>
+                <Text style={[styles.actionButtonTextOutline, { color: colors.text }]}>{t('appointments.suggest')}</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -262,7 +266,7 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
               disabled={!!respondingId}
             >
               <X size={18} color="#FFF" />
-              <Text style={styles.actionButtonText}>Decline</Text>
+              <Text style={styles.actionButtonText}>{t('appointments.decline')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -275,7 +279,7 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
         {renderHeader()}
         <View style={styles.emptyState}>
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Please sign in to view appointments.</Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('appointments.signInPrompt')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -291,9 +295,9 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
       ) : appointments.length === 0 ? (
         <View style={styles.emptyState}>
           <Calendar size={48} color={colors.textSecondary} style={{ marginBottom: 12 }} />
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No appointments yet.</Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('appointments.empty')}</Text>
           <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
-            Schedule a viewing from a property or chat to get started.
+            {t('appointments.emptyHint')}
           </Text>
         </View>
       ) : (
@@ -331,6 +335,7 @@ interface SuggestTimeModalProps {
 }
 
 function SuggestTimeModal({ appointment, visible, onClose, onSuccess, colors }: SuggestTimeModalProps) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [selected, setSelected] = useState<TimeSlot | null>(null);
@@ -355,7 +360,7 @@ function SuggestTimeModal({ appointment, visible, onClose, onSuccess, colors }: 
       await AppointmentService.suggestAppointment(appointment.id, selected);
       onSuccess();
     } catch (error: any) {
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to suggest time');
+      Alert.alert(t('common.error'), error?.response?.data?.message || t('appointments.suggestFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -365,7 +370,7 @@ function SuggestTimeModal({ appointment, visible, onClose, onSuccess, colors }: 
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.modalOverlay}>
         <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.modalTitle, { color: colors.text }]}>Suggest a different time</Text>
+          <Text style={[styles.modalTitle, { color: colors.text }]}>{t('appointments.suggestTime')}</Text>
           {loading ? (
             <ActivityIndicator size="large" color={colors.accent} style={{ marginVertical: 24 }} />
           ) : (
@@ -388,14 +393,14 @@ function SuggestTimeModal({ appointment, visible, onClose, onSuccess, colors }: 
           )}
           <View style={styles.modalActions}>
             <TouchableOpacity style={[styles.modalButton, { backgroundColor: colors.inputBackground }]} onPress={onClose}>
-              <Text style={[styles.modalButtonText, { color: colors.text }]}>Cancel</Text>
+              <Text style={[styles.modalButtonText, { color: colors.text }]}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.modalButton, { backgroundColor: colors.accent }, (!selected || submitting) && { opacity: 0.6 }]}
               onPress={handleSubmit}
               disabled={!selected || submitting}
             >
-              {submitting ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={styles.modalButtonTextWhite}>Suggest</Text>}
+              {submitting ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={styles.modalButtonTextWhite}>{t('appointments.suggest')}</Text>}
             </TouchableOpacity>
           </View>
         </View>

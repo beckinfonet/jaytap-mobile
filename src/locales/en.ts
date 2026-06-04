@@ -15,6 +15,9 @@ export const en = {
   'common.no': 'No',
   // Phase 2 (D-13) — banner dismiss icon label (RejectionBanner "X" button)
   'common.dismiss': 'Dismiss',
+  'common.continue': 'Continue',
+  'common.close': 'Close',
+  'common.unknown': 'Unknown',
 
   // Auth
   'auth.signInRequired': 'Sign In Required',
@@ -378,6 +381,8 @@ export const en = {
   'listings.noListings': 'No listings from this owner.',
   'listings.deleteSuccess': 'Listing deleted successfully',
   'listings.deleteFailed': 'Failed to delete listing. Please try again.',
+  'listings.loadOwnerFailed': 'Failed to load listings from this owner',
+  'listings.loadYoursFailed': 'Failed to load your listings',
 
   // Chat
   'chat.title': 'Chat',
@@ -424,6 +429,8 @@ export const en = {
   'appointments.declineFailed': 'Failed to decline',
   'appointments.suggestFailed': 'Failed to suggest time',
   'appointments.declineConfirm': 'Are you sure?',
+  'appointments.signInPrompt': 'Please sign in to view appointments.',
+  'appointments.declineTitle': 'Decline appointment',
 
   // Schedule Viewing
   'schedule.title': 'Schedule viewing',
@@ -996,6 +1003,38 @@ export const en = {
   'filters.style.masterDesc': 'Categories + types',
   'filters.style.sentenceDesc': 'Plain-language builder',
   'filters.style.comingSoon': 'Coming soon',
+
+  // Home feed
+  'home.loadFailed': 'Failed to load properties',
+
+  // Delete listing modal
+  'deleteListing.title': 'Delete Listing',
+  'deleteListing.message': 'Are you sure you want to delete this listing?',
+  'deleteListing.warning': 'This action cannot be undone. The listing will be permanently removed.',
+  'deleteListing.failed': 'Failed to delete listing. Please try again.',
+
+  // Delete account modal — "DELETE" is the literal word the user must type; it
+  // is intentionally NOT translated (the confirmation check compares to 'DELETE').
+  'deleteAccount.title': 'Delete Account',
+  'deleteAccount.intro': 'This action cannot be undone. Deleting your account will:',
+  'deleteAccount.bullet1': 'Lock your account and sign you out immediately',
+  'deleteAccount.bullet2': 'Delete your favorites and saved searches',
+  'deleteAccount.bullet3': 'Deactivate your listings (they will no longer be visible)',
+  'deleteAccount.bullet4': 'Delete your personal data from our systems',
+  'deleteAccount.bullet5': 'We may retain limited records as required by law or to prevent fraud/abuse',
+  'deleteAccount.account': 'Account: {email}',
+  'deleteAccount.finalTitle': 'Final Confirmation',
+  'deleteAccount.typePromptBefore': 'To confirm account deletion, please type ',
+  'deleteAccount.typePromptAfter': ' below:',
+  'deleteAccount.placeholder': 'Type DELETE to confirm',
+  'deleteAccount.invalidTitle': 'Invalid Confirmation',
+  'deleteAccount.invalidMessage': 'Please type "DELETE" exactly to confirm.',
+  'deleteAccount.failed': 'Failed to delete account. Please try again or contact support.',
+  'deleteAccount.confirmButton': 'Delete Account',
+
+  // Theme toggle (two-line stylized labels; \n preserved for layout)
+  'theme.lightMode': 'LIGHT\nMODE',
+  'theme.darkMode': 'DARK\nMODE',
 } as const;
 
 export type TranslationKeys = keyof typeof en;

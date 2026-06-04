@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 interface DeleteAccountModalProps {
   visible: boolean;
@@ -25,6 +26,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   userEmail,
 }) => {
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const [step, setStep] = useState<'warning' | 'confirmation'>('warning');
   const [confirmationText, setConfirmationText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,7 +43,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
 
   const handleFinalConfirm = async () => {
     if (confirmationText.trim().toUpperCase() !== 'DELETE') {
-      Alert.alert('Invalid Confirmation', 'Please type "DELETE" exactly to confirm.');
+      Alert.alert(t('deleteAccount.invalidTitle'), t('deleteAccount.invalidMessage'));
       return;
     }
 
@@ -52,9 +54,9 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
       handleClose();
     } catch (error: any) {
       console.error('Delete account error:', error);
-      const errorMessage = error?.message || error?.toString() || 'Failed to delete account. Please try again or contact support.';
+      const errorMessage = error?.message || error?.toString() || t('deleteAccount.failed');
       Alert.alert(
-        'Error',
+        t('common.error'),
         errorMessage
       );
     } finally {
@@ -84,30 +86,30 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
           {step === 'warning' ? (
             <>
               <Text style={[styles.title, { color: themeStyles.danger }]}>
-                ⚠️ Delete Account
+                ⚠️ {t('deleteAccount.title')}
               </Text>
               <Text style={[styles.warningText, { color: themeStyles.text }]}>
-                This action cannot be undone. Deleting your account will:
+                {t('deleteAccount.intro')}
               </Text>
               <View style={styles.warningList}>
                 <Text style={[styles.warningItem, { color: themeStyles.textSecondary }]}>
-                  • Lock your account and sign you out immediately
+                  • {t('deleteAccount.bullet1')}
                 </Text>
                 <Text style={[styles.warningItem, { color: themeStyles.textSecondary }]}>
-                  • Delete your favorites and saved searches
+                  • {t('deleteAccount.bullet2')}
                 </Text>
                 <Text style={[styles.warningItem, { color: themeStyles.textSecondary }]}>
-                  • Deactivate your listings (they will no longer be visible)
+                  • {t('deleteAccount.bullet3')}
                 </Text>
                 <Text style={[styles.warningItem, { color: themeStyles.textSecondary }]}>
-                  • Delete your personal data from our systems
+                  • {t('deleteAccount.bullet4')}
                 </Text>
                 <Text style={[styles.warningItem, { color: themeStyles.textSecondary }]}>
-                  • We may retain limited records as required by law or to prevent fraud/abuse
+                  • {t('deleteAccount.bullet5')}
                 </Text>
               </View>
               <Text style={[styles.emailText, { color: themeStyles.text }]}>
-                Account: {userEmail}
+                {t('deleteAccount.account', { email: userEmail ?? '' })}
               </Text>
               <View style={styles.buttonRow}>
                 <TouchableOpacity
@@ -115,25 +117,26 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                   onPress={handleClose}
                 >
                   <Text style={[styles.cancelButtonText, { color: themeStyles.text }]}>
-                    Cancel
+                    {t('common.cancel')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.warningButton, { backgroundColor: themeStyles.danger }]}
                   onPress={handleWarningConfirm}
                 >
-                  <Text style={styles.warningButtonText}>Continue</Text>
+                  <Text style={styles.warningButtonText}>{t('common.continue')}</Text>
                 </TouchableOpacity>
               </View>
             </>
           ) : (
             <>
               <Text style={[styles.title, { color: themeStyles.danger }]}>
-                Final Confirmation
+                {t('deleteAccount.finalTitle')}
               </Text>
               <Text style={[styles.confirmationText, { color: themeStyles.text }]}>
-                To confirm account deletion, please type{' '}
-                <Text style={{ fontWeight: '700', color: themeStyles.danger }}>DELETE</Text> below:
+                {t('deleteAccount.typePromptBefore')}
+                <Text style={{ fontWeight: '700', color: themeStyles.danger }}>DELETE</Text>
+                {t('deleteAccount.typePromptAfter')}
               </Text>
               <TextInput
                 style={[
@@ -146,7 +149,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                 ]}
                 value={confirmationText}
                 onChangeText={setConfirmationText}
-                placeholder="Type DELETE to confirm"
+                placeholder={t('deleteAccount.placeholder')}
                 placeholderTextColor={themeStyles.textSecondary}
                 autoCapitalize="characters"
                 autoCorrect={false}
@@ -159,7 +162,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                   disabled={loading}
                 >
                   <Text style={[styles.cancelButtonText, { color: themeStyles.text }]}>
-                    Back
+                    {t('common.back')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -176,7 +179,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
                   {loading ? (
                     <ActivityIndicator color="#FFF" />
                   ) : (
-                    <Text style={styles.deleteButtonText}>Delete Account</Text>
+                    <Text style={styles.deleteButtonText}>{t('deleteAccount.confirmButton')}</Text>
                   )}
                 </TouchableOpacity>
               </View>

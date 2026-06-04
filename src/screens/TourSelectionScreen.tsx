@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, StatusBar, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Property, Tour } from '../types/Property';
 
 interface TourSelectionScreenProps {
@@ -14,6 +15,7 @@ const { width } = Dimensions.get('window');
 
 export const TourSelectionScreen: React.FC<TourSelectionScreenProps> = ({ property, onSelectTour, onClose }) => {
     const { colors, isDark } = useTheme();
+    const { t } = useLanguage();
 
     const renderTourItem = ({ item }: { item: Tour }) => (
         <TouchableOpacity
@@ -34,13 +36,13 @@ export const TourSelectionScreen: React.FC<TourSelectionScreenProps> = ({ proper
                         <Text style={[styles.playIcon, { color: '#FFF' }]}>▶</Text>
                     </View>
                     <View style={styles.interactiveLabel}>
-                        <Text style={styles.interactiveLabelText}>360° VIEW</Text>
+                        <Text style={styles.interactiveLabelText}>{t('tour.view360')}</Text>
                     </View>
                 </View>
             </View>
             <View style={styles.cardContent}>
                 <Text style={[styles.tourTitle, { color: colors.text }]}>{item.title}</Text>
-                <Text style={[styles.tourSubtitle, { color: colors.textSecondary }]}>Interactive 3D Walkthrough</Text>
+                <Text style={[styles.tourSubtitle, { color: colors.textSecondary }]}>{t('tour.subtitle')}</Text>
             </View>
         </TouchableOpacity>
     );
@@ -51,7 +53,7 @@ export const TourSelectionScreen: React.FC<TourSelectionScreenProps> = ({ proper
 
             <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
                 <View style={[styles.header, { borderBottomColor: colors.border }]}>
-                    <Text style={[styles.headerTitle, { color: colors.text }]}>Select 3D Tour</Text>
+                    <Text style={[styles.headerTitle, { color: colors.text }]}>{t('tour.selectTitle')}</Text>
                     <TouchableOpacity onPress={onClose} style={[styles.closeButton, { backgroundColor: colors.inputBackground }]}>
                         <Text style={[styles.closeText, { color: colors.text }]}>✕</Text>
                     </TouchableOpacity>

@@ -2,9 +2,11 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, Animated } from 'react-native';
 import { Sun, Moon } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export const ThemeToggleSwitch: React.FC = () => {
   const { isDark, toggleTheme } = useTheme();
+  const { t } = useLanguage();
   const slideAnim = React.useRef(new Animated.Value(isDark ? 0 : 1)).current;
 
   React.useEffect(() => {
@@ -43,7 +45,7 @@ export const ThemeToggleSwitch: React.FC = () => {
               },
             ]}
           >
-            LIGHT{'\n'}MODE
+            {t('theme.lightMode')}
           </Text>
         </View>
       )}
@@ -75,7 +77,7 @@ export const ThemeToggleSwitch: React.FC = () => {
               },
             ]}
           >
-            DARK{'\n'}MODE
+            {t('theme.darkMode')}
           </Text>
         </View>
       )}

@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Property } from '../types/Property';
 import { formatAddress } from '../utils/formatAddress';
 
@@ -26,6 +27,7 @@ export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
   property,
 }) => {
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
 
   const handleClose = () => {
@@ -41,8 +43,8 @@ export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
       handleClose();
     } catch (error: any) {
       console.error('Delete listing error:', error);
-      const errorMessage = error?.message || error?.toString() || 'Failed to delete listing. Please try again.';
-      Alert.alert('Error', errorMessage);
+      const errorMessage = error?.message || error?.toString() || t('deleteListing.failed');
+      Alert.alert(t('common.error'), errorMessage);
     } finally {
       setLoading(false);
     }
@@ -67,10 +69,10 @@ export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
       <View style={styles.overlay}>
         <View style={[styles.modalContainer, { backgroundColor: themeStyles.surface }]}>
           <Text style={[styles.title, { color: themeStyles.danger }]}>
-            ⚠️ Delete Listing
+            ⚠️ {t('deleteListing.title')}
           </Text>
           <Text style={[styles.message, { color: themeStyles.text }]}>
-            Are you sure you want to delete this listing?
+            {t('deleteListing.message')}
           </Text>
           {property && (
             <View style={[styles.propertyInfo, { backgroundColor: themeStyles.background, borderColor: themeStyles.border }]}>
@@ -95,7 +97,7 @@ export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
             </View>
           )}
           <Text style={[styles.warningText, { color: themeStyles.textSecondary }]}>
-            This action cannot be undone. The listing will be permanently removed.
+            {t('deleteListing.warning')}
           </Text>
           <View style={styles.buttonRow}>
             <TouchableOpacity
@@ -104,7 +106,7 @@ export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
               disabled={loading}
             >
               <Text style={[styles.cancelButtonText, { color: themeStyles.text }]}>
-                Cancel
+                {t('common.cancel')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -115,7 +117,7 @@ export const DeleteListingModal: React.FC<DeleteListingModalProps> = ({
               {loading ? (
                 <ActivityIndicator color="#FFF" />
               ) : (
-                <Text style={styles.deleteButtonText}>Delete</Text>
+                <Text style={styles.deleteButtonText}>{t('common.delete')}</Text>
               )}
             </TouchableOpacity>
           </View>

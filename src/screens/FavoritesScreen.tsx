@@ -109,10 +109,10 @@ export const FavoritesScreen: React.FC<FavoritesScreenProps> = ({
       if (supported) {
         await Linking.openURL(videoUrl);
       } else {
-        Alert.alert('Error', 'Cannot open Video URL');
+        Alert.alert(t('common.error'), t('tour.cannotOpenVideo'));
       }
     } else {
-      Alert.alert('Info', 'No video available for this property.');
+      Alert.alert(t('common.info'), t('tour.videoNotAvailable'));
     }
   };
 

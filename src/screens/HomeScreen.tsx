@@ -164,7 +164,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onSelectProperty, onOpen
       setProperties(liveOnly);
     } catch (error: any) {
       console.error('[HomeScreen] loadProperties - catch:', error?.message, error);
-      Alert.alert('Error', 'Failed to load properties');
+      Alert.alert(t('common.error'), t('home.loadFailed'));
     } finally {
       setLoading(false);
     }

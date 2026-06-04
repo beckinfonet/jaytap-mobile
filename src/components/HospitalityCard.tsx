@@ -181,7 +181,7 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
           {hasTour && (
             <View style={styles.bottomBadges}>
               <View style={[styles.mediaBadge, styles.tour3DBadge]}>
-                <Text style={styles.tour3DBadgeText}>3D Tour</Text>
+                <Text style={styles.tour3DBadgeText}>{t('property.tourPill')}</Text>
               </View>
             </View>
           )}

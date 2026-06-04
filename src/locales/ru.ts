@@ -17,6 +17,9 @@ export const ru: Record<TranslationKeys, string> = {
   'common.no': 'Нет',
   // Phase 2 (D-13) — banner dismiss icon label (RejectionBanner "X" button)
   'common.dismiss': 'Скрыть',
+  'common.continue': 'Продолжить',
+  'common.close': 'Закрыть',
+  'common.unknown': 'Неизвестно',
 
   // Auth
   'auth.signInRequired': 'Требуется вход',
@@ -380,6 +383,8 @@ export const ru: Record<TranslationKeys, string> = {
   'listings.noListings': 'Нет объявлений от этого владельца.',
   'listings.deleteSuccess': 'Объявление успешно удалено',
   'listings.deleteFailed': 'Не удалось удалить объявление. Попробуйте снова.',
+  'listings.loadOwnerFailed': 'Не удалось загрузить объявления этого владельца.',
+  'listings.loadYoursFailed': 'Не удалось загрузить ваши объявления.',
 
   // Chat
   'chat.title': 'Чаты',
@@ -426,6 +431,8 @@ export const ru: Record<TranslationKeys, string> = {
   'appointments.declineFailed': 'Не удалось отклонить',
   'appointments.suggestFailed': 'Не удалось предложить время',
   'appointments.declineConfirm': 'Вы уверены?',
+  'appointments.signInPrompt': 'Войдите, чтобы посмотреть встречи.',
+  'appointments.declineTitle': 'Отклонить запись',
 
   // Schedule Viewing
   'schedule.title': 'Запланировать просмотр',
@@ -984,4 +991,36 @@ export const ru: Record<TranslationKeys, string> = {
   'filters.style.masterDesc': 'Категории и типы',
   'filters.style.sentenceDesc': 'Конструктор-фраза',
   'filters.style.comingSoon': 'Скоро',
+
+  // Home feed
+  'home.loadFailed': 'Не удалось загрузить объекты.',
+
+  // Delete listing modal
+  'deleteListing.title': 'Удалить объявление',
+  'deleteListing.message': 'Вы уверены, что хотите удалить это объявление?',
+  'deleteListing.warning': 'Это действие необратимо. Объявление будет удалено навсегда.',
+  'deleteListing.failed': 'Не удалось удалить объявление. Попробуйте ещё раз.',
+
+  // Delete account modal — слово "DELETE" пользователь должен ввести буквально;
+  // оно намеренно НЕ переводится (проверка сравнивает ввод со строкой 'DELETE').
+  'deleteAccount.title': 'Удалить аккаунт',
+  'deleteAccount.intro': 'Это действие необратимо. Удаление аккаунта приведёт к следующему:',
+  'deleteAccount.bullet1': 'Ваш аккаунт будет заблокирован, и вы сразу выйдете из системы',
+  'deleteAccount.bullet2': 'Будут удалены избранное и сохранённые поиски',
+  'deleteAccount.bullet3': 'Ваши объявления будут деактивированы (они перестанут отображаться)',
+  'deleteAccount.bullet4': 'Ваши персональные данные будут удалены из наших систем',
+  'deleteAccount.bullet5': 'Мы можем сохранить ограниченные записи в соответствии с требованиями закона или для предотвращения мошенничества и злоупотреблений',
+  'deleteAccount.account': 'Аккаунт: {email}',
+  'deleteAccount.finalTitle': 'Окончательное подтверждение',
+  'deleteAccount.typePromptBefore': 'Для подтверждения удаления аккаунта введите ',
+  'deleteAccount.typePromptAfter': ' ниже:',
+  'deleteAccount.placeholder': 'Введите DELETE для подтверждения',
+  'deleteAccount.invalidTitle': 'Неверное подтверждение',
+  'deleteAccount.invalidMessage': 'Введите «DELETE» в точности, чтобы подтвердить.',
+  'deleteAccount.failed': 'Не удалось удалить аккаунт. Попробуйте ещё раз или обратитесь в поддержку.',
+  'deleteAccount.confirmButton': 'Удалить аккаунт',
+
+  // Theme toggle (двухстрочные стилизованные подписи; \n сохранён для вёрстки)
+  'theme.lightMode': 'СВЕТЛАЯ\nТЕМА',
+  'theme.darkMode': 'ТЁМНАЯ\nТЕМА',
 };
