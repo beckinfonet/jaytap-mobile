@@ -356,6 +356,7 @@ export const RenterListingsScreen: React.FC<RenterListingsScreenProps> = ({
             onEdit={onEditProperty}
             onArchive={handleArchiveProperty}
             showEditButton={true}
+            fullWidth={true}
           />
         }
         ListEmptyComponent={renderEmpty()}

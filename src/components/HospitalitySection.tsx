@@ -34,6 +34,10 @@ interface HospitalitySectionProps {
   onArchive?: (property: Property) => void;
   onUnarchive?: (property: Property) => void;
   showEditButton?: boolean;
+  // When true, cards stretch full-width and stack vertically instead of the
+  // horizontal 280pt strip. Used only by the author's My Listings view
+  // (RenterListingsScreen); public-facing strips keep the horizontal default.
+  fullWidth?: boolean;
 }
 
 export function HospitalitySection({
@@ -48,12 +52,31 @@ export function HospitalitySection({
   onArchive,
   onUnarchive,
   showEditButton = false,
+  fullWidth = false,
 }: HospitalitySectionProps) {
   const { colors } = useTheme();
   const { t } = useLanguage();
 
   // D-01 hidden-when-empty: load-bearing first return
   if (properties.length === 0) return null;
+
+  const renderCard = (item: Property, idx: number) => (
+    <HospitalityCard
+      key={item.id || item.listingId || `hosp-${idx}`}
+      property={item}
+      onPress={onPress}
+      onViewTour={onViewTour}
+      onFavorite={onFavorite}
+      isFavorited={favoriteStatuses?.[item.id] ?? false}
+      isLoading={favoriteLoading?.[item.id] ?? false}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      onArchive={onArchive}
+      onUnarchive={onUnarchive}
+      showEditButton={showEditButton}
+      fullWidth={fullWidth}
+    />
+  );
 
   return (
     <View style={styles.strip}>
@@ -72,29 +95,24 @@ export function HospitalitySection({
           </Text>
         </View>
       </View>
-      <FlatList
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        data={properties}
-        keyExtractor={(item, idx) => item.id || item.listingId || `hosp-${idx}`}
-        renderItem={({ item }) => (
-          <HospitalityCard
-            property={item}
-            onPress={onPress}
-            onViewTour={onViewTour}
-            onFavorite={onFavorite}
-            isFavorited={favoriteStatuses?.[item.id] ?? false}
-            isLoading={favoriteLoading?.[item.id] ?? false}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onArchive={onArchive}
-            onUnarchive={onUnarchive}
-            showEditButton={showEditButton}
-          />
-        )}
-        removeClippedSubviews={Platform.OS === 'android'}
-        contentContainerStyle={styles.flatListContent}
-      />
+      {fullWidth ? (
+        // Author My Listings view: full-width cards stacked vertically. Rendered
+        // as a plain View (not a nested FlatList) since the section mounts inside
+        // a parent FlatList's ListHeaderComponent.
+        <View style={styles.verticalContent}>
+          {properties.map((item, idx) => renderCard(item, idx))}
+        </View>
+      ) : (
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={properties}
+          keyExtractor={(item, idx) => item.id || item.listingId || `hosp-${idx}`}
+          renderItem={({ item, index }) => renderCard(item, index)}
+          removeClippedSubviews={Platform.OS === 'android'}
+          contentContainerStyle={styles.flatListContent}
+        />
+      )}
     </View>
   );
 }
@@ -128,5 +146,10 @@ const styles = StyleSheet.create({
   flatListContent: {
     paddingHorizontal: 20,
     gap: 12,
+  },
+  // fullWidth stacked layout (author My Listings view). Card marginVertical
+  // handles inter-card spacing; horizontal padding matches the strip header.
+  verticalContent: {
+    paddingHorizontal: 20,
   },
 });

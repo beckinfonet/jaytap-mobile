@@ -49,6 +49,10 @@ interface HospitalityCardProps {
   onArchive?: (property: Property) => void;
   onUnarchive?: (property: Property) => void;
   showEditButton?: boolean;
+  // When true, the card stretches to fill its container instead of the fixed
+  // 280pt horizontal-strip width. Used only by the author's My Listings view
+  // (RenterListingsScreen) — public-facing strips keep the 280pt default.
+  fullWidth?: boolean;
 }
 
 export const HospitalityCard: React.FC<HospitalityCardProps> = ({
@@ -63,6 +67,7 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
   onArchive,
   onUnarchive,
   showEditButton = false,
+  fullWidth = false,
 }) => {
   const { colors, isDark } = useTheme();
   const { t } = useLanguage();
@@ -126,7 +131,7 @@ export const HospitalityCard: React.FC<HospitalityCardProps> = ({
   };
 
   return (
-    <View style={[styles.cardContainer, { backgroundColor: colors.surface }]}>
+    <View style={[styles.cardContainer, fullWidth && styles.cardContainerFullWidth, { backgroundColor: colors.surface }]}>
       <TouchableOpacity activeOpacity={0.95} onPress={() => onPress(property)}>
         {/* Hero image + overlays */}
         <View style={styles.imageWrapper}>
@@ -340,6 +345,11 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     marginHorizontal: 0,
     overflow: 'hidden',
+  },
+  // fullWidth override (My Listings author view): stretch to fill the container,
+  // dropping the fixed 280pt strip width. Style-array order beats `width: 280`.
+  cardContainerFullWidth: {
+    width: '100%',
   },
   imageWrapper: {
     height: 200, // OVERRIDE PropertyCard's 250 per UI-SPEC §Spacing
