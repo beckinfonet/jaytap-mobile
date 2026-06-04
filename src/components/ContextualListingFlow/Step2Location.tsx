@@ -59,6 +59,27 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
   const { colors, isDark } = useTheme();
   const { t, language } = useLanguage();
 
+  // Bug 260604 — imperative map recenter. initialRegion is a one-shot prop (consumed
+  // once at mount, when no city is selected), so the map never followed a post-mount
+  // city pick or a successful address geocode — it stayed stuck on the Bishkek default
+  // while the marker rendered off-screen. We keep the map UNCONTROLLED (so the user can
+  // still freely pan / drop / drag a pin — a controlled `region` prop would fight every
+  // gesture) and drive it imperatively via animateToRegion at the two seams that should
+  // follow: city pick (city-overview zoom) and resolved geocode (street-level zoom).
+  const mapRef = useRef<MapView>(null);
+  const animateMapTo = useCallback((lat: number, lng: number, delta: number) => {
+    // Guard on the method, not just the ref: react-native-maps only attaches
+    // animateToRegion once the native view is mounted, so the ref can be non-null
+    // (or a test stub) before the method exists.
+    const map = mapRef.current;
+    if (map && typeof map.animateToRegion === 'function') {
+      map.animateToRegion(
+        { latitude: lat, longitude: lng, latitudeDelta: delta, longitudeDelta: delta },
+        500,
+      );
+    }
+  }, []);
+
   const [cities, setCities] = useState<City[]>([]);
   const [loadingCities, setLoadingCities] = useState(true);
   // Quick-task 260527-0cg — `otherModal` was generic (city|district). District modal
@@ -163,8 +184,12 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
     (slug: string) => {
       // Clear district when city changes — the prior district may not belong to the new city.
       onChange('location', { ...values.location, city: slug, district: '' });
+      // Bug 260604 — recenter the map on the new city (0.05 ≈ city-overview zoom). Guarded:
+      // a pending/"Other" city without a centroid simply skips the animation.
+      const center = cityCentersMap.get(slug);
+      if (center) animateMapTo(center.lat, center.lng, 0.05);
     },
-    [onChange, values.location],
+    [onChange, values.location, cityCentersMap, animateMapTo],
   );
 
   // Quick-task 260527-0cg (Phase 12) — handleSelectDistrict REMOVED. No callers.
@@ -212,13 +237,17 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
           // setting it inline avoids the one-frame flash of pre-canonical text.
           setAddressInput(result.displayName);
           scrollAddressInputToStart();
+          // Bug 260604 — recenter on the resolved point (0.01 ≈ street-level zoom) so the
+          // dropped marker is actually in view. Without this the pin landed off-screen
+          // while the viewport stayed on the mount-time city.
+          animateMapTo(result.lat, result.lng, 0.01);
         } else {
           // explicitly preserve typed text + static pin
           setGeocodingState('notFound');
         }
       }, 800);
     },
-    [onChange, values.location, language],
+    [onChange, values.location, language, animateMapTo],
   );
 
   // Tap-to-drop initial AND tap-to-move fallback per Pitfall 1 (Issue #5445).
@@ -312,6 +341,8 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
       // D-07 optimistic-use: use the new slug immediately. Defensive: clear district
       // (still on FormBag for round-trip compat) in case a legacy bag arrives populated.
       onChange('location', { ...values.location, city: r.city.slug, district: '' });
+      // Bug 260604 — recenter on the new city's centroid (same as a chip pick).
+      animateMapTo(centroid.lat, centroid.lng, 0.05);
       // Refresh chip list so the new (pending) city is visible to caller.
       const updated = await fetchCities();
       setCities(updated);
@@ -322,7 +353,7 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
     } finally {
       setOtherSubmitting(false);
     }
-  }, [otherInput, values.location, onChange, t]);
+  }, [otherInput, values.location, onChange, t, animateMapTo]);
 
   const renderCityChip = ({ item }: { item: City | { slug: '__other__'; label: { ru: string; en: string } } }) => {
     const isOther = item.slug === '__other__';
@@ -418,11 +449,21 @@ export function Step2Location({ values, onChange, errors }: SectionProps) {
         </Text>
         <View style={commonStyles.mapContainer} testID="step2-map-container">
           <MapView
+            ref={mapRef}
             provider={PROVIDER_DEFAULT}
             style={commonStyles.map}
+            // First-paint center only (one-shot). Prefer an already-saved pin (draft/edit
+            // resume), then the selected city centroid, then the Bishkek default. Post-mount
+            // recentering is handled imperatively via animateMapTo (bug 260604).
             initialRegion={{
-              latitude: selectedCityCenter?.lat ?? BISHKEK_DEFAULT.latitude,
-              longitude: selectedCityCenter?.lng ?? BISHKEK_DEFAULT.longitude,
+              latitude:
+                values.location.coordinates?.lat ??
+                selectedCityCenter?.lat ??
+                BISHKEK_DEFAULT.latitude,
+              longitude:
+                values.location.coordinates?.lng ??
+                selectedCityCenter?.lng ??
+                BISHKEK_DEFAULT.longitude,
               latitudeDelta: 0.05,
               longitudeDelta: 0.05,
             }}

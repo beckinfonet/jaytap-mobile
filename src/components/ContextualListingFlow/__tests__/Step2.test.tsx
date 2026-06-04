@@ -44,17 +44,27 @@ jest.mock('../../../context/LanguageContext', () => ({
   }),
 }));
 
+// Captures the imperative animateToRegion(...) calls the component fires through
+// its MapView ref. `mock`-prefixed so babel-plugin-jest-hoist permits referencing
+// it inside the hoisted jest.mock factory below. Cleared in beforeEach.
+const mockAnimateToRegion = jest.fn();
+
 // Replace the globally-stubbed Fragment-based map mock with a richer one that
-// preserves testID + onPress so we can simulate tap-to-drop / tap-to-move events.
+// preserves testID + onPress so we can simulate tap-to-drop / tap-to-move events,
+// and forwards a ref exposing animateToRegion (the imperative recenter path).
 jest.mock('react-native-maps', () => {
   const ReactM = require('react');
   const { View } = require('react-native');
-  const MapView = ({ children, onPress, testID, initialRegion, ...rest }: any) =>
-    ReactM.createElement(
-      View,
-      { testID: testID ?? 'mock-mapview', onPress, initialRegion, ...rest },
-      children,
-    );
+  const MapView = ReactM.forwardRef(
+    ({ children, onPress, testID, initialRegion, ...rest }: any, ref: any) => {
+      ReactM.useImperativeHandle(ref, () => ({ animateToRegion: mockAnimateToRegion }), []);
+      return ReactM.createElement(
+        View,
+        { testID: testID ?? 'mock-mapview', onPress, initialRegion, ...rest },
+        children,
+      );
+    },
+  );
   const Marker = ({ testID, draggable, onDragEnd, coordinate, ...rest }: any) =>
     ReactM.createElement(View, {
       testID: testID ?? 'mock-marker',
@@ -163,6 +173,7 @@ const SAMPLE_DISTRICTS = [
 describe('Step2Location (Plan 02-03)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAnimateToRegion.mockClear();
     fetchCitiesMock.mockResolvedValue(SAMPLE_CITIES);
     fetchDistrictsMock.mockResolvedValue(SAMPLE_DISTRICTS);
   });
@@ -269,6 +280,58 @@ describe('Step2Location (Plan 02-03)', () => {
     const map = findByTestID(root, 'step2-map-container').findByProps({ testID: 'mock-mapview' });
     expect(map.props.initialRegion.latitude).toBeCloseTo(42.8746, 4);
     expect(map.props.initialRegion.longitude).toBeCloseTo(74.5698, 4);
+  });
+
+  // Test 7b — REGRESSION (bug 260604): picking a city chip AFTER mount must imperatively
+  // recenter the map on that city's centroid. initialRegion is one-shot (consumed at
+  // mount, when no city is selected), so without animateToRegion the map stayed stuck on
+  // the Bishkek default no matter which city the user tapped.
+  test('picking a city chip animates the map to that city centroid (regression)', async () => {
+    const { root } = await renderStep2();
+    await ReactTestRenderer.act(async () => {
+      // Tap Osh (centroid 40.5283, 72.7985) — far from the Bishkek mount default.
+      findByTestID(root, 'city-chip-osh').props.onPress();
+    });
+    expect(mockAnimateToRegion).toHaveBeenCalledTimes(1);
+    const region = mockAnimateToRegion.mock.calls[0][0];
+    expect(region.latitude).toBeCloseTo(40.5283, 4);
+    expect(region.longitude).toBeCloseTo(72.7985, 4);
+  });
+
+  // Test 7c — REGRESSION (bug 260604): a successful forward geocode of a typed address
+  // must recenter the map on the resolved coordinates. This is the exact reported
+  // symptom — select Cholpon-Ata/Karakol, type an exact address, map didn't move.
+  test('successful forward geocode animates the map to the resolved coordinates (regression)', async () => {
+    jest.useFakeTimers();
+    try {
+      geocodeAddressMock.mockResolvedValueOnce({
+        lat: 42.65, // Kara-Oy / Issyk-Kul region — far from the Bishkek default
+        lng: 77.08,
+        displayName: 'Советская улица, Kara-Oy, Issyk-Kul District',
+      });
+      const values: FormBag = {
+        ...emptyFormBag(),
+        propertyType: 'apartment',
+        location: { ...emptyFormBag().location, showExactAddress: true, city: 'osh' },
+      };
+      const { root } = await renderStep2({ values });
+      const input = findByTestID(root, 'step2-address-input');
+      await ReactTestRenderer.act(async () => {
+        input.props.onChangeText('Советская улица');
+      });
+      await ReactTestRenderer.act(async () => {
+        jest.advanceTimersByTime(810);
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(geocodeAddressMock).toHaveBeenCalledTimes(1);
+      const recenterCall = mockAnimateToRegion.mock.calls.find(
+        ([r]) => Math.abs(r.latitude - 42.65) < 1e-4 && Math.abs(r.longitude - 77.08) < 1e-4,
+      );
+      expect(recenterCall).toBeTruthy();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   // Test 8
