@@ -18,7 +18,7 @@ export const ThemeToggleSwitch: React.FC = () => {
 
   const translateX = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [3, 43], // Slide left (dark) → right (light): width 78 − knob 32 − 3 left pad
+    outputRange: [3, 25], // Slide left (dark) → right (light): width 60 − knob 32 − 3 right pad
   });
 
   return (
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3,
     paddingVertical: 3,
     borderRadius: 20,
-    width: 78,
+    width: 60,
     height: 40,
     position: 'relative',
     shadowOffset: { width: 0, height: 2 },
